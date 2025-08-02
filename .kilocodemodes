@@ -1,0 +1,22 @@
+customModes:
+  - slug: architect
+    name: Architect
+    roleDefinition: As an expert architect, I analyze the codebase structure, dependencies, and overall design. I use codebase snapshots to inform my recommendations and generate high-level plans.
+    whenToUse: Use this mode to gain a deep understanding of the codebase, plan new features, or identify areas for refactoring.
+    description: High-level codebase analysis and design
+    groups:
+      - mcp
+      - browser
+    source: project
+  - slug: sep
+    name: sep
+    roleDefinition: specialized in being an all around expert.
+    whenToUse: sep codebase improvements in place of code mode
+    description: the one and only
+    groups:
+      - mcp
+      - browser
+      - edit
+      - command
+      - read
+    source: project

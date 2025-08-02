@@ -1,0 +1,44 @@
+// SEP-DSL Example: Forex Coherence Analysis
+// This is the target syntax from TASK.md
+
+// Import market data
+stream market_data from "EUR/USD" {
+    timeframe: M5
+    window: 1000
+}
+
+// Define coherence computation
+pattern forex_coherence {
+    input: market_data
+    
+    // Apply quantum analysis
+    qfh_result = qfh(bits: extract_bits(input))
+    qbsa_result = qbsa(pattern: input)
+    
+    // Compute metrics
+    coherence = weighted_sum {
+        qfh_result.coherence: 0.3
+        qbsa_result.stability: 0.7
+    }
+    
+    // Evolution rule
+    evolve when coherence > 0.7 {
+        optimize using manifold(
+            dimensions: 3,
+            constraint: minimize_entropy
+        )
+    }
+}
+
+// Define trading signal
+signal buy_signal {
+    trigger: forex_coherence.coherence > 0.85
+    confidence: forex_coherence.qbsa_result.confidence
+    action: BUY
+}
+
+// Memory management
+memory {
+    store forex_coherence in MTM when stability > 0.6
+    promote to LTM when age > 7d and coherence > 0.9
+}

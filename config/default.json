@@ -1,0 +1,41 @@
+{
+    "api": {
+        "host": "127.0.0.1",
+        "port": 8080,
+        "threads": 4,
+        "log_level": "info",
+        "max_batch_size": 1024,
+        "enable_metrics": true,
+        "keep_alive_timeout_ms": 15000,
+        "cors": {
+            "enabled": false,
+            "allowed_origins": "*"
+        }
+    },
+    "logging": {
+        "level": "info",
+        "log_dir": "logs",
+        "log_file": "sep.log",
+        "console_output": true,
+        "file_output": true
+    },
+    "memory": {
+        "promote_stm_to_mtm": 0.7,
+        "promote_mtm_to_ltm": 0.9,
+        "demote_threshold": 0.3,
+        "stm_size": 1048576,
+        "mtm_size": 4194304,
+        "ltm_size": 16777216,
+        "stm_to_mtm_min_gen": 5,
+        "mtm_to_ltm_min_gen": 100,
+        "use_unified_memory": true,
+        "enable_compression": true,
+        "stm_pool_size": 10000,
+        "stm_cleanup_threshold": 0.9
+    },
+    "quantum": {
+        "ltm_coherence_threshold": 0.9,
+        "mtm_coherence_threshold": 0.6,
+        "stability_threshold": 0.8
+    }
+}

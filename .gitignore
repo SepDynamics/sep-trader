@@ -1,0 +1,111 @@
+# Build Artifacts
+_build/
+sep-build/
+out/
+dist/
+bin/
+output/
+CMakeFiles/
+cache/
+Makefile
+_work/
+_diag/
+_deps/
+.codechecker/
+backup-src/
+temp_train_chunks/
+opentelemetry-cpp/
+workspace/
+actions-runner/
+*build*/
+*/build/
+Testing/OANDA/sample_48h.json
+cmake-build-*/
+
+# Compiled Files
+*.o
+*.a
+*.so
+*.dll
+*.exe
+*.obj
+*.lib
+*.dylib
+*.tar.gz
+*.cu.o
+*.device-link.o
+*.ptx
+*.cubin
+*.fatbin
+*.deb
+
+# Dependencies
+vendor/
+extern/
+!extern/crow
+third_party/
+!third_party/imgui
+!third_party/implot
+cmake-make/
+intern/
+source/
+release/
+externals/
+boost/
+tbb/
+temp/
+ollama/
+.turbo/
+node_modules/
+asio/
+
+# IDE & Editor Files
+.idea/
+.cache/
+*.swp
+*.swo
+# .vscode/
+
+# OS Generated Files
+.DS_Store
+Thumbs.db
+.Trash-1000/
+
+# Log & Data Files
+*.log
+logs/
+metrics.json
+market_data.csv
+*.sqlite
+*.nsys-rep
+
+# Security
+.env*
+*.key
+*.pem
+secrets/
+
+# Testing
+coverage/
+.nyc_output/
+test-results/
+.pytest_cache/
+
+# Generated Files
+.embeddings/
+CMakeCache.txt
+build.ninja
+compile_commands.json
+.ninja_deps
+.ninja_log
+build.log
+cmake_install.cmake
+CMakeScripts/
+CMakeTmp/
+DartConfiguration.tcl
+
+# Project Specific
+sep_engine
+sep_workbench
+build.sh
+temp_test_chunks

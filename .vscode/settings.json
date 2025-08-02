@@ -1,0 +1,10 @@
+{
+  "amp.experimental.connections": true,
+  "terminal.integrated.autoRun.prevent": [
+  ],
+  "npm.autoDetect": "off",
+  "npm.exclude": [
+    "**/mcp-tool",
+    "**/extern/Kilo-Code/webview-ui"
+  ]
+}

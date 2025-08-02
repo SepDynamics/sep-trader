@@ -1,0 +1,77 @@
+{
+  "mcpServers": {
+    "filesystem": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-filesystem",
+        "/sep"
+      ],
+      "alwaysAllow": [
+        "get_file_info",
+        "list_allowed_directories",
+        "search_files",
+        "move_file",
+        "directory_tree",
+        "list_directory_with_sizes",
+        "create_directory",
+        "write_file",
+        "read_multiple_files",
+        "read_file",
+        "list_directory",
+        "edit_file",
+        "delete_file",
+        "apply_diff"
+      ]
+    },
+    "sequentialthinking": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-sequential-thinking"
+      ],
+      "alwaysAllow": [
+        "sequentialthinking"
+      ]
+    },
+    "memory": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-memory"
+      ],
+      "alwaysAllow": [
+        "create_entities",
+        "create_relations",
+        "add_observations",
+        "delete_entities",
+        "delete_observations",
+        "search_nodes",
+        "read_graph",
+        "delete_relations",
+        "open_nodes"
+      ]
+    },
+    "context7": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@upstash/context7-mcp"
+      ],
+      "alwaysAllow": [
+        "resolve-library-id",
+        "get-library-docs"
+      ]
+    },
+    "robust_build_analyzer": {
+      "command": "python3",
+      "args": [
+        "/sep/.kilocode/mcp/tools/robust_build_analyzer/main.py"
+      ],
+      "alwaysAllow": [
+        "analyze_build"
+      ],
+      "disabled": true
+    }
+  }
+}

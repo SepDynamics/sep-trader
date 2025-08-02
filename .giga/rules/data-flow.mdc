@@ -1,0 +1,61 @@
+---
+description: Documents data flow patterns in a quantum-inspired pattern processing system with multi-tier memory management
+globs: src/**/*.cpp,src/**/*.h,src/**/*.cu,src/quantum/*,src/memory/*,src/engine/*
+alwaysApply: false
+---
+
+
+# data-flow
+
+## Core Pattern Processing Flow
+The pattern processing pipeline flows through multiple stages:
+
+1. Input Pattern Ingestion
+- Raw patterns enter through src/api/bridge.cpp
+- Patterns undergo quantum state mapping in src/quantum/processor.cpp
+- Initial coherence metrics calculated 
+- Pattern assigned to STM tier
+
+2. Pattern Evolution
+- Patterns evolve through quantum state transitions in memory tiers:
+  - STM: Initial pattern storage, coherence validation
+  - MTM: Patterns meeting stability thresholds
+  - LTM: Highly stable, generationally proven patterns
+- Evolution tracked through src/quantum/pattern_evolution.cpp
+
+3. Quantum State Transformations
+- Patterns undergo state changes based on:
+  - Coherence levels
+  - Stability metrics 
+  - Generational age
+  - Usage frequency
+- State management handled by src/quantum/quantum_processor.cpp
+
+4. Memory Tier Transitions
+- Coherence thresholds trigger promotion/demotion
+- src/memory/memory_tier_manager.cpp controls:
+  - Pattern migration between tiers
+  - Tier utilization optimization
+  - Pattern relationship preservation
+  - Coherence-based defragmentation
+
+5. Pattern Analysis Output
+- Pattern metrics flow to src/quantum/pattern_metric_engine.cpp
+- Trading signals generated based on:
+  - Pattern coherence
+  - Stability metrics
+  - Quantum state analysis
+- Results pushed through API endpoints
+
+Key Data Flow Components:
+- Pattern ingestion and quantum mapping
+- Multi-tier memory transitions
+- State-based pattern evolution
+- Coherence-driven optimization
+- Signal generation pipeline
+
+The system maintains quantum-inspired pattern processing with sophisticated memory management and state transitions, focused on pattern evolution and relationship preservation.
+
+$END$
+
+ If you're using this file in context, clearly say in italics in one small line that "Context added by Giga data-flow" along with specifying exactly what information was used from this file in a human-friendly way, instead of using kebab-case use normal sentence case.

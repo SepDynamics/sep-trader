@@ -1,0 +1,78 @@
+---
+description: Specification for quantum-inspired algorithms used in pattern recognition and financial analysis
+globs: src/quantum/*,src/engine/quantum*,src/memory/quantum*
+alwaysApply: false
+---
+
+
+# quantum-algorithms
+
+## Core Quantum Pattern Processing
+
+1. Quantum Binary State Analysis (QBSA)
+- Core quantum pattern recognition engine 
+- Analyzes market patterns through quantum state vectors
+- Detection of state transitions: stable, collapsed, quantum
+- Pattern coherence calculation through quantum metrics
+
+File: src/quantum/qbsa.cpp
+```cpp
+// State classification thresholds
+coherence_threshold = 0.7  // Stable state
+collapse_threshold = 0.3   // Collapsed state
+quantum_range = 0.3-0.7   // Quantum state
+```
+
+2. Quantum Fourier Hierarchy (QFH)
+- Hierarchical quantum pattern analysis
+- Three quantum state classifications:
+  * NULL_STATE: No transition
+  * FLIP: Bit state changes
+  * RUPTURE: Sustained state change
+- Pattern evolution through quantum state transitions
+
+File: src/quantum/qfh.cpp
+
+3. Memory Tier System
+- Quantum-inspired three-tier architecture:
+  * STM (Short-term Memory)
+  * MTM (Medium-term Memory) 
+  * LTM (Long-term Memory)
+- Coherence thresholds for tier transitions:
+  * STM -> MTM: 0.7
+  * MTM -> LTM: 0.9
+- Pattern stability tracking across tiers
+
+File: src/memory/quantum_coherence_manager.cpp
+
+4. Pattern Evolution System
+- Quantum state vectors for pattern representation
+- Coherence calculation through phase relationships
+- Evolution through quantum superposition states
+- Pattern entanglement tracking and strength calculation
+
+Files:
+- src/quantum/pattern_evolution.cpp
+- src/quantum/pattern_processor.cpp
+
+## Quantum Optimization
+
+1. Manifold Optimization
+- Gradient descent on quantum manifolds
+- Coherence-based optimization metrics
+- Tangent space sampling for descent directions
+- Adaptive step size based on quantum states
+
+File: src/quantum/quantum_manifold_optimizer.cpp
+
+2. Pattern Metrics
+- Coherence: Internal pattern consistency
+- Stability: Resistance to state changes
+- Entropy: Pattern complexity measure
+- Combined quantum state scoring
+
+File: src/quantum/pattern_metric_engine.cpp
+
+$END$
+
+ If you're using this file in context, clearly say in italics in one small line that "Context added by Giga quantum-algorithms" along with specifying exactly what information was used from this file in a human-friendly way, instead of using kebab-case use normal sentence case.
