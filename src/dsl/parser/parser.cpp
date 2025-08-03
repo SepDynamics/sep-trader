@@ -71,17 +71,25 @@ std::unique_ptr<ast::PatternDecl> Parser::parse_pattern() {
     auto pattern_decl = std::make_unique<ast::PatternDecl>();
     pattern_decl->name = name;
     
+    // Check for inheritance
+    if (current_token_.type == ast::TokenType::INHERITS) {
+        advance(); // consume 'inherits'
+        pattern_decl->parent_pattern = current_token_.value;
+        expect(ast::TokenType::IDENTIFIER, "Expected parent pattern name after 'inherits'");
+    }
+    
     expect(ast::TokenType::LBRACE, "Expected '{'");
     
     // Parse input declarations
-    while (current_token_.type == ast::TokenType::INPUT) {
+    if (current_token_.type == ast::TokenType::INPUT) {
         advance(); // consume 'input'
         expect(ast::TokenType::COLON, "Expected ':'");
         
-        auto input_name = current_token_.value;
-        expect(ast::TokenType::IDENTIFIER, "Expected input name");
-        
-        pattern_decl->inputs.push_back(input_name);
+        do {
+            auto input_name = current_token_.value;
+            expect(ast::TokenType::IDENTIFIER, "Expected input name");
+            pattern_decl->inputs.push_back(input_name);
+        } while (current_token_.type == ast::TokenType::COMMA && (advance(), true));
     }
     
     // Parse pattern body (statements)
@@ -109,15 +117,18 @@ std::unique_ptr<ast::SignalDecl> Parser::parse_signal() {
             advance(); // consume 'trigger'
             expect(ast::TokenType::COLON, "Expected ':'");
             signal_decl->trigger = parse_expression();
+            expect(ast::TokenType::SEMICOLON, "Expected ';' after trigger expression");
         } else if (current_token_.value == "confidence") {
             advance(); // consume 'confidence'
             expect(ast::TokenType::COLON, "Expected ':'");
             signal_decl->confidence = parse_expression();
+            expect(ast::TokenType::SEMICOLON, "Expected ';' after confidence expression");
         } else if (current_token_.value == "action") {
             advance(); // consume 'action'
             expect(ast::TokenType::COLON, "Expected ':'");
             signal_decl->action = current_token_.value;
-            expect(ast::TokenType::IDENTIFIER, "Expected action name");
+            expect(ast::TokenType::STRING, "Expected action name as a string literal");
+            expect(ast::TokenType::SEMICOLON, "Expected ';' after action value");
         } else {
             advance(); // Skip unknown properties
         }
@@ -139,6 +150,31 @@ std::vector<std::unique_ptr<ast::Statement>> Parser::parse_block() {
 }
 
 std::unique_ptr<ast::Statement> Parser::parse_statement() {
+    // Check for evolve statement
+    if (current_token_.type == ast::TokenType::EVOLVE) {
+        return parse_evolve_statement();
+    }
+
+    // Check for if statement
+    if (current_token_.type == ast::TokenType::IF) {
+        return parse_if_statement();
+    }
+
+    // Check for while statement
+    if (current_token_.type == ast::TokenType::WHILE) {
+        return parse_while_statement();
+    }
+
+    // Check for function declaration
+    if (current_token_.type == ast::TokenType::FUNCTION) {
+        return parse_function_declaration();
+    }
+
+    // Check for return statement
+    if (current_token_.type == ast::TokenType::RETURN) {
+        return parse_return_statement();
+    }
+
     // Check for assignment (identifier = expression)
     if (current_token_.type == ast::TokenType::IDENTIFIER) {
         // Look ahead to see if this is an assignment
@@ -354,7 +390,30 @@ std::unique_ptr<ast::Expression> Parser::parse_primary() {
         return expr;
     }
     
+    if (current_token_.type == ast::TokenType::WEIGHTED_SUM) {
+       return parse_weighted_sum();
+    }
+    
     throw std::runtime_error("Unexpected token in expression: " + current_token_.value);
+}
+
+std::unique_ptr<ast::WeightedSum> Parser::parse_weighted_sum() {
+   expect(ast::TokenType::WEIGHTED_SUM, "Expected 'weighted_sum' keyword.");
+   expect(ast::TokenType::LBRACE, "Expected '{' after 'weighted_sum'.");
+
+   auto weighted_sum = std::make_unique<ast::WeightedSum>();
+
+   if (current_token_.type != ast::TokenType::RBRACE) {
+       do {
+           auto weight = parse_expression();
+           expect(ast::TokenType::COLON, "Expected ':' separating weight and value.");
+           auto value = parse_expression();
+           weighted_sum->pairs.emplace_back(std::move(weight), std::move(value));
+       } while (current_token_.type == ast::TokenType::COMMA && (advance(), true));
+   }
+
+   expect(ast::TokenType::RBRACE, "Expected '}' to close 'weighted_sum' block.");
+   return weighted_sum;
 }
 
 std::vector<std::unique_ptr<ast::Expression>> Parser::parse_argument_list() {
@@ -389,6 +448,101 @@ std::unordered_map<std::string, std::string> Parser::parse_parameter_list() {
     }
     
     return parameters;
+}
+
+std::unique_ptr<ast::EvolveStatement> Parser::parse_evolve_statement() {
+    expect(ast::TokenType::EVOLVE, "Expected 'evolve' keyword.");
+    expect(ast::TokenType::WHEN, "Expected 'when' after 'evolve'.");
+    
+    auto evolve_stmt = std::make_unique<ast::EvolveStatement>();
+    evolve_stmt->condition = parse_expression();
+    
+    expect(ast::TokenType::LBRACE, "Expected '{' after evolve condition.");
+    evolve_stmt->body = parse_block();
+    expect(ast::TokenType::RBRACE, "Expected '}' to close evolve block.");
+    
+    return evolve_stmt;
+}
+
+std::unique_ptr<ast::IfStatement> Parser::parse_if_statement() {
+    expect(ast::TokenType::IF, "Expected 'if' keyword.");
+    expect(ast::TokenType::LPAREN, "Expected '(' after 'if'.");
+    
+    auto if_stmt = std::make_unique<ast::IfStatement>();
+    if_stmt->condition = parse_expression();
+    
+    expect(ast::TokenType::RPAREN, "Expected ')' after condition.");
+    expect(ast::TokenType::LBRACE, "Expected '{' after if condition.");
+    if_stmt->then_branch = parse_block();
+    expect(ast::TokenType::RBRACE, "Expected '}' to close if block.");
+    
+    // Optional else branch
+    if (current_token_.type == ast::TokenType::ELSE) {
+        advance(); // consume 'else'
+        expect(ast::TokenType::LBRACE, "Expected '{' after 'else'.");
+        if_stmt->else_branch = parse_block();
+        expect(ast::TokenType::RBRACE, "Expected '}' to close else block.");
+    }
+    
+    return if_stmt;
+}
+
+std::unique_ptr<ast::WhileStatement> Parser::parse_while_statement() {
+    expect(ast::TokenType::WHILE, "Expected 'while' keyword.");
+    expect(ast::TokenType::LPAREN, "Expected '(' after 'while'.");
+    
+    auto while_stmt = std::make_unique<ast::WhileStatement>();
+    while_stmt->condition = parse_expression();
+    
+    expect(ast::TokenType::RPAREN, "Expected ')' after condition.");
+    expect(ast::TokenType::LBRACE, "Expected '{' after while condition.");
+    while_stmt->body = parse_block();
+    expect(ast::TokenType::RBRACE, "Expected '}' to close while block.");
+    
+    return while_stmt;
+}
+
+std::unique_ptr<ast::FunctionDeclaration> Parser::parse_function_declaration() {
+    expect(ast::TokenType::FUNCTION, "Expected 'function' keyword.");
+    
+    auto name = current_token_.value;
+    expect(ast::TokenType::IDENTIFIER, "Expected function name.");
+    
+    expect(ast::TokenType::LPAREN, "Expected '(' after function name.");
+    
+    auto func_decl = std::make_unique<ast::FunctionDeclaration>();
+    func_decl->name = name;
+    
+    // Parse parameter list
+    if (current_token_.type != ast::TokenType::RPAREN) {
+        do {
+            auto param = current_token_.value;
+            expect(ast::TokenType::IDENTIFIER, "Expected parameter name");
+            func_decl->parameters.push_back(param);
+        } while (current_token_.type == ast::TokenType::COMMA && (advance(), true));
+    }
+    
+    expect(ast::TokenType::RPAREN, "Expected ')' after parameters.");
+    expect(ast::TokenType::LBRACE, "Expected '{' before function body.");
+    
+    // Parse function body
+    func_decl->body = parse_block();
+    expect(ast::TokenType::RBRACE, "Expected '}' after function body.");
+    
+    return func_decl;
+}
+
+std::unique_ptr<ast::ReturnStatement> Parser::parse_return_statement() {
+    expect(ast::TokenType::RETURN, "Expected 'return' keyword.");
+    
+    auto return_stmt = std::make_unique<ast::ReturnStatement>();
+    
+    // Parse return value if present (not a void return)
+    if (current_token_.type != ast::TokenType::SEMICOLON) {
+        return_stmt->value = parse_expression();
+    }
+    
+    return return_stmt;
 }
 
 } // namespace dsl::parser

@@ -42,5 +42,9 @@ private:
     // Advanced constructs
     std::unique_ptr<ast::WeightedSum> parse_weighted_sum();
     std::unique_ptr<ast::EvolveStatement> parse_evolve_statement();
+    std::unique_ptr<ast::IfStatement> parse_if_statement();
+    std::unique_ptr<ast::WhileStatement> parse_while_statement();
+    std::unique_ptr<ast::FunctionDeclaration> parse_function_declaration();
+    std::unique_ptr<ast::ReturnStatement> parse_return_statement();
 };
 }

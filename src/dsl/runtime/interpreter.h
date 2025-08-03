@@ -1,16 +1,59 @@
 #pragma once
-#include "dsl/ast/nodes.h"
-#include <unordered_map>
-#include <string>
 #include <any>
+#include <stdexcept>
+#include <string>
+#include <unordered_map>
+#include <vector>
+
+#include "dsl/ast/nodes.h"
 
 namespace dsl::runtime {
 
-// A simple variant-like type for our language
-using Value = std::any;
+    // Forward declarations
+    class Environment;
+    class Interpreter;
+    class Callable;
 
-// PatternResult holds the variables computed within a pattern
-using PatternResult = std::unordered_map<std::string, Value>;
+    // A simple variant-like type for our language
+    using Value = std::any;
+
+    // PatternResult holds the variables computed within a pattern
+    using PatternResult = std::unordered_map<std::string, Value>;
+
+    // Exception for handling return statements
+    class ReturnException : public std::runtime_error
+    {
+    public:
+        ReturnException(const Value& value) : std::runtime_error("return"), value_(value) {}
+        const Value& value() const { return value_; }
+
+    private:
+        Value value_;
+    };
+
+    // Interface for callable objects
+    class Callable
+    {
+    public:
+        virtual ~Callable() = default;
+        virtual Value call(Interpreter& interpreter, const std::vector<Value>& arguments) = 0;
+    };
+
+    // User-defined function implementation
+    class UserFunction : public Callable
+    {
+    public:
+        UserFunction(const ast::FunctionDeclaration& declaration, Environment* closure)
+            : declaration_(declaration), closure_(closure)
+        {
+        }
+
+        Value call(Interpreter& interpreter, const std::vector<Value>& arguments) override;
+
+    private:
+        const ast::FunctionDeclaration& declaration_;
+        Environment* closure_;
+    };
 
 class Environment {
 private:
@@ -30,13 +73,16 @@ public:
 };
 
 class Interpreter {
+    friend class UserFunction;
+
 public:
     void interpret(const ast::Program& program);
 
 private:
     Environment globals_;
     Environment* environment_;
-    
+    const ast::Program* program_;  // Pointer to the current program being interpreted
+
     // Methods to "visit" and execute each AST node type
     Value evaluate(const ast::Expression& expr);
     void execute(const ast::Statement& stmt);
@@ -48,11 +94,17 @@ private:
     Value visit_binary_op(const ast::BinaryOp& node);
     Value visit_call(const ast::Call& node);
     Value visit_member_access(const ast::MemberAccess& node);
-    
+    Value visit_weighted_sum(const ast::WeightedSum& node);
+
     // Statement execution visitors
     void visit_assignment(const ast::Assignment& node);
     void visit_expression_statement(const ast::ExpressionStatement& node);
-    
+    void visit_evolve_statement(const ast::EvolveStatement& node);
+    void visit_if_statement(const ast::IfStatement& node);
+    void visit_while_statement(const ast::WhileStatement& node);
+    void visit_function_declaration(const ast::FunctionDeclaration& node);
+    void visit_return_statement(const ast::ReturnStatement& node);
+
     // Declaration handling
     void execute_stream_decl(const ast::StreamDecl& decl);
     void execute_pattern_decl(const ast::PatternDecl& decl);

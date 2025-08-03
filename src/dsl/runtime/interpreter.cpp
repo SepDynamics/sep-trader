@@ -39,6 +39,7 @@ void Environment::assign(const std::string& name, const Value& value) {
 // Interpreter implementation
 void Interpreter::interpret(const ast::Program& program) {
     environment_ = &globals_;
+    program_ = &program;
     
     try {
         // Execute stream declarations
@@ -81,6 +82,9 @@ Value Interpreter::evaluate(const ast::Expression& expr) {
     if (const auto* member_access = dynamic_cast<const ast::MemberAccess*>(&expr)) {
         return visit_member_access(*member_access);
     }
+    if (const auto* weighted_sum = dynamic_cast<const ast::WeightedSum*>(&expr)) {
+       return visit_weighted_sum(*weighted_sum);
+    }
     
     throw std::runtime_error("Unknown expression type");
 }
@@ -90,6 +94,16 @@ void Interpreter::execute(const ast::Statement& stmt) {
         visit_assignment(*assignment);
     } else if (const auto* expr_stmt = dynamic_cast<const ast::ExpressionStatement*>(&stmt)) {
         visit_expression_statement(*expr_stmt);
+    } else if (const auto* evolve_stmt = dynamic_cast<const ast::EvolveStatement*>(&stmt)) {
+        visit_evolve_statement(*evolve_stmt);
+    } else if (const auto* if_stmt = dynamic_cast<const ast::IfStatement*>(&stmt)) {
+        visit_if_statement(*if_stmt);
+    } else if (const auto* while_stmt = dynamic_cast<const ast::WhileStatement*>(&stmt)) {
+        visit_while_statement(*while_stmt);
+    } else if (const auto* func_decl = dynamic_cast<const ast::FunctionDeclaration*>(&stmt)) {
+        visit_function_declaration(*func_decl);
+    } else if (const auto* return_stmt = dynamic_cast<const ast::ReturnStatement*>(&stmt)) {
+        visit_return_statement(*return_stmt);
     } else {
         throw std::runtime_error("Unknown statement type");
     }
@@ -176,7 +190,18 @@ Value Interpreter::visit_call(const ast::Call& node) {
     for (const auto& arg : node.args) {
         arguments.push_back(evaluate(*arg));
     }
+
+    // First check if it's a user-defined function
+    try {
+        Value callee = environment_->get(node.callee);
+        if (auto function = std::any_cast<std::shared_ptr<UserFunction>>(callee)) {
+            return function->call(*this, arguments);
+        }
+    } catch (const std::bad_any_cast&) {
+        // Not a user-defined function, try builtin
+    }
     
+    // Fall back to builtin function
     return call_builtin_function(node.callee, arguments);
 }
 
@@ -240,7 +265,47 @@ void Interpreter::execute_pattern_decl(const ast::PatternDecl& decl) {
     
     // Define inputs in the pattern environment
     for (const auto& input : decl.inputs) {
-        environment_->define(input, std::string("input_placeholder"));
+        environment_->define(input, 0.0);
+    }
+    
+    // If this pattern inherits from another pattern, find and execute it first
+    if (!decl.parent_pattern.empty()) {
+        // Find the parent pattern in the program
+        bool found_parent = false;
+        for (const auto& pattern : program_->patterns) {
+            if (pattern->name == decl.parent_pattern) {
+                // Execute parent pattern in its own environment
+                Environment parent_env(&globals_);  // Parent pattern uses globals as enclosing scope
+                Environment* previous = environment_;
+                environment_ = &parent_env;
+                
+                // Execute parent pattern
+                execute_pattern_decl(*pattern);
+                
+                // Restore environment
+                environment_ = previous;
+                
+                try {
+                    // Get parent pattern result from globals
+                    Value parent_result = globals_.get(decl.parent_pattern);
+                    PatternResult parent_pattern = std::any_cast<PatternResult>(parent_result);
+                    
+                    // Copy parent pattern variables into current environment
+                    for (const auto& [name, value] : parent_pattern) {
+                        environment_->define(name, value);
+                    }
+                } catch (const std::exception& e) {
+                    throw std::runtime_error("Failed to inherit from pattern '" + decl.parent_pattern + "': " + e.what());
+                }
+                
+                found_parent = true;
+                break;
+            }
+        }
+        
+        if (!found_parent) {
+            throw std::runtime_error("Parent pattern '" + decl.parent_pattern + "' not found");
+        }
     }
     
     // Execute pattern body
@@ -314,16 +379,38 @@ Value Interpreter::call_builtin_function(const std::string& name, const std::vec
         if (sep::core::isSuccess(result)) {
             return static_cast<double>(response.confidence_score);
         } else {
-            std::cout << "Engine call failed, returning mock value" << std::endl;
-            return 0.82; // Fallback to mock
+            throw std::runtime_error("Engine call failed for measure_coherence");
         }
     }
     
     if (name == "qfh_analyze") {
-        std::cout << "Calling qfh_analyze with " << args.size() << " arguments" << std::endl;
-        // QFH processor is lower-level - keeping mocked for now
-        // Future: integrate with sep::quantum::bitspace::QFHBasedProcessor
-        return 0.75; // Mock coherence value
+        if (args.empty()) {
+            throw std::runtime_error("qfh_analyze expects a bitstream argument");
+        }
+
+        // Convert the DSL bitstream argument to a std::vector<uint8_t>
+        std::vector<uint8_t> bitstream;
+        try {
+            std::string bitstream_str = std::any_cast<std::string>(args[0]);
+            for (char c : bitstream_str) {
+                bitstream.push_back(c - '0');
+            }
+        } catch (const std::bad_any_cast&) {
+            throw std::runtime_error("Invalid bitstream argument for qfh_analyze");
+        }
+
+        // Call the engine facade
+        sep::engine::QFHAnalysisRequest request;
+        request.bitstream = bitstream;
+        sep::engine::QFHAnalysisResponse response;
+        auto result = engine.qfhAnalyze(request, response);
+
+        if (sep::core::isSuccess(result)) {
+            // For now, we'll return the rupture ratio as the primary result
+            return static_cast<double>(response.rupture_ratio);
+        } else {
+            throw std::runtime_error("Engine call failed for qfh_analyze");
+        }
     }
     
     if (name == "measure_entropy") {
@@ -336,6 +423,33 @@ Value Interpreter::call_builtin_function(const std::string& name, const std::vec
         std::cout << "Calling extract_bits with " << args.size() << " arguments" << std::endl;
         // Future: integrate with bitspace extraction
         return std::string("101010101");
+    }
+
+    if (name == "manifold_optimize") {
+        if (args.empty()) {
+            throw std::runtime_error("manifold_optimize expects a pattern_id argument");
+        }
+
+        // Get the pattern_id from the DSL arguments
+        std::string pattern_id;
+        try {
+            pattern_id = std::any_cast<std::string>(args[0]);
+        } catch (const std::bad_any_cast&) {
+            throw std::runtime_error("Invalid pattern_id argument for manifold_optimize");
+        }
+
+        // Call the engine facade
+        sep::engine::ManifoldOptimizationRequest request;
+        request.pattern_id = pattern_id;
+        sep::engine::ManifoldOptimizationResponse response;
+        auto result = engine.manifoldOptimize(request, response);
+
+        if (sep::core::isSuccess(result)) {
+            // For now, we'll return a boolean indicating success
+            return response.success;
+        } else {
+            throw std::runtime_error("Engine call failed for manifold_optimize");
+        }
     }
     
     throw std::runtime_error("Unknown function: " + name);
@@ -391,6 +505,128 @@ std::string Interpreter::stringify(const Value& value) {
             }
         }
     }
+}
+
+Value Interpreter::visit_weighted_sum(const ast::WeightedSum& node) {
+   double total = 0.0;
+   for (const auto& pair : node.pairs) {
+       Value weight_val = evaluate(*pair.first);
+       Value value_val = evaluate(*pair.second);
+       
+       double weight = std::any_cast<double>(weight_val);
+       double value = std::any_cast<double>(value_val);
+       
+       total += weight * value;
+   }
+   return total;
+}
+
+void Interpreter::visit_evolve_statement(const ast::EvolveStatement& node) {
+    Value condition_result = evaluate(*node.condition);
+    
+    if (is_truthy(condition_result)) {
+        // Create a new environment for the evolve block
+        Environment evolve_env(environment_);
+        Environment* previous = environment_;
+        environment_ = &evolve_env;
+        
+        // Execute the evolve block
+        for (const auto& stmt : node.body) {
+            execute(*stmt);
+        }
+        
+        // Restore previous environment
+        environment_ = previous;
+    }
+}
+
+void Interpreter::visit_if_statement(const ast::IfStatement& node) {
+    Value condition_result = evaluate(*node.condition);
+    
+    if (is_truthy(condition_result)) {
+        // Create a new environment for the then branch
+        Environment then_env(environment_);
+        Environment* previous = environment_;
+        environment_ = &then_env;
+        
+        // Execute the then branch
+        for (const auto& stmt : node.then_branch) {
+            execute(*stmt);
+        }
+        
+        // Restore previous environment
+        environment_ = previous;
+    } else if (!node.else_branch.empty()) {
+        // Create a new environment for the else branch
+        Environment else_env(environment_);
+        Environment* previous = environment_;
+        environment_ = &else_env;
+        
+        // Execute the else branch
+        for (const auto& stmt : node.else_branch) {
+            execute(*stmt);
+        }
+        
+        // Restore previous environment
+        environment_ = previous;
+    }
+}
+
+void Interpreter::visit_while_statement(const ast::WhileStatement& node) {
+    // Create a new environment for the while block
+    Environment while_env(environment_);
+    Environment* previous = environment_;
+    environment_ = &while_env;
+    
+    // Execute the while loop
+    while (is_truthy(evaluate(*node.condition))) {
+        for (const auto& stmt : node.body) {
+            execute(*stmt);
+        }
+    }
+    
+    // Restore previous environment
+    environment_ = previous;
+}
+
+Value UserFunction::call(Interpreter& interpreter, const std::vector<Value>& arguments) {
+    // Create a new environment for the function execution
+    Environment function_env(closure_);
+    Environment* previous = interpreter.environment_;
+    interpreter.environment_ = &function_env;
+
+    // Bind arguments to parameters
+    for (size_t i = 0; i < declaration_.parameters.size(); i++) {
+        if (i < arguments.size()) {
+            function_env.define(declaration_.parameters[i], arguments[i]);
+        } else {
+            function_env.define(declaration_.parameters[i], nullptr); // Default value for missing args
+        }
+    }
+
+    try {
+        // Execute function body
+        for (const auto& stmt : declaration_.body) {
+            interpreter.execute(*stmt);
+        }
+        // If no return statement was encountered, return null
+        interpreter.environment_ = previous;
+        return nullptr;
+    } catch (const ReturnException& return_value) {
+        // Handle return statement
+        interpreter.environment_ = previous;
+        return return_value.value();
+    }
+}
+
+void Interpreter::visit_function_declaration(const ast::FunctionDeclaration& node) {
+    auto function = std::make_shared<UserFunction>(node, environment_);
+    environment_->define(node.name, function);
+}
+
+void Interpreter::visit_return_statement(const ast::ReturnStatement& node) {
+    Value value = node.value ? evaluate(*node.value) : nullptr;
+    throw ReturnException(value);
 }
 
 } // namespace dsl::runtime

@@ -3,6 +3,8 @@
 #include "core_types/pattern.h"
 #include "core_types/candle_data.h"
 #include "core_types/result.h"
+#include "memory/memory_tier_manager.hpp"
+#include "memory/types.h"
 #include <vector>
 #include <string>
 #include <memory>
@@ -13,11 +15,6 @@
 namespace sep::engine {
 
 // Forward declarations to hide implementation details from API
-namespace quantum {
-    class QuantumProcessor;
-    class PatternProcessor;
-}
-
 namespace memory {
     class MemoryTierManager;
 }
@@ -40,6 +37,42 @@ struct MemoryQueryRequest {
     std::string query_id;
     int max_results{100};
     float relevance_threshold{0.3f};
+};
+
+struct QFHAnalysisRequest {
+    std::vector<uint8_t> bitstream;
+};
+
+struct QFHAnalysisResponse {
+    float rupture_ratio{0.0f};
+    float flip_ratio{0.0f};
+    bool collapse_detected{false};
+};
+
+struct ManifoldOptimizationRequest {
+    std::string pattern_id;
+    float target_coherence{0.8f};
+    float target_stability{0.7f};
+};
+
+struct ManifoldOptimizationResponse {
+    bool success{false};
+    std::string pattern_id;
+    float optimized_coherence{0.0f};
+    float optimized_stability{0.0f};
+};
+
+struct StorePatternRequest {
+    core::Pattern pattern;
+    float coherence{0.0f};
+    float stability{0.0f};
+    uint32_t generation_count{0};
+    float weight{1.0f};
+};
+
+struct StorePatternResponse {
+    bool success{false};
+    std::string error_message;
 };
 
 struct BatchProcessRequest {
@@ -97,6 +130,15 @@ public:
     
     core::Result analyzePattern(const PatternAnalysisRequest& request,
                                PatternAnalysisResponse& response);
+
+    core::Result qfhAnalyze(const QFHAnalysisRequest& request,
+                            QFHAnalysisResponse& response);
+
+    core::Result manifoldOptimize(const ManifoldOptimizationRequest& request,
+                                ManifoldOptimizationResponse& response);
+
+    core::Result storePattern(const StorePatternRequest& request,
+                            StorePatternResponse& response);
     
     core::Result processBatch(const BatchProcessRequest& request,
                              PatternProcessResponse& response);

@@ -4,26 +4,31 @@
 
 namespace dsl::lexer {
 
-std::unordered_map<std::string, ast::TokenType> Lexer::keywords = {
-    {"pattern", ast::TokenType::PATTERN},
-    {"stream", ast::TokenType::STREAM},
-    {"signal", ast::TokenType::SIGNAL},
-    {"memory", ast::TokenType::MEMORY},
-    {"from", ast::TokenType::FROM},
-    {"when", ast::TokenType::WHEN},
-    {"using", ast::TokenType::USING},
-    {"input", ast::TokenType::INPUT},
-    {"output", ast::TokenType::OUTPUT},
-    // Keep these as function identifiers, NOT keywords
-    // This was a key bug in the bot's attempt
-    {"if", ast::TokenType::IF},
-    {"else", ast::TokenType::ELSE}
-};
+    std::unordered_map<std::string, ast::TokenType> Lexer::keywords = {
+        {"pattern", ast::TokenType::PATTERN},
+        {"stream", ast::TokenType::STREAM},
+        {"signal", ast::TokenType::SIGNAL},
+        {"memory", ast::TokenType::MEMORY},
+        {"inherits", ast::TokenType::INHERITS},
+        {"from", ast::TokenType::FROM},
+        {"when", ast::TokenType::WHEN},
+        {"using", ast::TokenType::USING},
+        {"input", ast::TokenType::INPUT},
+        {"output", ast::TokenType::OUTPUT},
+        {"weighted_sum", ast::TokenType::WEIGHTED_SUM},
+        {"evolve", ast::TokenType::EVOLVE},
+        // Keep these as function identifiers, NOT keywords
+        // Control flow keywords
+        {"if", ast::TokenType::IF},
+        {"else", ast::TokenType::ELSE},
+        {"while", ast::TokenType::WHILE},
+        {"function", ast::TokenType::FUNCTION},
+        {"return", ast::TokenType::RETURN}};
 
-Lexer::Lexer(const std::string& source) 
-    : source(source), position(0), line(1), column(1) {
-    current_char = position < source.length() ? source[position] : '\0';
-}
+    Lexer::Lexer(const std::string& source) : source(source), position(0), line(1), column(1)
+    {
+        current_char = position < source.length() ? source[position] : '\0';
+    }
 
 void Lexer::advance() {
     if (current_char == '\n') {

@@ -10,18 +10,55 @@
 namespace dsl::ast {
 
 // Token types
-enum class TokenType {
-    IDENTIFIER, NUMBER, STRING,
-    PATTERN, STREAM, SIGNAL, MEMORY,
-    FROM, WHEN, USING, INPUT, OUTPUT,
-    LBRACE, RBRACE, LPAREN, RPAREN,
-    SEMICOLON, COLON, COMMA, DOT,
-    ASSIGN, PLUS, MINUS, MULTIPLY, DIVIDE,
-    GT, LT, GE, LE, EQ, NE,
-    AND, OR, NOT,
-    IF, ELSE, WHILE, FOR,
-    RETURN, BREAK, CONTINUE,
-    EOF_TOKEN, INVALID
+enum class TokenType
+{
+    IDENTIFIER,
+    NUMBER,
+    STRING,
+    PATTERN,
+    STREAM,
+    SIGNAL,
+    MEMORY,
+    FROM,
+    WHEN,
+    USING,
+    INPUT,
+    OUTPUT,
+    EVOLVE,
+    INHERITS,
+    LBRACE,
+    RBRACE,
+    LPAREN,
+    RPAREN,
+    SEMICOLON,
+    COLON,
+    COMMA,
+    DOT,
+    ASSIGN,
+    PLUS,
+    MINUS,
+    MULTIPLY,
+    DIVIDE,
+    GT,
+    LT,
+    GE,
+    LE,
+    EQ,
+    NE,
+    AND,
+    OR,
+    NOT,
+    IF,
+    ELSE,
+    WHILE,
+    FOR,
+    FUNCTION,
+    RETURN,
+    BREAK,
+    CONTINUE,
+    WEIGHTED_SUM,
+    EOF_TOKEN,
+    INVALID
 };
 
 // Base class for all nodes
@@ -60,6 +97,31 @@ struct EvolveStatement : Statement {
     std::vector<std::unique_ptr<Statement>> body;
 };
 
+struct IfStatement : Statement
+{
+    std::unique_ptr<Expression> condition;
+    std::vector<std::unique_ptr<Statement>> then_branch;
+    std::vector<std::unique_ptr<Statement>> else_branch;
+};
+
+struct WhileStatement : Statement
+{
+    std::unique_ptr<Expression> condition;
+    std::vector<std::unique_ptr<Statement>> body;
+};
+
+struct ReturnStatement : Statement
+{
+    std::unique_ptr<Expression> value;
+};
+
+struct FunctionDeclaration : Statement
+{
+    std::string name;
+    std::vector<std::string> parameters;
+    std::vector<std::unique_ptr<Statement>> body;
+};
+
 // Statements
 struct Assignment : Statement {
     std::string name;
@@ -78,8 +140,15 @@ struct StreamDecl : Node {
     std::unordered_map<std::string, std::string> params;
 };
 
+struct MemoryDecl : Node
+{
+    std::string name;
+    // TODO: Define memory block properties
+};
+
 struct PatternDecl : Node {
     std::string name;
+    std::string parent_pattern;  // Name of the pattern being inherited from
     std::vector<std::string> inputs;
     std::vector<std::unique_ptr<Statement>> body;
 };
