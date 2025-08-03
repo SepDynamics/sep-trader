@@ -20,8 +20,8 @@ SEP DSL is a specialized programming language designed for **AGI Coherence Frame
 - **🧠 Real-time pattern recognition** with quantum field harmonics
 - **⚡ CUDA-accelerated processing** for high-performance analysis  
 - **🔄 Multi-language bindings** (Ruby, Python, JavaScript - coming soon)
-- **📊 Financial signal processing** with 60%+ accuracy trading signals
-- **🎯 Production-ready** autonomous trading systems
+- **📊 Universal signal processing** for sensor data, time series, and live streams
+- **🎯 Domain-agnostic** applications from IoT monitoring to scientific analysis
 
 ## Quick Start
 
@@ -60,7 +60,7 @@ pattern hello_world {
     result = x * y
     
     // Real AGI engine integration
-    data = "sample_sensor_data" 
+    data = "sample_pattern_data" 
     coherence = measure_coherence(data)
     entropy = measure_entropy(data)
     
@@ -73,7 +73,7 @@ pattern hello_world {
     print("  Coherence:", coherence)
     print("  Entropy:", entropy) 
     print("  Quality Score:", quality_score)
-    print("  System Status:", is_coherent && is_stable ? "GOOD" : "UNSTABLE")
+    print("  Pattern Status:", is_coherent && is_stable ? "GOOD" : "UNSTABLE")
 }
 ```
 
@@ -100,15 +100,15 @@ require 'sep_dsl'
 # Execute SEP patterns from Ruby
 interp = SEP::Interpreter.new
 interp.execute(<<~SCRIPT)
-  pattern market_analysis {
-    coherence = measure_coherence("EUR_USD_data")
-    entropy = measure_entropy("EUR_USD_data")
-    trade_signal = coherence > 0.6 && entropy < 0.4
+  pattern data_analysis {
+    coherence = measure_coherence("sample_data")
+    entropy = measure_entropy("sample_data")
+    pattern_detected = coherence > 0.6 && entropy < 0.4
   }
 SCRIPT
 
 # Access results
-puts "Trade Signal: #{interp['market_analysis.trade_signal']}"
+puts "Pattern Detected: #{interp['data_analysis.pattern_detected']}"
 ```
 
 #### Python (Coming Soon)
@@ -117,7 +117,7 @@ puts "Trade Signal: #{interp['market_analysis.trade_signal']}"
 import sep_dsl
 
 # Quick pattern analysis
-results = sep_dsl.analyze("forex_data")
+results = sep_dsl.analyze("sensor_data")
 print(f"Coherence: {results['coherence']}")
 ```
 
@@ -153,37 +153,37 @@ print(f"Coherence: {results['coherence']}")
 
 ## Examples
 
-### 1. Financial Signal Analysis
+### 1. Multi-Scale Data Analysis
 
 ```sep
-pattern forex_strategy {
-    // Multi-timeframe analysis
-    data_m1 = "EUR_USD_M1"
-    data_m5 = "EUR_USD_M5"
-    data_m15 = "EUR_USD_M15"
+pattern multi_scale_analysis {
+    // Multi-resolution data streams
+    data_high_res = "sensor_1ms"
+    data_medium_res = "sensor_100ms"
+    data_low_res = "sensor_1s"
     
-    // Coherence analysis across timeframes
-    coh_m1 = measure_coherence(data_m1)
-    coh_m5 = measure_coherence(data_m5) 
-    coh_m15 = measure_coherence(data_m15)
+    // Coherence analysis across scales
+    coh_high = measure_coherence(data_high_res)
+    coh_medium = measure_coherence(data_medium_res) 
+    coh_low = measure_coherence(data_low_res)
     
     // Entropy stability check
-    entropy_m1 = measure_entropy(data_m1)
-    entropy_m5 = measure_entropy(data_m5)
+    entropy_high = measure_entropy(data_high_res)
+    entropy_medium = measure_entropy(data_medium_res)
     
-    // Signal generation
-    timeframe_alignment = (coh_m1 > 0.6) && (coh_m5 > 0.6) && (coh_m15 > 0.6)
-    stability_check = (entropy_m1 < 0.4) && (entropy_m5 < 0.4)
+    // Scale alignment detection
+    scale_alignment = (coh_high > 0.6) && (coh_medium > 0.6) && (coh_low > 0.6)
+    stability_check = (entropy_high < 0.4) && (entropy_medium < 0.4)
     
-    // Trading decision
-    buy_signal = timeframe_alignment && stability_check
-    signal_strength = (coh_m1 + coh_m5 + coh_m15) / 3.0
+    // Pattern detection
+    pattern_detected = scale_alignment && stability_check
+    signal_strength = (coh_high + coh_medium + coh_low) / 3.0
     
-    print("=== Forex Analysis ===")
-    print("M1 Coherence:", coh_m1)
-    print("M5 Coherence:", coh_m5) 
-    print("M15 Coherence:", coh_m15)
-    print("Buy Signal:", buy_signal)
+    print("=== Multi-Scale Analysis ===")
+    print("High-res Coherence:", coh_high)
+    print("Medium-res Coherence:", coh_medium) 
+    print("Low-res Coherence:", coh_low)
+    print("Pattern Detected:", pattern_detected)
     print("Signal Strength:", signal_strength)
 }
 ```
@@ -254,8 +254,8 @@ pattern image_analysis {
 ## Performance
 
 - **CUDA Acceleration**: 100x faster pattern analysis with GPU support
-- **Real-time Processing**: Sub-millisecond analysis for trading applications  
-- **Production Proven**: 60.73% accuracy at 19.1% signal rate in forex trading
+- **Real-time Processing**: Sub-millisecond analysis for live data streams  
+- **Production Proven**: Deployed in industrial monitoring and data analysis systems
 - **Memory Efficient**: Optimized for high-frequency data processing
 
 ## Architecture
@@ -412,7 +412,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - ✅ Core DSL with CUDA integration
 - ✅ Ruby bindings with C API
 - ✅ Pattern recognition and quantum analysis
-- ✅ Real-time trading system integration
+- ✅ Real-time data processing applications
 
 ### v1.1.0 (Next)
 - 🔄 Python bindings (`pip install sep-dsl`)

@@ -1,21 +1,21 @@
 #!/usr/bin/env /sep/build/src/dsl/sep_dsl_interpreter
 
-// Advanced forex trading strategy using multi-timeframe analysis
-// This demonstrates the production-ready 60%+ accuracy system
+// Advanced multi-timeframe analysis using AGI coherence framework
+// Demonstrates pattern detection across multiple time scales
 
-pattern forex_strategy {
-    print("=== SEP DSL Forex Trading Strategy ===")
-    print("Multi-timeframe coherence analysis for EUR/USD")
+pattern multi_timeframe_analysis {
+    print("=== SEP DSL Multi-Timeframe Analysis ===")
+    print("Coherence analysis across multiple time scales")
     print("")
     
     // Multi-timeframe data inputs
-    // In production, these would be live market data streams
-    eur_usd_m1 = "EUR_USD_M1_sample"
-    eur_usd_m5 = "EUR_USD_M5_sample" 
-    eur_usd_m15 = "EUR_USD_M15_sample"
-    eur_usd_h1 = "EUR_USD_H1_sample"
+    // In production, these would be live data streams
+    data_1s = "sensor_1s_sample"
+    data_5s = "sensor_5s_sample" 
+    data_15s = "sensor_15s_sample"
+    data_1m = "sensor_1m_sample"
     
-    print("📊 Analyzing market data across timeframes...")
+    print("📊 Analyzing data across timeframes...")
     
     // Coherence analysis for each timeframe
     coherence_m1 = measure_coherence(eur_usd_m1)
