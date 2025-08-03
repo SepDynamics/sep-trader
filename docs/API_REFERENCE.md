@@ -763,12 +763,53 @@ reset_engine_config("quantum")
 reset_engine_config("performance")
 ```
 
+## Testing & Quality Assurance
+
+SEP DSL includes comprehensive testing infrastructure for production-grade reliability:
+
+### Fuzz Testing Commands
+
+```bash
+# Quick robustness testing (30 seconds each)
+./run_fuzz_tests.sh quick
+
+# Comprehensive testing (5 minutes each)
+./run_fuzz_tests.sh comprehensive
+
+# Manual fuzzing with custom duration
+./run_fuzz_docker.sh parser 3600      # 1 hour parser fuzzing
+./run_fuzz_docker.sh interpreter 1800 # 30 min interpreter fuzzing
+```
+
+### Validation Commands
+
+```bash
+# Complete test suite validation
+./build.sh
+
+# DSL-specific tests
+./build/tests/dsl_interpreter_test
+./build/tests/dsl_parser_test
+
+# Performance benchmarks
+./build/examples/pattern_metric_example --benchmark
+```
+
+### Quality Assurance Features
+
+- **LibFuzzer Integration**: Coverage-guided fuzzing with AddressSanitizer
+- **Docker-based Testing**: Consistent testing environment
+- **Memory Safety**: Detection of buffer overflows and corruption
+- **Crash Detection**: Automatic discovery of parser/interpreter bugs
+- **Corpus Management**: Seeded with realistic DSL programs
+
 ## Version Information
 
 **Current Version**: 1.2.0  
 **Last Updated**: August 2025  
 **Engine Integration**: Production-ready with CUDA acceleration and advanced batch processing  
 **Total Built-in Functions**: 70+
+**Quality Assurance**: LibFuzzer integration with comprehensive fuzz testing
 
 ---
 

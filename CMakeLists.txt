@@ -162,6 +162,12 @@ add_subdirectory(src)
 add_subdirectory(examples)
 # add_subdirectory(tests)
 
+# Enable fuzzing if explicitly requested
+option(ENABLE_FUZZING "Enable fuzz testing with LibFuzzer" OFF)
+if(ENABLE_FUZZING)
+    add_subdirectory(tests/fuzzing)
+endif()
+
 # Custom command to generate documentation
 add_custom_target(generate_docs
     COMMAND python3 ${CMAKE_CURRENT_SOURCE_DIR}/parse_docs.py

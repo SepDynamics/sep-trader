@@ -101,6 +101,7 @@ docs/latex/
 .cache/
 .kilocode/
 cache/
+tests/fuzzing/corpus/
 
 # Temporary files
 temp/

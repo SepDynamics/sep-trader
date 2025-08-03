@@ -484,6 +484,37 @@ When CUDA is available, SEP DSL automatically uses GPU acceleration for:
 
 No code changes needed - the engine automatically optimizes based on available hardware.
 
+## Testing Your Installation
+
+SEP DSL includes comprehensive testing infrastructure to verify everything is working correctly:
+
+### Basic Validation
+```bash
+# Run the complete test suite
+./build.sh
+
+# Test DSL interpreter directly
+./build/src/dsl/sep_dsl_interpreter examples/hello_world.sep
+```
+
+### Robustness Testing
+```bash
+# Quick fuzz testing (30 seconds each)
+./run_fuzz_tests.sh quick
+
+# Deep robustness testing (5 minutes each)
+./run_fuzz_tests.sh comprehensive
+
+# Manual parser fuzzing
+./run_fuzz_docker.sh parser 600   # 10 minutes
+```
+
+### Performance Benchmarks
+```bash
+# DSL vs C++ performance comparison
+./build/examples/pattern_metric_example --benchmark
+```
+
 ## Debugging and Troubleshooting
 
 ### Common Issues

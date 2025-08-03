@@ -26,6 +26,7 @@ SEP DSL is a specialized programming language designed for **AGI Coherence Frame
 - **📈 Statistical Analysis Suite** - Comprehensive math and statistical functions
 - **🎨 Professional IDE Support** - VS Code integration with custom icons
 - **⚡ AST Optimization** - Constant folding and performance optimizations
+- **🧪 Production-Grade Robustness** - LibFuzzer integration for parser/interpreter testing
 
 ## Quick Start
 
@@ -369,6 +370,57 @@ SEP DSL
     └── System Packages (.deb, .rpm)
 ```
 
+## Testing & Quality Assurance
+
+SEP DSL includes comprehensive testing infrastructure to ensure production-grade reliability:
+
+### Unit Testing
+```bash
+# Run complete test suite
+./build.sh
+
+# DSL-specific tests
+./build/tests/dsl_interpreter_test
+./build/tests/dsl_parser_test
+```
+
+### Fuzz Testing
+Advanced robustness testing using LibFuzzer for discovering edge cases and preventing crashes:
+
+```bash
+# Quick fuzz testing (30 seconds each)
+./run_fuzz_tests.sh quick
+
+# Comprehensive testing (5 minutes each)
+./run_fuzz_tests.sh comprehensive
+
+# Manual fuzzing
+./run_fuzz_docker.sh parser 3600      # 1 hour parser fuzzing
+./run_fuzz_docker.sh interpreter 1800 # 30 min interpreter fuzzing
+```
+
+**Fuzz Testing Features:**
+- **LibFuzzer Integration** - Coverage-guided fuzzing with AddressSanitizer
+- **Docker-based Execution** - Consistent testing environment
+- **Corpus Management** - Seeded with realistic DSL programs
+- **Crash Detection** - Automatic discovery of parser/interpreter bugs
+- **Memory Safety** - Detection of buffer overflows and memory corruption
+
+### Performance Benchmarks
+```bash
+# DSL vs C++ performance comparison
+./build/examples/pattern_metric_example --benchmark
+```
+
+### Code Quality
+```bash
+# Static analysis (filtered for actionable issues)
+./run_codechecker_filtered.sh
+
+# Full static analysis (includes external dependencies)
+./run_codechecker.sh
+```
+
 ## API Reference
 
 ### C API
@@ -502,6 +554,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - ✅ Ruby bindings with C API
 - ✅ Pattern recognition and quantum analysis
 - ✅ Real-time data processing applications
+- ✅ LibFuzzer integration for robustness testing
 
 ### v1.1.0 (Next)
 - 🔄 Python bindings (`pip install sep-dsl`)
