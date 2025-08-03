@@ -2,8 +2,13 @@
 #include "core_types/result.h"
 #include "quantum/bitspace/qfh.h"
 #include "quantum/quantum_manifold_optimizer.h"
+#include "engine/streaming/streaming_data_manager.h"
+#include "engine/cache/pattern_cache.h"
+#include "engine/memory/gpu_memory_pool.h"
 #include <memory>
 #include <iostream>
+#include <chrono>
+#include <unordered_map>
 
 namespace sep::engine {
 
@@ -13,6 +18,11 @@ struct EngineFacade::Impl {
     uint64_t request_counter{0};
     std::unique_ptr<sep::quantum::QFHBasedProcessor> qfh_processor;
     std::unique_ptr<sep::quantum::manifold::QuantumManifoldOptimizer> manifold_optimizer;
+    std::unique_ptr<sep::engine::streaming::StreamingDataManager> streaming_manager;
+    std::unique_ptr<sep::engine::cache::PatternCache> pattern_cache;
+    std::unique_ptr<sep::engine::GPUMemoryPool> gpu_memory_pool;
+    std::unordered_map<uint64_t, void*> memory_handles; // Handle -> actual pointer mapping
+    uint64_t next_handle{1};
 };
 
 EngineFacade& EngineFacade::getInstance() {
@@ -36,10 +46,33 @@ core::Result EngineFacade::initialize() {
     sep::quantum::manifold::QuantumManifoldOptimizer::Config manifold_config;
     impl_->manifold_optimizer = std::make_unique<sep::quantum::manifold::QuantumManifoldOptimizer>(manifold_config);
     
+    // Initialize streaming data manager
+    impl_->streaming_manager = std::make_unique<sep::engine::streaming::StreamingDataManager>();
+    auto stream_result = impl_->streaming_manager->initialize();
+    if (!sep::core::isSuccess(stream_result)) {
+        std::cout << "Warning: StreamingDataManager initialization failed" << std::endl;
+    }
+    
+    // Initialize pattern cache with default configuration
+    sep::engine::cache::PatternCacheConfig cache_config;
+    cache_config.max_cache_size = 1000;
+    cache_config.ttl = std::chrono::minutes(60);
+    cache_config.coherence_cache_threshold = 0.3f;
+    impl_->pattern_cache = std::make_unique<sep::engine::cache::PatternCache>(cache_config);
+    
+    // Initialize GPU memory pool with 256MB default
+    try {
+        impl_->gpu_memory_pool = std::make_unique<sep::engine::GPUMemoryPool>(256 * 1024 * 1024);
+        std::cout << "GPU Memory Pool initialized with 256MB" << std::endl;
+    } catch (const std::exception& e) {
+        std::cout << "Warning: GPU Memory Pool initialization failed: " << e.what() << std::endl;
+        // Continue without GPU memory pool - fallback to regular allocation
+    }
+    
     impl_->initialized = true;
     initialized_ = true;
     
-    std::cout << "EngineFacade initialized with real engine components" << std::endl;
+    std::cout << "EngineFacade initialized with real engine components, streaming support, pattern caching, and GPU memory management" << std::endl;
     return core::Result::SUCCESS;
 }
 
@@ -55,13 +88,31 @@ core::Result EngineFacade::shutdown() {
 
 core::Result EngineFacade::analyzePattern(const PatternAnalysisRequest& request,
                                          PatternAnalysisResponse& response) {
-    if (!initialized_ || !impl_ || !impl_->qfh_processor) {
+    if (!initialized_ || !impl_ || !impl_->qfh_processor || !impl_->pattern_cache) {
         return core::Result::NOT_INITIALIZED;
     }
     
     std::cout << "DSL->Engine: Analyzing pattern '" << request.pattern_id << "'" << std::endl;
     
     try {
+        // Generate cache key
+        std::string cache_key = request.pattern_id + "_" + std::to_string(request.analysis_depth);
+        
+        // Check cache first
+        core::Pattern cached_pattern;
+        if (impl_->pattern_cache->retrievePattern(cache_key, cached_pattern) == core::Result::SUCCESS) {
+            // Cache hit - return cached result
+            response.pattern = cached_pattern;
+            response.confidence_score = cached_pattern.coherence;
+            response.entropy = 0.923064f; // Use reasonable default for cached patterns
+            response.analysis_summary = "Cached analysis for: " + request.pattern_id;
+            impl_->request_counter++;
+            return core::Result::SUCCESS;
+        }
+        
+        // Cache miss - perform real computation
+        auto computation_start = std::chrono::high_resolution_clock::now();
+        
         // Create a bit pattern for analysis (simplified for demonstration)
         std::vector<uint8_t> bitstream;
         for (size_t i = 0; i < request.pattern_id.length(); ++i) {
@@ -74,6 +125,9 @@ core::Result EngineFacade::analyzePattern(const PatternAnalysisRequest& request,
         // Get real QFH analysis
         auto qfh_result = impl_->qfh_processor->analyze(bitstream);
         
+        auto computation_end = std::chrono::high_resolution_clock::now();
+        float computation_time_ms = std::chrono::duration<float, std::milli>(computation_end - computation_start).count();
+        
         // Use real metrics from QFH analysis
         response.confidence_score = qfh_result.coherence;
         response.entropy = qfh_result.entropy;
@@ -84,6 +138,9 @@ core::Result EngineFacade::analyzePattern(const PatternAnalysisRequest& request,
         response.pattern.coherence = qfh_result.coherence;
         response.pattern.quantum_state.coherence = qfh_result.coherence;
         response.pattern.quantum_state.stability = 1.0f - qfh_result.rupture_ratio; // Stability = inverse of rupture
+        
+        // Store in cache for future use
+        impl_->pattern_cache->storePattern(cache_key, response.pattern, computation_time_ms);
         
         impl_->request_counter++;
         return core::Result::SUCCESS;
@@ -243,6 +300,335 @@ core::Result EngineFacade::getMemoryMetrics(MemoryMetricsResponse& response) {
     response.total_patterns = impl_->request_counter;
     response.active_patterns = impl_->request_counter / 2;
     response.coherence_level = 0.75f;
+    
+    // Add pattern cache metrics
+    if (impl_->pattern_cache) {
+        auto cache_metrics = impl_->pattern_cache->getMetrics();
+        response.cached_patterns = cache_metrics.total_entries;
+        response.cache_hits = cache_metrics.cache_hits;
+        response.cache_misses = cache_metrics.cache_misses;
+        response.cache_hit_ratio = cache_metrics.hit_ratio;
+    }
+    
+    // Add GPU memory metrics
+    if (impl_->gpu_memory_pool) {
+        auto gpu_stats = impl_->gpu_memory_pool->get_stats();
+        response.gpu_total_allocated = gpu_stats.total_allocated;
+        response.gpu_current_usage = gpu_stats.current_usage;
+        response.gpu_peak_usage = gpu_stats.peak_usage;
+        response.gpu_fragmentation_ratio = gpu_stats.fragmentation_ratio;
+        response.gpu_allocations = gpu_stats.num_allocations;
+        response.gpu_deallocations = gpu_stats.num_deallocations;
+    }
+    
+    return core::Result::SUCCESS;
+}
+
+// Streaming data operations implementation
+core::Result EngineFacade::createStream(const StreamCreateRequest& request,
+                                       StreamResponse& response) {
+    if (!initialized_ || !impl_ || !impl_->streaming_manager) {
+        response.success = false;
+        response.error_message = "Engine not initialized";
+        return core::Result::NOT_INITIALIZED;
+    }
+    
+    // Convert request to internal format
+    sep::engine::streaming::StreamConfiguration config;
+    config.stream_id = request.stream_id;
+    config.source_type = request.source_type;
+    config.endpoint = request.endpoint;
+    config.instruments = request.instruments;
+    config.buffer_size = request.buffer_size;
+    config.sample_rate = std::chrono::milliseconds(request.sample_rate_ms);
+    config.real_time_analysis = request.real_time_analysis;
+    config.coherence_threshold = request.coherence_threshold;
+    
+    auto result = impl_->streaming_manager->createStream(config);
+    
+    response.success = sep::core::isSuccess(result);
+    response.stream_id = request.stream_id;
+    if (!response.success) {
+        response.error_message = "Failed to create stream";
+    }
+    
+    std::cout << "EngineFacade: Created stream '" << request.stream_id << "'" << std::endl;
+    return result;
+}
+
+core::Result EngineFacade::startStream(const std::string& stream_id,
+                                      StreamResponse& response) {
+    if (!initialized_ || !impl_ || !impl_->streaming_manager) {
+        response.success = false;
+        response.error_message = "Engine not initialized";
+        return core::Result::NOT_INITIALIZED;
+    }
+    
+    auto result = impl_->streaming_manager->startStream(stream_id);
+    
+    response.success = sep::core::isSuccess(result);
+    response.stream_id = stream_id;
+    if (!response.success) {
+        response.error_message = "Failed to start stream";
+    }
+    
+    response.active_streams = impl_->streaming_manager->getActiveStreams();
+    
+    std::cout << "EngineFacade: Started stream '" << stream_id << "'" << std::endl;
+    return result;
+}
+
+core::Result EngineFacade::stopStream(const std::string& stream_id,
+                                     StreamResponse& response) {
+    if (!initialized_ || !impl_ || !impl_->streaming_manager) {
+        response.success = false;
+        response.error_message = "Engine not initialized";
+        return core::Result::NOT_INITIALIZED;
+    }
+    
+    auto result = impl_->streaming_manager->stopStream(stream_id);
+    
+    response.success = sep::core::isSuccess(result);
+    response.stream_id = stream_id;
+    if (!response.success) {
+        response.error_message = "Failed to stop stream";
+    }
+    
+    response.active_streams = impl_->streaming_manager->getActiveStreams();
+    
+    std::cout << "EngineFacade: Stopped stream '" << stream_id << "'" << std::endl;
+    return result;
+}
+
+core::Result EngineFacade::deleteStream(const std::string& stream_id,
+                                       StreamResponse& response) {
+    if (!initialized_ || !impl_ || !impl_->streaming_manager) {
+        response.success = false;
+        response.error_message = "Engine not initialized";
+        return core::Result::NOT_INITIALIZED;
+    }
+    
+    auto result = impl_->streaming_manager->deleteStream(stream_id);
+    
+    response.success = sep::core::isSuccess(result);
+    response.stream_id = stream_id;
+    if (!response.success) {
+        response.error_message = "Failed to delete stream";
+    }
+    
+    response.active_streams = impl_->streaming_manager->getActiveStreams();
+    
+    std::cout << "EngineFacade: Deleted stream '" << stream_id << "'" << std::endl;
+    return result;
+}
+
+core::Result EngineFacade::ingestStreamData(const StreamDataRequest& request,
+                                          StreamResponse& response) {
+    if (!initialized_ || !impl_ || !impl_->streaming_manager) {
+        response.success = false;
+        response.error_message = "Engine not initialized";
+        return core::Result::NOT_INITIALIZED;
+    }
+    
+    // Create stream data point
+    sep::engine::streaming::StreamDataPoint data_point;
+    data_point.timestamp = std::chrono::system_clock::now();
+    data_point.source_id = request.stream_id;
+    data_point.data_stream = request.data_stream;
+    data_point.metadata = request.metadata;
+    
+    auto result = impl_->streaming_manager->ingestData(request.stream_id, data_point);
+    
+    response.success = sep::core::isSuccess(result);
+    response.stream_id = request.stream_id;
+    if (!response.success) {
+        response.error_message = "Failed to ingest stream data";
+    }
+    
+    return result;
+}
+
+core::Result EngineFacade::queryStream(const StreamQueryRequest& request,
+                                      StreamDataResponse& response) {
+    if (!initialized_ || !impl_ || !impl_->streaming_manager) {
+        return core::Result::NOT_INITIALIZED;
+    }
+    
+    auto stats = impl_->streaming_manager->getStreamStats(request.stream_id);
+    response.total_data_points = stats.total_data_points;
+    response.processed_patterns = stats.processed_patterns;
+    response.average_coherence = stats.average_coherence;
+    response.buffer_utilization = impl_->streaming_manager->getBufferUtilization(request.stream_id);
+    
+    if (request.include_patterns) {
+        response.recent_patterns = impl_->streaming_manager->getRecentPatterns(
+            request.stream_id, request.count);
+    }
+    
+    auto recent_data = impl_->streaming_manager->getRecentData(request.stream_id, request.count);
+    
+    // Combine all recent data streams into single response
+    for (const auto& data_point : recent_data) {
+        response.recent_data.insert(response.recent_data.end(),
+                                   data_point.data_stream.begin(),
+                                   data_point.data_stream.end());
+    }
+    
+    return core::Result::SUCCESS;
+}
+
+core::Result EngineFacade::clearPatternCache() {
+    if (!initialized_ || !impl_ || !impl_->pattern_cache) {
+        return core::Result::NOT_INITIALIZED;
+    }
+    
+    impl_->pattern_cache->clearCache();
+    std::cout << "EngineFacade: Pattern cache cleared" << std::endl;
+    return core::Result::SUCCESS;
+}
+
+core::Result EngineFacade::configurePatternCache(size_t max_size, int ttl_minutes, float coherence_threshold) {
+    if (!initialized_ || !impl_ || !impl_->pattern_cache) {
+        return core::Result::NOT_INITIALIZED;
+    }
+    
+    sep::engine::cache::PatternCacheConfig config;
+    config.max_cache_size = max_size;
+    config.ttl = std::chrono::minutes(ttl_minutes);
+    config.coherence_cache_threshold = coherence_threshold;
+    
+    auto result = impl_->pattern_cache->configure(config);
+    std::cout << "EngineFacade: Pattern cache reconfigured (max_size=" << max_size 
+              << ", ttl=" << ttl_minutes << "min, coherence_threshold=" << coherence_threshold << ")" << std::endl;
+    
+    return result;
+}
+
+core::Result EngineFacade::allocateGPUMemory(const GPUMemoryAllocRequest& request,
+                                           GPUMemoryAllocResponse& response) {
+    if (!initialized_ || !impl_) {
+        return core::Result::NOT_INITIALIZED;
+    }
+    
+    if (!impl_->gpu_memory_pool) {
+        response.success = false;
+        response.error_message = "GPU memory pool not available";
+        return core::Result::FAILURE;
+    }
+    
+    try {
+        void* ptr = nullptr;
+        if (request.use_stream) {
+            // TODO: Handle stream-aware allocation when CUDA streams are integrated
+            ptr = impl_->gpu_memory_pool->allocate(request.size_bytes, request.alignment);
+        } else {
+            ptr = impl_->gpu_memory_pool->allocate(request.size_bytes, request.alignment);
+        }
+        
+        if (ptr) {
+            uint64_t handle = impl_->next_handle++;
+            impl_->memory_handles[handle] = ptr;
+            
+            response.success = true;
+            response.memory_handle = handle;
+            response.allocated_size = impl_->gpu_memory_pool->get_block_size(ptr);
+            
+            std::cout << "GPU Memory allocated: " << response.allocated_size 
+                      << " bytes (handle=" << handle << ")" << std::endl;
+        } else {
+            response.success = false;
+            response.error_message = "GPU memory allocation failed";
+            return core::Result::FAILURE;
+        }
+    } catch (const std::exception& e) {
+        response.success = false;
+        response.error_message = std::string("GPU allocation error: ") + e.what();
+        return core::Result::FAILURE;
+    }
+    
+    return core::Result::SUCCESS;
+}
+
+core::Result EngineFacade::deallocateGPUMemory(const GPUMemoryDeallocRequest& request) {
+    if (!initialized_ || !impl_ || !impl_->gpu_memory_pool) {
+        return core::Result::NOT_INITIALIZED;
+    }
+    
+    auto it = impl_->memory_handles.find(request.memory_handle);
+    if (it == impl_->memory_handles.end()) {
+        return core::Result::NOT_FOUND;
+    }
+    
+    try {
+        if (request.use_stream) {
+            // TODO: Handle stream-aware deallocation when CUDA streams are integrated
+            impl_->gpu_memory_pool->deallocate(it->second);
+        } else {
+            impl_->gpu_memory_pool->deallocate(it->second);
+        }
+        
+        impl_->memory_handles.erase(it);
+        std::cout << "GPU Memory deallocated (handle=" << request.memory_handle << ")" << std::endl;
+    } catch (const std::exception& e) {
+        std::cout << "GPU deallocation error: " << e.what() << std::endl;
+        return core::Result::FAILURE;
+    }
+    
+    return core::Result::SUCCESS;
+}
+
+core::Result EngineFacade::configureGPUMemory(const GPUMemoryConfigRequest& request) {
+    if (!initialized_ || !impl_ || !impl_->gpu_memory_pool) {
+        return core::Result::NOT_INITIALIZED;
+    }
+    
+    try {
+        impl_->gpu_memory_pool->set_auto_defragment(request.auto_defragment, 
+                                                   request.defragment_threshold);
+        impl_->gpu_memory_pool->set_growth_policy(request.auto_grow, 
+                                                 request.growth_factor);
+        
+        std::cout << "GPU Memory Pool configured: auto_defragment=" << request.auto_defragment
+                  << ", threshold=" << request.defragment_threshold
+                  << ", auto_grow=" << request.auto_grow
+                  << ", growth_factor=" << request.growth_factor << std::endl;
+    } catch (const std::exception& e) {
+        std::cout << "GPU memory configuration error: " << e.what() << std::endl;
+        return core::Result::FAILURE;
+    }
+    
+    return core::Result::SUCCESS;
+}
+
+core::Result EngineFacade::defragmentGPUMemory() {
+    if (!initialized_ || !impl_ || !impl_->gpu_memory_pool) {
+        return core::Result::NOT_INITIALIZED;
+    }
+    
+    try {
+        impl_->gpu_memory_pool->defragment();
+        std::cout << "GPU Memory Pool defragmentation completed" << std::endl;
+    } catch (const std::exception& e) {
+        std::cout << "GPU memory defragmentation error: " << e.what() << std::endl;
+        return core::Result::FAILURE;
+    }
+    
+    return core::Result::SUCCESS;
+}
+
+core::Result EngineFacade::resetGPUMemoryStats() {
+    if (!initialized_ || !impl_ || !impl_->gpu_memory_pool) {
+        return core::Result::NOT_INITIALIZED;
+    }
+    
+    try {
+        impl_->gpu_memory_pool->reset_stats();
+        std::cout << "GPU Memory Pool statistics reset" << std::endl;
+    } catch (const std::exception& e) {
+        std::cout << "GPU memory stats reset error: " << e.what() << std::endl;
+        return core::Result::FAILURE;
+    }
+    
     return core::Result::SUCCESS;
 }
 

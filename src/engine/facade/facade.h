@@ -84,6 +84,30 @@ struct BatchProcessRequest {
     uint64_t timestamp_end{0};
 };
 
+// Streaming data support structures
+struct StreamCreateRequest {
+    std::string stream_id;
+    std::string source_type;  // "oanda", "market_data", "sensor", "file"
+    std::string endpoint;
+    std::vector<std::string> instruments;
+    size_t buffer_size{1000};
+    uint32_t sample_rate_ms{100};
+    bool real_time_analysis{true};
+    float coherence_threshold{0.5f};
+};
+
+struct StreamDataRequest {
+    std::string stream_id;
+    std::vector<uint8_t> data_stream;
+    std::string metadata;
+};
+
+struct StreamQueryRequest {
+    std::string stream_id;
+    size_t count{100};
+    bool include_patterns{false};
+};
+
 /// Response types for the facade (pure data, no logic)
 struct PatternProcessResponse {
     std::vector<core::Pattern> processed_patterns;
@@ -117,6 +141,49 @@ struct MemoryMetricsResponse {
     uint64_t total_patterns{0};
     uint64_t active_patterns{0};
     float coherence_level{0.0f};
+    
+    // Pattern cache metrics
+    size_t cached_patterns{0};
+    size_t cache_hits{0};
+    size_t cache_misses{0};
+    float cache_hit_ratio{0.0f};
+    
+    // GPU memory pool metrics
+    size_t gpu_total_allocated{0};
+    size_t gpu_current_usage{0};
+    size_t gpu_peak_usage{0};
+    size_t gpu_fragmentation_ratio{0};
+    size_t gpu_allocations{0};
+    size_t gpu_deallocations{0};
+};
+
+// GPU memory management requests/responses
+struct GPUMemoryAllocRequest {
+    size_t size_bytes;
+    size_t alignment{256};
+    bool use_stream{false};
+    uint64_t stream_id{0};
+};
+
+struct GPUMemoryAllocResponse {
+    bool success{false};
+    uint64_t memory_handle{0};  // Opaque handle for DSL
+    size_t allocated_size{0};
+    std::string error_message;
+};
+
+struct GPUMemoryDeallocRequest {
+    uint64_t memory_handle;
+    bool use_stream{false};
+    uint64_t stream_id{0};
+};
+
+struct GPUMemoryConfigRequest {
+    bool auto_defragment{true};
+    float defragment_threshold{0.5f};
+    bool auto_grow{true};
+    size_t growth_factor{2};
+    size_t initial_pool_size{256 * 1024 * 1024}; // 256MB
 };
 
 struct HealthStatusResponse {
@@ -126,6 +193,22 @@ struct HealthStatusResponse {
     float cpu_usage{0.0f};
     float memory_usage{0.0f};
     std::string status_message;
+};
+
+struct StreamResponse {
+    bool success{false};
+    std::string stream_id;
+    std::string error_message;
+    std::vector<std::string> active_streams;
+};
+
+struct StreamDataResponse {
+    std::vector<uint8_t> recent_data;
+    std::vector<core::Pattern> recent_patterns;
+    uint64_t total_data_points{0};
+    uint64_t processed_patterns{0};
+    float average_coherence{0.0f};
+    float buffer_utilization{0.0f};
 };
 
 /// The Engine Facade - Simple Functions That Hide All Complexity
@@ -159,6 +242,20 @@ public:
     core::Result processBatch(const BatchProcessRequest& request,
                              PatternProcessResponse& response);
     
+    // Streaming data operations
+    core::Result createStream(const StreamCreateRequest& request,
+                             StreamResponse& response);
+    core::Result startStream(const std::string& stream_id,
+                            StreamResponse& response);
+    core::Result stopStream(const std::string& stream_id,
+                           StreamResponse& response);
+    core::Result deleteStream(const std::string& stream_id,
+                             StreamResponse& response);
+    core::Result ingestStreamData(const StreamDataRequest& request,
+                                 StreamResponse& response);
+    core::Result queryStream(const StreamQueryRequest& request,
+                            StreamDataResponse& response);
+    
     // Memory operations  
     core::Result queryMemory(const MemoryQueryRequest& request,
                             std::vector<core::Pattern>& results);
@@ -166,6 +263,18 @@ public:
     // System status
     core::Result getHealthStatus(HealthStatusResponse& response);
     core::Result getMemoryMetrics(MemoryMetricsResponse& response);
+    
+    // Pattern cache operations
+    core::Result clearPatternCache();
+    core::Result configurePatternCache(size_t max_size, int ttl_minutes, float coherence_threshold);
+    
+    // GPU memory operations
+    core::Result allocateGPUMemory(const GPUMemoryAllocRequest& request,
+                                  GPUMemoryAllocResponse& response);
+    core::Result deallocateGPUMemory(const GPUMemoryDeallocRequest& request);
+    core::Result configureGPUMemory(const GPUMemoryConfigRequest& request);
+    core::Result defragmentGPUMemory();
+    core::Result resetGPUMemoryStats();
     
     // Prevent copying/moving
     EngineFacade(const EngineFacade&) = delete;

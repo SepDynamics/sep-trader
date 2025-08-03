@@ -1976,6 +1976,339 @@ Value Interpreter::call_builtin_function(const std::string& name, const std::vec
         return std::sqrt(sum_sq_diff / (args.size() - 1));
     }
     
+    // ============================================================================
+    // Real-time Streaming Data Functions (Phase 2 Priority 1)
+    // ============================================================================
+    if (name == "create_stream") {
+        if (args.size() < 2) {
+            throw std::runtime_error("create_stream expects at least 2 arguments: stream_id, source_type");
+        }
+
+        auto& engine = sep::engine::EngineFacade::getInstance();
+        sep::engine::StreamCreateRequest request;
+        try {
+            request.stream_id = std::any_cast<std::string>(args[0]);
+            request.source_type = std::any_cast<std::string>(args[1]);
+            
+            if (args.size() > 2) {
+                request.endpoint = std::any_cast<std::string>(args[2]);
+            }
+            if (args.size() > 3) {
+                request.buffer_size = static_cast<size_t>(std::any_cast<double>(args[3]));
+            }
+            if (args.size() > 4) {
+                request.sample_rate_ms = static_cast<uint32_t>(std::any_cast<double>(args[4]));
+            }
+        } catch (const std::bad_any_cast&) {
+            throw std::runtime_error("Invalid arguments for create_stream");
+        }
+
+        sep::engine::StreamResponse response;
+        auto result = engine.createStream(request, response);
+
+        if (sep::core::isSuccess(result) && response.success) {
+            std::cout << "DSL: Created stream '" << request.stream_id << "'" << std::endl;
+            return true;
+        } else {
+            throw std::runtime_error("Failed to create stream: " + response.error_message);
+        }
+    }
+
+    if (name == "start_stream") {
+        if (args.empty()) {
+            throw std::runtime_error("start_stream expects a stream_id argument");
+        }
+
+        auto& engine = sep::engine::EngineFacade::getInstance();
+        std::string stream_id;
+        try {
+            stream_id = std::any_cast<std::string>(args[0]);
+        } catch (const std::bad_any_cast&) {
+            throw std::runtime_error("Invalid stream_id for start_stream");
+        }
+
+        sep::engine::StreamResponse response;
+        auto result = engine.startStream(stream_id, response);
+
+        if (sep::core::isSuccess(result) && response.success) {
+            std::cout << "DSL: Started stream '" << stream_id << "' (" 
+                      << response.active_streams.size() << " active)" << std::endl;
+            return static_cast<double>(response.active_streams.size());
+        } else {
+            throw std::runtime_error("Failed to start stream: " + response.error_message);
+        }
+    }
+
+    if (name == "stop_stream") {
+        if (args.empty()) {
+            throw std::runtime_error("stop_stream expects a stream_id argument");
+        }
+
+        auto& engine = sep::engine::EngineFacade::getInstance();
+        std::string stream_id;
+        try {
+            stream_id = std::any_cast<std::string>(args[0]);
+        } catch (const std::bad_any_cast&) {
+            throw std::runtime_error("Invalid stream_id for stop_stream");
+        }
+
+        sep::engine::StreamResponse response;
+        auto result = engine.stopStream(stream_id, response);
+
+        if (sep::core::isSuccess(result) && response.success) {
+            std::cout << "DSL: Stopped stream '" << stream_id << "'" << std::endl;
+            return true;
+        } else {
+            throw std::runtime_error("Failed to stop stream: " + response.error_message);
+        }
+    }
+
+    if (name == "ingest_data") {
+        if (args.size() < 2) {
+            throw std::runtime_error("ingest_data expects at least 2 arguments: stream_id, data");
+        }
+
+        auto& engine = sep::engine::EngineFacade::getInstance();
+        sep::engine::StreamDataRequest request;
+        try {
+            request.stream_id = std::any_cast<std::string>(args[0]);
+            std::string data_str = std::any_cast<std::string>(args[1]);
+            
+            // Convert string data to byte stream
+            request.data_stream.assign(data_str.begin(), data_str.end());
+            
+            if (args.size() > 2) {
+                request.metadata = std::any_cast<std::string>(args[2]);
+            }
+        } catch (const std::bad_any_cast&) {
+            throw std::runtime_error("Invalid arguments for ingest_data");
+        }
+
+        sep::engine::StreamResponse response;
+        auto result = engine.ingestStreamData(request, response);
+
+        if (sep::core::isSuccess(result) && response.success) {
+            return true;
+        } else {
+            throw std::runtime_error("Failed to ingest data: " + response.error_message);
+        }
+    }
+
+    if (name == "query_stream") {
+        if (args.empty()) {
+            throw std::runtime_error("query_stream expects a stream_id argument");
+        }
+
+        auto& engine = sep::engine::EngineFacade::getInstance();
+        sep::engine::StreamQueryRequest request;
+        try {
+            request.stream_id = std::any_cast<std::string>(args[0]);
+            
+            if (args.size() > 1) {
+                request.count = static_cast<size_t>(std::any_cast<double>(args[1]));
+            }
+            if (args.size() > 2) {
+                request.include_patterns = std::any_cast<bool>(args[2]);
+            }
+        } catch (const std::bad_any_cast&) {
+            throw std::runtime_error("Invalid arguments for query_stream");
+        }
+
+        sep::engine::StreamDataResponse response;
+        auto result = engine.queryStream(request, response);
+
+        if (sep::core::isSuccess(result)) {
+            // Return stream statistics as a formatted string
+            std::string stats = "coherence:" + std::to_string(response.average_coherence) + 
+                               ",patterns:" + std::to_string(response.processed_patterns) +
+                               ",buffer:" + std::to_string(response.buffer_utilization) +
+                               ",data_points:" + std::to_string(response.total_data_points);
+            return stats;
+        } else {
+            throw std::runtime_error("Failed to query stream");
+        }
+    }
+    
+    // Pattern cache management functions
+    if (name == "clear_pattern_cache") {
+        auto& engine = sep::engine::EngineFacade::getInstance();
+        auto result = engine.clearPatternCache();
+        
+        if (sep::core::isSuccess(result)) {
+            return std::string("Pattern cache cleared successfully");
+        } else {
+            throw std::runtime_error("Failed to clear pattern cache");
+        }
+    }
+    
+    if (name == "configure_pattern_cache") {
+        if (args.size() < 3) {
+            throw std::runtime_error("configure_pattern_cache expects 3 arguments (max_size, ttl_minutes, coherence_threshold)");
+        }
+        
+        auto& engine = sep::engine::EngineFacade::getInstance();
+        try {
+            size_t max_size = static_cast<size_t>(std::any_cast<double>(args[0]));
+            int ttl_minutes = static_cast<int>(std::any_cast<double>(args[1]));
+            float coherence_threshold = static_cast<float>(std::any_cast<double>(args[2]));
+            
+            auto result = engine.configurePatternCache(max_size, ttl_minutes, coherence_threshold);
+            
+            if (sep::core::isSuccess(result)) {
+                return std::string("Pattern cache configured successfully");
+            } else {
+                throw std::runtime_error("Failed to configure pattern cache");
+            }
+        } catch (const std::bad_any_cast&) {
+            throw std::runtime_error("Invalid arguments for configure_pattern_cache");
+        }
+    }
+    
+    if (name == "get_cache_metrics") {
+        auto& engine = sep::engine::EngineFacade::getInstance();
+        sep::engine::MemoryMetricsResponse response;
+        auto result = engine.getMemoryMetrics(response);
+        
+        if (sep::core::isSuccess(result)) {
+            // Return cache metrics as formatted string
+            std::string metrics = "cached_patterns:" + std::to_string(response.cached_patterns) +
+                                ",hits:" + std::to_string(response.cache_hits) +
+                                ",misses:" + std::to_string(response.cache_misses) +
+                                ",hit_ratio:" + std::to_string(response.cache_hit_ratio);
+            return metrics;
+        } else {
+            throw std::runtime_error("Failed to get cache metrics");
+        }
+    }
+    
+    // GPU Memory Management Functions
+    if (name == "allocate_gpu_memory") {
+        if (args.size() < 1) {
+            throw std::runtime_error("allocate_gpu_memory expects size argument");
+        }
+        
+        auto& engine = sep::engine::EngineFacade::getInstance();
+        sep::engine::GPUMemoryAllocRequest request;
+        
+        try {
+            request.size_bytes = static_cast<size_t>(std::any_cast<double>(args[0]));
+            if (args.size() > 1) {
+                request.alignment = static_cast<size_t>(std::any_cast<double>(args[1]));
+            }
+        } catch (const std::bad_any_cast&) {
+            throw std::runtime_error("Invalid arguments for allocate_gpu_memory");
+        }
+        
+        sep::engine::GPUMemoryAllocResponse response;
+        auto result = engine.allocateGPUMemory(request, response);
+        
+        if (sep::core::isSuccess(result) && response.success) {
+            return static_cast<double>(response.memory_handle);
+        } else {
+            throw std::runtime_error("GPU memory allocation failed: " + response.error_message);
+        }
+    }
+    
+    if (name == "deallocate_gpu_memory") {
+        if (args.empty()) {
+            throw std::runtime_error("deallocate_gpu_memory expects handle argument");
+        }
+        
+        auto& engine = sep::engine::EngineFacade::getInstance();
+        sep::engine::GPUMemoryDeallocRequest request;
+        
+        try {
+            request.memory_handle = static_cast<uint64_t>(std::any_cast<double>(args[0]));
+        } catch (const std::bad_any_cast&) {
+            throw std::runtime_error("Invalid handle for deallocate_gpu_memory");
+        }
+        
+        auto result = engine.deallocateGPUMemory(request);
+        
+        if (sep::core::isSuccess(result)) {
+            return true;
+        } else {
+            throw std::runtime_error("GPU memory deallocation failed");
+        }
+    }
+    
+    if (name == "configure_gpu_memory") {
+        auto& engine = sep::engine::EngineFacade::getInstance();
+        sep::engine::GPUMemoryConfigRequest request;
+        
+        // Use defaults or parse arguments
+        if (args.size() >= 1) {
+            try {
+                request.auto_defragment = std::any_cast<bool>(args[0]);
+            } catch (const std::bad_any_cast&) {
+                request.auto_defragment = true;
+            }
+        }
+        if (args.size() >= 2) {
+            try {
+                request.defragment_threshold = static_cast<float>(std::any_cast<double>(args[1]));
+            } catch (const std::bad_any_cast&) {
+                request.defragment_threshold = 0.5f;
+            }
+        }
+        if (args.size() >= 3) {
+            try {
+                request.auto_grow = std::any_cast<bool>(args[2]);
+            } catch (const std::bad_any_cast&) {
+                request.auto_grow = true;
+            }
+        }
+        
+        auto result = engine.configureGPUMemory(request);
+        
+        if (sep::core::isSuccess(result)) {
+            return true;
+        } else {
+            throw std::runtime_error("GPU memory configuration failed");
+        }
+    }
+    
+    if (name == "defragment_gpu_memory") {
+        auto& engine = sep::engine::EngineFacade::getInstance();
+        auto result = engine.defragmentGPUMemory();
+        
+        if (sep::core::isSuccess(result)) {
+            return true;
+        } else {
+            throw std::runtime_error("GPU memory defragmentation failed");
+        }
+    }
+    
+    if (name == "get_gpu_memory_stats") {
+        auto& engine = sep::engine::EngineFacade::getInstance();
+        sep::engine::MemoryMetricsResponse response;
+        auto result = engine.getMemoryMetrics(response);
+        
+        if (sep::core::isSuccess(result)) {
+            // Return GPU memory stats as formatted string
+            std::string stats = "total_allocated:" + std::to_string(response.gpu_total_allocated) +
+                               ",current_usage:" + std::to_string(response.gpu_current_usage) +
+                               ",peak_usage:" + std::to_string(response.gpu_peak_usage) +
+                               ",fragmentation:" + std::to_string(response.gpu_fragmentation_ratio) + "%" +
+                               ",allocations:" + std::to_string(response.gpu_allocations) +
+                               ",deallocations:" + std::to_string(response.gpu_deallocations);
+            return stats;
+        } else {
+            throw std::runtime_error("Failed to get GPU memory stats");
+        }
+    }
+    
+    if (name == "reset_gpu_memory_stats") {
+        auto& engine = sep::engine::EngineFacade::getInstance();
+        auto result = engine.resetGPUMemoryStats();
+        
+        if (sep::core::isSuccess(result)) {
+            return true;
+        } else {
+            throw std::runtime_error("GPU memory stats reset failed");
+        }
+    }
+    
     throw std::runtime_error("Unknown function: " + name);
 }
 

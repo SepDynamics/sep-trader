@@ -1,6 +1,9 @@
 add_sep_library(sep_engine
     SOURCES
         facade/facade.cpp
+        streaming/streaming_data_manager.cpp
+        cache/pattern_cache.cpp
+        memory/gpu_memory_pool.cpp
         internal/allocation_metrics.cpp
         internal/compression.cpp
         internal/dag_graph.cpp
@@ -39,6 +42,9 @@ add_sep_library(sep_engine
 
 target_include_directories(sep_engine PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/facade
+    ${CMAKE_CURRENT_SOURCE_DIR}/streaming
+    ${CMAKE_CURRENT_SOURCE_DIR}/cache
+    ${CMAKE_CURRENT_SOURCE_DIR}/memory
     PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/internal
     ${CMAKE_SOURCE_DIR}/src/common

@@ -40,8 +40,8 @@ target_include_directories(sep_dsl PUBLIC
 # Set C++ standard
 target_compile_features(sep_dsl PUBLIC cxx_std_17)
 
-# Link against engine for builtin functions
-target_link_libraries(sep_dsl PRIVATE sep_engine)
+# Link against engine for builtin functions and nlohmann_json for serialization
+target_link_libraries(sep_dsl PRIVATE sep_engine nlohmann_json::nlohmann_json)
 
 # Add compiler flags
 target_compile_options(sep_dsl PRIVATE

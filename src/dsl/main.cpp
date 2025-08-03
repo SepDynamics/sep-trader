@@ -81,8 +81,11 @@ int main(int argc, char* argv[]) {
         // Handle AST loading vs normal parsing
         if (!load_ast_file.empty()) {
             std::cout << "Loading AST from: " << load_ast_file << std::endl;
-            dsl::ast::ASTSerializer serializer;
-            program = serializer.loadFromFile(load_ast_file);
+            program = dsl::ast::ASTSerializer::load_from_file(load_ast_file);
+            if (!program) {
+                std::cerr << "Error: Failed to load AST from file" << std::endl;
+                return 1;
+            }
             std::cout << "AST loaded successfully!" << std::endl;
         } else {
             // Read and parse the DSL script file
@@ -111,8 +114,7 @@ int main(int argc, char* argv[]) {
             // Save AST if requested
             if (!save_ast_file.empty()) {
                 std::cout << "Saving AST to: " << save_ast_file << std::endl;
-                dsl::ast::ASTSerializer serializer;
-                if (serializer.saveToFile(*program, save_ast_file)) {
+                if (dsl::ast::ASTSerializer::save_to_file(*program, save_ast_file)) {
                     std::cout << "AST saved successfully!" << std::endl;
                 } else {
                     std::cerr << "Warning: Failed to save AST to file" << std::endl;
