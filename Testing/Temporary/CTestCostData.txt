@@ -1,3 +1,0 @@
-pattern_metric_test 0 0
----
-pattern_metric_test

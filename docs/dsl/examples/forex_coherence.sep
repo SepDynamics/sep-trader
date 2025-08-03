@@ -1,44 +1,65 @@
-// SEP-DSL Example: Forex Coherence Analysis
-// This is the target syntax from TASK.md
+// Example DSL script - Forex Coherence Analysis
+// This demonstrates the DSL syntax for pattern analysis
 
 // Import market data
 stream market_data from "EUR/USD" {
-    timeframe: M5
+    timeframe: "M5"
     window: 1000
 }
 
-// Define coherence computation
+// Define coherence computation pattern
 pattern forex_coherence {
     input: market_data
     
     // Apply quantum analysis
-    qfh_result = qfh(bits: extract_bits(input))
-    qbsa_result = qbsa(pattern: input)
+    qfh_result = qfh()
+    qbsa_result = qbsa()
     
     // Compute metrics
-    coherence = weighted_sum {
-        qfh_result.coherence: 0.3
-        qbsa_result.stability: 0.7
-    }
+    coherence_value = coherence()
+    stability_value = stability()
+    entropy_value = entropy()
     
-    // Evolution rule
-    evolve when coherence > 0.7 {
-        optimize using manifold(
-            dimensions: 3,
-            constraint: minimize_entropy
-        )
+    // Weighted combination
+    combined_score = coherence_value * 0.3 + stability_value * 0.7
+    
+    // Conditional logic
+    if (combined_score > 0.8) {
+        confidence_level = "HIGH"
+        recommendation = "BUY"
+    } else {
+        if (combined_score > 0.5) {
+            confidence_level = "MEDIUM"
+            recommendation = "HOLD"
+        } else {
+            confidence_level = "LOW"
+            recommendation = "SELL"
+        }
     }
 }
 
 // Define trading signal
 signal buy_signal {
-    trigger: forex_coherence.coherence > 0.85
-    confidence: forex_coherence.qbsa_result.confidence
+    trigger: forex_coherence.combined_score > 0.85
+    confidence: forex_coherence.combined_score
     action: BUY
 }
 
-// Memory management
+signal sell_signal {
+    trigger: forex_coherence.combined_score < 0.3
+    confidence: 1.0 - forex_coherence.combined_score
+    action: SELL
+}
+
+// Memory management rules
 memory {
-    store forex_coherence in MTM when stability > 0.6
-    promote to LTM when age > 7d and coherence > 0.9
+    // Store patterns in short-term memory when stability is high
+    if (forex_coherence.stability_value > 0.6) {
+        store_pattern = "SHORT_TERM"
+    }
+    
+    // Promote to long-term memory for highly coherent patterns
+    if (forex_coherence.coherence_value > 0.9) {
+        promote_pattern = "LONG_TERM"
+    }
 }

@@ -1,142 +1,406 @@
 #include "compiler.h"
-#include <sstream>
+#include "../stdlib/core_primitives.h"
 #include <iostream>
+#include <cmath>
 
-namespace sep::dsl::compiler {
+namespace dsl::compiler {
 
-    SEPCompiler::SEPCompiler() : temp_var_counter_(0) {
+CompiledProgram Compiler::compile(const ast::Program& program) {
+    std::vector<std::function<void(Context&)>> compiled_statements;
+    
+    // Compile all declarations
+    for (const auto& stream : program.streams) {
+        compiled_statements.push_back(compile_stream_declaration(*stream));
     }
-
-    SEPCompiler::~SEPCompiler() {
+    
+    for (const auto& pattern : program.patterns) {
+        compiled_statements.push_back(compile_pattern_declaration(*pattern));
     }
+    
+    for (const auto& signal : program.signals) {
+        compiled_statements.push_back(compile_signal_declaration(*signal));
+    }
+    
+    if (program.memory) {
+        compiled_statements.push_back(compile_memory_declaration(*program.memory));
+    }
+    
+    return CompiledProgram([compiled_statements](Context& context) {
+        // Register built-in functions
+        Compiler compiler;
+        compiler.register_builtin_functions(context);
+        
+        // Execute all compiled statements
+        for (const auto& stmt : compiled_statements) {
+            stmt(context);
+        }
+    });
+}
 
-    CompiledProgram SEPCompiler::compile(const ast::Program& program) {
-        CompiledProgram compiled_program;
-        errors_.clear();
+std::function<void(Context&)> Compiler::compile_stream_declaration(const ast::StreamDecl& stream) {
+    return [stream](Context& context) {
+        std::cout << "Creating stream: " << stream.name << " from " << stream.source << std::endl;
         
-        // TODO: Implement full program compilation
-        // For now, create placeholder operations
+        // Create a mock stream value for now
+        context.set_variable(stream.name, Value("stream_data"));
+    };
+}
+
+std::function<void(Context&)> Compiler::compile_pattern_declaration(const ast::PatternDecl& pattern) {
+    std::vector<std::function<void(Context&)>> compiled_body;
+    
+    for (const auto& stmt : pattern.body) {
+        compiled_body.push_back(compile_statement(*stmt));
+    }
+    
+    // Capture by value to avoid copy issues
+    std::string pattern_name = pattern.name;
+    
+    return [pattern_name, compiled_body](Context& context) {
+        std::cout << "Executing pattern: " << pattern_name << std::endl;
         
-        // Compile each pattern
-        for (const auto& pattern : program.patterns) {
-            auto operation = compilePattern(pattern);
-            compiled_program.push_back(operation);
+        // Set up pattern context and identifier
+        context.set_variable("_current_pattern", Value(pattern_name));
+        context.set_variable(pattern_name, Value(pattern_name));
+        
+        // Execute pattern body with safety checks
+        try {
+            for (size_t i = 0; i < compiled_body.size(); ++i) {
+                std::cout << "  Executing statement " << i << std::endl;
+                compiled_body[i](context);
+                std::cout << "  Statement " << i << " completed" << std::endl;
+            }
+        } catch (const std::exception& e) {
+            std::cout << "Error executing pattern body: " << e.what() << std::endl;
+            throw;
         }
         
-        // Compile each signal
-        for (const auto& signal : program.signals) {
-            auto operation = compileSignal(signal);
-            compiled_program.push_back(operation);
+        // Clear pattern context but keep pattern identifier for member access
+        context.set_variable("_current_pattern", Value(""));
+        std::cout << "Pattern " << pattern_name << " execution completed" << std::endl;
+    };
+}
+
+std::function<void(Context&)> Compiler::compile_signal_declaration(const ast::SignalDecl& signal) {
+    auto compiled_trigger = signal.trigger ? compile_expression(*signal.trigger) : nullptr;
+    auto compiled_confidence = signal.confidence ? compile_expression(*signal.confidence) : nullptr;
+    
+    // Capture by value only what we need to avoid copy issues
+    std::string signal_name = signal.name;
+    std::string signal_action = signal.action;
+    
+    return [signal_name, signal_action, compiled_trigger, compiled_confidence](Context& context) {
+        std::cout << "Evaluating signal: " << signal_name << std::endl;
+        
+        if (compiled_trigger) {
+            Value trigger_result = compiled_trigger(context);
+            bool should_trigger = false;
+            if (trigger_result.type == Value::BOOLEAN) {
+                should_trigger = trigger_result.get<bool>();
+            } else if (trigger_result.type == Value::NUMBER) {
+                should_trigger = trigger_result.get<double>() != 0.0;
+            }
+            
+            if (should_trigger) {
+                std::cout << "Signal triggered! Action: " << signal_action << std::endl;
+                
+                if (compiled_confidence) {
+                    Value confidence_value = compiled_confidence(context);
+                    std::cout << "Confidence: " << confidence_value.get<double>() << std::endl;
+                }
+            }
+        }
+    };
+}
+
+std::function<void(Context&)> Compiler::compile_memory_declaration(const ast::MemoryDecl& memory) {
+    std::vector<std::function<void(Context&)>> compiled_rules;
+    
+    for (const auto& rule : memory.rules) {
+        compiled_rules.push_back(compile_statement(*rule));
+    }
+    
+    return [compiled_rules](Context& context) {
+        std::cout << "Executing memory rules" << std::endl;
+        
+        for (const auto& rule : compiled_rules) {
+            rule(context);
+        }
+    };
+}
+
+std::function<void(Context&)> Compiler::compile_statement(const ast::Statement& stmt) {
+    if (auto assignment = dynamic_cast<const ast::AssignmentStmt*>(&stmt)) {
+        auto compiled_value = compile_expression(*assignment->value);
+        
+        // Capture by value to avoid use-after-free
+        std::string variable_name = assignment->variable;
+        
+        return [variable_name, compiled_value](Context& context) {
+            Value result = compiled_value(context);
+            context.set_variable(variable_name, result);
+            
+            // Also store with pattern prefix for member access
+            // Check if we're in a pattern context (look for _current_pattern)
+            try {
+                Value current_pattern = context.get_variable("_current_pattern");
+                if (current_pattern.type == Value::STRING) {
+                    std::string pattern_name = current_pattern.get<std::string>();
+                    std::string full_name = pattern_name + "." + variable_name;
+                    context.set_variable(full_name, result);
+                }
+            } catch (...) {
+                // No current pattern context
+            }
+            
+            std::cout << "Assigned " << variable_name << " = ";
+            
+            switch (result.type) {
+                case Value::NUMBER:
+                    std::cout << result.get<double>() << std::endl;
+                    break;
+                case Value::STRING:
+                    std::cout << "\"" << result.get<std::string>() << "\"" << std::endl;
+                    break;
+                case Value::BOOLEAN:
+                    std::cout << (result.get<bool>() ? "true" : "false") << std::endl;
+                    break;
+                default:
+                    std::cout << "[complex value]" << std::endl;
+            }
+        };
+    }
+    
+    if (auto expr_stmt = dynamic_cast<const ast::ExpressionStmt*>(&stmt)) {
+        auto compiled_expr = compile_expression(*expr_stmt->expression);
+        
+        return [compiled_expr](Context& context) {
+            compiled_expr(context);
+        };
+    }
+    
+    if (auto if_stmt = dynamic_cast<const ast::IfStmt*>(&stmt)) {
+        auto compiled_condition = compile_expression(*if_stmt->condition);
+        
+        std::vector<std::function<void(Context&)>> compiled_then;
+        for (const auto& then_stmt : if_stmt->then_block) {
+            compiled_then.push_back(compile_statement(*then_stmt));
         }
         
-        return compiled_program;
-    }
-
-    EngineOperation SEPCompiler::compilePattern(const ast::PatternNode& pattern) {
-        // TODO: This is the core compilation logic
-        // For weekend exploration, start with a simple pattern that calls EngineFacade
+        std::vector<std::function<void(Context&)>> compiled_else;
+        for (const auto& else_stmt : if_stmt->else_block) {
+            compiled_else.push_back(compile_statement(*else_stmt));
+        }
         
-        return [pattern_name = pattern.name](engine::EngineFacade& facade) {
-            std::cout << "Executing pattern: " << pattern_name << std::endl;
-            // TODO: Generate actual calls to facade.processPatterns()
+        return [compiled_condition, compiled_then, compiled_else](Context& context) {
+            Value condition_result = compiled_condition(context);
+            
+            if (condition_result.type == Value::BOOLEAN && condition_result.get<bool>()) {
+                for (const auto& stmt : compiled_then) {
+                    stmt(context);
+                }
+            } else {
+                for (const auto& stmt : compiled_else) {
+                    stmt(context);
+                }
+            }
         };
     }
+    
+    // Default case
+    return [](Context& context) {
+        std::cout << "Unknown statement executed" << std::endl;
+    };
+}
 
-    EngineOperation SEPCompiler::compileSignal(const ast::SignalNode& signal) {
-        // TODO: Implement signal compilation
-        
-        return [signal_name = signal.name](engine::EngineFacade& facade) {
-            std::cout << "Executing signal: " << signal_name << std::endl;
-            // TODO: Generate signal generation logic
+std::function<Value(Context&)> Compiler::compile_expression(const ast::Expression& expr) {
+    if (auto number = dynamic_cast<const ast::NumberExpr*>(&expr)) {
+        // Capture by value to avoid use-after-free
+        double value = number->value;
+        return [value](Context&) -> Value {
+            return Value(value);
         };
     }
-
-    EngineOperation SEPCompiler::compileMemoryRule(const ast::MemoryRule& rule) {
-        // TODO: Implement memory rule compilation
-        
-        return [](engine::EngineFacade& facade) {
-            std::cout << "Executing memory rule" << std::endl;
-            // TODO: Generate calls to MemoryTierManager
+    
+    if (auto string = dynamic_cast<const ast::StringExpr*>(&expr)) {
+        // Capture by value to avoid use-after-free
+        std::string value = string->value;
+        return [value](Context&) -> Value {
+            return Value(value);
         };
     }
-
-    bool SEPCompiler::hasErrors() const {
-        return !errors_.empty();
+    
+    if (auto identifier = dynamic_cast<const ast::IdentifierExpr*>(&expr)) {
+        // Capture by value to avoid use-after-free
+        std::string name = identifier->name;
+        return [name](Context& context) -> Value {
+            return context.get_variable(name);
+        };
     }
-
-    std::vector<std::string> SEPCompiler::getErrors() const {
-        return errors_;
+    
+    if (auto binary = dynamic_cast<const ast::BinaryExpr*>(&expr)) {
+        auto compiled_left = compile_expression(*binary->left);
+        auto compiled_right = compile_expression(*binary->right);
+        
+        // Capture operator by value to avoid use-after-free
+        ast::TokenType op_type = binary->operator_type;
+        
+        return [compiled_left, compiled_right, op_type](Context& context) -> Value {
+            Value left = compiled_left(context);
+            Value right = compiled_right(context);
+            
+            switch (op_type) {
+                case ast::TokenType::PLUS:
+                    if (left.type == Value::NUMBER && right.type == Value::NUMBER) {
+                        return Value(left.get<double>() + right.get<double>());
+                    }
+                    throw std::runtime_error("Type mismatch in addition");
+                    break;
+                case ast::TokenType::MINUS:
+                    if (left.type == Value::NUMBER && right.type == Value::NUMBER) {
+                        return Value(left.get<double>() - right.get<double>());
+                    }
+                    throw std::runtime_error("Type mismatch in subtraction");
+                case ast::TokenType::MULTIPLY:
+                    if (left.type == Value::NUMBER && right.type == Value::NUMBER) {
+                        return Value(left.get<double>() * right.get<double>());
+                    }
+                    throw std::runtime_error("Type mismatch in multiplication");
+                case ast::TokenType::DIVIDE:
+                    if (left.type == Value::NUMBER && right.type == Value::NUMBER) {
+                        return Value(left.get<double>() / right.get<double>());
+                    }
+                    throw std::runtime_error("Type mismatch in division");
+                case ast::TokenType::GT:
+                    if (left.type == Value::NUMBER && right.type == Value::NUMBER) {
+                        return Value(left.get<double>() > right.get<double>());
+                    }
+                    throw std::runtime_error("Type mismatch in comparison");
+                case ast::TokenType::LT:
+                    if (left.type == Value::NUMBER && right.type == Value::NUMBER) {
+                        return Value(left.get<double>() < right.get<double>());
+                    }
+                    throw std::runtime_error("Type mismatch in comparison");
+                case ast::TokenType::GE:
+                    if (left.type == Value::NUMBER && right.type == Value::NUMBER) {
+                        return Value(left.get<double>() >= right.get<double>());
+                    }
+                    throw std::runtime_error("Type mismatch in comparison");
+                case ast::TokenType::LE:
+                    if (left.type == Value::NUMBER && right.type == Value::NUMBER) {
+                        return Value(left.get<double>() <= right.get<double>());
+                    }
+                    throw std::runtime_error("Type mismatch in comparison");
+                case ast::TokenType::EQ:
+                    if (left.type == Value::NUMBER && right.type == Value::NUMBER) {
+                        return Value(left.get<double>() == right.get<double>());
+                    }
+                    throw std::runtime_error("Type mismatch in equality");
+                case ast::TokenType::AND:
+                    if (left.type == Value::BOOLEAN && right.type == Value::BOOLEAN) {
+                        return Value(left.get<bool>() && right.get<bool>());
+                    }
+                    throw std::runtime_error("Type mismatch in logical AND");
+                case ast::TokenType::OR:
+                    if (left.type == Value::BOOLEAN && right.type == Value::BOOLEAN) {
+                        return Value(left.get<bool>() || right.get<bool>());
+                    }
+                    throw std::runtime_error("Type mismatch in logical OR");
+            }
+            
+            throw std::runtime_error("Invalid binary operation");
+        };
     }
-
-    std::string SEPCompiler::generateVariableName(const std::string& base) {
-        return base + "_" + std::to_string(temp_var_counter_++);
+    
+    if (auto call = dynamic_cast<const ast::CallExpr*>(&expr)) {
+        std::vector<std::function<Value(Context&)>> compiled_args;
+        for (const auto& arg : call->arguments) {
+            compiled_args.push_back(compile_expression(*arg));
+        }
+        
+        // Capture function name by value to avoid use-after-free
+        std::string function_name = call->function_name;
+        
+        return [function_name, compiled_args](Context& context) -> Value {
+            std::vector<Value> args;
+            for (const auto& compiled_arg : compiled_args) {
+                args.push_back(compiled_arg(context));
+            }
+            
+            return context.call_function(function_name, args);
+        };
     }
-
-    std::string SEPCompiler::compileExpression(const ast::Expression& expr) {
-        // TODO: Implement expression compilation
-        return "0.0"; // placeholder
+    
+    if (auto member = dynamic_cast<const ast::MemberExpr*>(&expr)) {
+        auto compiled_object = compile_expression(*member->object);
+        std::string member_name = member->member;
+        
+        return [compiled_object, member_name](Context& context) -> Value {
+            Value object = compiled_object(context);
+            
+            // For pattern member access, construct the variable name
+            if (object.type == Value::STRING) {
+                std::string pattern_name = object.get<std::string>();
+                std::string full_var_name = pattern_name + "." + member_name;
+                return context.get_variable(full_var_name);
+            }
+            
+            return Value(0.5); // Fallback
+        };
     }
+    
+    // Default case
+    return [](Context& context) -> Value {
+        return Value(0.0);
+    };
+}
 
-    std::string SEPCompiler::compileLiteral(const ast::LiteralExpression& literal) {
-        // TODO: Convert literal to C++ code string
-        return "0.0"; // placeholder
-    }
+void Compiler::register_builtin_functions(Context& context) {
+    // Register core primitives from stdlib
+    stdlib::register_core_primitives(context);
+    
+    // Legacy functions for backwards compatibility
+    context.set_function("qfh", [this](const std::vector<Value>& args) { return builtin_qfh(args); });
+    context.set_function("qbsa", [this](const std::vector<Value>& args) { return builtin_qbsa(args); });
+    context.set_function("coherence", [this](const std::vector<Value>& args) { return builtin_coherence(args); });
+    context.set_function("stability", [this](const std::vector<Value>& args) { return builtin_stability(args); });
+    context.set_function("entropy", [this](const std::vector<Value>& args) { return builtin_entropy(args); });
+}
 
-    std::string SEPCompiler::compileVariable(const ast::VariableExpression& var) {
-        // TODO: Handle variable references
-        return var.name;
-    }
+Value Compiler::builtin_qfh(const std::vector<Value>& args) {
+    std::cout << "Executing QFH analysis..." << std::endl;
+    // Mock QFH computation
+    return Value(0.75); // Mock coherence result
+}
 
-    std::string SEPCompiler::compileBinaryOp(const ast::BinaryExpression& binary) {
-        // TODO: Handle arithmetic/logical operations
-        return "0.0"; // placeholder
-    }
+Value Compiler::builtin_qbsa(const std::vector<Value>& args) {
+    std::cout << "Executing QBSA analysis..." << std::endl;
+    // Mock QBSA computation
+    return Value(0.68); // Mock stability result
+}
 
-    std::string SEPCompiler::compileFunctionCall(const ast::FunctionCallExpression& call) {
-        // TODO: This is where we map DSL functions to C++ engine calls
-        return "0.0"; // placeholder
-    }
+Value Compiler::builtin_coherence(const std::vector<Value>& args) {
+    std::cout << "Computing coherence..." << std::endl;
+    // Mock coherence computation
+    return Value(0.82);
+}
 
-    // These methods map DSL operations to your existing C++ primitives
-    std::string SEPCompiler::compileQFHAnalyze(const std::vector<std::string>& args) {
-        // TODO: Generate call to QFHBasedProcessor::analyze
-        return "/* QFH analyze call */";
-    }
+Value Compiler::builtin_stability(const std::vector<Value>& args) {
+    std::cout << "Computing stability..." << std::endl;
+    // Mock stability computation
+    return Value(0.73);
+}
 
-    std::string SEPCompiler::compileQBSAAnalyze(const std::vector<std::string>& args) {
-        // TODO: Generate call to QBSAProcessor::analyze  
-        return "/* QBSA analyze call */";
-    }
+Value Compiler::builtin_entropy(const std::vector<Value>& args) {
+    std::cout << "Computing entropy..." << std::endl;
+    // Mock entropy computation
+    return Value(0.45);
+}
 
-    std::string SEPCompiler::compileManifoldOptimize(const std::vector<std::string>& args) {
-        // TODO: Generate call to QuantumManifoldOptimizer::optimize
-        return "/* Manifold optimize call */";
-    }
+Value Compiler::builtin_weighted_sum(const std::vector<Value>& args) {
+    std::cout << "Computing weighted sum..." << std::endl;
+    // Mock weighted sum - in real implementation, this would take weight parameters
+    return Value(0.77);
+}
 
-    std::string SEPCompiler::compileMeasureCoherence(const std::vector<std::string>& args) {
-        // TODO: Generate call to QuantumProcessor::calculateCoherence
-        return "/* Measure coherence call */";
-    }
-
-    std::string SEPCompiler::compileMeasureStability(const std::vector<std::string>& args) {
-        // TODO: Generate call to QuantumProcessor::calculateStability
-        return "/* Measure stability call */";
-    }
-
-    std::string SEPCompiler::compileMeasureEntropy(const std::vector<std::string>& args) {
-        // TODO: Generate call to entropy calculation
-        return "/* Measure entropy call */";
-    }
-
-    std::string SEPCompiler::compileMemoryStore(const std::string& pattern_var, 
-                                               const std::string& tier) {
-        // TODO: Generate call to MemoryTierManager::allocate
-        return "/* Memory store call */";
-    }
-
-    std::string SEPCompiler::compileMemoryRetrieve(const std::string& id_var) {
-        // TODO: Generate call to MemoryTierManager::findBlockByPtr
-        return "/* Memory retrieve call */";
-    }
-
-} // namespace sep::dsl::compiler
+} // namespace dsl::compiler

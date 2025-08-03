@@ -1,162 +1,76 @@
 #include "runtime.h"
+#include <fstream>
+#include <sstream>
 #include <iostream>
-#include <stdexcept>
 
-namespace sep::dsl::runtime {
+namespace dsl::runtime {
 
-    DSLRuntime::DSLRuntime() 
-        : parser_(std::make_unique<parser::SEPParser>())
-        , compiler_(std::make_unique<compiler::SEPCompiler>())
-        , engine_facade_(engine::EngineFacade::getInstance())
-        , memory_manager_(memory::MemoryTierManager::getInstance())
-        , debug_mode_(false) {
+DSLRuntime::DSLRuntime() : current_parser(nullptr) {}
+
+DSLRuntime::~DSLRuntime() {
+    delete current_parser;
+}
+
+void DSLRuntime::execute(const std::string& source) {
+    try {
+        // Parse the source code
+        parser::Parser parser(source);
+        auto program = parser.parse();
         
-        logDebug("DSL Runtime initialized");
-    }
-
-    DSLRuntime::~DSLRuntime() {
-        logDebug("DSL Runtime shutting down");
-    }
-
-    bool DSLRuntime::executeScript(const std::string& script_source) {
-        runtime_errors_.clear();
+        // Execute using the interpreter
+        interpreter_.interpret(*program);
         
-        try {
-            // Parse the script
-            logDebug("Parsing DSL script...");
-            auto program = parser_->parse(script_source);
-            
-            if (parser_->hasErrors()) {
-                for (const auto& error : parser_->getErrors()) {
-                    addError("Parser error: " + error);
-                }
-                return false;
-            }
-            
-            // Compile to executable operations
-            logDebug("Compiling DSL program...");
-            auto compiled_program = compiler_->compile(*program);
-            
-            if (compiler_->hasErrors()) {
-                for (const auto& error : compiler_->getErrors()) {
-                    addError("Compiler error: " + error);
-                }
-                return false;
-            }
-            
-            // Execute the compiled program
-            logDebug("Executing compiled program...");
-            return executeProgram(compiled_program);
-            
-        } catch (const std::exception& e) {
-            addError("Runtime exception: " + std::string(e.what()));
-            return false;
-        }
+    } catch (const std::exception& e) {
+        handle_error("Execution error: " + std::string(e.what()));
     }
+}
 
-    bool DSLRuntime::executeProgram(const compiler::CompiledProgram& program) {
-        bool success = true;
-        
-        for (const auto& operation : program) {
-            if (!executeOperation(operation)) {
-                success = false;
-                // Continue executing other operations for now
-                // TODO: Add option for fail-fast vs. continue-on-error
-            }
+void DSLRuntime::execute_file(const std::string& filename) {
+    std::ifstream file(filename);
+    if (!file.is_open()) {
+        handle_error("Cannot open file: " + filename);
+        return;
+    }
+    
+    std::stringstream buffer;
+    buffer << file.rdbuf();
+    execute(buffer.str());
+}
+
+void DSLRuntime::start_repl() {
+    std::cout << "DSL REPL - Enter commands (type 'exit' to quit):" << std::endl;
+    std::string line;
+    
+    while (true) {
+        std::cout << "dsl> ";
+        if (!std::getline(std::cin, line)) {
+            break;
         }
         
-        return success;
-    }
-
-    bool DSLRuntime::executePattern(const ast::PatternNode& pattern) {
-        try {
-            // Compile just this pattern
-            auto operation = compiler_->compilePattern(pattern);
-            return executeOperation(operation);
-            
-        } catch (const std::exception& e) {
-            addError("Pattern execution error: " + std::string(e.what()));
-            return false;
-        }
-    }
-
-    bool DSLRuntime::hasErrors() const {
-        return !runtime_errors_.empty() || 
-               parser_->hasErrors() || 
-               compiler_->hasErrors();
-    }
-
-    std::vector<std::string> DSLRuntime::getErrors() const {
-        std::vector<std::string> all_errors = runtime_errors_;
-        
-        // Collect parser errors
-        for (const auto& error : parser_->getErrors()) {
-            all_errors.push_back("Parser: " + error);
+        if (line == "exit" || line == "quit") {
+            break;
         }
         
-        // Collect compiler errors
-        for (const auto& error : compiler_->getErrors()) {
-            all_errors.push_back("Compiler: " + error);
-        }
-        
-        return all_errors;
-    }
-
-    void DSLRuntime::reset() {
-        runtime_errors_.clear();
-        // TODO: Reset parser and compiler state if needed
-        logDebug("DSL Runtime reset");
-    }
-
-    void DSLRuntime::logDebug(const std::string& message) {
-        if (debug_mode_) {
-            std::cout << "[DSL Runtime] " << message << std::endl;
+        if (!line.empty()) {
+            execute_line(line);
         }
     }
+}
 
-    void DSLRuntime::addError(const std::string& error) {
-        runtime_errors_.push_back(error);
-        if (debug_mode_) {
-            std::cerr << "[DSL Runtime Error] " << error << std::endl;
-        }
+void DSLRuntime::execute_line(const std::string& line) {
+    execute(line);
+}
+
+void DSLRuntime::set_error_handler(std::function<void(const std::string&)> handler) {
+    error_handler = handler;
+}
+
+void DSLRuntime::handle_error(const std::string& message) {
+    if (error_handler) {
+        error_handler(message);
+    } else {
+        std::cerr << "Error: " << message << std::endl;
     }
+}
 
-    bool DSLRuntime::executeOperation(const compiler::EngineOperation& operation) {
-        try {
-            // Execute the operation against the engine facade
-            operation(engine_facade_);
-            return true;
-            
-        } catch (const std::exception& e) {
-            addError("Operation execution failed: " + std::string(e.what()));
-            return false;
-        }
-    }
-
-    // Convenience functions implementation
-    namespace convenience {
-        
-        bool executePatternString(const std::string& pattern_def) {
-            DSLRuntime runtime;
-            runtime.setDebugMode(true);
-            
-            // For now, treat the pattern as a complete program
-            // TODO: Wrap single patterns in program structure
-            return runtime.executeScript(pattern_def);
-        }
-        
-        bool executeProgramString(const std::string& program) {
-            DSLRuntime runtime;
-            return runtime.executeScript(program);
-        }
-        
-        bool validateScript(const std::string& script) {
-            DSLRuntime runtime;
-            parser::SEPParser parser;
-            
-            auto program = parser.parse(script);
-            return !parser.hasErrors();
-        }
-    }
-
-} // namespace sep::dsl::runtime
+} // namespace dsl::runtime

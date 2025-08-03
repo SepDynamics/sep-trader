@@ -1,0 +1,11 @@
+stream test_data from "test.csv"
+
+pattern simple_test {
+    input: test_data
+    result = 1
+}
+
+signal test_signal {
+    trigger: simple_test.result
+    action: TEST
+}

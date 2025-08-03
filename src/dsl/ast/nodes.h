@@ -1,134 +1,101 @@
 #pragma once
-
 #include <string>
 #include <vector>
 #include <memory>
 #include <variant>
+#include <unordered_map>
 
-namespace sep::dsl::ast {
+// This is the grammar of our language.
 
-    // Forward declarations
-    struct Expression;
-    
-    // Statement placeholder (can be removed when not needed)
-    struct Statement {
-        // TODO: Define statement types as needed
-    };
+namespace dsl::ast {
 
-    // Basic types
-    enum class OperationType {
-        QFH_ANALYZE,
-        QBSA_ANALYZE,
-        MANIFOLD_OPTIMIZE,
-        MEASURE_COHERENCE,
-        MEASURE_STABILITY,
-        MEASURE_ENTROPY,
-        WEIGHTED_SUM,
-        EXTRACT_BITS,
-        DETECT_COLLAPSE
-    };
+// Token types
+enum class TokenType {
+    IDENTIFIER, NUMBER, STRING,
+    PATTERN, STREAM, SIGNAL, MEMORY,
+    FROM, WHEN, USING, INPUT, OUTPUT,
+    LBRACE, RBRACE, LPAREN, RPAREN,
+    SEMICOLON, COLON, COMMA, DOT,
+    ASSIGN, PLUS, MINUS, MULTIPLY, DIVIDE,
+    GT, LT, GE, LE, EQ, NE,
+    AND, OR, NOT,
+    IF, ELSE, WHILE, FOR,
+    RETURN, BREAK, CONTINUE,
+    EOF_TOKEN, INVALID
+};
 
-    enum class TriggerType {
-        THRESHOLD,
-        PATTERN_MATCH,
-        TIME_BASED,
-        CONDITIONAL
-    };
+// Base class for all nodes
+struct Node { virtual ~Node() = default; };
 
-    enum class MemoryTier {
-        STM,  // Short-term memory
-        MTM,  // Medium-term memory  
-        LTM   // Long-term memory
-    };
+// Expressions
+struct Expression : Node {};
+struct Statement : Node {};
 
-    // Expression nodes
-    struct LiteralExpression {
-        std::variant<double, int, std::string, bool> value;
-    };
+struct NumberLiteral : Expression { double value; };
+struct StringLiteral : Expression { std::string value; };
+struct Identifier : Expression { std::string name; };
 
-    struct VariableExpression {
-        std::string name;
-    };
+struct BinaryOp : Expression {
+    std::unique_ptr<Expression> left;
+    std::string op;
+    std::unique_ptr<Expression> right;
+};
 
-    struct BinaryExpression {
-        std::unique_ptr<Expression> left;
-        std::string operator_;
-        std::unique_ptr<Expression> right;
-    };
+struct Call : Expression {
+    std::string callee;
+    std::vector<std::unique_ptr<Expression>> args;
+};
 
-    struct FunctionCallExpression {
-        std::string function_name;
-        std::vector<std::unique_ptr<Expression>> arguments;
-    };
+struct MemberAccess : Expression {
+    std::unique_ptr<Expression> object;
+    std::string member;
+};
 
-    struct Expression {
-        std::variant<
-            LiteralExpression,
-            VariableExpression,
-            BinaryExpression,
-            FunctionCallExpression
-        > data;
-    };
+struct WeightedSum : Expression {
+    std::vector<std::pair<std::unique_ptr<Expression>, std::unique_ptr<Expression>>> pairs; // weight : value pairs
+};
 
-    // Input source definitions
-    struct InputNode {
-        std::string name;
-        std::string source_type; // "stream", "file", "memory", etc.
-        std::string source_path;
-        std::vector<std::pair<std::string, std::unique_ptr<Expression>>> parameters;
-    };
+struct EvolveStatement : Statement {
+    std::unique_ptr<Expression> condition;
+    std::vector<std::unique_ptr<Statement>> body;
+};
 
-    // Computation nodes
-    struct ComputationNode {
-        std::string result_variable;
-        OperationType operation;
-        std::vector<std::unique_ptr<Expression>> arguments;
-        std::vector<std::pair<std::string, std::unique_ptr<Expression>>> parameters;
-    };
+// Statements
+struct Assignment : Statement {
+    std::string name;
+    std::unique_ptr<Expression> value;
+};
 
-    // Evolution rules
-    struct EvolutionRule {
-        std::unique_ptr<Expression> condition;
-        std::vector<std::unique_ptr<Statement>> actions;
-    };
+struct ExpressionStatement : Statement {
+    std::unique_ptr<Expression> expression;
+};
 
-    // Memory management rules
-    struct MemoryRule {
-        std::string pattern_reference;
-        MemoryTier target_tier;
-        std::unique_ptr<Expression> condition;
-    };
+// High-Level Declarations
+struct StreamDecl : Node {
+    std::string name;
+    std::string source;
+    // We'll parse parameters into a simple map for now
+    std::unordered_map<std::string, std::string> params;
+};
 
-    // Signal definitions
-    struct SignalNode {
-        std::string name;
-        std::unique_ptr<Expression> trigger_condition;
-        std::unique_ptr<Expression> confidence_expression;
-        std::string action; // BUY, SELL, HOLD, etc.
-    };
+struct PatternDecl : Node {
+    std::string name;
+    std::vector<std::string> inputs;
+    std::vector<std::unique_ptr<Statement>> body;
+};
 
-    // Pattern definitions (main computational units)
-    struct PatternNode {
-        std::string name;
-        std::vector<InputNode> inputs;
-        std::vector<ComputationNode> computations;
-        std::vector<EvolutionRule> evolution_rules;
-        std::vector<MemoryRule> memory_rules;
-    };
+struct SignalDecl : Node {
+    std::string name;
+    std::unique_ptr<Expression> trigger;
+    std::unique_ptr<Expression> confidence;
+    std::string action;
+};
 
-    // Top-level program structure
-    struct Program {
-        std::vector<InputNode> global_inputs;
-        std::vector<PatternNode> patterns;
-        std::vector<SignalNode> signals;
-        std::vector<MemoryRule> global_memory_rules;
-    };
+// The root of our program
+struct Program : Node {
+    std::vector<std::unique_ptr<StreamDecl>> streams;
+    std::vector<std::unique_ptr<PatternDecl>> patterns;
+    std::vector<std::unique_ptr<SignalDecl>> signals;
+};
 
-    // Utility functions for AST manipulation
-    namespace util {
-        std::string expressionToString(const Expression& expr);
-        std::vector<std::string> extractVariables(const Expression& expr);
-        bool isConstantExpression(const Expression& expr);
-    }
-
-} // namespace sep::dsl::ast
+} // namespace dsl::ast

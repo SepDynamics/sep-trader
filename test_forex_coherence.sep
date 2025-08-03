@@ -1,0 +1,14 @@
+stream forex_data from "OANDA/EUR_USD_data.csv"
+
+pattern coherence_spike {
+    input: forex_data
+    
+    rupture_detected = qfh_analyze(forex_data) > 0.8
+    coherence_high = measure_coherence(forex_data) > 0.75
+}
+
+signal buy_signal {
+    trigger: coherence_spike.rupture_detected
+    confidence: coherence_spike.coherence_high
+    action: BUY
+}

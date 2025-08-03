@@ -1,55 +1,52 @@
 #include "dsl/runtime/runtime.h"
 #include <iostream>
-#include <fstream>
+#include <string>
+
+void run_test(dsl::runtime::DSLRuntime& runtime, const std::string& test_name, const std::string& script) {
+    std::cout << "\n--- " << test_name << " ---" << std::endl;
+    try {
+        runtime.execute(script);
+        std::cout << "✓ " << test_name << " PASSED!" << std::endl;
+    } catch (const std::exception& e) {
+        std::cerr << "✗ " << test_name << " FAILED: " << e.what() << std::endl;
+    }
+}
 
 int main() {
-    std::cout << "=== SEP DSL Foundation Test ===" << std::endl;
+    std::cout << "DSL Test Program" << std::endl;
+    std::cout << "=================" << std::endl;
     
-    // Test 1: Basic runtime initialization
-    try {
-        sep::dsl::runtime::DSLRuntime runtime;
-        runtime.setDebugMode(true);
-        std::cout << "✅ DSL Runtime initialized successfully" << std::endl;
-    } catch (const std::exception& e) {
-        std::cerr << "❌ Runtime initialization failed: " << e.what() << std::endl;
-        return 1;
-    }
-    
-    // Test 2: Simple DSL script validation
-    std::string simple_script = R"(
-        pattern test_pattern {
-            coherence = 0.5
+    dsl::runtime::DSLRuntime runtime;
+
+    // Test 1: Variable assignment and binary operations
+    run_test(runtime, "Test 1: Assignment & Arithmetic", R"(
+        pattern test_arithmetic {
+            x = 5
+            y = 10
+            result = x + y
         }
-    )";
-    
-    bool validation_result = sep::dsl::runtime::convenience::validateScript(simple_script);
-    std::cout << "✅ Script validation test completed (result: " << validation_result << ")" << std::endl;
-    
-    // Test 3: Load and validate example file
-    std::ifstream example_file("/sep/docs/dsl/examples/forex_coherence.sep");
-    if (example_file.is_open()) {
-        std::string example_content((std::istreambuf_iterator<char>(example_file)),
-                                   std::istreambuf_iterator<char>());
-        example_file.close();
+    )");
+
+    // Test 2: Function calls
+    run_test(runtime, "Test 2: Function Calls", R"(
+        pattern test_functions {
+            c = coherence()
+            s = stability()
+        }
+    )");
+
+    // Test 3: Combination and signals
+    run_test(runtime, "Test 3: Combination & Signals", R"(
+        pattern forex_coherence {
+            combined_score = coherence() * 0.7 + stability() * 0.3
+        }
         
-        bool example_validation = sep::dsl::runtime::convenience::validateScript(example_content);
-        std::cout << "✅ Example file validation completed (result: " << example_validation << ")" << std::endl;
-    } else {
-        std::cout << "⚠️  Could not load example file for validation" << std::endl;
-    }
-    
-    // Test 4: Component integration
-    sep::dsl::runtime::DSLRuntime runtime;
-    auto& parser = runtime.getParser();
-    auto& compiler = runtime.getCompiler();
-    std::cout << "✅ DSL components accessible" << std::endl;
-    
-    std::cout << "\n=== DSL Foundation Ready for Weekend Development ===" << std::endl;
-    std::cout << "Next steps:" << std::endl;
-    std::cout << "1. Implement parsePattern() in parser.cpp" << std::endl;
-    std::cout << "2. Implement compilePattern() in compiler.cpp" << std::endl;
-    std::cout << "3. Map DSL operations to existing SEP engine calls" << std::endl;
-    std::cout << "4. Test with simple pattern definitions" << std::endl;
-    
+        signal buy_signal {
+            trigger: forex_coherence.combined_score > 0.8
+            action: BUY
+        }
+    )");
+
+    std::cout << "\n--- All Tests Completed ---" << std::endl;
     return 0;
 }
