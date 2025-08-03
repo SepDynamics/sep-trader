@@ -68,6 +68,6 @@ The SEP DSL is designed to demonstrate **Artificial General Intelligence (AGI) c
 
 ---
 
-**Last Updated**: January 8, 2025  
+**Last Updated**: August 3, 2025  
 **Documentation Version**: 3.0 (DSL Project Focus)  
 **Project Status**: AGI Language Infrastructure Complete
