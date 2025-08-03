@@ -87,3 +87,12 @@ add_executable(dsl_serialization_test
 target_include_directories(dsl_serialization_test PRIVATE ../src)
 target_link_libraries(dsl_serialization_test GTest::gtest GTest::gtest_main sep_dsl)
 gtest_discover_tests(dsl_serialization_test)
+
+# Fuzzing
+add_executable(dsl_fuzz_parser
+    fuzzing/fuzz_parser.cpp)
+target_link_libraries(dsl_fuzz_parser PRIVATE sep_dsl)
+target_compile_options(dsl_fuzz_parser PRIVATE -fsanitize=fuzzer)
+target_link_options(dsl_fuzz_parser PRIVATE -fsanitize=fuzzer)
+
+

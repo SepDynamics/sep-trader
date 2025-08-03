@@ -39,6 +39,8 @@ struct ConfigParam {
     ConfigValue max_value;
     std::string description;
     bool requires_restart = false;  // Whether changing this requires engine restart
+
+    ConfigParam() = default;
     
     ConfigParam(const std::string& n, ConfigCategory cat, ConfigValue def, 
                 const std::string& desc, bool restart = false)
