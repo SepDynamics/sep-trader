@@ -1,5 +1,0 @@
-pattern test_math {
-    x = abs(-5)
-    y = sqrt(16)
-    z = mean(1, 2, 3, 4, 5)
-}

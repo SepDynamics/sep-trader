@@ -1,4 +1,0 @@
-pattern engine_init_test {
-    // Very simple test that should work if engine is initialized
-    x = 1 + 2
-}

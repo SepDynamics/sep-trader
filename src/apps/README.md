@@ -1,1 +1,1 @@
-Executable applications built on the SEP engine, including trading clients and experimental tools.
+Executable applications built on the SEP DSL platform, including pattern analysis tools and AGI frameworks.

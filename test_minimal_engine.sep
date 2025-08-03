@@ -1,2 +1,0 @@
-let coherence = measure_coherence("test_pattern")
-print("Success!")

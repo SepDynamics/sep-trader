@@ -1,0 +1,66 @@
+#!/usr/bin/env /sep/build/src/dsl/sep_dsl_interpreter
+
+// Your first SEP DSL program!
+// This demonstrates basic language features and AGI engine integration
+
+pattern hello_world {
+    // Variables and basic math
+    x = 42
+    y = 3.14159
+    result = x * y
+    
+    // String handling
+    message = "Hello, SEP DSL!"
+    name = "Developer"
+    
+    // Boolean logic
+    is_positive = x > 0
+    is_large = result > 100
+    
+    // Real AGI engine integration
+    print("=== AGI Engine Demo ===")
+    test_data = "sample_sensor_data"
+    
+    // Measure quantum coherence (0.0 = chaotic, 1.0 = perfectly ordered)
+    coherence = measure_coherence(test_data)
+    
+    // Measure Shannon entropy (0.0 = predictable, 1.0 = random)
+    entropy = measure_entropy(test_data)
+    
+    // Pattern quality score
+    quality = coherence * (1.0 - entropy)
+    
+    // Output results
+    print("Basic Math:")
+    print("  x =", x)
+    print("  y =", y) 
+    print("  x * y =", result)
+    print("")
+    
+    print("String Handling:")
+    print("  Message:", message)
+    print("  Name:", name)
+    print("")
+    
+    print("Boolean Logic:")
+    print("  Is positive:", is_positive)
+    print("  Is large:", is_large)
+    print("")
+    
+    print("AGI Analysis:")
+    print("  Data:", test_data)
+    print("  Coherence:", coherence)
+    print("  Entropy:", entropy)
+    print("  Quality Score:", quality)
+    print("")
+    
+    // Conditional logic
+    if (quality > 0.5) {
+        print("✅ High quality pattern detected!")
+    } else {
+        print("⚠️  Low quality pattern - needs attention")
+    }
+    
+    print("")
+    print("🎉 Welcome to SEP DSL - where AGI meets simplicity!")
+}

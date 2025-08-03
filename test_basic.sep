@@ -1,3 +1,0 @@
-pattern basic_test {
-    x = 5 + 3
-}
