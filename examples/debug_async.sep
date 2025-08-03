@@ -1,0 +1,7 @@
+pattern test_pattern {
+    x = 42
+}
+
+async function test() {
+    return 1
+}

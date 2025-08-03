@@ -32,6 +32,17 @@ namespace dsl::runtime {
         Value value_;
     };
 
+    // Exception for DSL throw statements
+    class DSLException : public std::runtime_error
+    {
+    public:
+        DSLException(const Value& value) : std::runtime_error("DSL exception"), value_(value) {}
+        const Value& value() const { return value_; }
+
+    private:
+        Value value_;
+    };
+
     // Interface for callable objects
     class Callable
     {
@@ -56,6 +67,22 @@ namespace dsl::runtime {
         Environment* closure_;
     };
 
+    // Async function implementation 
+    class AsyncFunction : public Callable
+    {
+    public:
+        AsyncFunction(const ast::AsyncFunctionDeclaration& declaration, Environment* closure)
+            : declaration_(declaration), closure_(closure)
+        {
+        }
+
+        Value call(Interpreter& interpreter, const std::vector<Value>& arguments) override;
+
+    private:
+        const ast::AsyncFunctionDeclaration& declaration_;
+        Environment* closure_;
+    };
+
 class Environment {
 private:
     std::unordered_map<std::string, Value> variables_;
@@ -75,6 +102,7 @@ public:
 
 class Interpreter {
     friend class UserFunction;
+    friend class AsyncFunction;
 
 public:
     Interpreter();
@@ -105,6 +133,7 @@ private:
     Value visit_call(const ast::Call& node);
     Value visit_member_access(const ast::MemberAccess& node);
     Value visit_weighted_sum(const ast::WeightedSum& node);
+    Value visit_await_expression(const ast::AwaitExpression& node);
 
     // Statement execution visitors
     void visit_assignment(const ast::Assignment& node);
@@ -116,6 +145,9 @@ private:
     void visit_return_statement(const ast::ReturnStatement& node);
     void visit_import_statement(const ast::ImportStatement& node);
     void visit_export_statement(const ast::ExportStatement& node);
+    void visit_async_function_declaration(const ast::AsyncFunctionDeclaration& node);
+    void visit_try_statement(const ast::TryStatement& node);
+    void visit_throw_statement(const ast::ThrowStatement& node);
 
     // Declaration handling
     void execute_stream_decl(const ast::StreamDecl& decl);

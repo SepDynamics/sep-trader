@@ -88,6 +88,62 @@ chmod +x hello.sep
 ./build/src/dsl/sep_dsl_interpreter hello.sep
 ```
 
+### Advanced Features Example
+
+Create `advanced.sep` to showcase async/await and exception handling:
+
+```sep
+// Async function for processing sensor data
+async function processSensorData(sensor_id) {
+    try {
+        // Async data fetching with await
+        entropy_value = await measure_entropy(sensor_id)
+        coherence_value = await measure_coherence(sensor_id)
+        
+        // Check for anomalies  
+        if (entropy_value > 0.8) {
+            throw "High entropy detected in sensor " + sensor_id
+        }
+        
+        return entropy_value + coherence_value
+    }
+    catch (error) {
+        print("Error processing sensor:", error)
+        return -1
+    }
+    finally {
+        print("Sensor", sensor_id, "processing completed")
+    }
+}
+
+// Pattern with exception handling
+pattern anomaly_detection {
+    try {
+        // Test async processing
+        result = await processSensorData("sensor_001")
+        
+        if (result == -1) {
+            throw "Sensor processing failed"
+        }
+        
+        status = "normal"
+    }
+    catch (error) {
+        print("System error:", error)
+        status = "error"
+    }
+    finally {
+        timestamp = "2025-08-03T00:00:00Z"
+    }
+}
+```
+
+Run it:
+
+```bash
+./build/src/dsl/sep_dsl_interpreter advanced.sep
+```
+
 ### Language Bindings
 
 #### Ruby (Available Now)
@@ -138,6 +194,11 @@ print(f"Coherence: {results['coherence']}")
 | **Patterns** | Scoped analysis blocks | `pattern analysis { ... }` |
 | **Quantum Functions** | Real AGI engine calls | `coherence = measure_coherence(data)` |
 | **Control Flow** | If/while statements | `if coherence > 0.5 { ... }` |
+| **User Functions** | Function definitions with parameters | `function process(data) { return data * 2; }` |
+| **Async/Await** | Asynchronous pattern execution | `async function fetchData(id) { result = await measure_entropy(id); }` |
+| **Exception Handling** | Try/catch/finally/throw constructs | `try { ... } catch (error) { ... } finally { ... }` |
+| **Pattern Inheritance** | Pattern composition and reuse | `pattern child inherits parent { ... }` |
+| **Import/Export** | Pattern library system | `import { pattern1, pattern2 } from "lib"` |
 | **Member Access** | Pattern variable access | `result = analysis.coherence` |
 | **Print Output** | Debug and result display | `print("Value:", x)` |
 

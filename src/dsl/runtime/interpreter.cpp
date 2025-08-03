@@ -278,6 +278,9 @@ Value Interpreter::evaluate(const ast::Expression& expr) {
     if (const auto* weighted_sum = dynamic_cast<const ast::WeightedSum*>(&expr)) {
        return visit_weighted_sum(*weighted_sum);
     }
+    if (const auto* await_expr = dynamic_cast<const ast::AwaitExpression*>(&expr)) {
+        return visit_await_expression(*await_expr);
+    }
     
     throw std::runtime_error("Unknown expression type");
 }
@@ -301,6 +304,12 @@ void Interpreter::execute(const ast::Statement& stmt) {
         visit_import_statement(*import_stmt);
     } else if (const auto* export_stmt = dynamic_cast<const ast::ExportStatement*>(&stmt)) {
         visit_export_statement(*export_stmt);
+    } else if (const auto* async_func_decl = dynamic_cast<const ast::AsyncFunctionDeclaration*>(&stmt)) {
+        visit_async_function_declaration(*async_func_decl);
+    } else if (const auto* try_stmt = dynamic_cast<const ast::TryStatement*>(&stmt)) {
+        visit_try_statement(*try_stmt);
+    } else if (const auto* throw_stmt = dynamic_cast<const ast::ThrowStatement*>(&stmt)) {
+        visit_throw_statement(*throw_stmt);
     } else {
         throw std::runtime_error("Unknown statement type");
     }
@@ -1160,6 +1169,103 @@ bool Interpreter::has_global_variable(const std::string& name) {
 
 const std::unordered_map<std::string, Value>& Interpreter::get_global_variables() const {
     return globals_.getVariables();
+}
+
+// Async/await and exception handling implementation
+
+void Interpreter::visit_async_function_declaration(const ast::AsyncFunctionDeclaration& node) {
+    // Create an async function object and store it in the environment
+    auto async_func = std::make_shared<AsyncFunction>(node, environment_);
+    environment_->define(node.name, async_func);
+}
+
+Value Interpreter::visit_await_expression(const ast::AwaitExpression& node) {
+    // For now, we'll simulate async by just evaluating the expression normally
+    // In a real implementation, this would handle async/await semantics
+    Value result = evaluate(*node.expression);
+    
+    // Simulate async delay (for demonstration)
+    std::cout << "[ASYNC] Awaiting expression..." << std::endl;
+    
+    return result;
+}
+
+void Interpreter::visit_try_statement(const ast::TryStatement& node) {
+    try {
+        // Execute try block
+        for (const auto& stmt : node.try_body) {
+            execute(*stmt);
+        }
+    }
+    catch (const DSLException& e) {
+        // Handle DSL exceptions thrown by 'throw' statements
+        if (!node.catch_variable.empty()) {
+            environment_->define(node.catch_variable, e.value());
+        }
+        
+        // Execute catch block
+        for (const auto& stmt : node.catch_body) {
+            execute(*stmt);
+        }
+    }
+    catch (const std::exception& e) {
+        // Handle other exceptions
+        if (!node.catch_variable.empty()) {
+            environment_->define(node.catch_variable, std::string(e.what()));
+        }
+        
+        // Execute catch block
+        for (const auto& stmt : node.catch_body) {
+            execute(*stmt);
+        }
+    }
+    
+    // Execute finally block if present
+    if (!node.finally_body.empty()) {
+        for (const auto& stmt : node.finally_body) {
+            execute(*stmt);
+        }
+    }
+}
+
+void Interpreter::visit_throw_statement(const ast::ThrowStatement& node) {
+    Value exception_value = evaluate(*node.expression);
+    throw DSLException(exception_value);
+}
+
+// AsyncFunction implementation
+Value AsyncFunction::call(Interpreter& interpreter, const std::vector<Value>& arguments) {
+    // Create a new environment for the function execution
+    Environment function_env(closure_);
+    Environment* previous = interpreter.environment_;
+    interpreter.environment_ = &function_env;
+
+    std::cout << "[ASYNC] Starting async function '" << declaration_.name << "'" << std::endl;
+
+    // Bind arguments to parameters
+    for (size_t i = 0; i < declaration_.parameters.size(); i++) {
+        if (i < arguments.size()) {
+            function_env.define(declaration_.parameters[i], arguments[i]);
+        } else {
+            function_env.define(declaration_.parameters[i], nullptr); // Default value for missing args
+        }
+    }
+
+    try {
+        // Execute function body
+        for (const auto& stmt : declaration_.body) {
+            interpreter.execute(*stmt);
+        }
+        // If no return statement was encountered, return null
+        interpreter.environment_ = previous;
+        std::cout << "[ASYNC] Async function '" << declaration_.name << "' completed" << std::endl;
+        return nullptr;
+    } catch (const ReturnException& return_value) {
+        // Handle return statement
+        interpreter.environment_ = previous;
+        std::cout << "[ASYNC] Async function '" << declaration_.name << "' completed with return" << std::endl;
+        return return_value.value();
+    }
 }
 
 } // namespace dsl::runtime

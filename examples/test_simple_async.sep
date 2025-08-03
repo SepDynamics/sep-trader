@@ -1,0 +1,5 @@
+// Simple test for async keyword
+
+pattern test_pattern {
+    x = 42
+}

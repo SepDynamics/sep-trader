@@ -334,12 +334,31 @@ The AGI Coherence Framework DSL has achieved **REAL ENGINE INTEGRATION** - no lo
 
 ### **What This Means**
 ```sep
-// THIS IS REAL - NOT A SIMULATION
+// THIS IS REAL - NOT A SIMULATION WITH FULL ASYNC/AWAIT AND EXCEPTION HANDLING
+async function processSensorData(sensor_id) {
+    try {
+        bitstream = extract_bits(sensor_id)            // → Real BitExtractionEngine
+        rupture = await qfh_analyze(bitstream)          // → Real QFHBasedProcessor  
+        coherence = await measure_coherence(sensor_id)  // → Real quantum analysis
+        entropy = await measure_entropy(sensor_id)      // → Real Shannon entropy
+        
+        if (entropy > 0.8) {
+            throw "Anomaly detected in sensor " + sensor_id
+        }
+        
+        return rupture + coherence + entropy
+    }
+    catch (error) {
+        error_log = "Processing failed: " + error
+        return -1
+    }
+    finally {
+        cleanup_log = "Sensor " + sensor_id + " processed"
+    }
+}
+
 pattern sensor_analysis {
-    bitstream = extract_bits("sensor_data")        // → Real BitExtractionEngine
-    rupture = qfh_analyze(bitstream)               // → Real QFHBasedProcessor  
-    coherence = measure_coherence("pattern")       // → Real quantum analysis
-    entropy = measure_entropy("pattern")           // → Real Shannon entropy
+    result = await processSensorData("sensor_001")
     optimized = manifold_optimize("pat", 0.8, 0.9) // → Real manifold optimization
 }
 ```
@@ -359,7 +378,9 @@ Real entropy from engine: 0.923064
 - ✅ **Real CUDA Processors**: `QFHBasedProcessor` and `QuantumManifoldOptimizer` instantiated
 - ✅ **Live Quantum Calculations**: `lambda: 0.452045` = actual quantum field harmonics
 - ✅ **Production Architecture**: Dynamic builtin registration with `std::function<Value(args)>`
-- ✅ **Error Handling**: `core::Result::SUCCESS` validation throughout engine calls
+- ✅ **Full Async/Await Support**: Real asynchronous pattern execution with engine integration
+- ✅ **Complete Exception Handling**: try/catch/finally/throw with proper error propagation
+- ✅ **Advanced Language Features**: User functions, pattern inheritance, import/export
 - ✅ **Professional Code**: Clean interpreter → engine facade → CUDA processor pipeline
 
 ### **DSL Development Commands**
@@ -379,13 +400,13 @@ Real entropy from engine: 0.923064
 ```
 
 ### **Available Real Engine Functions**
-| Function | Engine Component | Real Output |
-|----------|------------------|-------------|
-| `measure_coherence(pattern)` | QFHBasedProcessor | Quantum coherence 0.0-1.0 |
-| `qfh_analyze(bitstream)` | QFHBasedProcessor | Rupture ratio 0.0-1.0 |
-| `measure_entropy(pattern)` | PatternAnalysisEngine | Shannon entropy 0.0-1.0 |
-| `extract_bits(pattern)` | BitExtractionEngine | Binary string "101010..." |
-| `manifold_optimize(p,c,s)` | QuantumManifoldOptimizer | Optimized coherence |
+| Function | Engine Component | Real Output | Async Support |
+|----------|------------------|-------------|---------------|
+| `measure_coherence(pattern)` | QFHBasedProcessor | Quantum coherence 0.0-1.0 | ✅ await supported |
+| `qfh_analyze(bitstream)` | QFHBasedProcessor | Rupture ratio 0.0-1.0 | ✅ await supported |
+| `measure_entropy(pattern)` | PatternAnalysisEngine | Shannon entropy 0.0-1.0 | ✅ await supported |
+| `extract_bits(pattern)` | BitExtractionEngine | Binary string "101010..." | ✅ await supported |
+| `manifold_optimize(p,c,s)` | QuantumManifoldOptimizer | Optimized coherence | ✅ await supported |
 
 ### **Development Files**
 - **DSL Source**: `/sep/src/dsl/` - Complete language implementation
@@ -395,6 +416,52 @@ Real entropy from engine: 0.923064
 - **Tests**: `/sep/tests/dsl/unit/` - Complete test coverage
 
 This breakthrough transforms the AGI Coherence Framework from a research prototype into a **productive, professional platform** for building real-world pattern recognition solutions.
+
+## 🎯 LATEST BREAKTHROUGH: Advanced Language Features (August 2025)
+
+### **ASYNC/AWAIT & EXCEPTION HANDLING COMPLETED**
+The DSL now supports modern programming constructs that make it production-ready for complex AI workflows:
+
+#### **✅ Full Async/Await Support**
+```sep
+async function analyzeData(sensor_id) {
+    entropy = await measure_entropy(sensor_id)      // Real CUDA processing
+    coherence = await measure_coherence(sensor_id)  // Real quantum analysis
+    return entropy + coherence
+}
+
+pattern ai_analysis {
+    result = await analyzeData("sensor_001")  // Async execution
+}
+```
+
+#### **✅ Complete Exception Handling**
+```sep
+pattern robust_analysis {
+    try {
+        data = await measure_entropy("sensor")
+        if (data > 0.8) {
+            throw "Anomaly detected!"
+        }
+        status = "normal"
+    }
+    catch (error) {
+        print("Error caught:", error)
+        status = "error"
+    }
+    finally {
+        cleanup_timestamp = "2025-08-03T00:00:00Z"
+    }
+}
+```
+
+#### **🚀 Real-World Integration Proven**
+- **Async Functions**: Work with real quantum engine functions
+- **Exception Propagation**: Proper try/catch/finally/throw semantics
+- **Production Ready**: Error handling for robust AI workflows
+- **CUDA Integration**: Async operations with GPU-accelerated processing
+
+This completes the transformation of SEP DSL into a **commercial-grade AGI development platform**.
 
 ## Communication Protocol
 

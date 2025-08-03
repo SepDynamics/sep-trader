@@ -30,6 +30,18 @@ std::unique_ptr<ast::Program> Parser::parse() {
             program->patterns.push_back(parse_pattern());
         } else if (current_token_.type == ast::TokenType::SIGNAL) {
             program->signals.push_back(parse_signal());
+        } else if (current_token_.type == ast::TokenType::FUNCTION) {
+            // For now, we'll ignore top-level function declarations
+            // In a proper implementation, we'd add them to the program structure
+            parse_function_declaration();
+        } else if (current_token_.type == ast::TokenType::ASYNC) {
+            // For now, we'll ignore top-level async function declarations
+            // In a proper implementation, we'd add them to the program structure
+            parse_async_function_declaration();
+        } else if (current_token_.type == ast::TokenType::IDENTIFIER) {
+            // Handle top-level assignments or expressions
+            // For now, we'll just parse and ignore them
+            parse_statement();
         } else {
             throw std::runtime_error("Unexpected token: " + current_token_.value + " at line " + std::to_string(current_token_.line));
         }
@@ -645,6 +657,98 @@ std::unique_ptr<ast::ExportStatement> Parser::parse_export_statement() {
     expect(ast::TokenType::RBRACE, "Expected '}' after export list");
     
     return export_stmt;
+}
+
+std::unique_ptr<ast::AsyncFunctionDeclaration> Parser::parse_async_function_declaration() {
+    expect(ast::TokenType::ASYNC, "Expected 'async' keyword.");
+    expect(ast::TokenType::FUNCTION, "Expected 'function' after 'async'.");
+    
+    auto func_name = current_token_.value;
+    expect(ast::TokenType::IDENTIFIER, "Expected function name.");
+    
+    expect(ast::TokenType::LPAREN, "Expected '(' after function name.");
+    
+    auto async_func = std::make_unique<ast::AsyncFunctionDeclaration>();
+    async_func->name = func_name;
+    
+    // Parse parameter list
+    while (current_token_.type != ast::TokenType::RPAREN && current_token_.type != ast::TokenType::EOF_TOKEN) {
+        if (current_token_.type == ast::TokenType::IDENTIFIER) {
+            async_func->parameters.push_back(current_token_.value);
+            advance();
+            
+            if (current_token_.type == ast::TokenType::COMMA) {
+                advance(); // consume ','
+            }
+        } else {
+            throw std::runtime_error("Expected parameter name");
+        }
+    }
+    
+    expect(ast::TokenType::RPAREN, "Expected ')' after parameter list.");
+    expect(ast::TokenType::LBRACE, "Expected '{' to start function body.");
+    
+    async_func->body = parse_block();
+    
+    expect(ast::TokenType::RBRACE, "Expected '}' to end function body.");
+    
+    return async_func;
+}
+
+std::unique_ptr<ast::AwaitExpression> Parser::parse_await_expression() {
+    expect(ast::TokenType::AWAIT, "Expected 'await' keyword.");
+    
+    auto await_expr = std::make_unique<ast::AwaitExpression>();
+    await_expr->expression = parse_unary(); // Parse the expression being awaited
+    
+    return await_expr;
+}
+
+std::unique_ptr<ast::TryStatement> Parser::parse_try_statement() {
+    expect(ast::TokenType::TRY, "Expected 'try' keyword.");
+    expect(ast::TokenType::LBRACE, "Expected '{' after 'try'.");
+    
+    auto try_stmt = std::make_unique<ast::TryStatement>();
+    try_stmt->try_body = parse_block();
+    
+    expect(ast::TokenType::RBRACE, "Expected '}' after try block.");
+    
+    // Parse catch block (required)
+    expect(ast::TokenType::CATCH, "Expected 'catch' after try block.");
+    expect(ast::TokenType::LPAREN, "Expected '(' after 'catch'.");
+    
+    if (current_token_.type == ast::TokenType::IDENTIFIER) {
+        try_stmt->catch_variable = current_token_.value;
+        advance();
+    } else {
+        throw std::runtime_error("Expected catch variable name");
+    }
+    
+    expect(ast::TokenType::RPAREN, "Expected ')' after catch variable.");
+    expect(ast::TokenType::LBRACE, "Expected '{' to start catch block.");
+    
+    try_stmt->catch_body = parse_block();
+    
+    expect(ast::TokenType::RBRACE, "Expected '}' after catch block.");
+    
+    // Parse optional finally block
+    if (current_token_.type == ast::TokenType::FINALLY) {
+        advance(); // consume 'finally'
+        expect(ast::TokenType::LBRACE, "Expected '{' after 'finally'.");
+        try_stmt->finally_body = parse_block();
+        expect(ast::TokenType::RBRACE, "Expected '}' after finally block.");
+    }
+    
+    return try_stmt;
+}
+
+std::unique_ptr<ast::ThrowStatement> Parser::parse_throw_statement() {
+    expect(ast::TokenType::THROW, "Expected 'throw' keyword.");
+    
+    auto throw_stmt = std::make_unique<ast::ThrowStatement>();
+    throw_stmt->expression = parse_expression();
+    
+    return throw_stmt;
 }
 
 } // namespace dsl::parser

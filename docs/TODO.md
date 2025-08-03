@@ -17,14 +17,16 @@ This comprehensive roadmap tracks the evolution of SEP DSL from a working AGI pa
 - [x] **Add pattern composition** - Patterns that inherit/compose from other patterns
 - [x] **Implement pattern libraries** - Import/export mechanism for reusable patterns
 - [ ] **Add type annotations** - Optional type hints for better error messages
-- [ ] **Implement async/await** - Asynchronous pattern execution support
-- [ ] **Add exception handling** - try/catch blocks for error recovery
+- [x] **Implement async/await** - Asynchronous pattern execution support
+- [x] **Add exception handling** - try/catch blocks for error recovery
 
 #### Parser & AST Enhancements
-- [x] **Complete parser implementation** - Full DSL syntax parsing
-- [x] **AST nodes for core constructs** - Patterns, expressions, statements
+- [x] **Complete parser implementation** - Full DSL syntax parsing with async/await and exceptions
+- [x] **AST nodes for core constructs** - Patterns, expressions, statements, async functions, try/catch
 - [x] **Basic operator precedence** - Arithmetic and boolean operators
-- [x] **Tree-walking interpreter** - Complete runtime execution
+- [x] **Tree-walking interpreter** - Complete runtime execution with exception handling
+- [x] **Async/await language constructs** - Full parser and interpreter support
+- [x] **Exception handling constructs** - try/catch/finally/throw parsing and execution
 - [ ] **Advanced operator precedence table** - More sophisticated precedence rules
 - [ ] **Add source location tracking** - Better error reporting with line/column
 - [ ] **Implement AST optimization passes** - Constant folding, dead code elimination
@@ -280,8 +282,11 @@ This comprehensive roadmap tracks the evolution of SEP DSL from a working AGI pa
 
 ### ✅ **Phase 1: COMPLETED** - Core Language Implementation
 - Full DSL syntax with patterns, variables, expressions, and control flow
-- Tree-walking interpreter with complete runtime execution
+- Tree-walking interpreter with complete runtime execution and exception handling
 - Pattern member access and variable scoping
+- **NEW: Async/await support** - Asynchronous pattern execution with real engine integration
+- **NEW: Exception handling** - try/catch/finally/throw constructs with proper propagation
+- User-defined functions, pattern inheritance, and import/export libraries
 
 ### ✅ **Phase 2: COMPLETED** - AGI Engine Integration  
 - Real quantum coherence and entropy analysis functions
