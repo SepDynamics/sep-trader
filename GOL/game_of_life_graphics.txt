@@ -1,0 +1,315 @@
+// Conway's Game of Life with Terminal Graphics
+// This version uses proposed graphics functions for better visualization
+
+// Configuration
+pattern game_config {
+    width = 40
+    height = 20
+    grid_size = width * height
+    cell_char = "■"
+    
+    // Frame timing
+    fps = 10
+    frame_delay = 1000 / fps  // milliseconds
+}
+
+// Color themes for different cell states
+pattern color_theme {
+    // Colors based on cell age
+    newborn = "green"      // Just born
+    young = "cyan"         // 1-2 generations
+    mature = "white"       // 3-5 generations
+    old = "yellow"         // 6+ generations
+    dying = "red"          // About to die
+    dead = "black"         // Dead cell
+}
+
+// Enhanced grid with cell ages
+pattern initialize_grid {
+    grid = []
+    ages = []  // Track how long each cell has been alive
+    
+    i = 0
+    while (i < game_config.grid_size) {
+        grid = grid + [0]
+        ages = ages + [0]
+        i = i + 1
+    }
+    
+    // Place multiple patterns for interesting evolution
+    
+    // Glider at (5, 5)
+    grid[5 * game_config.width + 6] = 1
+    grid[6 * game_config.width + 4] = 1
+    grid[6 * game_config.width + 6] = 1
+    grid[7 * game_config.width + 5] = 1
+    grid[7 * game_config.width + 6] = 1
+    
+    // Blinker at (15, 10)
+    grid[10 * game_config.width + 14] = 1
+    grid[10 * game_config.width + 15] = 1
+    grid[10 * game_config.width + 16] = 1
+    
+    // Block at (25, 15)
+    grid[15 * game_config.width + 25] = 1
+    grid[15 * game_config.width + 26] = 1
+    grid[16 * game_config.width + 25] = 1
+    grid[16 * game_config.width + 26] = 1
+}
+
+// Get color based on cell age and state
+function get_cell_color(is_alive: Number, age: Number, will_die: Bool): String {
+    if (!is_alive) {
+        return color_theme.dead
+    }
+    
+    if (will_die) {
+        return color_theme.dying
+    }
+    
+    if (age == 0) {
+        return color_theme.newborn
+    } else if (age <= 2) {
+        return color_theme.young
+    } else if (age <= 5) {
+        return color_theme.mature
+    } else {
+        return color_theme.old
+    }
+}
+
+// Enhanced evolution with age tracking
+pattern evolve_grid {
+    input: current_grid, current_ages
+    
+    next_grid = []
+    next_ages = []
+    
+    y = 0
+    while (y < game_config.height) {
+        x = 0
+        while (x < game_config.width) {
+            index = coord_to_index(x, y)
+            current_state = current_grid[index]
+            current_age = current_ages[index]
+            
+            neighbors = count_neighbors(current_grid, x, y)
+            next_state = apply_rules(current_state, neighbors)
+            
+            // Update age
+            if (next_state == 1) {
+                if (current_state == 1) {
+                    next_age = current_age + 1  // Cell survives, gets older
+                } else {
+                    next_age = 0  // New cell born
+                }
+            } else {
+                next_age = 0  // Dead cells have no age
+            }
+            
+            next_grid = next_grid + [next_state]
+            next_ages = next_ages + [next_age]
+            
+            x = x + 1
+        }
+        y = y + 1
+    }
+    
+    result_grid = next_grid
+    result_ages = next_ages
+}
+
+// Draw the grid using graphics functions
+function draw_grid(grid: Array, ages: Array) {
+    clear_screen()
+    
+    // Draw border
+    draw_rect(0, 0, game_config.width + 2, 1, "═", "white")
+    draw_rect(0, game_config.height + 1, game_config.width + 2, 1, "═", "white")
+    draw_rect(0, 1, 1, game_config.height, "║", "white")
+    draw_rect(game_config.width + 1, 1, 1, game_config.height, "║", "white")
+    
+    // Draw corners
+    draw_char(0, 0, "╔", "white")
+    draw_char(game_config.width + 1, 0, "╗", "white")
+    draw_char(0, game_config.height + 1, "╚", "white")
+    draw_char(game_config.width + 1, game_config.height + 1, "╝", "white")
+    
+    // Draw cells with colors
+    y = 0
+    while (y < game_config.height) {
+        x = 0
+        while (x < game_config.width) {
+            index = coord_to_index(x, y)
+            
+            if (grid[index] == 1) {
+                // Check if cell will die (for preview)
+                neighbors = count_neighbors(grid, x, y)
+                will_die = (neighbors < 2 || neighbors > 3)
+                
+                color = get_cell_color(1, ages[index], will_die)
+                draw_char(x + 1, y + 1, game_config.cell_char, color)
+            }
+            
+            x = x + 1
+        }
+        y = y + 1
+    }
+    
+    present_screen()
+}
+
+// Display statistics
+function draw_stats(generation: Number, grid: Array, ages: Array) {
+    // Count living cells
+    alive_count = 0
+    total_age = 0
+    max_age = 0
+    
+    i = 0
+    while (i < game_config.grid_size) {
+        if (grid[i] == 1) {
+            alive_count = alive_count + 1
+            total_age = total_age + ages[i]
+            if (ages[i] > max_age) {
+                max_age = ages[i]
+            }
+        }
+        i = i + 1
+    }
+    
+    avg_age = 0
+    if (alive_count > 0) {
+        avg_age = total_age / alive_count
+    }
+    
+    // Draw stats panel
+    stats_y = game_config.height + 3
+    draw_char(0, stats_y, "Generation: " + generation, "cyan")
+    draw_char(0, stats_y + 1, "Living cells: " + alive_count, "green")
+    draw_char(0, stats_y + 2, "Average age: " + round(avg_age * 10) / 10, "yellow")
+    draw_char(0, stats_y + 3, "Oldest cell: " + max_age + " generations", "magenta")
+}
+
+// Main game loop with graphics
+pattern game_of_life_visual {
+    // Initialize graphics system
+    screen_width = game_config.width + 2
+    screen_height = game_config.height + 10  // Extra space for stats
+    init_graphics(screen_width, screen_height)
+    
+    try {
+        // Initialize game state
+        initialize_grid()
+        current_grid = initialize_grid.grid
+        current_ages = initialize_grid.ages
+        
+        generation = 0
+        max_generations = 100
+        
+        // Game loop
+        while (generation < max_generations) {
+            // Draw current state
+            draw_grid(current_grid, current_ages)
+            draw_stats(generation, current_grid, current_ages)
+            
+            // Analyze patterns
+            if (generation % 10 == 0) {
+                grid_string = ""
+                i = 0
+                while (i < game_config.grid_size) {
+                    grid_string = grid_string + current_grid[i]
+                    i = i + 1
+                }
+                
+                entropy = measure_entropy(grid_string)
+                coherence = measure_coherence(grid_string)
+                
+                stats_y = game_config.height + 7
+                draw_char(0, stats_y, "Entropy: " + round(entropy * 100) / 100, "red")
+                draw_char(0, stats_y + 1, "Coherence: " + round(coherence * 100) / 100, "blue")
+            }
+            
+            // Control frame rate
+            sleep_ms(game_config.frame_delay)
+            
+            // Evolve to next generation
+            evolve_grid(current_grid, current_ages)
+            current_grid = evolve_grid.result_grid
+            current_ages = evolve_grid.result_ages
+            
+            generation = generation + 1
+        }
+        
+        // Final message
+        draw_char(0, screen_height - 2, "Simulation complete! Press Ctrl+C to exit.", "green")
+        present_screen()
+        
+        // Wait before cleanup
+        sleep_ms(5000)
+    }
+    finally {
+        // Always cleanup graphics
+        cleanup_graphics()
+    }
+}
+
+// Helper functions from original implementation
+function coord_to_index(x: Number, y: Number): Number {
+    return y * game_config.width + x
+}
+
+function get_cell(grid: Array, x: Number, y: Number): Number {
+    wrapped_x = (x + game_config.width) % game_config.width
+    wrapped_y = (y + game_config.height) % game_config.height
+    index = coord_to_index(wrapped_x, wrapped_y)
+    return grid[index]
+}
+
+function count_neighbors(grid: Array, x: Number, y: Number): Number {
+    count = 0
+    dx = -1
+    while (dx <= 1) {
+        dy = -1
+        while (dy <= 1) {
+            if (dx != 0 || dy != 0) {
+                neighbor_x = x + dx
+                neighbor_y = y + dy
+                count = count + get_cell(grid, neighbor_x, neighbor_y)
+            }
+            dy = dy + 1
+        }
+        dx = dx + 1
+    }
+    return count
+}
+
+function apply_rules(current_state: Number, neighbor_count: Number): Number {
+    if (current_state == 1) {
+        if (neighbor_count == 2 || neighbor_count == 3) {
+            return 1
+        } else {
+            return 0
+        }
+    } else {
+        if (neighbor_count == 3) {
+            return 1
+        } else {
+            return 0
+        }
+    }
+}
+
+// Math helper
+function round(x: Number): Number {
+    return floor(x + 0.5)
+}
+
+// Entry point
+pattern main {
+    print("=== Conway's Game of Life - Visual Edition ===")
+    print("Starting graphics mode...")
+    print("")
+    
+    game_of_life_visual()
+}
