@@ -632,12 +632,143 @@ pattern analysis {
 - Large datasets should use streaming when possible
 - Statistical functions process all arguments in memory
 
+## Batch Processing Functions
+
+### process_batch(pattern_ids: array, pattern_codes: array, [inputs], [max_threads], [batch_size], [fail_fast], [timeout]) → object
+**Advanced Parallel Processing**
+
+Processes multiple patterns in parallel with configurable threading and performance options.
+
+- **Parameters**:
+  - `pattern_ids` (array): Array of pattern identifiers
+  - `pattern_codes` (array): Array of pattern code strings to execute
+  - `inputs` (array, optional): Array of input variable bindings per pattern
+  - `max_threads` (number, optional): Maximum parallel threads (default: auto-detect)
+  - `batch_size` (number, optional): Batch size for processing (default: 100)
+  - `fail_fast` (boolean, optional): Stop on first error (default: false)
+  - `timeout` (number, optional): Timeout in seconds (default: 30.0)
+- **Returns**: Object with batch results and statistics
+- **Engine**: BatchProcessor with configurable parallelism
+
+```sep
+pattern_ids = ["sensor_1", "sensor_2", "sensor_3"]
+pattern_codes = [
+    "measure_coherence(\"data_1\")",
+    "measure_entropy(\"data_2\")",
+    "qfh_analyze(\"101010\")"
+]
+
+result = process_batch(pattern_ids, pattern_codes, null, 4, 10, false, 30.0)
+print("Processed:", result["patterns_processed"])
+print("Succeeded:", result["patterns_succeeded"])
+print("Total time:", result["total_time_ms"], "ms")
+
+// Access individual results
+for (i = 0; i < len(result["results"]); i = i + 1) {
+    pattern_result = result["results"][i]
+    print("Pattern", pattern_result["pattern_id"] + ":", pattern_result["value"])
+}
+```
+
+## Engine Configuration Functions
+
+### set_engine_config(parameter_name: string, value_type: string, value_string: string) → boolean
+**Runtime Engine Tuning**
+
+Sets an engine configuration parameter at runtime.
+
+- **Parameters**:
+  - `parameter_name` (string): Configuration parameter name (e.g., "quantum.coherence_threshold")
+  - `value_type` (string): Value type ("bool", "int", "double", "string")
+  - `value_string` (string): String representation of the value
+- **Returns**: true if successfully set, false otherwise
+- **Engine**: EngineConfig with validation
+
+```sep
+// Adjust quantum processing threshold
+success = set_engine_config("quantum.coherence_threshold", "double", "0.8")
+print("Config updated:", success)
+
+// Enable debug logging
+set_engine_config("debug.log_level", "int", "4")
+
+// Configure batch processing defaults
+set_engine_config("batch.default_max_threads", "int", "8")
+```
+
+### get_engine_config(parameter_name: string) → object
+**Configuration Value Retrieval**
+
+Gets the current value of an engine configuration parameter.
+
+- **Parameters**:
+  - `parameter_name` (string): Configuration parameter name
+- **Returns**: Object with parameter name, type, and current value
+- **Engine**: EngineConfig
+
+```sep
+coherence_config = get_engine_config("quantum.coherence_threshold")
+print("Current threshold:", coherence_config["value_string"])
+print("Value type:", coherence_config["value_type"])
+
+// Check if GPU is enabled
+gpu_config = get_engine_config("cuda.enable_gpu")
+if (gpu_config["value_string"] == "true") {
+    print("GPU acceleration is enabled")
+}
+```
+
+### list_engine_config() → array
+**Configuration Parameter Discovery**
+
+Lists all available engine configuration parameters with their descriptions.
+
+- **Parameters**: None
+- **Returns**: Array of objects with parameter information
+- **Engine**: EngineConfig
+
+```sep
+config_list = list_engine_config()
+print("Available parameters:", len(config_list))
+
+// Show quantum parameters
+for (i = 0; i < len(config_list); i = i + 1) {
+    param = config_list[i]
+    if (param["category"] == "quantum") {
+        print("Parameter:", param["name"])
+        print("  Description:", param["description"])
+        print("  Requires restart:", param["requires_restart"])
+    }
+}
+```
+
+### reset_engine_config([category: string]) → boolean
+**Configuration Reset**
+
+Resets engine configuration to defaults, optionally for a specific category.
+
+- **Parameters**:
+  - `category` (string, optional): Configuration category to reset ("quantum", "cuda", "memory", etc.)
+- **Returns**: true if successfully reset
+- **Engine**: EngineConfig
+
+```sep
+// Reset all configuration
+reset_engine_config()
+
+// Reset only quantum parameters
+reset_engine_config("quantum")
+
+// Reset performance settings
+reset_engine_config("performance")
+```
+
 ## Version Information
 
 **Current Version**: 1.2.0  
 **Last Updated**: August 2025  
-**Engine Integration**: Production-ready with CUDA acceleration  
-**Total Built-in Functions**: 65+
+**Engine Integration**: Production-ready with CUDA acceleration and advanced batch processing  
+**Total Built-in Functions**: 70+
 
 ---
 

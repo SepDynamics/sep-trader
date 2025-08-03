@@ -4,6 +4,8 @@ add_sep_library(sep_engine
         streaming/streaming_data_manager.cpp
         cache/pattern_cache.cpp
         memory/gpu_memory_pool.cpp
+        batch/batch_processor.cpp
+        config/engine_config.cpp
         internal/allocation_metrics.cpp
         internal/compression.cpp
         internal/dag_graph.cpp
@@ -45,6 +47,8 @@ target_include_directories(sep_engine PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/streaming
     ${CMAKE_CURRENT_SOURCE_DIR}/cache
     ${CMAKE_CURRENT_SOURCE_DIR}/memory
+    ${CMAKE_CURRENT_SOURCE_DIR}/batch
+    ${CMAKE_CURRENT_SOURCE_DIR}/config
     PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/internal
     ${CMAKE_SOURCE_DIR}/src/common

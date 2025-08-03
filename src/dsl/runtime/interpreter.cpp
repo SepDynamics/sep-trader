@@ -2309,6 +2309,182 @@ Value Interpreter::call_builtin_function(const std::string& name, const std::vec
         }
     }
     
+    // Batch Processing Functions
+    if (name == "process_batch") {
+        if (args.size() < 2) {
+            throw std::runtime_error("process_batch() expects at least 2 arguments (pattern_ids, pattern_codes, [inputs], [max_threads], [batch_size], [fail_fast], [timeout])");
+        }
+        
+        // Extract pattern IDs (array of strings)
+        std::vector<std::string> pattern_ids;
+        if (args[0].type() == typeid(std::vector<std::any>)) {
+            auto ids_array = std::any_cast<std::vector<std::any>>(args[0]);
+            for (const auto& id : ids_array) {
+                pattern_ids.push_back(std::any_cast<std::string>(id));
+            }
+        } else {
+            throw std::runtime_error("process_batch(): first argument must be an array of pattern IDs");
+        }
+        
+        // Extract pattern codes (array of strings)
+        std::vector<std::string> pattern_codes;
+        if (args[1].type() == typeid(std::vector<std::any>)) {
+            auto codes_array = std::any_cast<std::vector<std::any>>(args[1]);
+            for (const auto& code : codes_array) {
+                pattern_codes.push_back(std::any_cast<std::string>(code));
+            }
+        } else {
+            throw std::runtime_error("process_batch(): second argument must be an array of pattern codes");
+        }
+        
+        if (pattern_ids.size() != pattern_codes.size()) {
+            throw std::runtime_error("process_batch(): pattern_ids and pattern_codes arrays must have the same size");
+        }
+        
+        // Build request
+        sep::engine::AdvancedBatchRequest request;
+        request.pattern_ids = pattern_ids;
+        request.pattern_codes = pattern_codes;
+        
+        // Optional parameters
+        if (args.size() > 2 && args[2].type() != typeid(std::monostate)) {
+            // TODO: Handle pattern inputs array
+        }
+        if (args.size() > 3) {
+            request.max_parallel_threads = static_cast<size_t>(std::any_cast<double>(args[3]));
+        }
+        if (args.size() > 4) {
+            request.batch_size = static_cast<size_t>(std::any_cast<double>(args[4]));
+        }
+        if (args.size() > 5) {
+            request.fail_fast = std::any_cast<bool>(args[5]);
+        }
+        if (args.size() > 6) {
+            request.timeout_seconds = std::any_cast<double>(args[6]);
+        }
+        
+        auto& engine = sep::engine::EngineFacade::getInstance();
+        sep::engine::AdvancedBatchResponse response;
+        auto result = engine.processAdvancedBatch(request, response);
+        
+        if (!sep::core::isSuccess(result)) {
+            throw std::runtime_error("Batch processing failed");
+        }
+        
+        // Return batch results as a structured object
+        std::map<std::string, std::any> batch_result;
+        batch_result["patterns_processed"] = static_cast<double>(response.patterns_processed);
+        batch_result["patterns_succeeded"] = static_cast<double>(response.patterns_succeeded);
+        batch_result["patterns_failed"] = static_cast<double>(response.patterns_failed);
+        batch_result["total_time_ms"] = response.total_processing_time_ms;
+        batch_result["average_time_ms"] = response.average_processing_time_ms;
+        
+        std::vector<std::any> results_array;
+        for (const auto& pattern_result : response.results) {
+            std::map<std::string, std::any> result_obj;
+            result_obj["pattern_id"] = pattern_result.pattern_id;
+            result_obj["success"] = pattern_result.success;
+            result_obj["value"] = pattern_result.value;
+            result_obj["error"] = pattern_result.error_message;
+            results_array.push_back(result_obj);
+        }
+        batch_result["results"] = results_array;
+        
+        return batch_result;
+    }
+    
+    // Engine Configuration Functions
+    if (name == "set_engine_config") {
+        if (args.size() != 3) {
+            throw std::runtime_error("set_engine_config() expects 3 arguments (parameter_name, value_type, value_string)");
+        }
+        
+        sep::engine::ConfigSetRequest request;
+        request.parameter_name = std::any_cast<std::string>(args[0]);
+        request.value_type = std::any_cast<std::string>(args[1]);
+        request.value_string = std::any_cast<std::string>(args[2]);
+        
+        auto& engine = sep::engine::EngineFacade::getInstance();
+        sep::engine::ConfigResponse response;
+        auto result = engine.setEngineConfig(request, response);
+        
+        if (!sep::core::isSuccess(result)) {
+            throw std::runtime_error("Failed to set engine config: " + response.error_message);
+        }
+        
+        return response.success;
+    }
+    
+    if (name == "get_engine_config") {
+        if (args.size() != 1) {
+            throw std::runtime_error("get_engine_config() expects 1 argument (parameter_name)");
+        }
+        
+        sep::engine::ConfigGetRequest request;
+        request.parameter_name = std::any_cast<std::string>(args[0]);
+        
+        auto& engine = sep::engine::EngineFacade::getInstance();
+        sep::engine::ConfigResponse response;
+        auto result = engine.getEngineConfig(request, response);
+        
+        if (!sep::core::isSuccess(result)) {
+            throw std::runtime_error("Failed to get engine config: " + response.error_message);
+        }
+        
+        // Return as structured object
+        std::map<std::string, std::any> config_result;
+        config_result["parameter_name"] = response.parameter_name;
+        config_result["value_type"] = response.value_type;
+        config_result["value_string"] = response.value_string;
+        
+        return config_result;
+    }
+    
+    if (name == "list_engine_config") {
+        if (args.size() != 0) {
+            throw std::runtime_error("list_engine_config() expects no arguments");
+        }
+        
+        auto& engine = sep::engine::EngineFacade::getInstance();
+        sep::engine::ConfigListResponse response;
+        auto result = engine.listEngineConfig(response);
+        
+        if (!sep::core::isSuccess(result)) {
+            throw std::runtime_error("Failed to list engine config: " + response.error_message);
+        }
+        
+        // Return as array of structured objects
+        std::vector<std::any> config_list;
+        for (size_t i = 0; i < response.parameter_names.size(); ++i) {
+            std::map<std::string, std::any> param_info;
+            param_info["name"] = response.parameter_names[i];
+            param_info["description"] = response.parameter_descriptions[i];
+            param_info["category"] = response.parameter_categories[i];
+            param_info["requires_restart"] = response.requires_restart[i];
+            config_list.push_back(param_info);
+        }
+        
+        return config_list;
+    }
+    
+    if (name == "reset_engine_config") {
+        std::string category = "";
+        if (args.size() == 1) {
+            category = std::any_cast<std::string>(args[0]);
+        } else if (args.size() > 1) {
+            throw std::runtime_error("reset_engine_config() expects 0 or 1 argument (optional category)");
+        }
+        
+        auto& engine = sep::engine::EngineFacade::getInstance();
+        auto result = engine.resetEngineConfig(category);
+        
+        if (!sep::core::isSuccess(result)) {
+            throw std::runtime_error("Failed to reset engine config");
+        }
+        
+        return true;
+    }
+    
     throw std::runtime_error("Unknown function: " + name);
 }
 

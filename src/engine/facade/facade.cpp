@@ -5,6 +5,8 @@
 #include "engine/streaming/streaming_data_manager.h"
 #include "engine/cache/pattern_cache.h"
 #include "engine/memory/gpu_memory_pool.h"
+#include "engine/batch/batch_processor.h"
+#include "engine/config/engine_config.h"
 #include <memory>
 #include <iostream>
 #include <chrono>
@@ -21,6 +23,8 @@ struct EngineFacade::Impl {
     std::unique_ptr<sep::engine::streaming::StreamingDataManager> streaming_manager;
     std::unique_ptr<sep::engine::cache::PatternCache> pattern_cache;
     std::unique_ptr<sep::engine::GPUMemoryPool> gpu_memory_pool;
+    std::unique_ptr<sep::engine::batch::BatchProcessor> batch_processor;
+    std::unique_ptr<sep::engine::config::EngineConfig> engine_config;
     std::unordered_map<uint64_t, void*> memory_handles; // Handle -> actual pointer mapping
     uint64_t next_handle{1};
 };
@@ -68,6 +72,15 @@ core::Result EngineFacade::initialize() {
         std::cout << "Warning: GPU Memory Pool initialization failed: " << e.what() << std::endl;
         // Continue without GPU memory pool - fallback to regular allocation
     }
+    
+    // Initialize batch processor with default configuration
+    sep::engine::batch::BatchConfig batch_config;
+    impl_->batch_processor = std::make_unique<sep::engine::batch::BatchProcessor>(batch_config);
+    std::cout << "Batch Processor initialized with " << batch_config.max_parallel_threads << " threads" << std::endl;
+    
+    // Initialize engine configuration
+    impl_->engine_config = std::make_unique<sep::engine::config::EngineConfig>();
+    std::cout << "Engine Configuration system initialized" << std::endl;
     
     impl_->initialized = true;
     initialized_ = true;
@@ -626,6 +639,257 @@ core::Result EngineFacade::resetGPUMemoryStats() {
         std::cout << "GPU Memory Pool statistics reset" << std::endl;
     } catch (const std::exception& e) {
         std::cout << "GPU memory stats reset error: " << e.what() << std::endl;
+        return core::Result::FAILURE;
+    }
+    
+    return core::Result::SUCCESS;
+}
+
+core::Result EngineFacade::processAdvancedBatch(const AdvancedBatchRequest& request,
+                                               AdvancedBatchResponse& response) {
+    if (!initialized_ || !impl_ || !impl_->batch_processor) {
+        return core::Result::NOT_INITIALIZED;
+    }
+    
+    if (request.pattern_codes.size() != request.pattern_ids.size()) {
+        return core::Result::INVALID_ARGUMENT;
+    }
+    
+    try {
+        // Configure batch processor if custom settings provided
+        sep::engine::batch::BatchConfig batch_config;
+        if (request.max_parallel_threads > 0) {
+            batch_config.max_parallel_threads = request.max_parallel_threads;
+        }
+        batch_config.batch_size = request.batch_size;
+        batch_config.fail_fast = request.fail_fast;
+        batch_config.timeout_seconds = request.timeout_seconds;
+        
+        impl_->batch_processor->update_config(batch_config);
+        
+        // Convert request to BatchPattern objects
+        std::vector<sep::engine::batch::BatchPattern> patterns;
+        patterns.reserve(request.pattern_codes.size());
+        
+        for (size_t i = 0; i < request.pattern_codes.size(); ++i) {
+            patterns.emplace_back(request.pattern_ids[i], request.pattern_codes[i]);
+            
+            // Add input variables if provided
+            if (i < request.pattern_inputs.size()) {
+                for (const auto& [name, value] : request.pattern_inputs[i]) {
+                    patterns[i].add_input(name, value);
+                }
+            }
+        }
+        
+        // Process the batch
+        auto start_time = std::chrono::high_resolution_clock::now();
+        auto batch_results = impl_->batch_processor->process_batch(patterns);
+        auto end_time = std::chrono::high_resolution_clock::now();
+        
+        // Convert results to response format
+        response.results.reserve(batch_results.size());
+        for (const auto& result : batch_results) {
+            BatchPatternResult pattern_result;
+            pattern_result.pattern_id = result.pattern_id;
+            pattern_result.success = result.success;
+            pattern_result.value = result.value;
+            pattern_result.error_message = result.error_message;
+            pattern_result.processing_time_ms = 0.0; // Individual timing not available in batch mode
+            response.results.push_back(pattern_result);
+        }
+        
+        // Get batch statistics
+        auto stats = impl_->batch_processor->get_batch_stats();
+        response.patterns_processed = stats.patterns_processed;
+        response.patterns_succeeded = stats.patterns_succeeded;
+        response.patterns_failed = stats.patterns_failed;
+        response.average_processing_time_ms = stats.average_processing_time_ms;
+        
+        double total_time_ms = std::chrono::duration<double, std::milli>(end_time - start_time).count();
+        response.total_processing_time_ms = total_time_ms;
+        
+        std::cout << "Advanced batch processing completed: " 
+                  << response.patterns_succeeded << "/" << response.patterns_processed 
+                  << " patterns succeeded in " << total_time_ms << "ms" << std::endl;
+        
+    } catch (const std::exception& e) {
+        std::cout << "Advanced batch processing error: " << e.what() << std::endl;
+        return core::Result::FAILURE;
+    }
+    
+    return core::Result::SUCCESS;
+}
+
+core::Result EngineFacade::setEngineConfig(const ConfigSetRequest& request,
+                                          ConfigResponse& response) {
+    if (!initialized_ || !impl_ || !impl_->engine_config) {
+        return core::Result::NOT_INITIALIZED;
+    }
+    
+    try {
+        // Parse value based on type
+        sep::engine::config::ConfigValue config_value;
+        
+        if (request.value_type == "bool") {
+            config_value = (request.value_string == "true" || request.value_string == "1");
+        } else if (request.value_type == "int") {
+            config_value = std::stoi(request.value_string);
+        } else if (request.value_type == "double") {
+            config_value = std::stod(request.value_string);
+        } else if (request.value_type == "string") {
+            config_value = request.value_string;
+        } else {
+            response.success = false;
+            response.error_message = "Invalid value type: " + request.value_type;
+            return core::Result::INVALID_ARGUMENT;
+        }
+        
+        bool success = impl_->engine_config->set_config(request.parameter_name, config_value);
+        
+        if (success) {
+            response.success = true;
+            response.parameter_name = request.parameter_name;
+            response.value_type = request.value_type;
+            response.value_string = request.value_string;
+            
+            std::cout << "Engine config updated: " << request.parameter_name 
+                      << " = " << request.value_string << std::endl;
+        } else {
+            response.success = false;
+            response.error_message = "Failed to set config parameter (invalid name or value)";
+            return core::Result::INVALID_ARGUMENT;
+        }
+        
+    } catch (const std::exception& e) {
+        response.success = false;
+        response.error_message = std::string("Config set error: ") + e.what();
+        return core::Result::FAILURE;
+    }
+    
+    return core::Result::SUCCESS;
+}
+
+core::Result EngineFacade::getEngineConfig(const ConfigGetRequest& request,
+                                          ConfigResponse& response) {
+    if (!initialized_ || !impl_ || !impl_->engine_config) {
+        return core::Result::NOT_INITIALIZED;
+    }
+    
+    try {
+        if (!impl_->engine_config->has_config(request.parameter_name)) {
+            response.success = false;
+            response.error_message = "Parameter not found: " + request.parameter_name;
+            return core::Result::NOT_FOUND;
+        }
+        
+        auto config_value = impl_->engine_config->get_config(request.parameter_name);
+        
+        response.success = true;
+        response.parameter_name = request.parameter_name;
+        
+        std::visit([&response](const auto& value) {
+            using T = std::decay_t<decltype(value)>;
+            if constexpr (std::is_same_v<T, bool>) {
+                response.value_type = "bool";
+                response.value_string = value ? "true" : "false";
+            } else if constexpr (std::is_same_v<T, int>) {
+                response.value_type = "int";
+                response.value_string = std::to_string(value);
+            } else if constexpr (std::is_same_v<T, double>) {
+                response.value_type = "double";
+                response.value_string = std::to_string(value);
+            } else if constexpr (std::is_same_v<T, std::string>) {
+                response.value_type = "string";
+                response.value_string = value;
+            }
+        }, config_value);
+        
+    } catch (const std::exception& e) {
+        response.success = false;
+        response.error_message = std::string("Config get error: ") + e.what();
+        return core::Result::FAILURE;
+    }
+    
+    return core::Result::SUCCESS;
+}
+
+core::Result EngineFacade::listEngineConfig(ConfigListResponse& response) {
+    if (!initialized_ || !impl_ || !impl_->engine_config) {
+        return core::Result::NOT_INITIALIZED;
+    }
+    
+    try {
+        auto param_definitions = impl_->engine_config->get_all_param_definitions();
+        
+        response.success = true;
+        response.parameter_names.reserve(param_definitions.size());
+        response.parameter_descriptions.reserve(param_definitions.size());
+        response.parameter_categories.reserve(param_definitions.size());
+        response.requires_restart.reserve(param_definitions.size());
+        
+        for (const auto& param : param_definitions) {
+            response.parameter_names.push_back(param.name);
+            response.parameter_descriptions.push_back(param.description);
+            
+            // Convert category enum to string
+            std::string category_str;
+            switch (param.category) {
+                case sep::engine::config::ConfigCategory::QUANTUM: category_str = "quantum"; break;
+                case sep::engine::config::ConfigCategory::CUDA: category_str = "cuda"; break;
+                case sep::engine::config::ConfigCategory::MEMORY: category_str = "memory"; break;
+                case sep::engine::config::ConfigCategory::BATCH: category_str = "batch"; break;
+                case sep::engine::config::ConfigCategory::STREAMING: category_str = "streaming"; break;
+                case sep::engine::config::ConfigCategory::CACHE: category_str = "cache"; break;
+                case sep::engine::config::ConfigCategory::PERFORMANCE: category_str = "performance"; break;
+                case sep::engine::config::ConfigCategory::DEBUG: category_str = "debug"; break;
+                default: category_str = "unknown"; break;
+            }
+            response.parameter_categories.push_back(category_str);
+            response.requires_restart.push_back(param.requires_restart);
+        }
+        
+        std::cout << "Listed " << param_definitions.size() << " engine configuration parameters" << std::endl;
+        
+    } catch (const std::exception& e) {
+        response.success = false;
+        response.error_message = std::string("Config list error: ") + e.what();
+        return core::Result::FAILURE;
+    }
+    
+    return core::Result::SUCCESS;
+}
+
+core::Result EngineFacade::resetEngineConfig(const std::string& category) {
+    if (!initialized_ || !impl_ || !impl_->engine_config) {
+        return core::Result::NOT_INITIALIZED;
+    }
+    
+    try {
+        if (category.empty()) {
+            impl_->engine_config->reset_to_defaults();
+            std::cout << "All engine configuration reset to defaults" << std::endl;
+        } else {
+            // Convert string to category enum
+            sep::engine::config::ConfigCategory config_category;
+            if (category == "quantum") config_category = sep::engine::config::ConfigCategory::QUANTUM;
+            else if (category == "cuda") config_category = sep::engine::config::ConfigCategory::CUDA;
+            else if (category == "memory") config_category = sep::engine::config::ConfigCategory::MEMORY;
+            else if (category == "batch") config_category = sep::engine::config::ConfigCategory::BATCH;
+            else if (category == "streaming") config_category = sep::engine::config::ConfigCategory::STREAMING;
+            else if (category == "cache") config_category = sep::engine::config::ConfigCategory::CACHE;
+            else if (category == "performance") config_category = sep::engine::config::ConfigCategory::PERFORMANCE;
+            else if (category == "debug") config_category = sep::engine::config::ConfigCategory::DEBUG;
+            else {
+                return core::Result::INVALID_ARGUMENT;
+            }
+            
+            impl_->engine_config->reset_category_to_defaults(config_category);
+            std::cout << "Engine configuration category '" << category << "' reset to defaults" << std::endl;
+        }
+        
+    } catch (const std::exception& e) {
+        std::cout << "Config reset error: " << e.what() << std::endl;
         return core::Result::FAILURE;
     }
     

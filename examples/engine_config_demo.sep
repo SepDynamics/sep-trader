@@ -1,0 +1,193 @@
+// SEP DSL Engine Configuration Demo
+// Demonstrates runtime engine configuration and tuning
+
+pattern engine_config_demo {
+    print("=== Engine Configuration Demo ===")
+    
+    // List all available configuration parameters
+    print("\n--- Available Configuration Parameters ---")
+    config_list = list_engine_config()
+    
+    print("Total parameters:", len(config_list))
+    
+    // Group by category and display
+    categories = []
+    i = 0
+    while (i < len(config_list)) {
+        param = config_list[i]
+        category = param["category"]
+        
+        // Check if category already in list
+        category_found = false
+        j = 0
+        while (j < len(categories)) {
+            if (categories[j] == category) {
+                category_found = true
+            }
+            j = j + 1
+        }
+        
+        if (!category_found) {
+            categories = append(categories, category)
+        }
+        i = i + 1
+    }
+    
+    print("Configuration categories:", len(categories))
+    i = 0
+    while (i < len(categories)) {
+        print("  -", categories[i])
+        i = i + 1
+    }
+    
+    // Display quantum category parameters in detail
+    print("\n--- Quantum Configuration Parameters ---")
+    i = 0
+    while (i < len(config_list)) {
+        param = config_list[i]
+        if (param["category"] == "quantum") {
+            print("Parameter:", param["name"])
+            print("  Description:", param["description"])
+            print("  Requires restart:", param["requires_restart"])
+            
+            // Get current value
+            current_config = get_engine_config(param["name"])
+            print("  Current value:", current_config["value_string"], "(" + current_config["value_type"] + ")")
+            print("")
+        }
+        i = i + 1
+    }
+    
+    // Demonstrate configuration changes
+    print("\n--- Configuration Modification Demo ---")
+    
+    // Get original quantum coherence threshold
+    original_coherence = get_engine_config("quantum.coherence_threshold")
+    print("Original coherence threshold:", original_coherence["value_string"])
+    
+    // Change the coherence threshold
+    print("Setting coherence threshold to 0.7...")
+    set_result = set_engine_config("quantum.coherence_threshold", "double", "0.7")
+    print("Set operation result:", set_result)
+    
+    // Verify the change
+    new_coherence = get_engine_config("quantum.coherence_threshold")
+    print("New coherence threshold:", new_coherence["value_string"])
+    
+    // Test quantum analysis with new threshold
+    print("\n--- Testing with New Configuration ---")
+    coherence_result = measure_coherence("test_pattern")
+    print("Coherence analysis result:", coherence_result)
+    
+    // Demonstrate batch processing configuration
+    print("\n--- Batch Processing Configuration ---")
+    
+    original_threads = get_engine_config("batch.default_max_threads")
+    print("Original max threads:", original_threads["value_string"])
+    
+    // Set to 2 threads for testing
+    set_engine_config("batch.default_max_threads", "int", "2")
+    
+    new_threads = get_engine_config("batch.default_max_threads")
+    print("New max threads:", new_threads["value_string"])
+    
+    // Test batch processing with new configuration
+    test_ids = ["test1", "test2", "test3"]
+    test_codes = ["measure_coherence(\"data1\")", "measure_entropy(\"data2\")", "qfh_analyze(\"101010\")"]
+    
+    batch_result = process_batch(test_ids, test_codes)
+    print("Batch processing with 2 threads completed in:", batch_result["total_time_ms"], "ms")
+    
+    // Demonstrate performance configuration
+    print("\n--- Performance Configuration ---")
+    
+    perf_optimizations = get_engine_config("performance.enable_optimizations")
+    print("Performance optimizations enabled:", perf_optimizations["value_string"])
+    
+    parallel_analysis = get_engine_config("performance.parallel_pattern_analysis")
+    print("Parallel pattern analysis enabled:", parallel_analysis["value_string"])
+    
+    // Toggle parallel analysis for testing
+    if (parallel_analysis["value_string"] == "true") {
+        print("Disabling parallel analysis...")
+        set_engine_config("performance.parallel_pattern_analysis", "bool", "false")
+    } else {
+        print("Enabling parallel analysis...")
+        set_engine_config("performance.parallel_pattern_analysis", "bool", "true")
+    }
+    
+    updated_parallel = get_engine_config("performance.parallel_pattern_analysis")
+    print("Updated parallel analysis setting:", updated_parallel["value_string"])
+    
+    // Demonstrate debug configuration
+    print("\n--- Debug Configuration ---")
+    
+    log_level = get_engine_config("debug.log_level")
+    print("Current log level:", log_level["value_string"])
+    
+    // Temporarily increase logging for detailed output
+    set_engine_config("debug.log_level", "int", "4")  // Debug level
+    
+    debug_level = get_engine_config("debug.log_level")
+    print("Debug log level set to:", debug_level["value_string"])
+    
+    // Test with debug logging
+    debug_result = measure_entropy("debug_test_pattern")
+    print("Debug entropy result:", debug_result)
+    
+    // Reset to original log level
+    set_engine_config("debug.log_level", "int", log_level["value_string"])
+    
+    // Demonstrate category reset
+    print("\n--- Configuration Reset Demo ---")
+    
+    print("Resetting quantum configuration to defaults...")
+    reset_result = reset_engine_config("quantum")
+    print("Reset result:", reset_result)
+    
+    // Verify reset
+    reset_coherence = get_engine_config("quantum.coherence_threshold")
+    print("Coherence threshold after reset:", reset_coherence["value_string"])
+    
+    // Configuration impact analysis
+    print("\n--- Configuration Impact Analysis ---")
+    
+    print("Parameters requiring restart:")
+    restart_count = 0
+    i = 0
+    while (i < len(config_list)) {
+        param = config_list[i]
+        if (param["requires_restart"]) {
+            print("  -", param["name"], "(", param["category"], ")")
+            restart_count = restart_count + 1
+        }
+        i = i + 1
+    }
+    print("Total restart-required parameters:", restart_count)
+    
+    // Performance recommendations
+    print("\n--- Performance Recommendations ---")
+    
+    cuda_enabled = get_engine_config("cuda.enable_gpu")
+    if (cuda_enabled["value_string"] == "true") {
+        print("✅ GPU acceleration is enabled")
+        
+        memory_pool = get_engine_config("cuda.memory_pool_size_mb")
+        memory_mb = memory_pool["value_string"]
+        if (memory_mb < "512") {
+            print("⚠️  Consider increasing GPU memory pool (current: " + memory_mb + "MB)")
+        }
+    } else {
+        print("⚠️  GPU acceleration is disabled - consider enabling for better performance")
+    }
+    
+    cache_enabled = get_engine_config("memory.enable_pattern_cache")
+    if (cache_enabled["value_string"] == "true") {
+        print("✅ Pattern caching is enabled")
+    } else {
+        print("⚠️  Pattern caching is disabled - consider enabling for repeated patterns")
+    }
+    
+    print("\n=== Engine Configuration Demo Complete ===")
+    print("Engine is now tuned and ready for optimal performance!")
+}

@@ -84,6 +84,62 @@ struct BatchProcessRequest {
     uint64_t timestamp_end{0};
 };
 
+// New advanced batch processing structures
+struct AdvancedBatchRequest {
+    std::vector<std::string> pattern_codes;
+    std::vector<std::string> pattern_ids;
+    std::vector<std::vector<std::pair<std::string, double>>> pattern_inputs;
+    size_t max_parallel_threads{0};  // 0 = auto-detect
+    size_t batch_size{100};
+    bool fail_fast{false};
+    double timeout_seconds{30.0};
+};
+
+struct BatchPatternResult {
+    std::string pattern_id;
+    bool success;
+    double value;
+    std::string error_message;
+    double processing_time_ms;
+};
+
+struct AdvancedBatchResponse {
+    std::vector<BatchPatternResult> results;
+    size_t patterns_processed{0};
+    size_t patterns_succeeded{0};
+    size_t patterns_failed{0};
+    double total_processing_time_ms{0.0};
+    double average_processing_time_ms{0.0};
+};
+
+// Engine configuration structures
+struct ConfigSetRequest {
+    std::string parameter_name;
+    std::string value_type;  // "bool", "int", "double", "string"
+    std::string value_string;
+};
+
+struct ConfigGetRequest {
+    std::string parameter_name;
+};
+
+struct ConfigResponse {
+    bool success{false};
+    std::string parameter_name;
+    std::string value_type;
+    std::string value_string;
+    std::string error_message;
+};
+
+struct ConfigListResponse {
+    bool success{false};
+    std::vector<std::string> parameter_names;
+    std::vector<std::string> parameter_descriptions;
+    std::vector<std::string> parameter_categories;
+    std::vector<bool> requires_restart;
+    std::string error_message;
+};
+
 // Streaming data support structures
 struct StreamCreateRequest {
     std::string stream_id;
@@ -242,6 +298,10 @@ public:
     core::Result processBatch(const BatchProcessRequest& request,
                              PatternProcessResponse& response);
     
+    // Advanced batch processing
+    core::Result processAdvancedBatch(const AdvancedBatchRequest& request,
+                                     AdvancedBatchResponse& response);
+    
     // Streaming data operations
     core::Result createStream(const StreamCreateRequest& request,
                              StreamResponse& response);
@@ -275,6 +335,14 @@ public:
     core::Result configureGPUMemory(const GPUMemoryConfigRequest& request);
     core::Result defragmentGPUMemory();
     core::Result resetGPUMemoryStats();
+    
+    // Engine configuration operations
+    core::Result setEngineConfig(const ConfigSetRequest& request,
+                                ConfigResponse& response);
+    core::Result getEngineConfig(const ConfigGetRequest& request,
+                                ConfigResponse& response);
+    core::Result listEngineConfig(ConfigListResponse& response);
+    core::Result resetEngineConfig(const std::string& category = "");  // Empty = reset all
     
     // Prevent copying/moving
     EngineFacade(const EngineFacade&) = delete;
