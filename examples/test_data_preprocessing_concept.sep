@@ -1,0 +1,39 @@
+// Data Preprocessing Concept Demo (using existing functions)
+pattern data_preprocessing_concept {
+    // Sample dataset
+    data = [10, 25, 30, 15, 40, 35, 20, 45, 50, 5]
+    
+    // Manual normalization concept using existing math functions
+    min_val = min(10, 25, 30, 15, 40, 35, 20, 45, 50, 5)  // Should be 5
+    max_val = max(10, 25, 30, 15, 40, 35, 20, 45, 50, 5)  // Should be 50
+    range_val = max_val - min_val  // 45
+    
+    // Normalize first few values manually
+    norm_10 = (10 - min_val) / range_val  // (10-5)/45 = 0.111...
+    norm_25 = (25 - min_val) / range_val  // (25-5)/45 = 0.444...
+    norm_50 = (50 - min_val) / range_val  // (50-5)/45 = 1.0
+    
+    // Statistical analysis of the dataset
+    data_mean = mean(10, 25, 30, 15, 40, 35, 20, 45, 50, 5)
+    data_stddev = stddev(10, 25, 30, 15, 40, 35, 20, 45, 50, 5)
+    data_median = median(10, 25, 30, 15, 40, 35, 20, 45, 50, 5)
+    
+    // Moving average for smoothing (window size 3)
+    moving_avg = moving_average(3, 10, 25, 30, 15, 40, 35, 20, 45, 50, 5)
+    
+    // Rate of change analysis
+    rate_changes = rate_of_change(10, 25, 30, 15, 40, 35, 20, 45, 50, 5)
+    
+    // Results
+    print("=== Data Preprocessing Concept ===")
+    print("Original data:", data)
+    print("Range: min =", min_val, "max =", max_val, "range =", range_val)
+    print("Manual normalization examples:")
+    print("  10 normalized =", norm_10)
+    print("  25 normalized =", norm_25) 
+    print("  50 normalized =", norm_50)
+    print("Statistics: mean =", data_mean, "stddev =", data_stddev, "median =", data_median)
+    print("Moving average (3-period):", moving_avg)
+    print("Rate of change (%):", rate_changes)
+    print("=== Ready for Full Data Transform Functions! ===")
+}

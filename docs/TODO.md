@@ -27,7 +27,7 @@ This comprehensive roadmap tracks the evolution of SEP DSL from a working AGI pa
 - [x] **Tree-walking interpreter** - Complete runtime execution with exception handling
 - [x] **Async/await language constructs** - Full parser and interpreter support
 - [x] **Exception handling constructs** - try/catch/finally/throw parsing and execution
-- [ ] **Advanced operator precedence table** - More sophisticated precedence rules
+- [x] **Advanced operator precedence table** - More sophisticated precedence rules
 - [x] **Add source location tracking** - Better error reporting with line/column
 - [x] **Implement AST optimization passes** - Constant folding, dead code elimination
 - [ ] **Add AST serialization** - Save/load parsed programs
@@ -48,11 +48,12 @@ This comprehensive roadmap tracks the evolution of SEP DSL from a working AGI pa
 
 #### Built-in Function Library
 - [x] **Core math functions** - sin, cos, exp, log, sqrt, etc.
-- [ ] **Statistical functions** - mean, median, stddev, correlation
-- [ ] **Time series functions** - moving averages, trend detection
-- [ ] **Pattern matching functions** - regex, fuzzy matching
-- [ ] **Data transformation functions** - normalize, scale, filter
-- [ ] **Aggregation functions** - groupby, pivot, rollup
+- [x] **Statistical functions** - mean, median, stddev, correlation, variance, percentile
+- [x] **Array/List support** - Array literals `[1,2,3]`, array access `arr[index]`, mixed types
+- [x] **Time series functions** - moving_average, exponential_moving_average, trend_detection, rate_of_change
+- [x] **Data transformation functions** - normalize, standardize, scale, filter_above, filter_below, filter_range, clamp
+- [x] **Pattern matching functions** - regex, fuzzy matching
+- [x] **Aggregation functions** - groupby, pivot, rollup
 
 ### Phase 3: Testing & Quality Assurance
 
@@ -62,7 +63,7 @@ This comprehensive roadmap tracks the evolution of SEP DSL from a working AGI pa
 - [x] **Mathematical validation** - All AGI algorithms tested
 - [x] **Production testing** - Real-world pattern analysis verified
 - [x] **Performance benchmarks** - Measure DSL overhead vs direct C++
-- [ ] **Regression test suite** - Ensure backward compatibility
+- [x] **Regression test suite** - Ensure backward compatibility
 - [ ] **Fuzz testing** - Random input generation for robustness
 - [ ] **Memory leak detection** - Valgrind/ASAN integration
 - [ ] **Code coverage analysis** - Aim for >90% coverage
@@ -103,8 +104,8 @@ This comprehensive roadmap tracks the evolution of SEP DSL from a working AGI pa
 - [x] **Getting started guide** - Step-by-step tutorials for beginners
 - [x] **Contributing guidelines** - Developer onboarding and standards
 - [x] **Examples repository** - Beginner, advanced, and real-world examples
-- [ ] **Language reference manual** - Complete syntax/semantics documentation
-- [ ] **API documentation** - Document all built-in functions
+- [x] **Language reference manual** - Complete syntax/semantics documentation
+- [x] **API documentation** - Document all built-in functions
 - [ ] **Architecture guide** - How DSL integrates with engine
 - [ ] **Performance guide** - Best practices for efficient DSL code
 - [ ] **Security guide** - Safe DSL practices

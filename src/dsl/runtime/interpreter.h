@@ -134,6 +134,8 @@ private:
     Value visit_member_access(const ast::MemberAccess& node);
     Value visit_weighted_sum(const ast::WeightedSum& node);
     Value visit_await_expression(const ast::AwaitExpression& node);
+    Value visit_array_literal(const ast::ArrayLiteral& node);
+    Value visit_array_access(const ast::ArrayAccess& node);
 
     // Statement execution visitors
     void visit_assignment(const ast::Assignment& node);

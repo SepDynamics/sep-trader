@@ -1,0 +1,4 @@
+pattern test {
+    simple = 3 * 4
+    print("Simple: 3 * 4 =", simple)
+}

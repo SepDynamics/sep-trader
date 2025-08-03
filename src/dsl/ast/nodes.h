@@ -53,6 +53,7 @@ enum class TokenType
     ELSE,
     WHILE,
     FOR,
+    IN,
     FUNCTION,
     RETURN,
     BREAK,
@@ -167,6 +168,13 @@ struct IfStatement : Statement
 struct WhileStatement : Statement
 {
     std::unique_ptr<Expression> condition;
+    std::vector<std::unique_ptr<Statement>> body;
+};
+
+struct ForStatement : Statement
+{
+    std::string variable;  // loop variable
+    std::unique_ptr<Expression> iterable;  // expression to iterate over
     std::vector<std::unique_ptr<Statement>> body;
 };
 

@@ -1,0 +1,70 @@
+// Aggregation Functions Test
+// Tests groupby, pivot, rollup, and aggregate capabilities
+
+pattern aggregation_demo {
+    print("=== Aggregation Functions Test ===")
+    
+    // Test 1: Rollup - summarize data with different aggregation functions
+    print("\n--- Rollup Tests ---")
+    
+    data = [10, 20, 30, 40, 50]
+    
+    total = rollup("sum", data)
+    print("Sum:", total)
+    
+    average = rollup("avg", data)
+    print("Average:", average)
+    
+    minimum = rollup("min", data)
+    print("Minimum:", minimum)
+    
+    maximum = rollup("max", data)
+    print("Maximum:", maximum)
+    
+    count = rollup("count", data)
+    print("Count:", count)
+    
+    // Test 2: Individual values rollup
+    sum_individual = rollup("sum", 5, 10, 15, 20)
+    print("Sum of individual values:", sum_individual)
+    
+    // Test 3: Groupby - group data by criteria
+    print("\n--- Groupby Tests ---")
+    
+    mixed_data = [-5, 3, 0, -2, 8, 15]
+    grouped = groupby("sign", mixed_data)
+    print("Grouped by sign:", grouped)
+    
+    text_data = ["apple", "banana", "cherry", "apricot", "blueberry"]
+    text_grouped = groupby("first_letter", text_data)
+    print("Grouped by first letter:", text_grouped)
+    
+    // Test 4: Aggregate - group and apply aggregation
+    print("\n--- Aggregate Tests ---")
+    
+    numbers = [5, 15, 25, 45, 75, 125]
+    
+    range_sum = aggregate(numbers, "range", "sum")
+    print("Sum by range:", range_sum)
+    
+    range_count = aggregate(numbers, "range", "count")
+    print("Count by range:", range_count)
+    
+    range_avg = aggregate(numbers, "range", "avg")
+    print("Average by range:", range_avg)
+    
+    sign_data = [-10, -5, 0, 5, 10, 15]
+    sign_groups = aggregate(sign_data, "sign", "count")
+    print("Count by sign:", sign_groups)
+    
+    // Test 5: Pivot table (simplified)
+    print("\n--- Pivot Tests ---")
+    
+    // Simple pivot with rows, columns, and values
+    row_keys = ["A", "A", "B", "B"]
+    col_keys = ["X", "Y", "X", "Y"]
+    values = [10, 20, 30, 40]
+    
+    pivot_result = pivot(row_keys, col_keys, values)
+    print("Pivot table:", pivot_result)
+}

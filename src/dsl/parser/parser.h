@@ -49,21 +49,39 @@ private:
     ast::SourceLocation current_location() const;
     void set_location(ast::Node& node) const;
     
-    // Operator precedence
+    // Advanced operator precedence table
     enum class Precedence {
         LOWEST = 0,
-        LOGICAL_OR = 1,      // ||
-        LOGICAL_AND = 2,     // &&
-        EQUALITY = 3,        // == !=
-        COMPARISON = 4,      // < <= > >=
-        TERM = 5,            // + -
-        FACTOR = 6,          // * /
-        UNARY = 7,           // ! -
-        CALL = 8,            // function calls
-        HIGHEST = 9
+        TERNARY = 1,         // ? :
+        LOGICAL_OR = 2,      // ||
+        LOGICAL_AND = 3,     // &&
+        BITWISE_OR = 4,      // |
+        BITWISE_XOR = 5,     // ^
+        BITWISE_AND = 6,     // &
+        EQUALITY = 7,        // == !=
+        RELATIONAL = 8,      // < <= > >=
+        SHIFT = 9,           // << >>
+        ADDITIVE = 10,       // + -
+        MULTIPLICATIVE = 11, // * / %
+        EXPONENTIATION = 12, // **
+        UNARY = 13,          // ! - + ~ ++x --x
+        POSTFIX = 14,        // x++ x-- [] . ->
+        CALL = 15,           // function calls
+        MEMBER = 16,         // . ->
+        HIGHEST = 17
     };
     
+    // Operator precedence table for sophisticated parsing
+    struct OperatorInfo {
+        Precedence precedence;
+        enum class Associativity { LEFT, RIGHT, NONE } associativity;
+        bool is_unary;
+        bool is_postfix;
+    };
+    
+    const std::unordered_map<ast::TokenType, OperatorInfo>& get_operator_table() const;
     Precedence get_precedence(ast::TokenType token_type) const;
+    OperatorInfo::Associativity get_associativity(ast::TokenType token_type) const;
     std::unique_ptr<ast::Expression> parse_precedence(Precedence precedence);
     
     // Advanced constructs
@@ -71,6 +89,7 @@ private:
     std::unique_ptr<ast::EvolveStatement> parse_evolve_statement();
     std::unique_ptr<ast::IfStatement> parse_if_statement();
     std::unique_ptr<ast::WhileStatement> parse_while_statement();
+    std::unique_ptr<ast::ForStatement> parse_for_statement();
     std::unique_ptr<ast::FunctionDeclaration> parse_function_declaration();
     std::unique_ptr<ast::ReturnStatement> parse_return_statement();
     std::unique_ptr<ast::ImportStatement> parse_import_statement();

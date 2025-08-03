@@ -22,6 +22,8 @@ namespace dsl::lexer {
         {"if", ast::TokenType::IF},
         {"else", ast::TokenType::ELSE},
         {"while", ast::TokenType::WHILE},
+        {"for", ast::TokenType::FOR},
+        {"in", ast::TokenType::IN},
         {"function", ast::TokenType::FUNCTION},
         {"return", ast::TokenType::RETURN},
         {"import", ast::TokenType::IMPORT},

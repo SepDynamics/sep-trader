@@ -1,0 +1,62 @@
+// Working Data Preprocessing Demo
+pattern data_preprocessing_working {
+    // Sample dataset using arrays
+    data = [10, 25, 30, 15, 40, 35, 20, 45, 50, 5]
+    
+    // Individual data points for processing
+    val1 = 10
+    val2 = 25  
+    val3 = 50
+    val4 = 5
+    
+    // Statistical analysis using existing functions
+    data_mean = mean(10, 25, 30, 15, 40, 35, 20, 45, 50, 5)
+    data_stddev = stddev(10, 25, 30, 15, 40, 35, 20, 45, 50, 5)
+    data_median = median(10, 25, 30, 15, 40, 35, 20, 45, 50, 5)
+    
+    // Time series analysis
+    moving_avg = moving_average(3, 10, 25, 30, 15, 40, 35, 20, 45, 50, 5)
+    ema = exponential_moving_average(0.3, 10, 25, 30, 15, 40, 35, 20, 45, 50, 5)
+    trend = trend_detection(0.1, 10, 25, 30, 15, 40, 35, 20, 45, 50, 5)
+    rate_changes = rate_of_change(10, 25, 30, 15, 40, 35, 20, 45, 50, 5)
+    
+    // Manual normalization calculation (demonstrating the concept)
+    min_range = 5    // Known minimum
+    max_range = 50   // Known maximum  
+    range_size = max_range - min_range  // 45
+    
+    // Normalize some values: (value - min) / range
+    norm_10 = (val1 - min_range) / range_size  // (10-5)/45 = 0.111
+    norm_25 = (val2 - min_range) / range_size  // (25-5)/45 = 0.444
+    norm_50 = (val3 - min_range) / range_size  // (50-5)/45 = 1.0
+    norm_5 = (val4 - min_range) / range_size   // (5-5)/45 = 0.0
+    
+    // Basic math operations on arrays
+    first_value = data[0]
+    last_value = data[9]
+    middle_value = data[4]
+    
+    // Results
+    print("=== Advanced Data Processing Demo ===")
+    print("Original dataset:", data)
+    print("First value:", first_value, "Last value:", last_value)
+    print("")
+    print("Statistical Analysis:")
+    print("  Mean:", data_mean)
+    print("  Standard Deviation:", data_stddev) 
+    print("  Median:", data_median)
+    print("")
+    print("Time Series Analysis:")
+    print("  Moving Average (3-period):", moving_avg)
+    print("  Exponential Moving Average:", ema)
+    print("  Trend Direction:", trend, "(1=up, -1=down, 0=flat)")
+    print("  Rate of Change (%):", rate_changes)
+    print("")
+    print("Manual Normalization [0,1]:")
+    print("  5 -> ", norm_5)
+    print("  10 ->", norm_10)
+    print("  25 ->", norm_25) 
+    print("  50 ->", norm_50)
+    print("")
+    print("=== All Data Processing Features Working! ===")
+}

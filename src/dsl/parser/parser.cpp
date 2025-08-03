@@ -189,6 +189,11 @@ std::unique_ptr<ast::Statement> Parser::parse_statement() {
         return parse_while_statement();
     }
 
+    // Check for for statement
+    if (current_token_.type == ast::TokenType::FOR) {
+        return parse_for_statement();
+    }
+
     // Check for function declaration
     if (current_token_.type == ast::TokenType::FUNCTION) {
         return parse_function_declaration();
@@ -593,6 +598,32 @@ std::unique_ptr<ast::WhileStatement> Parser::parse_while_statement() {
     return while_stmt;
 }
 
+std::unique_ptr<ast::ForStatement> Parser::parse_for_statement() {
+    expect(ast::TokenType::FOR, "Expected 'for' keyword.");
+    expect(ast::TokenType::LPAREN, "Expected '(' after 'for'.");
+    
+    auto for_stmt = std::make_unique<ast::ForStatement>();
+    
+    // Parse loop variable
+    if (current_token_.type != ast::TokenType::IDENTIFIER) {
+        throw std::runtime_error("Expected variable name in for loop.");
+    }
+    for_stmt->variable = current_token_.value;
+    advance(); // consume variable name
+    
+    expect(ast::TokenType::IN, "Expected 'in' after for loop variable.");
+    
+    // Parse iterable expression
+    for_stmt->iterable = parse_expression();
+    
+    expect(ast::TokenType::RPAREN, "Expected ')' after for loop.");
+    expect(ast::TokenType::LBRACE, "Expected '{' after for loop.");
+    for_stmt->body = parse_block();
+    expect(ast::TokenType::RBRACE, "Expected '}' to close for loop block.");
+    
+    return for_stmt;
+}
+
 // Type annotation helper functions
 ast::TypeAnnotation Parser::parse_type_annotation() {
     switch (current_token_.type) {
@@ -634,31 +665,51 @@ void Parser::set_location(ast::Node& node) const {
 }
 
 // Operator precedence implementation
+const std::unordered_map<ast::TokenType, Parser::OperatorInfo>& Parser::get_operator_table() const {
+    static const std::unordered_map<ast::TokenType, OperatorInfo> operator_table = {
+        // Logical operators
+        {ast::TokenType::OR, {Precedence::LOGICAL_OR, OperatorInfo::Associativity::LEFT, false, false}},
+        {ast::TokenType::AND, {Precedence::LOGICAL_AND, OperatorInfo::Associativity::LEFT, false, false}},
+        
+        // Equality operators
+        {ast::TokenType::EQ, {Precedence::EQUALITY, OperatorInfo::Associativity::LEFT, false, false}},
+        {ast::TokenType::NE, {Precedence::EQUALITY, OperatorInfo::Associativity::LEFT, false, false}},
+        
+        // Relational operators
+        {ast::TokenType::LT, {Precedence::RELATIONAL, OperatorInfo::Associativity::LEFT, false, false}},
+        {ast::TokenType::LE, {Precedence::RELATIONAL, OperatorInfo::Associativity::LEFT, false, false}},
+        {ast::TokenType::GT, {Precedence::RELATIONAL, OperatorInfo::Associativity::LEFT, false, false}},
+        {ast::TokenType::GE, {Precedence::RELATIONAL, OperatorInfo::Associativity::LEFT, false, false}},
+        
+        // Additive operators
+        {ast::TokenType::PLUS, {Precedence::ADDITIVE, OperatorInfo::Associativity::LEFT, false, false}},
+        {ast::TokenType::MINUS, {Precedence::ADDITIVE, OperatorInfo::Associativity::LEFT, false, false}},
+        
+        // Multiplicative operators
+        {ast::TokenType::MULTIPLY, {Precedence::MULTIPLICATIVE, OperatorInfo::Associativity::LEFT, false, false}},
+        {ast::TokenType::DIVIDE, {Precedence::MULTIPLICATIVE, OperatorInfo::Associativity::LEFT, false, false}},
+        
+        // Unary operators
+        {ast::TokenType::NOT, {Precedence::UNARY, OperatorInfo::Associativity::RIGHT, true, false}},
+        
+        // Function calls and member access
+        {ast::TokenType::LPAREN, {Precedence::CALL, OperatorInfo::Associativity::LEFT, false, false}},
+        {ast::TokenType::DOT, {Precedence::MEMBER, OperatorInfo::Associativity::LEFT, false, false}},
+        {ast::TokenType::LBRACKET, {Precedence::POSTFIX, OperatorInfo::Associativity::LEFT, false, true}},
+    };
+    return operator_table;
+}
+
 Parser::Precedence Parser::get_precedence(ast::TokenType token_type) const {
-    switch (token_type) {
-        case ast::TokenType::OR:
-            return Precedence::LOGICAL_OR;
-        case ast::TokenType::AND:
-            return Precedence::LOGICAL_AND;
-        case ast::TokenType::EQ:
-        case ast::TokenType::NE:
-            return Precedence::EQUALITY;
-        case ast::TokenType::LT:
-        case ast::TokenType::LE:
-        case ast::TokenType::GT:
-        case ast::TokenType::GE:
-            return Precedence::COMPARISON;
-        case ast::TokenType::PLUS:
-        case ast::TokenType::MINUS:
-            return Precedence::TERM;
-        case ast::TokenType::MULTIPLY:
-        case ast::TokenType::DIVIDE:
-            return Precedence::FACTOR;
-        case ast::TokenType::LPAREN:
-            return Precedence::CALL;
-        default:
-            return Precedence::LOWEST;
-    }
+    const auto& table = get_operator_table();
+    auto it = table.find(token_type);
+    return (it != table.end()) ? it->second.precedence : Precedence::LOWEST;
+}
+
+Parser::OperatorInfo::Associativity Parser::get_associativity(ast::TokenType token_type) const {
+    const auto& table = get_operator_table();
+    auto it = table.find(token_type);
+    return (it != table.end()) ? it->second.associativity : OperatorInfo::Associativity::LEFT;
 }
 
 std::unique_ptr<ast::Expression> Parser::parse_precedence(Precedence precedence) {
@@ -728,20 +779,61 @@ std::unique_ptr<ast::Expression> Parser::parse_precedence(Precedence precedence)
             left = std::move(unary);
             break;
         }
+        case ast::TokenType::LBRACKET: {
+            auto location = current_location();
+            advance(); // consume '['
+            
+            auto array = std::make_unique<ast::ArrayLiteral>();
+            array->location = location;
+            
+            // Parse array elements
+            if (current_token_.type != ast::TokenType::RBRACKET) {
+                do {
+                    array->elements.push_back(parse_expression());
+                } while (current_token_.type == ast::TokenType::COMMA && (advance(), true));
+            }
+            
+            expect(ast::TokenType::RBRACKET, "Expected ']' after array elements");
+            left = std::move(array);
+            break;
+        }
         default:
             throw std::runtime_error("Unexpected token in expression: " + current_token_.value);
     }
     
-    // Parse right side (infix)
-    while (precedence < get_precedence(current_token_.type)) {
+    // Parse right side (infix and postfix)
+    while (precedence < get_precedence(current_token_.type) || current_token_.type == ast::TokenType::LBRACKET) {
         ast::TokenType op_type = current_token_.type;
+        
+        // Handle array access [index]
+        if (current_token_.type == ast::TokenType::LBRACKET) {
+            advance(); // consume '['
+            auto array_access = std::make_unique<ast::ArrayAccess>();
+            array_access->array = std::move(left);
+            array_access->index = parse_expression();
+            expect(ast::TokenType::RBRACKET, "Expected ']' after array index");
+            left = std::move(array_access);
+            continue;
+        }
+        
         std::string op = current_token_.value;
         advance();
         
         auto binary = std::make_unique<ast::BinaryOp>();
         binary->left = std::move(left);
         binary->op = op;
-        binary->right = parse_precedence(static_cast<Precedence>(static_cast<int>(get_precedence(op_type)) + 1));
+        
+        // Handle associativity correctly
+        Precedence next_precedence;
+        if (get_associativity(op_type) == OperatorInfo::Associativity::RIGHT) {
+            // Right-associative: use same precedence for recursive call
+            next_precedence = get_precedence(op_type);
+        } else {
+            // Left-associative: use higher precedence for recursive call
+            next_precedence = static_cast<Precedence>(static_cast<int>(get_precedence(op_type)) + 1);
+        }
+        
+        binary->right = parse_precedence(next_precedence);
         left = std::move(binary);
     }
     

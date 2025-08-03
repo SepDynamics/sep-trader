@@ -1,0 +1,277 @@
+// SEP DSL Regression Test Suite
+// Ensures backward compatibility across versions
+// Tests core language features that must never break
+
+// Test 1: Basic Pattern Syntax
+pattern basic_syntax_test {
+    x = 42
+    y = "hello"
+    z = true
+    result = x + 5
+}
+
+// Test 2: Control Flow
+pattern control_flow_test {
+    value = 10
+    if (value > 5) {
+        status = "high"
+    } else {
+        status = "low"
+    }
+    
+    counter = 0
+    while (counter < 3) {
+        counter = counter + 1
+    }
+    
+    sum = 0
+    // For loop support coming soon
+    sum = sum + 1 + 2 + 3 + 4 + 5
+}
+
+// Test 3: User-Defined Functions
+function calculate(a, b) {
+    return a * b + 10
+}
+
+pattern function_test {
+    result = calculate(5, 3)  // Should return 25
+}
+
+// Test 4: Pattern Inheritance
+pattern base_pattern {
+    shared_value = 100
+    base_method = "working"
+}
+
+pattern derived_pattern inherits base_pattern {
+    derived_value = shared_value + 50  // Should be 150
+}
+
+// Test 5: Exception Handling
+pattern exception_test {
+    try {
+        safe_result = sqrt(16)  // Should work (returns 4)
+        status = "success"
+    }
+    catch (error) {
+        status = "error"
+        error_msg = error
+    }
+    finally {
+        cleanup_done = true
+    }
+}
+
+// Test 6: Function Calls
+function sync_calculation(value) {
+    return value * 2
+}
+
+pattern function_call_test {
+    result = sync_calculation(21)  // Should return 42
+}
+
+// Test 7: Core Math Functions
+pattern math_functions_test {
+    // Basic operations
+    abs_result = abs(-5)          // 5
+    sqrt_result = sqrt(25)        // 5
+    min_result = min(3, 7, 1)     // 1
+    max_result = max(3, 7, 1)     // 7
+    
+    // Trigonometric
+    sin_result = sin(0)           // 0
+    cos_result = cos(0)           // 1
+    
+    // Exponential
+    exp_result = exp(0)           // 1
+    log_result = log(e())         // 1
+    
+    // Power
+    pow_result = pow(2, 3)        // 8
+    
+    // Rounding
+    floor_result = floor(3.7)     // 3
+    ceil_result = ceil(3.2)       // 4
+    round_result = round(3.6)     // 4
+    
+    // Constants
+    pi_value = pi()               // ~3.14159
+    e_value = e()                 // ~2.71828
+}
+
+// Test 8: Statistical Functions
+pattern stats_functions_test {
+    // Basic stats
+    mean_result = mean(1, 2, 3, 4, 5)     // 3
+    sum_result = sum(1, 2, 3, 4, 5)       // 15
+    count_result = count(1, 2, 3, 4, 5)   // 5
+    
+    // Advanced stats
+    median_result = median(1, 3, 2, 5, 4) // 3
+    stddev_result = stddev(1, 2, 3, 4, 5) // ~1.58
+    variance_result = variance(1, 2, 3, 4, 5) // ~2.5
+}
+
+// Test 9: Array Support
+pattern array_test {
+    // Array creation
+    numbers = [1, 2, 3, 4, 5]
+    mixed = [1, "hello", 3.14, true]
+    
+    // Array access
+    first = numbers[0]    // 1
+    second = numbers[1]   // 2
+    
+    // Array with functions
+    array_sum = sum(numbers[0], numbers[1], numbers[2])  // 6
+}
+
+// Test 10: Time Series Functions
+pattern time_series_test {
+    // Moving average
+    ma_result = moving_average(3, 1, 2, 3, 4, 5, 6)
+    
+    // Exponential moving average
+    ema_result = exponential_moving_average(0.3, 10, 12, 11, 13)
+    
+    // Trend detection
+    trend_result = trend_detection(0.1, 1, 2, 3, 4, 5)  // Should be 1 (upward)
+    
+    // Rate of change
+    roc_result = rate_of_change(10, 12, 11, 15)
+}
+
+// Test 11: Data Transformation
+pattern transform_test {
+    // Normalization
+    normalized = normalize(1, 5, 3, 9, 2)
+    standardized = standardize(1, 5, 3, 9, 2)
+    scaled = scale(2, 1, 2, 3, 4)
+    
+    // Filtering
+    filtered_above = filter_above(3, 1, 5, 2, 8, 3, 6)
+    filtered_below = filter_below(5, 1, 5, 2, 8, 3, 6)
+    filtered_range = filter_range(2, 6, 1, 5, 2, 8, 3, 6)
+    clamped = clamp(2, 6, 1, 5, 2, 8, 3, 6)
+}
+
+// Test 12: Pattern Matching
+pattern regex_test {
+    // Regex functions
+    match_result = regex_match("\\d+", "abc123def")      // true
+    extract_result = regex_extract("\\d+", "abc123def")  // "123"
+    replace_result = regex_replace("\\d+", "X", "abc123def456")  // "abcXdefX"
+    
+    // Fuzzy matching
+    fuzzy_result = fuzzy_match("hello", "helo", 0.8)     // true
+    similarity_result = fuzzy_similarity("kitten", "sitting")
+}
+
+// Test 13: Aggregation Functions
+pattern aggregation_test {
+    // Rollup operations
+    sum_rollup = rollup("sum", 1, 2, 3, 4, 5)      // 15
+    mean_rollup = rollup("mean", 1, 2, 3, 4, 5)    // 3
+    max_rollup = rollup("max", 1, 2, 3, 4, 5)      // 5
+    
+    // Aggregate multiple operations
+    multi_agg = aggregate(["sum", "mean", "max"], 1, 2, 3, 4, 5)
+}
+
+// Test 14: Complex Pattern Composition
+pattern complex_composition {
+    // Multi-step calculation
+    raw_data = [1.1, 2.2, 3.3, 4.4, 5.5]
+    
+    // Statistical analysis
+    data_mean = mean(raw_data[0], raw_data[1], raw_data[2], raw_data[3], raw_data[4])
+    data_stddev = stddev(raw_data[0], raw_data[1], raw_data[2], raw_data[3], raw_data[4])
+    
+    // Trend analysis
+    trend = trend_detection(0.1, raw_data[0], raw_data[1], raw_data[2], raw_data[3], raw_data[4])
+    
+    // Final assessment
+    if (data_mean > 3.0 && trend > 0) {
+        assessment = "positive_trend"
+        confidence = data_mean * 0.8 / data_stddev
+    } else {
+        assessment = "stable_or_declining"
+        confidence = 0.5
+    }
+}
+
+// Test 15: Performance Critical Path
+pattern performance_test {
+    // Large computation that should remain fast
+    big_sum = 0
+    // For loop support coming soon - manual calculation for now
+    big_sum = sqrt(1) * sin(1) + cos(1) + sqrt(2) * sin(2) + cos(2) + sqrt(3) * sin(3) + cos(3)
+    
+    // Complex statistical calculation
+    dataset = [1, 4, 2, 8, 5, 7, 3, 9, 6, 10]
+    perf_mean = mean(dataset[0], dataset[1], dataset[2], dataset[3], dataset[4], 
+                     dataset[5], dataset[6], dataset[7], dataset[8], dataset[9])
+    perf_stddev = stddev(dataset[0], dataset[1], dataset[2], dataset[3], dataset[4], 
+                         dataset[5], dataset[6], dataset[7], dataset[8], dataset[9])
+    
+    // Moving average on large window
+    perf_ma = moving_average(5, dataset[0], dataset[1], dataset[2], dataset[3], dataset[4], 
+                                dataset[5], dataset[6], dataset[7], dataset[8], dataset[9])
+}
+
+// Test 16: Edge Cases and Error Conditions
+pattern edge_cases_test {
+    // Empty conditions (should handle gracefully)
+    empty_max = max(0)  // Single argument
+    
+    // Boundary values
+    zero_sqrt = sqrt(0)        // 0
+    one_log = log(1)           // 0
+    negative_abs = abs(-0)     // 0
+    
+    // Large numbers
+    large_pow = pow(10, 2)     // 100 (reasonable)
+    
+    // String edge cases
+    empty_regex = regex_match(".*", "")    // true
+    single_char = fuzzy_similarity("a", "b")  // Some similarity score
+}
+
+// Test 17: Type System Consistency
+pattern type_consistency_test {
+    // Number operations
+    int_result = 5 + 3         // 8
+    float_result = 5.5 + 2.3   // 7.8
+    mixed_result = 5 + 2.5     // 7.5
+    
+    // String operations
+    string_concat = "hello" + " " + "world"  // "hello world"
+    
+    // Boolean operations
+    bool_and = true && false  // false
+    bool_or = true || false    // true
+    bool_not = !true          // false
+    
+    // Comparison operations
+    less_than = 5 < 10         // true
+    greater_equal = 8 >= 8     // true
+    equality = "test" == "test" // true
+    inequality = 5 != 3        // true
+}
+
+// Test 18: Memory and Resource Management
+pattern resource_test {
+    // Multiple large arrays (test memory handling)
+    array1 = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+    array2 = [11, 12, 13, 14, 15, 16, 17, 18, 19, 20]
+    array3 = [21, 22, 23, 24, 25, 26, 27, 28, 29, 30]
+    
+    // Process them
+    sum1 = sum(array1[0], array1[1], array1[2], array1[3], array1[4])
+    sum2 = sum(array2[0], array2[1], array2[2], array2[3], array2[4])
+    sum3 = sum(array3[0], array3[1], array3[2], array3[3], array3[4])
+    
+    total_sum = sum1 + sum2 + sum3
+}

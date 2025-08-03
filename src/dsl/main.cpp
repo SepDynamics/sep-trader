@@ -3,40 +3,123 @@
 #include "runtime/interpreter.h"
 #include "engine/facade/facade.h"
 #include "core_types/result.h"
+#include "ast/serializer.h"
 #include <iostream>
 #include <fstream>
 #include <sstream>
+#include <string>
+
+void print_usage(const char* program_name) {
+    std::cerr << "Usage: " << program_name << " [options] <script.sep>" << std::endl;
+    std::cerr << "Options:" << std::endl;
+    std::cerr << "  --save-ast <filename>  Save parsed AST to JSON file" << std::endl;
+    std::cerr << "  --load-ast <filename>  Load and execute pre-parsed AST from JSON file" << std::endl;
+    std::cerr << "  --help                 Show this help message" << std::endl;
+}
 
 int main(int argc, char* argv[]) {
-    if (argc != 2) {
-        std::cerr << "Usage: " << argv[0] << " <script.sep>" << std::endl;
+    std::string script_file;
+    std::string save_ast_file;
+    std::string load_ast_file;
+    bool help_requested = false;
+    
+    // Parse command line arguments
+    for (int i = 1; i < argc; i++) {
+        std::string arg = argv[i];
+        
+        if (arg == "--help") {
+            help_requested = true;
+        } else if (arg == "--save-ast") {
+            if (i + 1 >= argc) {
+                std::cerr << "Error: --save-ast requires a filename" << std::endl;
+                return 1;
+            }
+            save_ast_file = argv[++i];
+        } else if (arg == "--load-ast") {
+            if (i + 1 >= argc) {
+                std::cerr << "Error: --load-ast requires a filename" << std::endl;
+                return 1;
+            }
+            load_ast_file = argv[++i];
+        } else if (arg.substr(0, 2) == "--") {
+            std::cerr << "Error: Unknown option " << arg << std::endl;
+            print_usage(argv[0]);
+            return 1;
+        } else {
+            if (!script_file.empty()) {
+                std::cerr << "Error: Multiple script files specified" << std::endl;
+                print_usage(argv[0]);
+                return 1;
+            }
+            script_file = arg;
+        }
+    }
+    
+    if (help_requested) {
+        print_usage(argv[0]);
+        return 0;
+    }
+    
+    // Validate arguments
+    if (!load_ast_file.empty() && !script_file.empty()) {
+        std::cerr << "Error: Cannot specify both script file and --load-ast" << std::endl;
+        print_usage(argv[0]);
         return 1;
     }
     
-    // Read the DSL script file
-    std::ifstream file(argv[1]);
-    if (!file.is_open()) {
-        std::cerr << "Error: Could not open file " << argv[1] << std::endl;
+    if (load_ast_file.empty() && script_file.empty()) {
+        std::cerr << "Error: Must specify either a script file or --load-ast" << std::endl;
+        print_usage(argv[0]);
         return 1;
     }
     
-    std::stringstream buffer;
-    buffer << file.rdbuf();
-    std::string source = buffer.str();
-    file.close();
+    std::unique_ptr<dsl::ast::Program> program;
     
     try {
         std::cout << "=== SEP DSL Interpreter ===" << std::endl;
-        std::cout << "Source file: " << argv[1] << std::endl;
-        std::cout << "Source content:" << std::endl;
-        std::cout << source << std::endl;
-        std::cout << "========================" << std::endl;
         
-        // Create parser and parse the source
-        dsl::parser::Parser parser(source);
-        auto program = parser.parse();
+        // Handle AST loading vs normal parsing
+        if (!load_ast_file.empty()) {
+            std::cout << "Loading AST from: " << load_ast_file << std::endl;
+            dsl::ast::ASTSerializer serializer;
+            program = serializer.loadFromFile(load_ast_file);
+            std::cout << "AST loaded successfully!" << std::endl;
+        } else {
+            // Read and parse the DSL script file
+            std::ifstream file(script_file);
+            if (!file.is_open()) {
+                std::cerr << "Error: Could not open file " << script_file << std::endl;
+                return 1;
+            }
+            
+            std::stringstream buffer;
+            buffer << file.rdbuf();
+            std::string source = buffer.str();
+            file.close();
+            
+            std::cout << "Source file: " << script_file << std::endl;
+            std::cout << "Source content:" << std::endl;
+            std::cout << source << std::endl;
+            std::cout << "========================" << std::endl;
+            
+            // Create parser and parse the source
+            dsl::parser::Parser parser(source);
+            program = parser.parse();
+            
+            std::cout << "Parsing completed successfully!" << std::endl;
+            
+            // Save AST if requested
+            if (!save_ast_file.empty()) {
+                std::cout << "Saving AST to: " << save_ast_file << std::endl;
+                dsl::ast::ASTSerializer serializer;
+                if (serializer.saveToFile(*program, save_ast_file)) {
+                    std::cout << "AST saved successfully!" << std::endl;
+                } else {
+                    std::cerr << "Warning: Failed to save AST to file" << std::endl;
+                }
+            }
+        }
         
-        std::cout << "Parsing completed successfully!" << std::endl;
         std::cout << "Program contains:" << std::endl;
         std::cout << "  - " << program->streams.size() << " stream(s)" << std::endl;
         std::cout << "  - " << program->patterns.size() << " pattern(s)" << std::endl;

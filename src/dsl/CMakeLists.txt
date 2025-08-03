@@ -5,6 +5,10 @@ add_library(sep_dsl STATIC
     # AST nodes (header only)
     ast/nodes.h
     
+    # AST serialization
+    ast/serializer.h
+    ast/serializer.cpp
+    
     # Lexer
     lexer/lexer.h
     lexer/lexer.cpp

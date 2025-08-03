@@ -4,6 +4,7 @@
 #include <stdexcept>
 #include <cmath>
 #include <algorithm>
+#include <regex>
 
 namespace dsl::runtime {
 
@@ -563,6 +564,686 @@ void Interpreter::register_builtins() {
         return numerator / denominator;
     };
     
+    // Time series functions
+    builtins_["moving_average"] = [](const std::vector<Value>& args) -> Value {
+        if (args.size() < 2) {
+            throw std::runtime_error("moving_average() expects at least 2 arguments (window_size, data...)");
+        }
+        
+        int window_size = static_cast<int>(std::any_cast<double>(args[0]));
+        if (window_size <= 0) {
+            throw std::runtime_error("moving_average() window size must be positive");
+        }
+        
+        // Convert remaining args to data array
+        std::vector<double> data;
+        for (size_t i = 1; i < args.size(); i++) {
+            data.push_back(std::any_cast<double>(args[i]));
+        }
+        
+        if (static_cast<int>(data.size()) < window_size) {
+            throw std::runtime_error("moving_average() data size must be >= window size");
+        }
+        
+        // Calculate moving averages
+        std::vector<Value> result;
+        for (size_t i = 0; i <= data.size() - window_size; i++) {
+            double sum = 0.0;
+            for (int j = 0; j < window_size; j++) {
+                sum += data[i + j];
+            }
+            result.push_back(sum / window_size);
+        }
+        
+        return result;
+    };
+    
+    builtins_["exponential_moving_average"] = [](const std::vector<Value>& args) -> Value {
+        if (args.size() < 3) {
+            throw std::runtime_error("exponential_moving_average() expects at least 3 arguments (alpha, initial_value, data...)");
+        }
+        
+        double alpha = std::any_cast<double>(args[0]);
+        if (alpha <= 0.0 || alpha > 1.0) {
+            throw std::runtime_error("exponential_moving_average() alpha must be between 0 and 1");
+        }
+        
+        double ema = std::any_cast<double>(args[1]); // Initial value
+        std::vector<Value> result;
+        result.push_back(ema);
+        
+        // Apply EMA formula: EMA = alpha * current + (1 - alpha) * previous_EMA
+        for (size_t i = 2; i < args.size(); i++) {
+            double current = std::any_cast<double>(args[i]);
+            ema = alpha * current + (1.0 - alpha) * ema;
+            result.push_back(ema);
+        }
+        
+        return result;
+    };
+    
+    builtins_["trend_detection"] = [](const std::vector<Value>& args) -> Value {
+        if (args.size() < 3) {
+            throw std::runtime_error("trend_detection() expects at least 3 arguments (threshold, data...)");
+        }
+        
+        double threshold = std::any_cast<double>(args[0]);
+        
+        // Convert args to data array
+        std::vector<double> data;
+        for (size_t i = 1; i < args.size(); i++) {
+            data.push_back(std::any_cast<double>(args[i]));
+        }
+        
+        if (data.size() < 2) {
+            return 0.0; // No trend with less than 2 points
+        }
+        
+        // Simple linear trend detection using least squares
+        size_t n = data.size();
+        double sum_x = 0.0, sum_y = 0.0, sum_xy = 0.0, sum_x2 = 0.0;
+        
+        for (size_t i = 0; i < n; i++) {
+            double x = static_cast<double>(i);
+            double y = data[i];
+            sum_x += x;
+            sum_y += y;
+            sum_xy += x * y;
+            sum_x2 += x * x;
+        }
+        
+        // Calculate slope (trend strength)
+        double slope = (n * sum_xy - sum_x * sum_y) / (n * sum_x2 - sum_x * sum_x);
+        
+        // Return trend direction: 1 = upward, -1 = downward, 0 = no trend
+        if (std::abs(slope) < threshold) {
+            return 0.0; // No significant trend
+        } else if (slope > 0) {
+            return 1.0; // Upward trend
+        } else {
+            return -1.0; // Downward trend
+        }
+    };
+    
+    builtins_["rate_of_change"] = [](const std::vector<Value>& args) -> Value {
+        if (args.size() < 2) {
+            throw std::runtime_error("rate_of_change() expects at least 2 arguments (data...)");
+        }
+        
+        // Convert args to data array
+        std::vector<double> data;
+        for (const auto& arg : args) {
+            data.push_back(std::any_cast<double>(arg));
+        }
+        
+        // Calculate rate of change between consecutive points
+        std::vector<Value> result;
+        for (size_t i = 1; i < data.size(); i++) {
+            double change = data[i] - data[i-1];
+            double rate = (data[i-1] != 0.0) ? (change / data[i-1]) * 100.0 : 0.0;
+            result.push_back(rate);
+        }
+        
+        return result;
+    };
+    
+    // Data transformation functions
+    builtins_["normalize"] = [](const std::vector<Value>& args) -> Value {
+        if (args.empty()) {
+            throw std::runtime_error("normalize() expects at least 1 argument (data...)");
+        }
+        
+        // Convert args to data array
+        std::vector<double> data;
+        for (const auto& arg : args) {
+            data.push_back(std::any_cast<double>(arg));
+        }
+        
+        if (data.size() == 1) {
+            return std::vector<Value>{1.0}; // Single value normalizes to 1
+        }
+        
+        // Find min and max
+        double min_val = *std::min_element(data.begin(), data.end());
+        double max_val = *std::max_element(data.begin(), data.end());
+        
+        if (min_val == max_val) {
+            // All values are the same, return array of ones
+            std::vector<Value> result(data.size(), 1.0);
+            return result;
+        }
+        
+        // Normalize to [0, 1] range
+        std::vector<Value> result;
+        for (double val : data) {
+            double normalized = (val - min_val) / (max_val - min_val);
+            result.push_back(normalized);
+        }
+        
+        return result;
+    };
+    
+    builtins_["standardize"] = [](const std::vector<Value>& args) -> Value {
+        if (args.empty()) {
+            throw std::runtime_error("standardize() expects at least 1 argument (data...)");
+        }
+        
+        // Convert args to data array
+        std::vector<double> data;
+        for (const auto& arg : args) {
+            data.push_back(std::any_cast<double>(arg));
+        }
+        
+        if (data.size() == 1) {
+            return std::vector<Value>{0.0}; // Single value standardizes to 0
+        }
+        
+        // Calculate mean
+        double sum = 0.0;
+        for (double val : data) {
+            sum += val;
+        }
+        double mean = sum / data.size();
+        
+        // Calculate standard deviation
+        double variance_sum = 0.0;
+        for (double val : data) {
+            variance_sum += (val - mean) * (val - mean);
+        }
+        double std_dev = std::sqrt(variance_sum / (data.size() - 1));
+        
+        if (std_dev == 0.0) {
+            // All values are the same, return array of zeros
+            std::vector<Value> result(data.size(), 0.0);
+            return result;
+        }
+        
+        // Standardize: (value - mean) / std_dev
+        std::vector<Value> result;
+        for (double val : data) {
+            double standardized = (val - mean) / std_dev;
+            result.push_back(standardized);
+        }
+        
+        return result;
+    };
+    
+    builtins_["scale"] = [](const std::vector<Value>& args) -> Value {
+        if (args.size() < 3) {
+            throw std::runtime_error("scale() expects at least 3 arguments (min_target, max_target, data...)");
+        }
+        
+        double min_target = std::any_cast<double>(args[0]);
+        double max_target = std::any_cast<double>(args[1]);
+        
+        if (min_target >= max_target) {
+            throw std::runtime_error("scale() min_target must be less than max_target");
+        }
+        
+        // Convert remaining args to data array
+        std::vector<double> data;
+        for (size_t i = 2; i < args.size(); i++) {
+            data.push_back(std::any_cast<double>(args[i]));
+        }
+        
+        if (data.size() == 1) {
+            return std::vector<Value>{(min_target + max_target) / 2.0}; // Single value goes to midpoint
+        }
+        
+        // Find min and max of data
+        double min_val = *std::min_element(data.begin(), data.end());
+        double max_val = *std::max_element(data.begin(), data.end());
+        
+        if (min_val == max_val) {
+            // All values are the same, scale to midpoint
+            double midpoint = (min_target + max_target) / 2.0;
+            std::vector<Value> result(data.size(), midpoint);
+            return result;
+        }
+        
+        // Scale to [min_target, max_target] range
+        std::vector<Value> result;
+        for (double val : data) {
+            double scaled = min_target + (val - min_val) * (max_target - min_target) / (max_val - min_val);
+            result.push_back(scaled);
+        }
+        
+        return result;
+    };
+    
+    builtins_["filter_above"] = [](const std::vector<Value>& args) -> Value {
+        if (args.size() < 2) {
+            throw std::runtime_error("filter_above() expects at least 2 arguments (threshold, data...)");
+        }
+        
+        double threshold = std::any_cast<double>(args[0]);
+        
+        // Filter values above threshold
+        std::vector<Value> result;
+        for (size_t i = 1; i < args.size(); i++) {
+            double val = std::any_cast<double>(args[i]);
+            if (val > threshold) {
+                result.push_back(val);
+            }
+        }
+        
+        return result;
+    };
+    
+    builtins_["filter_below"] = [](const std::vector<Value>& args) -> Value {
+        if (args.size() < 2) {
+            throw std::runtime_error("filter_below() expects at least 2 arguments (threshold, data...)");
+        }
+        
+        double threshold = std::any_cast<double>(args[0]);
+        
+        // Filter values below threshold
+        std::vector<Value> result;
+        for (size_t i = 1; i < args.size(); i++) {
+            double val = std::any_cast<double>(args[i]);
+            if (val < threshold) {
+                result.push_back(val);
+            }
+        }
+        
+        return result;
+    };
+    
+    builtins_["filter_range"] = [](const std::vector<Value>& args) -> Value {
+        if (args.size() < 3) {
+            throw std::runtime_error("filter_range() expects at least 3 arguments (min_val, max_val, data...)");
+        }
+        
+        double min_val = std::any_cast<double>(args[0]);
+        double max_val = std::any_cast<double>(args[1]);
+        
+        if (min_val >= max_val) {
+            throw std::runtime_error("filter_range() min_val must be less than max_val");
+        }
+        
+        // Filter values within range [min_val, max_val]
+        std::vector<Value> result;
+        for (size_t i = 2; i < args.size(); i++) {
+            double val = std::any_cast<double>(args[i]);
+            if (val >= min_val && val <= max_val) {
+                result.push_back(val);
+            }
+        }
+        
+        return result;
+    };
+    
+    builtins_["clamp"] = [](const std::vector<Value>& args) -> Value {
+        if (args.size() < 3) {
+            throw std::runtime_error("clamp() expects at least 3 arguments (min_val, max_val, data...)");
+        }
+        
+        double min_val = std::any_cast<double>(args[0]);
+        double max_val = std::any_cast<double>(args[1]);
+        
+        if (min_val >= max_val) {
+            throw std::runtime_error("clamp() min_val must be less than max_val");
+        }
+        
+        // Clamp values to range [min_val, max_val]
+        std::vector<Value> result;
+        for (size_t i = 2; i < args.size(); i++) {
+            double val = std::any_cast<double>(args[i]);
+            double clamped = std::max(min_val, std::min(max_val, val));
+            result.push_back(clamped);
+        }
+        
+        return result;
+    };
+    
+    // Pattern matching functions
+    builtins_["regex_match"] = [](const std::vector<Value>& args) -> Value {
+        if (args.size() != 2) {
+            throw std::runtime_error("regex_match() expects 2 arguments (pattern, text)");
+        }
+        
+        std::string pattern = std::any_cast<std::string>(args[0]);
+        std::string text = std::any_cast<std::string>(args[1]);
+        
+        try {
+            std::regex regex_pattern(pattern);
+            return std::regex_search(text, regex_pattern);
+        } catch (const std::regex_error& e) {
+            throw std::runtime_error("regex_match() invalid regex pattern: " + std::string(e.what()));
+        }
+    };
+    
+    builtins_["regex_extract"] = [](const std::vector<Value>& args) -> Value {
+        if (args.size() != 2) {
+            throw std::runtime_error("regex_extract() expects 2 arguments (pattern, text)");
+        }
+        
+        std::string pattern = std::any_cast<std::string>(args[0]);
+        std::string text = std::any_cast<std::string>(args[1]);
+        
+        try {
+            std::regex regex_pattern(pattern);
+            std::smatch matches;
+            
+            if (std::regex_search(text, matches, regex_pattern)) {
+                std::vector<Value> result;
+                for (const auto& match : matches) {
+                    result.push_back(match.str());
+                }
+                return result;
+            } else {
+                return std::vector<Value>();
+            }
+        } catch (const std::regex_error& e) {
+            throw std::runtime_error("regex_extract() invalid regex pattern: " + std::string(e.what()));
+        }
+    };
+    
+    builtins_["regex_replace"] = [](const std::vector<Value>& args) -> Value {
+        if (args.size() != 3) {
+            throw std::runtime_error("regex_replace() expects 3 arguments (pattern, replacement, text)");
+        }
+        
+        std::string pattern = std::any_cast<std::string>(args[0]);
+        std::string replacement = std::any_cast<std::string>(args[1]);
+        std::string text = std::any_cast<std::string>(args[2]);
+        
+        try {
+            std::regex regex_pattern(pattern);
+            return std::regex_replace(text, regex_pattern, replacement);
+        } catch (const std::regex_error& e) {
+            throw std::runtime_error("regex_replace() invalid regex pattern: " + std::string(e.what()));
+        }
+    };
+    
+    builtins_["fuzzy_match"] = [](const std::vector<Value>& args) -> Value {
+        if (args.size() != 2 && args.size() != 3) {
+            throw std::runtime_error("fuzzy_match() expects 2 or 3 arguments (text1, text2, [threshold])");
+        }
+        
+        std::string text1 = std::any_cast<std::string>(args[0]);
+        std::string text2 = std::any_cast<std::string>(args[1]);
+        double threshold = (args.size() == 3) ? std::any_cast<double>(args[2]) : 0.8;
+        
+        // Implement Levenshtein distance-based fuzzy matching
+        auto levenshtein_distance = [](const std::string& s1, const std::string& s2) -> int {
+            size_t len1 = s1.length();
+            size_t len2 = s2.length();
+            
+            std::vector<std::vector<int>> dp(len1 + 1, std::vector<int>(len2 + 1));
+            
+            for (size_t i = 0; i <= len1; ++i) dp[i][0] = i;
+            for (size_t j = 0; j <= len2; ++j) dp[0][j] = j;
+            
+            for (size_t i = 1; i <= len1; ++i) {
+                for (size_t j = 1; j <= len2; ++j) {
+                    if (s1[i-1] == s2[j-1]) {
+                        dp[i][j] = dp[i-1][j-1];
+                    } else {
+                        dp[i][j] = 1 + std::min({dp[i-1][j], dp[i][j-1], dp[i-1][j-1]});
+                    }
+                }
+            }
+            
+            return dp[len1][len2];
+        };
+        
+        int distance = levenshtein_distance(text1, text2);
+        int max_len = std::max(text1.length(), text2.length());
+        
+        if (max_len == 0) return true; // Both strings are empty
+        
+        double similarity = 1.0 - (double)distance / max_len;
+        return similarity >= threshold;
+    };
+    
+    builtins_["fuzzy_similarity"] = [](const std::vector<Value>& args) -> Value {
+        if (args.size() != 2) {
+            throw std::runtime_error("fuzzy_similarity() expects 2 arguments (text1, text2)");
+        }
+        
+        std::string text1 = std::any_cast<std::string>(args[0]);
+        std::string text2 = std::any_cast<std::string>(args[1]);
+        
+        // Implement Levenshtein distance-based similarity
+        auto levenshtein_distance = [](const std::string& s1, const std::string& s2) -> int {
+            size_t len1 = s1.length();
+            size_t len2 = s2.length();
+            
+            std::vector<std::vector<int>> dp(len1 + 1, std::vector<int>(len2 + 1));
+            
+            for (size_t i = 0; i <= len1; ++i) dp[i][0] = i;
+            for (size_t j = 0; j <= len2; ++j) dp[0][j] = j;
+            
+            for (size_t i = 1; i <= len1; ++i) {
+                for (size_t j = 1; j <= len2; ++j) {
+                    if (s1[i-1] == s2[j-1]) {
+                        dp[i][j] = dp[i-1][j-1];
+                    } else {
+                        dp[i][j] = 1 + std::min({dp[i-1][j], dp[i][j-1], dp[i-1][j-1]});
+                    }
+                }
+            }
+            
+            return dp[len1][len2];
+        };
+        
+        int distance = levenshtein_distance(text1, text2);
+        int max_len = std::max(text1.length(), text2.length());
+        
+        if (max_len == 0) return 1.0; // Both strings are empty, perfect match
+        
+        return 1.0 - (double)distance / max_len;
+    };
+    
+    // Aggregation functions
+    builtins_["groupby"] = [](const std::vector<Value>& args) -> Value {
+        if (args.size() < 2) {
+            throw std::runtime_error("groupby() expects at least 2 arguments (key_func, data...)");
+        }
+        
+        // For now, implement a simple groupby based on value equality
+        // In a more advanced implementation, we'd support function-based grouping
+        
+        std::map<std::string, std::vector<Value>> groups;
+        
+        for (size_t i = 1; i < args.size(); i++) {
+            std::string key = std::any_cast<std::string>(args[0]) + "_" + std::to_string(i);
+            
+            // Try to extract a grouping key from the value
+            std::string group_key;
+            try {
+                if (args[i].type() == typeid(double)) {
+                    double val = std::any_cast<double>(args[i]);
+                    group_key = (val < 0) ? "negative" : (val == 0) ? "zero" : "positive";
+                } else if (args[i].type() == typeid(std::string)) {
+                    std::string str = std::any_cast<std::string>(args[i]);
+                    group_key = str.empty() ? "empty" : str.substr(0, 1); // Group by first character
+                } else {
+                    group_key = "other";
+                }
+            } catch (...) {
+                group_key = "unknown";
+            }
+            
+            groups[group_key].push_back(args[i]);
+        }
+        
+        // Convert to array of arrays format
+        std::vector<Value> result;
+        for (const auto& [key, values] : groups) {
+            std::vector<Value> group_data;
+            group_data.push_back(key); // Group key as first element
+            group_data.insert(group_data.end(), values.begin(), values.end());
+            result.push_back(group_data);
+        }
+        
+        return result;
+    };
+    
+    builtins_["pivot"] = [](const std::vector<Value>& args) -> Value {
+        if (args.size() < 3) {
+            throw std::runtime_error("pivot() expects at least 3 arguments (rows, cols, values)");
+        }
+        
+        // Simple pivot implementation - transpose data based on row/column indices
+        try {
+            std::vector<Value> rows = std::any_cast<std::vector<Value>>(args[0]);
+            std::vector<Value> cols = std::any_cast<std::vector<Value>>(args[1]);
+            std::vector<Value> values = std::any_cast<std::vector<Value>>(args[2]);
+            
+            if (rows.size() != cols.size() || rows.size() != values.size()) {
+                throw std::runtime_error("pivot() arrays must have the same length");
+            }
+            
+            // Create pivot table as nested arrays
+            std::map<std::string, std::map<std::string, double>> pivot_table;
+            
+            for (size_t i = 0; i < rows.size(); i++) {
+                std::string row_key = std::any_cast<std::string>(rows[i]);
+                std::string col_key = std::any_cast<std::string>(cols[i]);
+                double value = std::any_cast<double>(values[i]);
+                
+                pivot_table[row_key][col_key] = value;
+            }
+            
+            // Convert to nested array format
+            std::vector<Value> result;
+            for (const auto& [row_key, row_data] : pivot_table) {
+                std::vector<Value> row;
+                row.push_back(row_key);
+                for (const auto& [col_key, value] : row_data) {
+                    row.push_back(value);
+                }
+                result.push_back(row);
+            }
+            
+            return result;
+            
+        } catch (const std::bad_any_cast& e) {
+            throw std::runtime_error("pivot() arguments must be arrays");
+        }
+    };
+    
+    builtins_["rollup"] = [](const std::vector<Value>& args) -> Value {
+        if (args.size() < 2) {
+            throw std::runtime_error("rollup() expects at least 2 arguments (aggregation_func, data...)");
+        }
+        
+        std::string agg_func = std::any_cast<std::string>(args[0]);
+        
+        // Extract all numeric data points
+        std::vector<double> data;
+        for (size_t i = 1; i < args.size(); i++) {
+            try {
+                if (args[i].type() == typeid(std::vector<Value>)) {
+                    // Handle array argument
+                    std::vector<Value> arr = std::any_cast<std::vector<Value>>(args[i]);
+                    for (const auto& val : arr) {
+                        data.push_back(std::any_cast<double>(val));
+                    }
+                } else {
+                    // Handle individual value
+                    data.push_back(std::any_cast<double>(args[i]));
+                }
+            } catch (const std::bad_any_cast& e) {
+                // Skip non-numeric values
+                continue;
+            }
+        }
+        
+        if (data.empty()) {
+            throw std::runtime_error("rollup() no numeric data found");
+        }
+        
+        // Apply aggregation function
+        if (agg_func == "sum") {
+            double sum = 0.0;
+            for (double val : data) {
+                sum += val;
+            }
+            return sum;
+        } else if (agg_func == "avg" || agg_func == "mean") {
+            double sum = 0.0;
+            for (double val : data) {
+                sum += val;
+            }
+            return sum / data.size();
+        } else if (agg_func == "min") {
+            return *std::min_element(data.begin(), data.end());
+        } else if (agg_func == "max") {
+            return *std::max_element(data.begin(), data.end());
+        } else if (agg_func == "count") {
+            return (double)data.size();
+        } else {
+            throw std::runtime_error("rollup() unsupported aggregation function: " + agg_func);
+        }
+    };
+    
+    builtins_["aggregate"] = [](const std::vector<Value>& args) -> Value {
+        if (args.size() < 3) {
+            throw std::runtime_error("aggregate() expects at least 3 arguments (data, group_key, agg_func)");
+        }
+        
+        try {
+            std::vector<Value> data = std::any_cast<std::vector<Value>>(args[0]);
+            std::string group_key = std::any_cast<std::string>(args[1]);
+            std::string agg_func = std::any_cast<std::string>(args[2]);
+            
+            // For simplicity, group by value ranges for numeric data
+            std::map<std::string, std::vector<double>> groups;
+            
+            for (const auto& item : data) {
+                if (item.type() == typeid(double)) {
+                    double val = std::any_cast<double>(item);
+                    std::string key;
+                    
+                    if (group_key == "range") {
+                        if (val < 10) key = "0-10";
+                        else if (val < 50) key = "10-50";
+                        else if (val < 100) key = "50-100";
+                        else key = "100+";
+                    } else if (group_key == "sign") {
+                        key = (val < 0) ? "negative" : (val == 0) ? "zero" : "positive";
+                    } else {
+                        key = "all";
+                    }
+                    
+                    groups[key].push_back(val);
+                }
+            }
+            
+            // Apply aggregation to each group
+            std::vector<Value> result;
+            for (const auto& [key, group_data] : groups) {
+                std::vector<Value> group_result;
+                group_result.push_back(key);
+                
+                double agg_value = 0.0;
+                if (agg_func == "sum") {
+                    for (double val : group_data) agg_value += val;
+                } else if (agg_func == "avg" || agg_func == "mean") {
+                    for (double val : group_data) agg_value += val;
+                    agg_value /= group_data.size();
+                } else if (agg_func == "count") {
+                    agg_value = (double)group_data.size();
+                } else if (agg_func == "min") {
+                    agg_value = *std::min_element(group_data.begin(), group_data.end());
+                } else if (agg_func == "max") {
+                    agg_value = *std::max_element(group_data.begin(), group_data.end());
+                }
+                
+                group_result.push_back(agg_value);
+                result.push_back(group_result);
+            }
+            
+            return result;
+            
+        } catch (const std::bad_any_cast& e) {
+            throw std::runtime_error("aggregate() invalid argument types");
+        }
+    };
+    
     // Debugging functions
     builtins_["print"] = [this](const std::vector<Value>& args) -> Value {
         for (size_t i = 0; i < args.size(); ++i) {
@@ -630,6 +1311,12 @@ Value Interpreter::evaluate(const ast::Expression& expr) {
     }
     if (const auto* await_expr = dynamic_cast<const ast::AwaitExpression*>(&expr)) {
         return visit_await_expression(*await_expr);
+    }
+    if (const auto* array_literal = dynamic_cast<const ast::ArrayLiteral*>(&expr)) {
+        return visit_array_literal(*array_literal);
+    }
+    if (const auto* array_access = dynamic_cast<const ast::ArrayAccess*>(&expr)) {
+        return visit_array_access(*array_access);
     }
     
     throw std::runtime_error("Unknown expression type");
@@ -1338,7 +2025,19 @@ std::string Interpreter::stringify(const Value& value) {
                 bool b = std::any_cast<bool>(value);
                 return b ? "true" : "false";
             } catch (const std::bad_any_cast&) {
-                return "<unknown value>";
+                try {
+                    // Handle arrays
+                    auto array = std::any_cast<std::vector<Value>>(value);
+                    std::string result = "[";
+                    for (size_t i = 0; i < array.size(); ++i) {
+                        if (i > 0) result += ", ";
+                        result += stringify(array[i]);
+                    }
+                    result += "]";
+                    return result;
+                } catch (const std::bad_any_cast&) {
+                    return "<unknown value>";
+                }
             }
         }
     }
@@ -1619,6 +2318,40 @@ Value AsyncFunction::call(Interpreter& interpreter, const std::vector<Value>& ar
         interpreter.environment_ = previous;
         std::cout << "[ASYNC] Async function '" << declaration_.name << "' completed with return" << std::endl;
         return return_value.value();
+    }
+}
+
+Value Interpreter::visit_array_literal(const ast::ArrayLiteral& node) {
+    std::vector<Value> elements;
+    elements.reserve(node.elements.size());
+    
+    for (const auto& element : node.elements) {
+        elements.push_back(evaluate(*element));
+    }
+    
+    return elements;
+}
+
+Value Interpreter::visit_array_access(const ast::ArrayAccess& node) {
+    Value array_value = evaluate(*node.array);
+    Value index_value = evaluate(*node.index);
+    
+    // Try to cast to vector of Values (our array type)
+    try {
+        auto array = std::any_cast<std::vector<Value>>(array_value);
+        auto index = std::any_cast<double>(index_value);
+        
+        // Convert double index to integer
+        size_t idx = static_cast<size_t>(index);
+        
+        // Check bounds
+        if (idx >= array.size()) {
+            throw std::runtime_error("Array index " + std::to_string(idx) + " out of bounds (size: " + std::to_string(array.size()) + ")");
+        }
+        
+        return array[idx];
+    } catch (const std::bad_any_cast&) {
+        throw std::runtime_error("Cannot index into non-array value");
     }
 }
 

@@ -1,0 +1,33 @@
+pattern test_precedence {
+    // Test basic arithmetic precedence
+    result1 = 2 + 3 * 4  // Should be 14, not 20
+    result2 = (2 + 3) * 4  // Should be 20
+    
+    // Test comparison precedence
+    comp1 = 5 > 3 && 2 < 4  // Should be true
+    comp2 = 5 > 3 + 1  // Should be true (5 > 4)
+    
+    // Test logical precedence
+    logic1 = true || false && false  // Should be true (|| has lower precedence than &&)
+    logic2 = (true || false) && false  // Should be false
+    
+    // Test mixed expression
+    mixed = 2 + 3 * 4 > 10 && true  // Should be true ((2 + (3 * 4)) > 10) && true = (14 > 10) && true = true
+    
+    // Test array access precedence
+    arr = [1, 2, 3, 4, 5]
+    access = arr[1] + arr[2]  // Should be 2 + 3 = 5
+    
+    // Test function call precedence
+    math_result = sin(3.14159 / 2)  // Should work correctly
+    
+    print("Arithmetic: 2 + 3 * 4 =", result1)
+    print("Parentheses: (2 + 3) * 4 =", result2)
+    print("Comparison: 5 > 3 && 2 < 4 =", comp1)
+    print("Comparison: 5 > 3 + 1 =", comp2)
+    print("Logic: true || false && false =", logic1)
+    print("Logic: (true || false) && false =", logic2)
+    print("Mixed: 2 + 3 * 4 > 10 && true =", mixed)
+    print("Array access: arr[1] + arr[2] =", access)
+    print("Function call: sin(π/2) =", math_result)
+}

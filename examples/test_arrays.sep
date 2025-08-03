@@ -1,0 +1,31 @@
+// Test array literals and access
+pattern test_arrays {
+    // Create array literals
+    numbers = [1, 2, 3, 4, 5]
+    mixed = [10, "hello", true, 42.5]
+    empty = []
+    
+    // Test array access
+    first = numbers[0]
+    second = numbers[1]
+    last = numbers[4]
+    
+    // Test with mixed types
+    mixed_num = mixed[0]
+    mixed_str = mixed[1] 
+    mixed_bool = mixed[2]
+    mixed_float = mixed[3]
+    
+    // Print results
+    print("Array:", numbers)
+    print("First element:", first)
+    print("Second element:", second)
+    print("Last element:", last)
+    print("Mixed array:", mixed)
+    print("Mixed types:", mixed_num, mixed_str, mixed_bool, mixed_float)
+    
+    // Test array with expressions
+    computed = [1 + 2, 3 * 4, sin(0), sqrt(16)]
+    print("Computed array:", computed)
+    print("Computed first:", computed[0])
+}

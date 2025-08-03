@@ -1,0 +1,56 @@
+// Test file for AST serialization functionality
+pattern test_serialization {
+    // Basic arithmetic
+    result = 3 * 4 + 2
+    print("Arithmetic result:", result)
+    
+    // Variables
+    x = 42
+    y = "hello world"
+    z = true
+    
+    // Function call
+    entropy_val = measure_entropy("test_pattern")
+    
+    // Conditional logic
+    if (result > 10) {
+        print("Result is greater than 10")
+    } else {
+        print("Result is 10 or less")
+    }
+    
+    // Array operations
+    numbers = [1, 2, 3, 4, 5]
+    first = numbers[0]
+    
+    // While loop
+    counter = 0
+    while (counter < 3) {
+        print("Counter:", counter)
+        counter = counter + 1
+    }
+}
+
+// Function declaration
+function calculate(a: number, b: number): number {
+    return a + b * 2
+}
+
+// Async function
+async function processData(sensor_id: string): number {
+    data = await measure_coherence(sensor_id)
+    return data
+}
+
+// Stream declaration
+stream sensor_data from "oanda" {
+    symbol: "EUR_USD"
+    timeframe: "M1"
+}
+
+// Signal declaration
+signal buy_signal {
+    trigger: entropy_val > 0.8
+    confidence: 0.95
+    action: "BUY"
+}

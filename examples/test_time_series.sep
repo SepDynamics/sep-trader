@@ -1,0 +1,35 @@
+// Time Series Functions Test
+pattern time_series_analysis {
+    // Sample time series data (stock price-like)
+    prices = [100, 102, 101, 105, 108, 107, 110, 115, 112, 118]
+    
+    // Test moving average with window size 3
+    ma_3 = moving_average(3, 100, 102, 101, 105, 108, 107, 110, 115, 112, 118)
+    
+    // Test exponential moving average (alpha = 0.3, starting with first price)
+    ema = exponential_moving_average(0.3, 100, 102, 101, 105, 108, 107, 110, 115, 112, 118)
+    
+    // Test trend detection (threshold = 0.1)
+    trend = trend_detection(0.1, 100, 102, 101, 105, 108, 107, 110, 115, 112, 118)
+    
+    // Test rate of change
+    roc = rate_of_change(100, 102, 101, 105, 108, 107, 110, 115, 112, 118)
+    
+    // Get specific values for verification
+    first_ma = ma_3[0]     // Should be (100+102+101)/3 = 101
+    last_ema = ema[9]      // Final EMA value
+    trend_direction = trend // 1=up, -1=down, 0=flat
+    first_roc = roc[0]     // Should be (102-100)/100*100 = 2%
+    
+    // Results
+    print("=== Time Series Analysis ===")
+    print("Original prices:", prices)
+    print("Moving Average (3-period):", ma_3)
+    print("First MA value:", first_ma)
+    print("Exponential Moving Average:", ema) 
+    print("Final EMA value:", last_ema)
+    print("Trend direction:", trend_direction)
+    print("Rate of Change (%):", roc)
+    print("First rate of change:", first_roc, "%")
+    print("=== Time Series Functions Working! ===")
+}

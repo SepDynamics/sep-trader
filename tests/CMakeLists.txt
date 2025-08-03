@@ -80,3 +80,10 @@ add_executable(dsl_interpreter_test
 target_include_directories(dsl_interpreter_test PRIVATE ../src)
 target_link_libraries(dsl_interpreter_test GTest::gtest GTest::gtest_main sep_dsl)
 gtest_discover_tests(dsl_interpreter_test)
+
+# DSL AST Serialization Tests
+add_executable(dsl_serialization_test
+    dsl/ast/test_serialization.cpp)
+target_include_directories(dsl_serialization_test PRIVATE ../src)
+target_link_libraries(dsl_serialization_test GTest::gtest GTest::gtest_main sep_dsl)
+gtest_discover_tests(dsl_serialization_test)
