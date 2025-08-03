@@ -1,6 +1,6 @@
 #pragma once
-#include "dsl/ast/nodes.h"
-#include "dsl/lexer/lexer.h"
+#include "../ast/nodes.h"
+#include "../lexer/lexer.h"
 
 namespace dsl::parser {
 class Parser {

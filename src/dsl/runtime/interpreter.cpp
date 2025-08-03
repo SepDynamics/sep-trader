@@ -2,6 +2,8 @@
 #include "engine/facade/facade.h"
 #include <iostream>
 #include <stdexcept>
+#include <cmath>
+#include <algorithm>
 
 namespace dsl::runtime {
 
@@ -70,6 +72,9 @@ Value Interpreter::evaluate(const ast::Expression& expr) {
     if (const auto* string_lit = dynamic_cast<const ast::StringLiteral*>(&expr)) {
         return visit_string_literal(*string_lit);
     }
+    if (const auto* boolean_lit = dynamic_cast<const ast::BooleanLiteral*>(&expr)) {
+        return visit_boolean_literal(*boolean_lit);
+    }
     if (const auto* identifier = dynamic_cast<const ast::Identifier*>(&expr)) {
         return visit_identifier(*identifier);
     }
@@ -114,6 +119,10 @@ Value Interpreter::visit_number_literal(const ast::NumberLiteral& node) {
 }
 
 Value Interpreter::visit_string_literal(const ast::StringLiteral& node) {
+    return node.value;
+}
+
+Value Interpreter::visit_boolean_literal(const ast::BooleanLiteral& node) {
     return node.value;
 }
 
@@ -197,6 +206,8 @@ Value Interpreter::visit_call(const ast::Call& node) {
         if (auto function = std::any_cast<std::shared_ptr<UserFunction>>(callee)) {
             return function->call(*this, arguments);
         }
+    } catch (const std::runtime_error& e) {
+        // Not a user-defined function, try builtin
     } catch (const std::bad_any_cast&) {
         // Not a user-defined function, try builtin
     }
@@ -414,15 +425,62 @@ Value Interpreter::call_builtin_function(const std::string& name, const std::vec
     }
     
     if (name == "measure_entropy") {
-        std::cout << "Calling measure_entropy with " << args.size() << " arguments" << std::endl;
-        // Future: integrate with entropy measurement from quantum engine
-        return 0.65;
+        std::cout << "Calling real measure_entropy with " << args.size() << " arguments" << std::endl;
+        
+        // Convert DSL arguments into the request struct
+        sep::engine::PatternAnalysisRequest request;
+        if (!args.empty()) {
+            try {
+                request.pattern_id = std::any_cast<std::string>(args[0]);
+            } catch (const std::bad_any_cast&) {
+                request.pattern_id = "entropy_pattern";
+            }
+        }
+        request.analysis_depth = 2;
+        request.include_relationships = false;
+        
+        // Call the real C++ function to get pattern metrics
+        sep::engine::PatternAnalysisResponse response;
+        auto result = engine.analyzePattern(request, response);
+        
+        if (sep::core::isSuccess(result)) {
+            // Return real entropy from QFH analysis
+            std::cout << "Real entropy from engine: " << response.entropy << std::endl;
+            return static_cast<double>(response.entropy);
+        } else {
+            throw std::runtime_error("Engine call failed for measure_entropy");
+        }
     }
     
     if (name == "extract_bits") {
-        std::cout << "Calling extract_bits with " << args.size() << " arguments" << std::endl;
-        // Future: integrate with bitspace extraction
-        return std::string("101010101");
+        std::cout << "Calling real extract_bits with " << args.size() << " arguments" << std::endl;
+        
+        // Convert DSL arguments into the bit extraction request
+        sep::engine::BitExtractionRequest request;
+        if (!args.empty()) {
+            try {
+                request.pattern_id = std::any_cast<std::string>(args[0]);
+            } catch (const std::bad_any_cast&) {
+                request.pattern_id = "bitstream_pattern";
+            }
+        }
+        
+        // Call the real bit extraction engine
+        sep::engine::BitExtractionResponse response;
+        auto result = engine.extractBits(request, response);
+        
+        if (sep::core::isSuccess(result) && response.success) {
+            // Convert bitstream to string representation for DSL
+            std::string bitstream;
+            for (uint8_t bit : response.bitstream) {
+                bitstream += (bit == 1) ? '1' : '0';
+            }
+            
+            std::cout << "Real bit extraction - extracted " << response.bitstream.size() << " bits" << std::endl;
+            return bitstream;
+        } else {
+            throw std::runtime_error("Engine call failed for extract_bits: " + response.error_message);
+        }
     }
 
     if (name == "manifold_optimize") {
@@ -450,6 +508,202 @@ Value Interpreter::call_builtin_function(const std::string& name, const std::vec
         } else {
             throw std::runtime_error("Engine call failed for manifold_optimize");
         }
+    }
+    
+    // ============================================================================
+    // Type Checking & Conversion Functions (TASK.md Phase 2A Priority 1)
+    // ============================================================================
+    if (name == "is_number") {
+        if (args.empty()) {
+            throw std::runtime_error("is_number() requires exactly 1 argument");
+        }
+        try {
+            std::any_cast<double>(args[0]);
+            return true;
+        } catch (const std::bad_any_cast&) {
+            return false;
+        }
+    }
+    
+    if (name == "is_string") {
+        if (args.empty()) {
+            throw std::runtime_error("is_string() requires exactly 1 argument");
+        }
+        try {
+            std::any_cast<std::string>(args[0]);
+            return true;
+        } catch (const std::bad_any_cast&) {
+            return false;
+        }
+    }
+    
+    if (name == "is_bool") {
+        if (args.empty()) {
+            throw std::runtime_error("is_bool() requires exactly 1 argument");
+        }
+        try {
+            std::any_cast<bool>(args[0]);
+            return true;
+        } catch (const std::bad_any_cast&) {
+            return false;
+        }
+    }
+    
+    if (name == "to_string") {
+        if (args.empty()) {
+            throw std::runtime_error("to_string() requires exactly 1 argument");
+        }
+        return stringify(args[0]);
+    }
+    
+    if (name == "to_number") {
+        if (args.empty()) {
+            throw std::runtime_error("to_number() requires exactly 1 argument");
+        }
+        try {
+            return std::any_cast<double>(args[0]);
+        } catch (const std::bad_any_cast&) {
+            try {
+                std::string str = std::any_cast<std::string>(args[0]);
+                return std::stod(str);
+            } catch (const std::exception&) {
+                try {
+                    bool b = std::any_cast<bool>(args[0]);
+                    return b ? 1.0 : 0.0;
+                } catch (const std::bad_any_cast&) {
+                    throw std::runtime_error("Cannot convert this type to number");
+                }
+            }
+        }
+    }
+    
+    // ============================================================================
+    // Math Functions
+    // ============================================================================
+    if (name == "abs") {
+        if (args.size() != 1) {
+            throw std::runtime_error("abs() expects exactly 1 argument");
+        }
+        double x = std::any_cast<double>(args[0]);
+        return std::abs(x);
+    }
+    
+    if (name == "min") {
+        if (args.size() != 2) {
+            throw std::runtime_error("min() expects exactly 2 arguments");
+        }
+        double a = std::any_cast<double>(args[0]);
+        double b = std::any_cast<double>(args[1]);
+        return std::min(a, b);
+    }
+    
+    if (name == "max") {
+        if (args.size() != 2) {
+            throw std::runtime_error("max() expects exactly 2 arguments");
+        }
+        double a = std::any_cast<double>(args[0]);
+        double b = std::any_cast<double>(args[1]);
+        return std::max(a, b);
+    }
+    
+    if (name == "sqrt") {
+        if (args.size() != 1) {
+            throw std::runtime_error("sqrt() expects exactly 1 argument");
+        }
+        double x = std::any_cast<double>(args[0]);
+        if (x < 0.0) {
+            throw std::runtime_error("sqrt() domain error: argument must be non-negative");
+        }
+        return std::sqrt(x);
+    }
+    
+    if (name == "pow") {
+        if (args.size() != 2) {
+            throw std::runtime_error("pow() expects exactly 2 arguments");
+        }
+        double x = std::any_cast<double>(args[0]);
+        double y = std::any_cast<double>(args[1]);
+        return std::pow(x, y);
+    }
+    
+    if (name == "sin") {
+        if (args.size() != 1) {
+            throw std::runtime_error("sin() expects exactly 1 argument");
+        }
+        double x = std::any_cast<double>(args[0]);
+        return std::sin(x);
+    }
+    
+    if (name == "cos") {
+        if (args.size() != 1) {
+            throw std::runtime_error("cos() expects exactly 1 argument");
+        }
+        double x = std::any_cast<double>(args[0]);
+        return std::cos(x);
+    }
+    
+    if (name == "round") {
+        if (args.size() != 1) {
+            throw std::runtime_error("round() expects exactly 1 argument");
+        }
+        double x = std::any_cast<double>(args[0]);
+        return std::round(x);
+    }
+    
+    // ============================================================================
+    // Statistical Functions
+    // ============================================================================
+    if (name == "mean") {
+        if (args.empty()) {
+            throw std::runtime_error("mean() requires at least 1 argument");
+        }
+        double sum = 0.0;
+        for (const auto& arg : args) {
+            sum += std::any_cast<double>(arg);
+        }
+        return sum / args.size();
+    }
+    
+    if (name == "median") {
+        if (args.empty()) {
+            throw std::runtime_error("median() requires at least 1 argument");
+        }
+        std::vector<double> values;
+        for (const auto& arg : args) {
+            values.push_back(std::any_cast<double>(arg));
+        }
+        std::sort(values.begin(), values.end());
+        
+        size_t n = values.size();
+        if (n % 2 == 0) {
+            return (values[n/2 - 1] + values[n/2]) / 2.0;
+        } else {
+            return values[n/2];
+        }
+    }
+    
+    if (name == "std_dev") {
+        if (args.size() < 2) {
+            throw std::runtime_error("std_dev() requires at least 2 arguments");
+        }
+        
+        // Calculate mean
+        double sum = 0.0;
+        for (const auto& arg : args) {
+            sum += std::any_cast<double>(arg);
+        }
+        double mean = sum / args.size();
+        
+        // Calculate sum of squared differences
+        double sum_sq_diff = 0.0;
+        for (const auto& arg : args) {
+            double x = std::any_cast<double>(arg);
+            double diff = x - mean;
+            sum_sq_diff += diff * diff;
+        }
+        
+        // Use sample standard deviation (divide by n-1)
+        return std::sqrt(sum_sq_diff / (args.size() - 1));
     }
     
     throw std::runtime_error("Unknown function: " + name);

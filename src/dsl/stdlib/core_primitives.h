@@ -22,6 +22,25 @@ namespace engine {
  */
 
 // ============================================================================
+// Type Checking & Conversion Functions (TASK.md Phase 2A Priority 1)
+// ============================================================================
+
+/// Check if value is a number
+Value is_number(const std::vector<Value>& args);
+
+/// Check if value is a string
+Value is_string(const std::vector<Value>& args);
+
+/// Check if value is a boolean
+Value is_bool(const std::vector<Value>& args);
+
+/// Convert any value to string
+Value to_string(const std::vector<Value>& args);
+
+/// Convert to number with error handling
+Value to_number(const std::vector<Value>& args);
+
+// ============================================================================
 // Pattern Operations
 // ============================================================================
 

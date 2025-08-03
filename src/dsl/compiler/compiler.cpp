@@ -1,5 +1,5 @@
 #include "compiler.h"
-#include "../stdlib/core_primitives.h"
+#include "../stdlib/stdlib.h"
 #include <iostream>
 #include <cmath>
 
@@ -356,8 +356,8 @@ std::function<Value(Context&)> Compiler::compile_expression(const ast::Expressio
 }
 
 void Compiler::register_builtin_functions(Context& context) {
-    // Register core primitives from stdlib
-    stdlib::register_core_primitives(context);
+    // Register all standard library modules
+    stdlib::register_all(context);
     
     // Legacy functions for backwards compatibility
     context.set_function("qfh", [this](const std::vector<Value>& args) { return builtin_qfh(args); });

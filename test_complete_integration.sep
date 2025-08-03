@@ -1,0 +1,30 @@
+pattern complete_integration_test {
+    print("=== Complete DSL -> Engine Integration Test ===")
+    
+    // Test 1: Real Pattern Analysis
+    print("\n1. Testing measure_coherence with real QFH analysis...")
+    let coherence1 = measure_coherence("test_pattern_1")
+    print("Coherence for test_pattern_1: " + to_string(coherence1))
+    
+    // Test 2: Real Entropy Measurement
+    print("\n2. Testing measure_entropy with real QFH analysis...")
+    let entropy1 = measure_entropy("test_pattern_1") 
+    print("Entropy for test_pattern_1: " + to_string(entropy1))
+    
+    // Test 3: Real Bit Extraction
+    print("\n3. Testing extract_bits with real engine...")
+    let bits1 = extract_bits("test_pattern_1")
+    print("Bits for test_pattern_1: " + bits1)
+    
+    // Test 4: Real QFH Analysis
+    print("\n4. Testing qfh_analyze with real QFH processor...")
+    let qfh_result = qfh_analyze(bits1)
+    print("QFH Analysis completed: " + to_string(qfh_result))
+    
+    // Test 5: Real Manifold Optimization
+    print("\n5. Testing manifold_optimize with real optimizer...")
+    let manifold_result = manifold_optimize("test_pattern_1", 0.8, 0.7)
+    print("Manifold optimization result: " + to_string(manifold_result))
+    
+    print("\n=== Integration Test Complete ===")
+}

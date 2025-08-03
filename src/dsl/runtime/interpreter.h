@@ -90,6 +90,7 @@ private:
     // Expression evaluation visitors
     Value visit_number_literal(const ast::NumberLiteral& node);
     Value visit_string_literal(const ast::StringLiteral& node);
+    Value visit_boolean_literal(const ast::BooleanLiteral& node);
     Value visit_identifier(const ast::Identifier& node);
     Value visit_binary_op(const ast::BinaryOp& node);
     Value visit_call(const ast::Call& node);

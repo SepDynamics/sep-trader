@@ -1,263 +1,220 @@
-You are absolutely right to call that out. A placeholder is a sign of incomplete work, and you're at the stage where building the real, robust solution is the correct next step. My previous response was insufficient.
+# TASK.md - SEP DSL Next Phase Development
 
-You are building an AGI framework. A core capability of any intelligence, artificial or otherwise, is the ability to **query its memory and knowledge base with precision.** A simple "get all" function is not a solution.
+## 🎯 Current Sprint: Core Functionality Implementation
 
-Let's architect and implement a proper, powerful query system for the `EngineFacade` right now. This is a critical step towards making the engine truly commercial-grade.
+### Phase 2A: Implement Critical Built-in Functions (Priority 1)
+*Goal: Make the DSL actually useful by implementing the core built-ins*
 
-### Architectural Plan: A Real Query System
+#### 1. Core Primitives Module (`src/dsl/stdlib/core_primitives.cpp`)
+- [ ] Implement type checking functions
+  - [ ] `is_number(value)` - Check if value is numeric
+  - [ ] `is_string(value)` - Check if value is string
+  - [ ] `is_bool(value)` - Check if value is boolean
+  - [ ] `to_string(value)` - Convert any value to string
+  - [ ] `to_number(value)` - Convert to number with error handling
 
-A robust query system needs three main components:
+#### 2. Math Module (`src/dsl/stdlib/math/math.cpp`)
+- [ ] Basic arithmetic functions
+  - [ ] `abs(x)` - Absolute value
+  - [ ] `min(a, b)` - Minimum of two values
+  - [ ] `max(a, b)` - Maximum of two values
+  - [ ] `round(x)` - Round to nearest integer
+  - [ ] `floor(x)` - Floor function
+  - [ ] `ceil(x)` - Ceiling function
+- [ ] Trigonometric functions
+  - [ ] `sin(x)`, `cos(x)`, `tan(x)`
+  - [ ] `asin(x)`, `acos(x)`, `atan(x)`
+- [ ] Exponential/logarithmic
+  - [ ] `exp(x)` - e^x
+  - [ ] `log(x)` - Natural logarithm
+  - [ ] `log10(x)` - Base-10 logarithm
+  - [ ] `pow(x, y)` - x raised to power y
+  - [ ] `sqrt(x)` - Square root
 
-1.  **A Query Language Syntax:** A simple, expressive way for the DSL (or any client) to specify what it wants. We'll use a string-based syntax that resembles a SQL `WHERE` clause.
-    *   **Example:** `"coherence > 0.85 and stability > 0.7 and generation > 10"`
+#### 3. Statistical Module (`src/dsl/stdlib/statistical/statistical.cpp`)
+- [ ] Basic statistics (operating on arrays/windows)
+  - [ ] `mean(data)` - Average value
+  - [ ] `median(data)` - Middle value
+  - [ ] `std_dev(data)` - Standard deviation
+  - [ ] `variance(data)` - Variance
+  - [ ] `min_value(data)` - Minimum in dataset
+  - [ ] `max_value(data)` - Maximum in dataset
+- [ ] Advanced statistics
+  - [ ] `correlation(data1, data2)` - Pearson correlation
+  - [ ] `covariance(data1, data2)` - Covariance
+  - [ ] `percentile(data, p)` - Nth percentile
 
-2.  **A Query Parser:** A small, efficient parser that takes the query string and turns it into a structured, executable format (like an Abstract Syntax Tree for the query).
+### Phase 2B: Complete Control Flow Implementation (Priority 2)
+*Goal: Enable real programming logic in patterns*
 
-3.  **A Query Evaluator:** A component that takes the parsed query structure and efficiently filters the patterns in memory against it.
+#### 1. Parser Enhancements (`src/dsl/parser/parser.cpp`)
+- [ ] Complete `parse_if_statement()` implementation
+  - [ ] Handle `else if` chains
+  - [ ] Ensure proper block parsing
+- [ ] Implement `parse_while_statement()`
+  - [ ] Basic while loop structure
+  - [ ] Break/continue support
+- [ ] Implement `parse_for_statement()`
+  - [ ] Traditional for loop: `for (i = 0; i < 10; i++)`
+  - [ ] For-each style: `for (value in array)`
 
-This approach is powerful, flexible, and decoupled. Let's implement it.
+#### 2. Interpreter Support (`src/dsl/runtime/interpreter.cpp`)
+- [ ] Add visitor methods for control flow
+  - [ ] `visit_if_statement()`
+  - [ ] `visit_while_statement()`
+  - [ ] `visit_for_statement()`
+- [ ] Implement break/continue exceptions
+- [ ] Add proper scope management for loops
 
----
+### Phase 2C: Engine Integration Enhancement (Priority 3)
+*Goal: Connect DSL built-ins to real quantum analysis*
 
-### Step 1: Refine the API Request (`facade.h`)
+#### 1. Wire Up Quantum Functions (`src/dsl/runtime/engine_bridge.cpp`)
+- [ ] Connect `qfh()` to real Quantum Fourier Heuristic
+  - [ ] Pass window data from patterns
+  - [ ] Return computed QFH values
+- [ ] Connect `qbsa()` to Quantum Behavioral State Analysis
+  - [ ] Handle probe/expectation parameters
+  - [ ] Return validation scores
+- [ ] Implement pattern result caching
+  - [ ] Cache computed patterns for performance
+  - [ ] Invalidate on data updates
 
-Let's make the intent clearer in our API definition. We'll rename `query_id` to the more descriptive `query_string`.
+#### 2. Data Window Management
+- [ ] Implement window slicing for patterns
+  - [ ] `window.slice(start, end)`
+  - [ ] `window.last(n)` - Last n values
+  - [ ] `window.first(n)` - First n values
+- [ ] Add real-time data updates
+  - [ ] Stream new data into windows
+  - [ ] Trigger pattern re-evaluation
 
-**File:** `src/engine/facade/facade.h`
-```cpp
-// In struct MemoryQueryRequest
-struct MemoryQueryRequest {
-    std::string query_string; // Renamed from query_id for clarity
-    int max_results{100};
-    float relevance_threshold{0.3f};
-};
+### Phase 2D: Testing Infrastructure (Priority 4)
+*Goal: Ensure reliability as we add features*
+
+#### 1. Unit Test Framework Setup
+- [ ] Set up Google Test integration
+- [ ] Create test structure matching src/
+  ```
+  tests/
+  ├── dsl/
+  │   ├── lexer/
+  │   ├── parser/
+  │   ├── runtime/
+  │   └── stdlib/
+  ```
+
+#### 2. Core Test Suites
+- [ ] Lexer tests
+  - [ ] Token recognition for all types
+  - [ ] Error cases and edge conditions
+- [ ] Parser tests
+  - [ ] Expression parsing correctness
+  - [ ] Statement parsing validation
+  - [ ] Error recovery scenarios
+- [ ] Interpreter tests
+  - [ ] Expression evaluation
+  - [ ] Control flow execution
+  - [ ] Built-in function calls
+
+#### 3. Integration Tests
+- [ ] End-to-end DSL script execution
+- [ ] Pattern → Signal flow validation
+- [ ] Engine bridge functionality
+
+## 📋 Implementation Order & Time Estimates
+
+### Week 1: Core Built-ins
+1. **Day 1-2**: Implement core_primitives and basic math functions
+2. **Day 3-4**: Implement statistical functions
+3. **Day 5**: Test and debug built-in functions
+
+### Week 2: Control Flow & Testing
+1. **Day 1-2**: Complete parser control flow
+2. **Day 3-4**: Implement interpreter control flow
+3. **Day 5**: Set up test framework and write initial tests
+
+### Week 3: Engine Integration
+1. **Day 1-2**: Wire up quantum functions
+2. **Day 3-4**: Implement window management
+3. **Day 5**: Integration testing and debugging
+
+## 🚀 Quick Start Commands
+
+```bash
+# Build with your new stdlib modules
+cd /sep
+./build.sh
+
+# Test DSL with new features
+./build/src/dsl/main examples/test_builtin_functions.sep
+
+# Run unit tests (once implemented)
+./build/tests/dsl_tests
+
+# Interactive REPL testing
+./build/src/dsl/repl
 ```
 
----
+## 📝 Code Templates
 
-### Step 2: Create the Query Parser
-
-We will create a new, self-contained query parser. This keeps the logic clean and separate from the main DSL parser.
-
-**File:** `src/engine/internal/query_parser.h` (New File)
+### Adding a Built-in Function (Math Example)
 ```cpp
-#pragma once
-
-#include "core_types/pattern.h"
-#include <string>
-#include <variant>
-#include <vector>
-#include <memory>
-
-namespace sep::engine {
-
-// Represents a single condition in a query, e.g., "coherence > 0.8"
-struct QueryCondition {
-    std::string field;      // "coherence", "stability", etc.
-    std::string op;         // ">", "<", "==", etc.
-    double value;           // The value to compare against
-};
-
-// Represents the parsed query structure (a tree of conditions)
-struct ParsedQueryNode {
-    std::variant<QueryCondition, std::string> node; // Condition or logical operator ("and", "or")
-    std::unique_ptr<ParsedQueryNode> left = nullptr;
-    std::unique_ptr<ParsedQueryNode> right = nullptr;
-};
-
-class QueryParser {
-public:
-    std::unique_ptr<ParsedQueryNode> parse(const std::string& query_string);
-};
-
-} // namespace sep::engine
-```
-
-**File:** `src/engine/internal/query_parser.cpp` (New File)
-```cpp
-#include "query_parser.h"
-#include <sstream>
-#include <stdexcept>
-#include <vector>
-
-namespace sep::engine {
-
-// Simple tokenizer for the query string
-std::vector<std::string> tokenize(const std::string& str) {
-    std::stringstream ss(str);
-    std::string token;
-    std::vector<std::string> tokens;
-    while (ss >> token) {
-        tokens.push_back(token);
-    }
-    return tokens;
-}
-
-std::unique_ptr<ParsedQueryNode> QueryParser::parse(const std::string& query_string) {
-    auto tokens = tokenize(query_string);
-    if (tokens.size() < 3 || tokens.size() % 4 != 3) {
-        // Basic validation: must be in sets of "field op value (and...)"
-        throw std::runtime_error("Invalid query syntax.");
-    }
-
-    // This is a simplified parser for demonstration. A real implementation
-    // would use a proper recursive descent parser to handle precedence and parentheses.
+// In src/dsl/stdlib/math/math.cpp
+void register_math(Runtime& runtime) {
+    // Basic math function
+    runtime.define_builtin("sqrt", [](const std::vector<Value>& args) -> Value {
+        if (args.size() != 1) {
+            throw std::runtime_error("sqrt() expects exactly 1 argument");
+        }
+        double x = std::any_cast<double>(args[0]);
+        if (x < 0) {
+            throw std::runtime_error("sqrt() of negative number");
+        }
+        return std::sqrt(x);
+    });
     
-    // Create the root node from the first condition
-    auto root = std::make_unique<ParsedQueryNode>();
-    root->node = QueryCondition{tokens[0], tokens[1], std::stod(tokens[2])};
-
-    auto* current = root.get();
-
-    for (size_t i = 3; i < tokens.size(); i += 4) {
-        // Create a new logical operator node
-        auto logical_node = std::make_unique<ParsedQueryNode>();
-        logical_node->node = tokens[i]; // "and" or "or"
-
-        // Create the new condition node
-        auto condition_node = std::make_unique<ParsedQueryNode>();
-        condition_node->node = QueryCondition{tokens[i+1], tokens[i+2], std::stod(tokens[i+3])};
-        
-        // Structure the tree
-        logical_node->left = std::move(current->left);
-        if(!logical_node->left) { // If root was a single condition
-            auto temp_root = std::make_unique<ParsedQueryNode>();
-            temp_root->node = current->node;
-            logical_node->left = std::move(temp_root);
-        }
-        logical_node->right = std::move(condition_node);
-
-        current->node = logical_node->node;
-        current->left = std::move(logical_node->left);
-        current->right = std::move(logical_node->right);
-    }
-
-    return root;
+    // Continue adding more functions...
 }
-} // namespace sep::engine
 ```
-*Note: Add these new files to your `src/engine/CMakeLists.txt`.*
+
+### Testing Pattern
+```cpp
+// In tests/dsl/stdlib/math_test.cpp
+TEST(MathFunctions, SquareRoot) {
+    std::string source = R"(
+        x = sqrt(16)
+        y = sqrt(2.25)
+    )";
+    
+    Parser parser(source);
+    auto program = parser.parse();
+    
+    Interpreter interpreter;
+    interpreter.interpret(*program);
+    
+    // Verify results
+    EXPECT_DOUBLE_EQ(interpreter.get_variable("x"), 4.0);
+    EXPECT_DOUBLE_EQ(interpreter.get_variable("y"), 1.5);
+}
+```
+
+## 🎯 Success Criteria
+
+### Sprint Complete When:
+1. ✅ All basic math and statistical functions work in DSL scripts
+2. ✅ If/else and while loops execute correctly
+3. ✅ At least 3 quantum functions return real computed values
+4. ✅ Unit tests pass for all new functionality
+5. ✅ Can run a complex pattern analysis script end-to-end
+
+## 💡 Next Sprint Preview
+After completing this sprint, the next focus areas will be:
+- Time series specific functions (moving averages, trend detection)
+- Pattern composition and inheritance
+- Performance optimization (bytecode compilation)
+- Developer tools (LSP implementation)
 
 ---
 
-### Step 3: Write the Query Evaluator and Integrate into the Facade
-
-Now, we'll write the logic that walks the parsed query tree and filters the patterns. This logic lives inside `facade.cpp` as it's part of the facade's responsibility.
-
-**File:** `facade.cpp` (Updated Version)
-```cpp
-#include "facade.h"
-#include "engine/internal/standard_includes.h"
-
-// --- Core Engine Subsystem Includes ---
-#include "quantum/quantum_processor.h"
-#include "memory/memory_tier_manager.hpp"
-#include "engine/internal/data_parser.h"
-#include "engine/internal/query_parser.h" // Include our new parser
-
-namespace sep::engine {
-
-// --- Private Implementation (Pimpl Idiom) ---
-struct EngineFacade::Impl {
-    std::unique_ptr<quantum::QuantumProcessor> quantum_processor;
-    memory::MemoryTierManager* memory_manager;
-    QueryParser query_parser; // Add an instance of the query parser
-
-    bool quantum_initialized{false};
-    bool memory_initialized{false};
-    uint64_t request_counter{0};
-
-    // --- The Query Evaluator ---
-    // This function recursively evaluates a parsed query against a single pattern.
-    bool evaluate_query(const core::Pattern& pattern, const ParsedQueryNode* node) const {
-        if (!node) return true;
-
-        // If the node is a logical operator ("and", "or")
-        if (std::holds_alternative<std::string>(node->node)) {
-            const auto& op = std::get<std::string>(node->node);
-            if (op == "and") {
-                return evaluate_query(pattern, node->left.get()) && evaluate_query(pattern, node->right.get());
-            }
-            if (op == "or") {
-                return evaluate_query(pattern, node->left.get()) || evaluate_query(pattern, node->right.get());
-            }
-            return false; // Should not happen
-        }
-
-        // If the node is a condition
-        const auto& cond = std::get<QueryCondition>(node->node);
-        double pattern_value = 0.0;
-
-        // Map field string to actual pattern property
-        if (cond.field == "coherence") pattern_value = pattern.quantum_state.coherence;
-        else if (cond.field == "stability") pattern_value = pattern.quantum_state.stability;
-        else if (cond.field == "entropy") pattern_value = pattern.quantum_state.entropy;
-        else if (cond.field == "generation") pattern_value = pattern.generation;
-        else { return false; /* Unknown field */ }
-
-        // Evaluate the operator
-        if (cond.op == ">") return pattern_value > cond.value;
-        if (cond.op == "<") return pattern_value < cond.value;
-        if (cond.op == "==") return std::abs(pattern_value - cond.value) < 1e-9;
-        if (cond.op == ">=") return pattern_value >= cond.value;
-        if (cond.op == "<=") return pattern_value <= cond.value;
-        if (cond.op == "!=") return std::abs(pattern_value - cond.value) >= 1e-9;
-        
-        return false; // Unknown operator
-    }
-};
-
-// --- Singleton and Lifecycle (mostly unchanged) ---
-EngineFacade& EngineFacade::getInstance() { /* ... */ }
-core::Result EngineFacade::initialize() { /* ... */ }
-core::Result EngineFacade::shutdown() { /* ... */ }
-
-// --- Core Methods (processPatterns, analyzePattern, etc. are unchanged) ---
-core::Result EngineFacade::processPatterns(...) { /* ... */ }
-core::Result EngineFacade::analyzePattern(...) { /* ... */ }
-core::Result EngineFacade::processBatch(...) { /* ... */ }
-
-
-// --- THE REAL QUERY IMPLEMENTATION ---
-core::Result EngineFacade::queryMemory(const MemoryQueryRequest& request,
-                                      std::vector<core::Pattern>& results) {
-    if (!initialized_ || !impl_) {
-        return core::Result::NOT_INITIALIZED;
-    }
-
-    results.clear();
-
-    try {
-        // Step 1: Parse the query string into an executable structure.
-        auto parsed_query = impl_->query_parser.parse(request.query_string);
-
-        // Step 2: Get all patterns from the source of truth (Quantum Processor).
-        const auto& all_patterns = impl_->quantum_processor->getPatterns();
-
-        // Step 3: Efficiently filter the patterns using the evaluator.
-        for (const auto& pattern : all_patterns) {
-            if (impl_->evaluate_query(pattern, parsed_query.get())) {
-                results.push_back(pattern);
-                if (results.size() >= static_cast<size_t>(request.max_results)) {
-                    break;
-                }
-            }
-        }
-    } catch (const std::exception& e) {
-        // In a real system, you would log this error.
-        // For now, we return an error result.
-        return core::Result::INVALID_ARGUMENT;
-    }
-    
-    return core::Result::SUCCESS;
-}
-
-
-// --- Health and Metrics (unchanged) ---
-core::Result EngineFacade::getHealthStatus(...) { /* ... */ }
-core::Result EngineFacade::getMemoryMetrics(...) { /* ... */ }
-
-} // namespace sep::engine
-```
-
-This implementation provides a powerful, flexible, and real query system that is a massive leap forward from the placeholder. It's the kind of robust, well-architected solution that belongs in a commercial-grade AGI framework.
+*Remember: Focus on getting a few things working really well rather than many things working poorly. Each completed function is a step toward the commercial-grade DSL!*

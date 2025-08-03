@@ -47,6 +47,8 @@ struct QFHAnalysisResponse {
     float rupture_ratio{0.0f};
     float flip_ratio{0.0f};
     bool collapse_detected{false};
+    float coherence{0.0f};
+    float entropy{0.0f};
 };
 
 struct ManifoldOptimizationRequest {
@@ -94,7 +96,18 @@ struct PatternAnalysisResponse {
     core::Pattern pattern;
     std::vector<core::PatternRelationship> relationships;
     float confidence_score{0.0f};
+    float entropy{0.0f};
     std::string analysis_summary;
+};
+
+struct BitExtractionRequest {
+    std::string pattern_id;
+};
+
+struct BitExtractionResponse {
+    std::vector<uint8_t> bitstream;
+    bool success{false};
+    std::string error_message;
 };
 
 struct MemoryMetricsResponse {
@@ -135,7 +148,10 @@ public:
                             QFHAnalysisResponse& response);
 
     core::Result manifoldOptimize(const ManifoldOptimizationRequest& request,
-                                ManifoldOptimizationResponse& response);
+    ManifoldOptimizationResponse& response);
+
+    core::Result extractBits(const BitExtractionRequest& request,
+    BitExtractionResponse& response);
 
     core::Result storePattern(const StorePatternRequest& request,
                             StorePatternResponse& response);

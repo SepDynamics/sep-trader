@@ -1,6 +1,8 @@
 #include "lexer/lexer.h"
 #include "parser/parser.h"
 #include "runtime/interpreter.h"
+#include "engine/facade/facade.h"
+#include "core_types/result.h"
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -40,6 +42,14 @@ int main(int argc, char* argv[]) {
         std::cout << "  - " << program->patterns.size() << " pattern(s)" << std::endl;
         std::cout << "  - " << program->signals.size() << " signal(s)" << std::endl;
         std::cout << "========================" << std::endl;
+        
+        // Initialize the engine facade before creating interpreter
+        auto& engine = sep::engine::EngineFacade::getInstance();
+        auto init_result = engine.initialize();
+        if (!sep::core::isSuccess(init_result)) {
+            std::cerr << "Failed to initialize engine facade" << std::endl;
+            return 1;
+        }
         
         // Create interpreter and execute the program
         dsl::runtime::Interpreter interpreter;

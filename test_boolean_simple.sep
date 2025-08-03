@@ -1,0 +1,5 @@
+pattern test_pattern {
+    x = true;
+    y = false;
+    result = abs(5);
+}

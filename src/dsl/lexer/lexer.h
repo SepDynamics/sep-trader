@@ -1,5 +1,5 @@
 #pragma once
-#include "ast/nodes.h"
+#include "../ast/nodes.h"
 #include <string>
 #include <unordered_map>
 

@@ -1,5 +1,6 @@
 #include "parser.h"
 #include <stdexcept>
+#include <iostream>
 
 namespace dsl::parser {
 
@@ -144,6 +145,10 @@ std::vector<std::unique_ptr<ast::Statement>> Parser::parse_block() {
     
     while (current_token_.type != ast::TokenType::RBRACE && current_token_.type != ast::TokenType::EOF_TOKEN) {
         statements.push_back(parse_statement());
+        // Consume optional semicolon after statement
+        if (current_token_.type == ast::TokenType::SEMICOLON) {
+            advance();
+        }
     }
     
     return statements;
@@ -325,34 +330,16 @@ std::unique_ptr<ast::Expression> Parser::parse_unary() {
 std::unique_ptr<ast::Expression> Parser::parse_call() {
     auto expr = parse_primary();
     
-    while (true) {
-        if (current_token_.type == ast::TokenType::LPAREN) {
-            // This is a function call - expr should be an Identifier
-            advance(); // consume '('
-            
-            auto call = std::make_unique<ast::Call>();
-            // Extract function name from identifier
-            if (auto identifier = dynamic_cast<ast::Identifier*>(expr.get())) {
-                call->callee = identifier->name;
-            } else {
-                throw std::runtime_error("Invalid function call");
-            }
-            
-            call->args = parse_argument_list();
-            expect(ast::TokenType::RPAREN, "Expected ')'");
-            expr = std::move(call);
-        } else if (current_token_.type == ast::TokenType::DOT) {
-            advance(); // consume '.'
-            auto member = current_token_.value;
-            expect(ast::TokenType::IDENTIFIER, "Expected member name");
-            
-            auto member_access = std::make_unique<ast::MemberAccess>();
-            member_access->object = std::move(expr);
-            member_access->member = member;
-            expr = std::move(member_access);
-        } else {
-            break;
-        }
+    // This loop now only handles member access, e.g., pattern.result
+    while (current_token_.type == ast::TokenType::DOT) {
+        advance(); // consume '.'
+        auto member = current_token_.value;
+        expect(ast::TokenType::IDENTIFIER, "Expected member name");
+        
+        auto member_access = std::make_unique<ast::MemberAccess>();
+        member_access->object = std::move(expr);
+        member_access->member = member;
+        expr = std::move(member_access);
     }
     
     return expr;
@@ -375,9 +362,29 @@ std::unique_ptr<ast::Expression> Parser::parse_primary() {
         return string_lit;
     }
     
-    if (current_token_.type == ast::TokenType::IDENTIFIER) {
-        auto name = current_token_.value;
+    if (current_token_.type == ast::TokenType::BOOLEAN) {
+        bool value = (current_token_.value == "true");
         advance();
+        auto boolean_lit = std::make_unique<ast::BooleanLiteral>();
+        boolean_lit->value = value;
+        return boolean_lit;
+    }
+    
+    if (current_token_.type == ast::TokenType::IDENTIFIER) {
+        std::string name = current_token_.value;
+        advance(); // Consume the identifier
+        
+        // If the next token is '(', it's a function call.
+        if (current_token_.type == ast::TokenType::LPAREN) {
+            advance(); // Consume '('
+            auto call = std::make_unique<ast::Call>();
+            call->callee = name;
+            call->args = parse_argument_list();
+            expect(ast::TokenType::RPAREN, "Expected ')' after function arguments.");
+            return call;
+        }
+        
+        // Otherwise, it's just a variable identifier.
         auto identifier = std::make_unique<ast::Identifier>();
         identifier->name = name;
         return identifier;

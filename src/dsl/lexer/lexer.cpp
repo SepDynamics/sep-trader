@@ -23,7 +23,9 @@ namespace dsl::lexer {
         {"else", ast::TokenType::ELSE},
         {"while", ast::TokenType::WHILE},
         {"function", ast::TokenType::FUNCTION},
-        {"return", ast::TokenType::RETURN}};
+        {"return", ast::TokenType::RETURN},
+        {"true", ast::TokenType::BOOLEAN},
+        {"false", ast::TokenType::BOOLEAN}};
 
     Lexer::Lexer(const std::string& source) : source(source), position(0), line(1), column(1)
     {

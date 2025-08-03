@@ -1,0 +1,10 @@
+pattern integration_test {
+    // Test a real engine call
+    coherence = measure_coherence("test_pattern_id")
+    
+    // Use the result in a condition
+    is_coherent = false
+    if (coherence > 0.7) {
+        is_coherent = true
+    }
+}

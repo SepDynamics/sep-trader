@@ -1,0 +1,4 @@
+pattern function_syntax_test {
+    // Try different syntaxes for function calls
+    x = measure_coherence("test")
+}

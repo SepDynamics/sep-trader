@@ -1,0 +1,3 @@
+// Simple engine integration test
+coherence = measure_coherence("test_pattern")
+print("Coherence: " + to_string(coherence))

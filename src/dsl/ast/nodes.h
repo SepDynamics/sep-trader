@@ -15,6 +15,7 @@ enum class TokenType
     IDENTIFIER,
     NUMBER,
     STRING,
+    BOOLEAN,
     PATTERN,
     STREAM,
     SIGNAL,
@@ -70,6 +71,7 @@ struct Statement : Node {};
 
 struct NumberLiteral : Expression { double value; };
 struct StringLiteral : Expression { std::string value; };
+struct BooleanLiteral : Expression { bool value; };
 struct Identifier : Expression { std::string name; };
 
 struct BinaryOp : Expression {

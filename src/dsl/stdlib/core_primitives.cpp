@@ -220,10 +220,88 @@ Value generate_sine_wave(const std::vector<Value>& args) {
 }
 
 // ============================================================================
+// Type Checking & Conversion Functions (from TASK.md Phase 2A)
+// ============================================================================
+
+Value is_number(const std::vector<Value>& args) {
+    if (args.empty()) {
+        throw std::runtime_error("is_number() requires exactly 1 argument");
+    }
+    return Value(args[0].type == Value::NUMBER);
+}
+
+Value is_string(const std::vector<Value>& args) {
+    if (args.empty()) {
+        throw std::runtime_error("is_string() requires exactly 1 argument");
+    }
+    return Value(args[0].type == Value::STRING);
+}
+
+Value is_bool(const std::vector<Value>& args) {
+    if (args.empty()) {
+        throw std::runtime_error("is_bool() requires exactly 1 argument");
+    }
+    return Value(args[0].type == Value::BOOLEAN);
+}
+
+Value to_string(const std::vector<Value>& args) {
+    if (args.empty()) {
+        throw std::runtime_error("to_string() requires exactly 1 argument");
+    }
+    
+    const Value& val = args[0];
+    switch (val.type) {
+        case Value::NUMBER:
+            return Value(std::to_string(val.get<double>()));
+        case Value::STRING:
+            return val; // Already a string
+        case Value::BOOLEAN:
+            return Value(val.get<bool>() ? "true" : "false");
+        case Value::PATTERN:
+            return Value("pattern:" + val.get<std::string>());
+        case Value::STREAM:
+            return Value("stream:" + val.get<std::string>());
+        default:
+            return Value("unknown");
+    }
+}
+
+Value to_number(const std::vector<Value>& args) {
+    if (args.empty()) {
+        throw std::runtime_error("to_number() requires exactly 1 argument");
+    }
+    
+    const Value& val = args[0];
+    switch (val.type) {
+        case Value::NUMBER:
+            return val; // Already a number
+        case Value::STRING: {
+            std::string str = val.get<std::string>();
+            try {
+                return Value(std::stod(str));
+            } catch (const std::exception&) {
+                throw std::runtime_error("Cannot convert string '" + str + "' to number");
+            }
+        }
+        case Value::BOOLEAN:
+            return Value(val.get<bool>() ? 1.0 : 0.0);
+        default:
+            throw std::runtime_error("Cannot convert this type to number");
+    }
+}
+
+// ============================================================================
 // Registration Function
 // ============================================================================
 
 void register_core_primitives(Context& context) {
+    // Type checking & conversion functions
+    context.set_function("is_number", is_number);
+    context.set_function("is_string", is_string);
+    context.set_function("is_bool", is_bool);
+    context.set_function("to_string", to_string);
+    context.set_function("to_number", to_number);
+    
     // Pattern operations
     context.set_function("create_pattern", create_pattern);
     context.set_function("evolve_pattern", evolve_pattern);
@@ -251,7 +329,7 @@ void register_core_primitives(Context& context) {
     // Override the weighted_sum function
     context.set_function("weighted_sum", weighted_sum);
     
-    std::cout << "Registered " << 15 << " core primitive functions" << std::endl;
+    std::cout << "Registered " << 20 << " core primitive functions" << std::endl;
 }
 
 } // namespace dsl::stdlib

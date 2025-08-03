@@ -1,0 +1,21 @@
+// Test if/else control flow
+x = 5
+
+if (x > 3) {
+    result = "greater"
+} else {
+    result = "smaller"
+}
+
+// Test while loop
+counter = 0
+while (counter < 3) {
+    counter = counter + 1
+}
+
+// Test function declaration and return
+function add(a, b) {
+    return a + b
+}
+
+sum = add(2, 3)
