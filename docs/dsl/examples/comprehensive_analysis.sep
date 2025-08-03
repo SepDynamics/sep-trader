@@ -1,0 +1,87 @@
+// Comprehensive Multi-Domain Analysis Example
+// This demonstrates how the same DSL constructs work across different domains
+
+// Financial Market Analysis
+stream market_data from "financial/EUR_USD_M5.csv"
+
+pattern market_volatility {
+    input: market_data
+    
+    price_entropy = measure_entropy(market_data) > 0.65
+    trend_rupture = qfh_analyze(market_data) > 0.75
+    coherence_break = measure_coherence(market_data) < 0.4
+    
+    volatile_market = price_entropy && trend_rupture
+    unstable_trend = coherence_break && trend_rupture
+}
+
+signal trading_alert {
+    trigger: market_volatility.volatile_market
+    confidence: market_volatility.unstable_trend
+    action: TRADE_ALERT
+}
+
+// Scientific Experiment Monitoring  
+stream experiment_readings from "lab/quantum_measurement.json"
+
+pattern quantum_decoherence {
+    input: experiment_readings
+    
+    coherence_loss = measure_coherence(experiment_readings) < 0.3
+    entropy_spike = measure_entropy(experiment_readings) > 0.8
+    field_disruption = qfh_analyze(experiment_readings) > 0.9
+    
+    decoherence_event = coherence_loss && entropy_spike
+    critical_disruption = decoherence_event && field_disruption
+}
+
+signal experiment_flag {
+    trigger: quantum_decoherence.decoherence_event
+    confidence: quantum_decoherence.critical_disruption
+    action: RECALIBRATE
+}
+
+// Medical Monitoring
+stream patient_vitals from "medical/ecg_monitor.csv"
+
+pattern cardiac_anomaly {
+    input: patient_vitals
+    
+    irregular_rhythm = measure_entropy(patient_vitals) > 0.7
+    coherence_drop = measure_coherence(patient_vitals) < 0.5
+    pattern_break = qfh_analyze(patient_vitals) > 0.8
+    
+    arrhythmia_detected = irregular_rhythm && coherence_drop
+    emergency_pattern = arrhythmia_detected && pattern_break
+}
+
+signal medical_alert {
+    trigger: cardiac_anomaly.arrhythmia_detected
+    confidence: cardiac_anomaly.emergency_pattern
+    action: MEDICAL_ALERT
+}
+
+// IoT Sensor Network
+stream sensor_network from "iot/environmental_sensors.json"
+
+pattern environmental_anomaly {
+    input: sensor_network
+    
+    sensor_divergence = measure_coherence(sensor_network) < 0.4
+    rapid_fluctuation = qfh_analyze(sensor_network) > 0.7
+    high_noise = measure_entropy(sensor_network) > 0.6
+    
+    sensor_malfunction = sensor_divergence && high_noise
+    environmental_event = rapid_fluctuation && !sensor_malfunction
+}
+
+signal maintenance_required {
+    trigger: environmental_anomaly.sensor_malfunction
+    action: MAINTENANCE
+}
+
+signal environmental_alert {
+    trigger: environmental_anomaly.environmental_event
+    confidence: environmental_anomaly.rapid_fluctuation
+    action: INVESTIGATE
+}
