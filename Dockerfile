@@ -6,6 +6,8 @@ FROM nvidia/cuda:12.2-devel-ubuntu22.04 as builder
 
 # Install build dependencies
 RUN apt-get update && apt-get install -y \
+    lcov \
+    gcovr \
     cmake \
     build-essential \
     clang-15 \
@@ -32,6 +34,8 @@ FROM nvidia/cuda:12.2-runtime-ubuntu22.04 as runtime
 
 # Install runtime dependencies
 RUN apt-get update && apt-get install -y \
+    lcov \
+    gcovr \
     libstdc++6 \
     curl \
     && rm -rf /var/lib/apt/lists/*
@@ -78,6 +82,8 @@ FROM builder as development
 
 # Install additional development tools
 RUN apt-get update && apt-get install -y \
+    lcov \
+    gcovr \
     gdb \
     valgrind \
     clang-tools-15 \

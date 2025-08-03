@@ -23,7 +23,16 @@ import {
     Hover,
     MarkupKind,
     Position,
-    Range
+    Range,
+    Location,
+    Definition,
+    DocumentSymbol,
+    SymbolKind,
+    SymbolInformation,
+    PrepareRenameParams,
+    RenameParams,
+    WorkspaceEdit,
+    TextEdit
 } from 'vscode-languageserver/node';
 
 import { TextDocument } from 'vscode-languageserver-textdocument';
@@ -63,7 +72,10 @@ connection.onInitialize((params: InitializeParams) => {
             },
             hoverProvider: true,
             definitionProvider: true,
-            documentSymbolProvider: true
+            documentSymbolProvider: true,
+            renameProvider: {
+                prepareProvider: true
+            }
         }
     };
 });
@@ -82,7 +94,9 @@ connection.onInitialized(() => {
 
 // SEP DSL Language Definitions
 const DSL_KEYWORDS = [
-    'pattern', 'if', 'else', 'print', 'true', 'false'
+    'pattern', 'if', 'else', 'print', 'true', 'false', 'function', 'return',
+    'for', 'while', 'break', 'continue', 'import', 'export', 'async', 'await',
+    'try', 'catch', 'finally', 'throw'
 ];
 
 const DSL_BUILTIN_FUNCTIONS = [
@@ -404,6 +418,441 @@ connection.onHover((params: TextDocumentPositionParams): Hover | undefined => {
     
     return undefined;
 });
+
+// Go-to-definition provider
+connection.onDefinition((params: TextDocumentPositionParams): Definition | undefined => {
+    const document = documents.get(params.textDocument.uri);
+    if (!document) {
+        return undefined;
+    }
+    
+    const text = document.getText();
+    const position = params.position;
+    const lines = text.split('\n');
+    const line = lines[position.line];
+    
+    // Find word at position
+    const wordMatch = line.match(/\w+/g);
+    if (!wordMatch) {
+        return undefined;
+    }
+    
+    let hoveredWord = '';
+    let wordStart = 0;
+    
+    for (const word of wordMatch) {
+        const wordIndex = line.indexOf(word, wordStart);
+        if (wordIndex <= position.character && position.character <= wordIndex + word.length) {
+            hoveredWord = word;
+            wordStart = wordIndex;
+            break;
+        }
+        wordStart = wordIndex + word.length;
+    }
+    
+    if (!hoveredWord) {
+        return undefined;
+    }
+    
+    // Search for pattern definitions
+    const patternRegex = new RegExp(`pattern\\s+${hoveredWord}\\s*\\{`, 'g');
+    const allLines = text.split('\n');
+    
+    for (let lineIndex = 0; lineIndex < allLines.length; lineIndex++) {
+        const currentLine = allLines[lineIndex];
+        const match = patternRegex.exec(currentLine);
+        
+        if (match) {
+            const patternStart = currentLine.indexOf(hoveredWord);
+            return {
+                uri: params.textDocument.uri,
+                range: {
+                    start: { line: lineIndex, character: patternStart },
+                    end: { line: lineIndex, character: patternStart + hoveredWord.length }
+                }
+            };
+        }
+    }
+    
+    // Search for variable assignments
+    const variableRegex = new RegExp(`\\b${hoveredWord}\\s*=`, 'g');
+    
+    for (let lineIndex = 0; lineIndex < allLines.length; lineIndex++) {
+        const currentLine = allLines[lineIndex];
+        const match = variableRegex.exec(currentLine);
+        
+        if (match) {
+            const varStart = currentLine.indexOf(hoveredWord);
+            return {
+                uri: params.textDocument.uri,
+                range: {
+                    start: { line: lineIndex, character: varStart },
+                    end: { line: lineIndex, character: varStart + hoveredWord.length }
+                }
+            };
+        }
+    }
+    
+    // Search for function definitions (user-defined functions)
+    const functionRegex = new RegExp(`function\\s+${hoveredWord}\\s*\\(`, 'g');
+    
+    for (let lineIndex = 0; lineIndex < allLines.length; lineIndex++) {
+        const currentLine = allLines[lineIndex];
+        const match = functionRegex.exec(currentLine);
+        
+        if (match) {
+            const funcStart = currentLine.indexOf(hoveredWord);
+            return {
+                uri: params.textDocument.uri,
+                range: {
+                    start: { line: lineIndex, character: funcStart },
+                    end: { line: lineIndex, character: funcStart + hoveredWord.length }
+                }
+            };
+        }
+    }
+    
+    return undefined;
+});
+
+// Document symbol provider
+connection.onDocumentSymbol((params): DocumentSymbol[] => {
+    const document = documents.get(params.textDocument.uri);
+    if (!document) {
+        return [];
+    }
+    
+    const text = document.getText();
+    const lines = text.split('\n');
+    const symbols: DocumentSymbol[] = [];
+    
+    for (let i = 0; i < lines.length; i++) {
+        const line = lines[i].trim();
+        
+        // Find pattern definitions
+        const patternMatch = line.match(/pattern\s+(\w+)\s*\{/);
+        if (patternMatch) {
+            const patternName = patternMatch[1];
+            const startChar = lines[i].indexOf(patternName);
+            
+            // Find the end of the pattern (closing brace)
+            let braceCount = 1;
+            let endLine = i;
+            let endChar = lines[i].length;
+            
+            for (let j = i + 1; j < lines.length && braceCount > 0; j++) {
+                const currentLine = lines[j];
+                for (let k = 0; k < currentLine.length; k++) {
+                    if (currentLine[k] === '{') braceCount++;
+                    if (currentLine[k] === '}') braceCount--;
+                    if (braceCount === 0) {
+                        endLine = j;
+                        endChar = k + 1;
+                        break;
+                    }
+                }
+            }
+            
+            symbols.push({
+                name: patternName,
+                kind: SymbolKind.Class,
+                range: {
+                    start: { line: i, character: 0 },
+                    end: { line: endLine, character: endChar }
+                },
+                selectionRange: {
+                    start: { line: i, character: startChar },
+                    end: { line: i, character: startChar + patternName.length }
+                },
+                children: []
+            });
+        }
+        
+        // Find function definitions
+        const functionMatch = line.match(/function\s+(\w+)\s*\(/);
+        if (functionMatch) {
+            const funcName = functionMatch[1];
+            const startChar = lines[i].indexOf(funcName);
+            
+            // Find the end of the function (closing brace)
+            let braceCount = 0;
+            let endLine = i;
+            let endChar = lines[i].length;
+            let foundOpenBrace = false;
+            
+            // Look for opening brace
+            for (let j = i; j < lines.length; j++) {
+                const currentLine = lines[j];
+                for (let k = 0; k < currentLine.length; k++) {
+                    if (currentLine[k] === '{') {
+                        if (!foundOpenBrace) {
+                            foundOpenBrace = true;
+                            braceCount = 1;
+                        } else {
+                            braceCount++;
+                        }
+                    } else if (currentLine[k] === '}' && foundOpenBrace) {
+                        braceCount--;
+                        if (braceCount === 0) {
+                            endLine = j;
+                            endChar = k + 1;
+                            break;
+                        }
+                    }
+                }
+                if (braceCount === 0 && foundOpenBrace) break;
+            }
+            
+            symbols.push({
+                name: funcName,
+                kind: SymbolKind.Function,
+                range: {
+                    start: { line: i, character: 0 },
+                    end: { line: endLine, character: endChar }
+                },
+                selectionRange: {
+                    start: { line: i, character: startChar },
+                    end: { line: i, character: startChar + funcName.length }
+                },
+                children: []
+            });
+        }
+        
+        // Find variable assignments within patterns/functions
+        const variableMatch = line.match(/(\w+)\s*=/);
+        if (variableMatch && !line.includes('pattern') && !line.includes('function')) {
+            const varName = variableMatch[1];
+            const startChar = lines[i].indexOf(varName);
+            
+            symbols.push({
+                name: varName,
+                kind: SymbolKind.Variable,
+                range: {
+                    start: { line: i, character: startChar },
+                    end: { line: i, character: startChar + varName.length }
+                },
+                selectionRange: {
+                    start: { line: i, character: startChar },
+                    end: { line: i, character: startChar + varName.length }
+                },
+                children: []
+            });
+        }
+    }
+    
+    return symbols;
+});
+
+// Prepare rename provider
+connection.onPrepareRename((params: PrepareRenameParams) => {
+    const document = documents.get(params.textDocument.uri);
+    if (!document) {
+        return null;
+    }
+    
+    const text = document.getText();
+    const position = params.position;
+    const lines = text.split('\n');
+    const line = lines[position.line];
+    
+    // Find word at position
+    const wordMatch = line.match(/\w+/g);
+    if (!wordMatch) {
+        return null;
+    }
+    
+    let hoveredWord = '';
+    let wordStart = 0;
+    
+    for (const word of wordMatch) {
+        const wordIndex = line.indexOf(word, wordStart);
+        if (wordIndex <= position.character && position.character <= wordIndex + word.length) {
+            hoveredWord = word;
+            wordStart = wordIndex;
+            break;
+        }
+        wordStart = wordIndex + word.length;
+    }
+    
+    if (!hoveredWord) {
+        return null;
+    }
+    
+    // Check if it's a renameable symbol (pattern, variable, or user function)
+    const allLines = text.split('\n');
+    
+    // Check if it's a pattern definition
+    const patternRegex = new RegExp(`pattern\\s+${hoveredWord}\\s*\\{`, 'g');
+    for (const textLine of allLines) {
+        if (patternRegex.test(textLine)) {
+            return {
+                start: { line: position.line, character: wordStart },
+                end: { line: position.line, character: wordStart + hoveredWord.length }
+            };
+        }
+    }
+    
+    // Check if it's a function definition
+    const functionRegex = new RegExp(`function\\s+${hoveredWord}\\s*\\(`, 'g');
+    for (const textLine of allLines) {
+        if (functionRegex.test(textLine)) {
+            return {
+                start: { line: position.line, character: wordStart },
+                end: { line: position.line, character: wordStart + hoveredWord.length }
+            };
+        }
+    }
+    
+    // Check if it's a variable
+    const variableRegex = new RegExp(`\\b${hoveredWord}\\s*=`, 'g');
+    for (const textLine of allLines) {
+        if (variableRegex.test(textLine)) {
+            return {
+                start: { line: position.line, character: wordStart },
+                end: { line: position.line, character: wordStart + hoveredWord.length }
+            };
+        }
+    }
+    
+    // Don't allow renaming built-in functions or keywords
+    const isBuiltin = DSL_BUILTIN_FUNCTIONS.some(f => f.name === hoveredWord);
+    const isKeyword = DSL_KEYWORDS.includes(hoveredWord);
+    
+    if (isBuiltin || isKeyword) {
+        return null;
+    }
+    
+    return null;
+});
+
+// Rename provider
+connection.onRenameRequest((params: RenameParams): WorkspaceEdit | null => {
+    const document = documents.get(params.textDocument.uri);
+    if (!document) {
+        return null;
+    }
+    
+    const text = document.getText();
+    const position = params.position;
+    const newName = params.newName;
+    const lines = text.split('\n');
+    const line = lines[position.line];
+    
+    // Find word at position
+    const wordMatch = line.match(/\w+/g);
+    if (!wordMatch) {
+        return null;
+    }
+    
+    let oldName = '';
+    let wordStart = 0;
+    
+    for (const word of wordMatch) {
+        const wordIndex = line.indexOf(word, wordStart);
+        if (wordIndex <= position.character && position.character <= wordIndex + word.length) {
+            oldName = word;
+            wordStart = wordIndex;
+            break;
+        }
+        wordStart = wordIndex + word.length;
+    }
+    
+    if (!oldName) {
+        return null;
+    }
+    
+    // Validate new name
+    if (!/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(newName)) {
+        return null; // Invalid identifier
+    }
+    
+    // Check if new name conflicts with built-ins or keywords
+    const isBuiltinConflict = DSL_BUILTIN_FUNCTIONS.some(f => f.name === newName);
+    const isKeywordConflict = DSL_KEYWORDS.includes(newName);
+    
+    if (isBuiltinConflict || isKeywordConflict) {
+        return null; // Name conflict
+    }
+    
+    const allLines = text.split('\n');
+    const edits: TextEdit[] = [];
+    
+    // Find all occurrences of the symbol
+    for (let lineIndex = 0; lineIndex < allLines.length; lineIndex++) {
+        const currentLine = allLines[lineIndex];
+        
+        // Use word boundary regex to find exact matches
+        const regex = new RegExp(`\\b${oldName}\\b`, 'g');
+        let match;
+        
+        while ((match = regex.exec(currentLine)) !== null) {
+            // Check context to ensure it's the same symbol type
+            const beforeChar = match.index > 0 ? currentLine[match.index - 1] : ' ';
+            const afterChar = match.index + oldName.length < currentLine.length ? 
+                currentLine[match.index + oldName.length] : ' ';
+            
+            // Skip if it's part of a larger identifier
+            if (/\w/.test(beforeChar) || /\w/.test(afterChar)) {
+                continue;
+            }
+            
+            edits.push({
+                range: {
+                    start: { line: lineIndex, character: match.index },
+                    end: { line: lineIndex, character: match.index + oldName.length }
+                },
+                newText: newName
+            });
+        }
+    }
+    
+    if (edits.length === 0) {
+        return null;
+    }
+    
+    return {
+        changes: {
+            [params.textDocument.uri]: edits
+        }
+    };
+});
+
+// Helper function to find all symbol references
+function findSymbolReferences(text: string, symbolName: string, symbolType: 'pattern' | 'function' | 'variable'): Location[] {
+    const lines = text.split('\n');
+    const references: Location[] = [];
+    
+    for (let lineIndex = 0; lineIndex < lines.length; lineIndex++) {
+        const line = lines[lineIndex];
+        
+        // Different regex patterns based on symbol type
+        let regex: RegExp;
+        switch (symbolType) {
+            case 'pattern':
+                regex = new RegExp(`\\b${symbolName}\\b`, 'g');
+                break;
+            case 'function':
+                regex = new RegExp(`\\b${symbolName}\\s*\\(`, 'g');
+                break;
+            case 'variable':
+                regex = new RegExp(`\\b${symbolName}\\b`, 'g');
+                break;
+        }
+        
+        let match;
+        while ((match = regex.exec(line)) !== null) {
+            references.push({
+                uri: '', // Will be filled by caller
+                range: {
+                    start: { line: lineIndex, character: match.index },
+                    end: { line: lineIndex, character: match.index + symbolName.length }
+                }
+            });
+        }
+    }
+    
+    return references;
+}
 
 // Make the text document manager listen on the connection
 documents.listen(connection);

@@ -102,6 +102,7 @@ docs/latex/
 .kilocode/
 cache/
 tests/fuzzing/corpus/
+build_asan/
 
 # Temporary files
 temp/

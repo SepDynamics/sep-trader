@@ -65,8 +65,8 @@ This comprehensive roadmap tracks the evolution of SEP DSL from a working AGI pa
 - [x] **Performance benchmarks** - Measure DSL overhead vs direct C++
 - [x] **Regression test suite** - Ensure backward compatibility
 - [x] **Fuzz testing** - Random input generation for robustness
-- [ ] **Memory leak detection** - Valgrind/ASAN integration
-- [ ] **Code coverage analysis** - Aim for >90% coverage
+- [x] **Memory leak detection** - Valgrind/ASAN integration with Docker
+- [x] **Code coverage analysis** - Automated >90% coverage targeting with CI integration
 - [ ] **Cross-platform testing** - Linux, Windows, macOS
 
 #### Language Validation
@@ -83,11 +83,11 @@ This comprehensive roadmap tracks the evolution of SEP DSL from a working AGI pa
 - [x] **Syntax highlighting** - TextMate grammar for editors
 - [x] **Auto-completion** - Context-aware suggestions
 - [x] **File icons** - Custom .sep file icons for VS Code
-- [ ] **Go-to-definition** - Navigate pattern/signal references
+- [x] **Go-to-definition** - Navigate pattern/signal references with full symbol resolution
 - [x] **Inline documentation** - Hover tooltips for built-ins
 - [x] **Real-time error checking** - Squiggly lines for errors
 - [x] **Code formatting** - Auto-format DSL code
-- [ ] **Refactoring support** - Rename symbols, extract patterns
+- [x] **Refactoring support** - Rename symbols with collision detection and validation
 
 #### Development Tools
 - [ ] **REPL improvements** - History, tab completion, multiline
