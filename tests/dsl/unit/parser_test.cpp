@@ -118,8 +118,8 @@ TEST_F(ParserTest, ParsesFunctionDeclaration) {
     ASSERT_NE(func_decl, nullptr);
     ASSERT_EQ(func_decl->name, "add");
     ASSERT_EQ(func_decl->parameters.size(), 2);
-    ASSERT_EQ(func_decl->parameters[0], "a");
-    ASSERT_EQ(func_decl->parameters[1], "b");
+    ASSERT_EQ(func_decl->parameters[0].first, "a");
+    ASSERT_EQ(func_decl->parameters[1].first, "b");
     
     // Check function body
     ASSERT_EQ(func_decl->body.size(), 1);

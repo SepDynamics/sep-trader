@@ -5,7 +5,37 @@ All notable changes to SEP DSL will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.0] - 2025-01-03
+
+### Added - Major Commercial Features
+- **Type Annotations** - Optional type hints for function parameters and variables (`function add(a: Number, b: Number): Number`)
+- **Source Location Tracking** - Precise error reporting with line:column information 
+- **Advanced Operator Precedence** - Table-driven expression parsing with proper mathematical precedence
+- **AST Optimization** - Constant folding and dead code elimination (22 optimizations in test case)
+- **Comprehensive Math Library** - 25+ mathematical functions (sin, cos, exp, log, sqrt, pow, etc.)
+- **Statistical Analysis Suite** - 8 statistical functions (mean, median, stddev, correlation, percentile, variance)
+- **Performance Benchmarks** - Complete performance analysis vs C++ (~1,200x overhead, reasonable for interpreted DSL)
+- **VS Code Integration** - Custom .sep file icons, syntax highlighting, auto-completion
+
+### Enhanced
+- **Error Messages** - Line:column precision for debugging 
+- **Expression Parsing** - Mathematical operator precedence now correct
+- **Built-in Functions** - Expanded from 5 to 35+ functions
+- **Developer Experience** - Professional IDE support with custom file icons
+
+### Technical Improvements
+- **Parse-time Optimization** - Constants folded during compilation
+- **Better Type Safety** - Optional type annotations improve error detection
+- **Enhanced Testing** - New test suites for math, statistics, and precedence
+- **Documentation** - Updated README, commercial package, and performance reports
+
 ## [Unreleased]
+
+### Planned
+- Array/list support for advanced data structures
+- JIT compilation for performance optimization  
+- Additional statistical functions (regression, clustering)
+- Streaming data processing enhancements
 
 ### Added
 - Initial release preparation

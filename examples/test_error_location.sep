@@ -1,0 +1,9 @@
+// Test source location tracking in error messages
+
+pattern test_syntax_errors {
+    // This should trigger a parse error on line 5, column 18
+    value: Number = 42 + 
+    
+    // The above line is missing a value after +
+    print("This should not be reached")
+}

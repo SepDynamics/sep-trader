@@ -1,0 +1,28 @@
+// Test type annotations for functions and variables
+
+// Variables with type annotations
+pattern test_types {
+    
+    // Function with typed parameters and return type
+    function add(a: Number, b: Number): Number {
+        return a + b
+    }
+
+    // Function with mixed parameter types  
+    function greet(name: String, count: Number): String {
+        return "Hello " + name
+    }
+    value: Number = 42
+    text: String = "Hello World"
+    flag: Bool = true
+    
+    // Function calls 
+    result = add(10, 20)
+    message = greet("Alice", 5)
+    
+    print("Value:", value)
+    print("Text:", text)
+    print("Flag:", flag)
+    print("Result:", result)
+    print("Message:", message)
+}

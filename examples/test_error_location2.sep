@@ -1,0 +1,10 @@
+// Test source location tracking in error messages
+
+pattern test_syntax_errors {
+    // This should trigger a parse error - missing closing brace
+    if (true) {
+        value = 42
+    // Missing closing brace here - should error on line 8
+    
+    print("This should not be reached")
+}

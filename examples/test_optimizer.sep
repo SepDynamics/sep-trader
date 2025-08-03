@@ -1,0 +1,29 @@
+// Test AST optimization - constant folding and dead code elimination
+
+pattern test_optimization {
+    // Constant folding opportunities
+    value1: Number = 5 + 3 * 2    // Should become 11
+    value2: Number = 10 - 4 / 2   // Should become 8
+    value3: Number = -(-5)        // Should become 5
+    
+    // Function with constant expressions
+    function test_func(): Number {
+        temp: Number = 2 * 3 + 1  // Should become 7
+        return temp + 1           // Could become 8 if temp is inlined
+    }
+    
+    // Test dead code elimination
+    function dead_code_test(): Number {
+        x: Number = 42
+        return x
+        y: Number = 999  // This should be eliminated as dead code
+        print("This should never execute")
+    }
+    
+    result = test_func()
+    print("Optimized values:")
+    print("value1:", value1)
+    print("value2:", value2) 
+    print("value3:", value3)
+    print("result:", result)
+}

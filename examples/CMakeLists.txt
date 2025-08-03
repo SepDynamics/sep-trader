@@ -57,3 +57,18 @@ target_link_libraries(pattern_inheritance_test PRIVATE
 )
 
 target_compile_features(pattern_inheritance_test PRIVATE cxx_std_17)
+
+# DSL Performance Benchmark
+add_executable(dsl_performance_benchmark
+    dsl_performance_benchmark.cpp
+)
+
+target_include_directories(dsl_performance_benchmark PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/../src
+)
+
+target_link_libraries(dsl_performance_benchmark PRIVATE
+    sep_dsl
+)
+
+target_compile_features(dsl_performance_benchmark PRIVATE cxx_std_17)

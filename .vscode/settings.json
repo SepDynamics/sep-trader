@@ -1,10 +1,31 @@
 {
-  "amp.experimental.connections": true,
-  "terminal.integrated.autoRun.prevent": [
-  ],
-  "npm.autoDetect": "off",
-  "npm.exclude": [
-    "**/mcp-tool",
-    "**/extern/Kilo-Code/webview-ui"
-  ]
+    "files.associations": {
+        "*.sep": "sep"
+    },
+    "workbench.iconTheme": "vs-seti",
+    "editor.tokenColorCustomizations": {
+        "textMateRules": [
+            {
+                "scope": "keyword.control.sep",
+                "settings": {
+                    "foreground": "#569cd6"
+                }
+            },
+            {
+                "scope": "entity.name.function.sep",
+                "settings": {
+                    "foreground": "#dcdcaa"
+                }
+            },
+            {
+                "scope": "string.quoted.double.sep",
+                "settings": {
+                    "foreground": "#ce9178"
+                }
+            }
+        ]
+    },
+    "files.iconAssociations": {
+        "*.sep": "../../assets/sep"
+    }
 }

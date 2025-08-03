@@ -4,7 +4,8 @@
 
 namespace dsl::parser {
 
-Parser::Parser(const std::string& source) : lexer_(source), current_token_(ast::TokenType::EOF_TOKEN, "", 0, 0) {
+Parser::Parser(const std::string& source, bool optimize) 
+    : lexer_(source), current_token_(ast::TokenType::EOF_TOKEN, "", 0, 0), enable_optimization_(optimize) {
     advance();
 }
 
@@ -16,7 +17,7 @@ void Parser::expect(ast::TokenType type, const std::string& message) {
     if (current_token_.type == type) {
         advance();
     } else {
-        throw std::runtime_error(message + " at line " + std::to_string(current_token_.line));
+        throw std::runtime_error(message + " at " + current_location().to_string());
     }
 }
 
@@ -45,6 +46,12 @@ std::unique_ptr<ast::Program> Parser::parse() {
         } else {
             throw std::runtime_error("Unexpected token: " + current_token_.value + " at line " + std::to_string(current_token_.line));
         }
+    }
+    
+    // Apply AST optimizations if enabled
+    if (enable_optimization_) {
+        optimizer::ASTOptimizer optimizer;
+        optimizer.optimize(*program);
     }
     
     return program;
@@ -217,19 +224,29 @@ std::unique_ptr<ast::Statement> Parser::parse_statement() {
         return parse_throw_statement();
     }
 
-    // Check for assignment (identifier = expression)
+    // Check for assignment (identifier [: type] = expression)
     if (current_token_.type == ast::TokenType::IDENTIFIER) {
-        // Look ahead to see if this is an assignment
+        // Look ahead to see if this is an assignment (with or without type annotation)
         lexer::Token next = lexer_.peek_token();
-        if (next.type == ast::TokenType::ASSIGN) {
+        if (next.type == ast::TokenType::ASSIGN || next.type == ast::TokenType::COLON) {
             auto name = current_token_.value;
             advance(); // consume identifier
+            
+            // Check for type annotation
+            ast::TypeAnnotation var_type = ast::TypeAnnotation::INFERRED;
+            if (current_token_.type == ast::TokenType::COLON) {
+                advance(); // consume ':'
+                var_type = parse_type_annotation();
+            }
+            
             expect(ast::TokenType::ASSIGN, "Expected '='");
             auto value = parse_expression();
             
             auto assignment = std::make_unique<ast::Assignment>();
             assignment->name = name;
+            assignment->type = var_type;
             assignment->value = std::move(value);
+            assignment->location = ast::SourceLocation(next.line, next.column); // Use the identifier location
             return assignment;
         }
     }
@@ -242,7 +259,7 @@ std::unique_ptr<ast::Statement> Parser::parse_statement() {
 }
 
 std::unique_ptr<ast::Expression> Parser::parse_expression() {
-    return parse_logical_or();
+    return parse_precedence(Precedence::LOWEST);
 }
 
 std::unique_ptr<ast::Expression> Parser::parse_logical_or() {
@@ -389,10 +406,12 @@ std::unique_ptr<ast::Expression> Parser::parse_call() {
 
 std::unique_ptr<ast::Expression> Parser::parse_primary() {
     if (current_token_.type == ast::TokenType::NUMBER) {
+        auto location = current_location();
         double value = std::stod(current_token_.value);
         advance();
         auto number = std::make_unique<ast::NumberLiteral>();
         number->value = value;
+        number->location = location;
         return number;
     }
     
@@ -445,6 +464,25 @@ std::unique_ptr<ast::Expression> Parser::parse_primary() {
     
     if (current_token_.type == ast::TokenType::AWAIT) {
         return parse_await_expression();
+    }
+    
+    // Array literals
+    if (current_token_.type == ast::TokenType::LBRACKET) {
+        auto location = current_location();
+        advance(); // consume '['
+        
+        auto array = std::make_unique<ast::ArrayLiteral>();
+        array->location = location;
+        
+        // Parse array elements
+        if (current_token_.type != ast::TokenType::RBRACKET) {
+            do {
+                array->elements.push_back(parse_expression());
+            } while (current_token_.type == ast::TokenType::COMMA && (advance(), true));
+        }
+        
+        expect(ast::TokenType::RBRACKET, "Expected ']' after array elements");
+        return array;
     }
     
     throw std::runtime_error("Unexpected token in expression: " + current_token_.value);
@@ -555,6 +593,161 @@ std::unique_ptr<ast::WhileStatement> Parser::parse_while_statement() {
     return while_stmt;
 }
 
+// Type annotation helper functions
+ast::TypeAnnotation Parser::parse_type_annotation() {
+    switch (current_token_.type) {
+        case ast::TokenType::NUMBER_TYPE:
+            advance();
+            return ast::TypeAnnotation::NUMBER;
+        case ast::TokenType::STRING_TYPE:
+            advance();
+            return ast::TypeAnnotation::STRING;
+        case ast::TokenType::BOOL_TYPE:
+            advance();
+            return ast::TypeAnnotation::BOOL;
+        case ast::TokenType::PATTERN_TYPE:
+            advance();
+            return ast::TypeAnnotation::PATTERN;
+        case ast::TokenType::VOID_TYPE:
+            advance();
+            return ast::TypeAnnotation::VOID;
+        default:
+            return ast::TypeAnnotation::INFERRED;
+    }
+}
+
+bool Parser::is_type_token(ast::TokenType type) {
+    return type == ast::TokenType::NUMBER_TYPE ||
+           type == ast::TokenType::STRING_TYPE ||
+           type == ast::TokenType::BOOL_TYPE ||
+           type == ast::TokenType::PATTERN_TYPE ||
+           type == ast::TokenType::VOID_TYPE;
+}
+
+// Source location helper functions
+ast::SourceLocation Parser::current_location() const {
+    return ast::SourceLocation(current_token_.line, current_token_.column);
+}
+
+void Parser::set_location(ast::Node& node) const {
+    node.location = current_location();
+}
+
+// Operator precedence implementation
+Parser::Precedence Parser::get_precedence(ast::TokenType token_type) const {
+    switch (token_type) {
+        case ast::TokenType::OR:
+            return Precedence::LOGICAL_OR;
+        case ast::TokenType::AND:
+            return Precedence::LOGICAL_AND;
+        case ast::TokenType::EQ:
+        case ast::TokenType::NE:
+            return Precedence::EQUALITY;
+        case ast::TokenType::LT:
+        case ast::TokenType::LE:
+        case ast::TokenType::GT:
+        case ast::TokenType::GE:
+            return Precedence::COMPARISON;
+        case ast::TokenType::PLUS:
+        case ast::TokenType::MINUS:
+            return Precedence::TERM;
+        case ast::TokenType::MULTIPLY:
+        case ast::TokenType::DIVIDE:
+            return Precedence::FACTOR;
+        case ast::TokenType::LPAREN:
+            return Precedence::CALL;
+        default:
+            return Precedence::LOWEST;
+    }
+}
+
+std::unique_ptr<ast::Expression> Parser::parse_precedence(Precedence precedence) {
+    // Parse left side (prefix)
+    std::unique_ptr<ast::Expression> left;
+    
+    switch (current_token_.type) {
+        case ast::TokenType::NUMBER: {
+            auto location = current_location();
+            double value = std::stod(current_token_.value);
+            advance();
+            auto number = std::make_unique<ast::NumberLiteral>();
+            number->value = value;
+            number->location = location;
+            left = std::move(number);
+            break;
+        }
+        case ast::TokenType::STRING: {
+            auto str_value = current_token_.value;
+            advance();
+            auto string = std::make_unique<ast::StringLiteral>();
+            string->value = str_value;
+            left = std::move(string);
+            break;
+        }
+        case ast::TokenType::BOOLEAN: {
+            bool value = current_token_.value == "true";
+            advance();
+            auto boolean_lit = std::make_unique<ast::BooleanLiteral>();
+            boolean_lit->value = value;
+            left = std::move(boolean_lit);
+            break;
+        }
+        case ast::TokenType::IDENTIFIER: {
+            std::string name = current_token_.value;
+            advance();
+            
+            // Check for function call
+            if (current_token_.type == ast::TokenType::LPAREN) {
+                advance(); // consume '('
+                auto call = std::make_unique<ast::Call>();
+                call->callee = name;
+                call->args = parse_argument_list();
+                expect(ast::TokenType::RPAREN, "Expected ')' after function arguments.");
+                left = std::move(call);
+            } else {
+                auto identifier = std::make_unique<ast::Identifier>();
+                identifier->name = name;
+                left = std::move(identifier);
+            }
+            break;
+        }
+        case ast::TokenType::LPAREN: {
+            advance(); // consume '('
+            left = parse_precedence(Precedence::LOWEST);
+            expect(ast::TokenType::RPAREN, "Expected ')'");
+            break;
+        }
+        case ast::TokenType::NOT:
+        case ast::TokenType::MINUS: {
+            std::string op = current_token_.value;
+            advance();
+            auto right = parse_precedence(Precedence::UNARY);
+            auto unary = std::make_unique<ast::UnaryOp>();
+            unary->op = op;
+            unary->right = std::move(right);
+            left = std::move(unary);
+            break;
+        }
+        default:
+            throw std::runtime_error("Unexpected token in expression: " + current_token_.value);
+    }
+    
+    // Parse right side (infix)
+    while (precedence < get_precedence(current_token_.type)) {
+        ast::TokenType op_type = current_token_.type;
+        std::string op = current_token_.value;
+        advance();
+        
+        auto binary = std::make_unique<ast::BinaryOp>();
+        binary->left = std::move(left);
+        binary->op = op;
+        binary->right = parse_precedence(static_cast<Precedence>(static_cast<int>(get_precedence(op_type)) + 1));
+        left = std::move(binary);
+    }
+    
+    return left;
+}
+
 std::unique_ptr<ast::FunctionDeclaration> Parser::parse_function_declaration() {
     expect(ast::TokenType::FUNCTION, "Expected 'function' keyword.");
     
@@ -569,13 +762,28 @@ std::unique_ptr<ast::FunctionDeclaration> Parser::parse_function_declaration() {
     // Parse parameter list
     if (current_token_.type != ast::TokenType::RPAREN) {
         do {
-            auto param = current_token_.value;
+            auto param_name = current_token_.value;
             expect(ast::TokenType::IDENTIFIER, "Expected parameter name");
-            func_decl->parameters.push_back(param);
+            
+            // Check for type annotation
+            ast::TypeAnnotation param_type = ast::TypeAnnotation::INFERRED;
+            if (current_token_.type == ast::TokenType::COLON) {
+                advance(); // consume ':'
+                param_type = parse_type_annotation();
+            }
+            
+            func_decl->parameters.push_back(std::make_pair(param_name, param_type));
         } while (current_token_.type == ast::TokenType::COMMA && (advance(), true));
     }
     
     expect(ast::TokenType::RPAREN, "Expected ')' after parameters.");
+    
+    // Check for return type annotation
+    if (current_token_.type == ast::TokenType::COLON) {
+        advance(); // consume ':'
+        func_decl->return_type = parse_type_annotation();
+    }
+    
     expect(ast::TokenType::LBRACE, "Expected '{' before function body.");
     
     // Parse function body
@@ -672,20 +880,30 @@ std::unique_ptr<ast::AsyncFunctionDeclaration> Parser::parse_async_function_decl
     async_func->name = func_name;
     
     // Parse parameter list
-    while (current_token_.type != ast::TokenType::RPAREN && current_token_.type != ast::TokenType::EOF_TOKEN) {
-        if (current_token_.type == ast::TokenType::IDENTIFIER) {
-            async_func->parameters.push_back(current_token_.value);
-            advance();
+    if (current_token_.type != ast::TokenType::RPAREN) {
+        do {
+            auto param_name = current_token_.value;
+            expect(ast::TokenType::IDENTIFIER, "Expected parameter name");
             
-            if (current_token_.type == ast::TokenType::COMMA) {
-                advance(); // consume ','
+            // Check for type annotation
+            ast::TypeAnnotation param_type = ast::TypeAnnotation::INFERRED;
+            if (current_token_.type == ast::TokenType::COLON) {
+                advance(); // consume ':'
+                param_type = parse_type_annotation();
             }
-        } else {
-            throw std::runtime_error("Expected parameter name");
-        }
+            
+            async_func->parameters.push_back(std::make_pair(param_name, param_type));
+        } while (current_token_.type == ast::TokenType::COMMA && (advance(), true));
     }
     
     expect(ast::TokenType::RPAREN, "Expected ')' after parameter list.");
+    
+    // Check for return type annotation
+    if (current_token_.type == ast::TokenType::COLON) {
+        advance(); // consume ':'
+        async_func->return_type = parse_type_annotation();
+    }
+    
     expect(ast::TokenType::LBRACE, "Expected '{' to start function body.");
     
     async_func->body = parse_block();

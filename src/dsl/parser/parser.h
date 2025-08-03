@@ -1,16 +1,18 @@
 #pragma once
 #include "../ast/nodes.h"
 #include "../lexer/lexer.h"
+#include "../optimizer/optimizer.h"
 
 namespace dsl::parser {
 class Parser {
 public:
-    explicit Parser(const std::string& source);
+    explicit Parser(const std::string& source, bool optimize = true);
     std::unique_ptr<ast::Program> parse();
 private:
     // Core parser state
     lexer::Lexer lexer_;
     lexer::Token current_token_;
+    bool enable_optimization_;
     void advance();
     void expect(ast::TokenType type, const std::string& message);
 
@@ -38,6 +40,31 @@ private:
     // Helper methods
     std::vector<std::unique_ptr<ast::Expression>> parse_argument_list();
     std::unordered_map<std::string, std::string> parse_parameter_list();
+    
+    // Type annotation helpers
+    ast::TypeAnnotation parse_type_annotation();
+    bool is_type_token(ast::TokenType type);
+    
+    // Source location helpers
+    ast::SourceLocation current_location() const;
+    void set_location(ast::Node& node) const;
+    
+    // Operator precedence
+    enum class Precedence {
+        LOWEST = 0,
+        LOGICAL_OR = 1,      // ||
+        LOGICAL_AND = 2,     // &&
+        EQUALITY = 3,        // == !=
+        COMPARISON = 4,      // < <= > >=
+        TERM = 5,            // + -
+        FACTOR = 6,          // * /
+        UNARY = 7,           // ! -
+        CALL = 8,            // function calls
+        HIGHEST = 9
+    };
+    
+    Precedence get_precedence(ast::TokenType token_type) const;
+    std::unique_ptr<ast::Expression> parse_precedence(Precedence precedence);
     
     // Advanced constructs
     std::unique_ptr<ast::WeightedSum> parse_weighted_sum();

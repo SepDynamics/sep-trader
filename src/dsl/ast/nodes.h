@@ -66,12 +66,48 @@ enum class TokenType
     THROW,
     FINALLY,
     WEIGHTED_SUM,
+    // Type annotation tokens
+    NUMBER_TYPE,
+    STRING_TYPE,
+    BOOL_TYPE,
+    PATTERN_TYPE,
+    VOID_TYPE,
+    // Array tokens
+    LBRACKET,
+    RBRACKET,
     EOF_TOKEN,
     INVALID
 };
 
+// Source location information
+struct SourceLocation {
+    size_t line = 0;
+    size_t column = 0;
+    
+    SourceLocation() = default;
+    SourceLocation(size_t l, size_t c) : line(l), column(c) {}
+    
+    std::string to_string() const {
+        return std::to_string(line) + ":" + std::to_string(column);
+    }
+};
+
 // Base class for all nodes
-struct Node { virtual ~Node() = default; };
+struct Node { 
+    SourceLocation location;
+    virtual ~Node() = default; 
+};
+
+// Type annotations
+enum class TypeAnnotation {
+    NUMBER,
+    STRING,
+    BOOL,
+    PATTERN,
+    VOID,
+    ARRAY,    // Array of numbers
+    INFERRED  // Type will be inferred
+};
 
 // Expressions
 struct Expression : Node {};
@@ -101,6 +137,15 @@ struct Call : Expression {
 struct MemberAccess : Expression {
     std::unique_ptr<Expression> object;
     std::string member;
+};
+
+struct ArrayLiteral : Expression {
+    std::vector<std::unique_ptr<Expression>> elements;
+};
+
+struct ArrayAccess : Expression {
+    std::unique_ptr<Expression> array;
+    std::unique_ptr<Expression> index;
 };
 
 struct WeightedSum : Expression {
@@ -133,7 +178,8 @@ struct ReturnStatement : Statement
 struct FunctionDeclaration : Statement
 {
     std::string name;
-    std::vector<std::string> parameters;
+    std::vector<std::pair<std::string, TypeAnnotation>> parameters; // parameter name + type
+    TypeAnnotation return_type = TypeAnnotation::INFERRED;
     std::vector<std::unique_ptr<Statement>> body;
 };
 
@@ -151,7 +197,8 @@ struct ExportStatement : Statement
 struct AsyncFunctionDeclaration : Statement
 {
     std::string name;
-    std::vector<std::string> parameters;
+    std::vector<std::pair<std::string, TypeAnnotation>> parameters; // parameter name + type
+    TypeAnnotation return_type = TypeAnnotation::INFERRED;
     std::vector<std::unique_ptr<Statement>> body;
 };
 
@@ -176,6 +223,7 @@ struct ThrowStatement : Statement
 // Statements
 struct Assignment : Statement {
     std::string name;
+    TypeAnnotation type = TypeAnnotation::INFERRED;
     std::unique_ptr<Expression> value;
 };
 

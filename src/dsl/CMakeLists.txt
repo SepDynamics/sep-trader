@@ -18,6 +18,10 @@ add_library(sep_dsl STATIC
     runtime/interpreter.cpp
     runtime/runtime.h
     runtime/runtime.cpp
+    
+    # Optimizer
+    optimizer/optimizer.h
+    optimizer/optimizer.cpp
 )
 
 # Enable Position Independent Code for shared library compatibility

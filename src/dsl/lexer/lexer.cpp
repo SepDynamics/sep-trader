@@ -33,7 +33,13 @@ namespace dsl::lexer {
         {"throw", ast::TokenType::THROW},
         {"finally", ast::TokenType::FINALLY},
         {"true", ast::TokenType::BOOLEAN},
-        {"false", ast::TokenType::BOOLEAN}};
+        {"false", ast::TokenType::BOOLEAN},
+        // Type annotation keywords
+        {"Number", ast::TokenType::NUMBER_TYPE},
+        {"String", ast::TokenType::STRING_TYPE},
+        {"Bool", ast::TokenType::BOOL_TYPE},
+        {"Pattern", ast::TokenType::PATTERN_TYPE},
+        {"Void", ast::TokenType::VOID_TYPE}};
 
     Lexer::Lexer(const std::string& source) : source(source), position(0), line(1), column(1)
     {
@@ -230,6 +236,8 @@ Token Lexer::next_token() {
             case '}': advance(); return Token(ast::TokenType::RBRACE, "}", token_line, token_column);
             case '(': advance(); return Token(ast::TokenType::LPAREN, "(", token_line, token_column);
             case ')': advance(); return Token(ast::TokenType::RPAREN, ")", token_line, token_column);
+            case '[': advance(); return Token(ast::TokenType::LBRACKET, "[", token_line, token_column);
+            case ']': advance(); return Token(ast::TokenType::RBRACKET, "]", token_line, token_column);
             case ';': advance(); return Token(ast::TokenType::SEMICOLON, ";", token_line, token_column);
             case ':': advance(); return Token(ast::TokenType::COLON, ":", token_line, token_column);
             case ',': advance(); return Token(ast::TokenType::COMMA, ",", token_line, token_column);

@@ -19,9 +19,13 @@ SEP DSL is a specialized programming language designed for **AGI Coherence Frame
 
 - **🧠 Real-time pattern recognition** with quantum field harmonics
 - **⚡ CUDA-accelerated processing** for high-performance analysis  
-- **🔄 Multi-language bindings** (Ruby, Python, JavaScript - coming soon)
+- **🔄 Multi-language bindings** (Ruby, Python, JavaScript)
 - **📊 Universal signal processing** for sensor data, time series, and live streams
 - **🎯 Domain-agnostic** applications from IoT monitoring to scientific analysis
+- **✨ Advanced Language Features** - Type annotations, async/await, exception handling
+- **📈 Statistical Analysis Suite** - Comprehensive math and statistical functions
+- **🎨 Professional IDE Support** - VS Code integration with custom icons
+- **⚡ AST Optimization** - Constant folding and performance optimizations
 
 ## Quick Start
 
@@ -190,20 +194,23 @@ print(f"Coherence: {results['coherence']}")
 
 | Feature | Description | Example |
 |---------|-------------|---------|
-| **Variables** | Dynamic typing with numbers, strings, booleans | `x = 42; flag = true` |
+| **Variables** | Dynamic typing with optional type annotations | `x: Number = 42; flag: Bool = true` |
 | **Patterns** | Scoped analysis blocks | `pattern analysis { ... }` |
-| **Quantum Functions** | Real AGI engine calls | `coherence = measure_coherence(data)` |
-| **Control Flow** | If/while statements | `if coherence > 0.5 { ... }` |
-| **User Functions** | Function definitions with parameters | `function process(data) { return data * 2; }` |
-| **Async/Await** | Asynchronous pattern execution | `async function fetchData(id) { result = await measure_entropy(id); }` |
+| **Functions** | User-defined functions with type hints | `function add(a: Number, b: Number): Number { return a + b }` |
+| **Async/Await** | Asynchronous pattern execution | `async function process() { result = await analyze() }` |
 | **Exception Handling** | Try/catch/finally/throw constructs | `try { ... } catch (error) { ... } finally { ... }` |
+| **Quantum Functions** | Real AGI engine calls | `coherence = measure_coherence(data)` |
+| **Math Functions** | 25+ mathematical functions | `sin(pi() / 2), sqrt(16), log(e())` |
+| **Statistical Functions** | 8 statistical analysis functions | `mean(1,2,3,4,5), stddev(data), correlation(x,y)` |
+| **Control Flow** | If/while statements with proper precedence | `if coherence > 0.5 { ... }` |
 | **Pattern Inheritance** | Pattern composition and reuse | `pattern child inherits parent { ... }` |
-| **Import/Export** | Pattern library system | `import { pattern1, pattern2 } from "lib"` |
+| **Import/Export** | Module system for code reuse | `import "analysis.sep"; export ["pattern1", "function1"]` |
 | **Member Access** | Pattern variable access | `result = analysis.coherence` |
 | **Print Output** | Debug and result display | `print("Value:", x)` |
 
 ### Built-in Functions
 
+#### Quantum/AGI Functions
 | Function | Purpose | Returns |
 |----------|---------|---------|
 | `measure_coherence(data)` | Quantum coherence analysis | Number (0.0-1.0) |
@@ -211,6 +218,27 @@ print(f"Coherence: {results['coherence']}")
 | `extract_bits(data)` | Bit pattern extraction | String |
 | `qfh_analyze(bitstream)` | Quantum field harmonics | Number |
 | `manifold_optimize(p,c,s)` | Pattern optimization | Number |
+
+#### Mathematical Functions
+| Function | Purpose | Returns |
+|----------|---------|---------|
+| `sin(x), cos(x), tan(x)` | Trigonometric functions | Number |
+| `asin(x), acos(x), atan(x)` | Inverse trigonometric | Number |
+| `exp(x), log(x), log10(x)` | Exponential/logarithmic | Number |
+| `pow(x,y), sqrt(x), cbrt(x)` | Power and root functions | Number |
+| `abs(x), floor(x), ceil(x)` | Basic math utilities | Number |
+| `pi(), e()` | Mathematical constants | Number |
+
+#### Statistical Functions
+| Function | Purpose | Returns |
+|----------|---------|---------|
+| `mean(...)` | Arithmetic mean of values | Number |
+| `median(...)` | Middle value when sorted | Number |
+| `stddev(...)` | Standard deviation | Number |
+| `variance(...)` | Statistical variance | Number |
+| `correlation(x..., y...)` | Pearson correlation coefficient | Number |
+| `percentile(p, ...)` | Value at percentile p | Number |
+| `sum(...), count(...)` | Sum and count of values | Number |
 
 ## Examples
 

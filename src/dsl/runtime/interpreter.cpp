@@ -213,6 +213,356 @@ void Interpreter::register_builtins() {
         return std::max(a, b);
     };
     
+    // Trigonometric functions
+    builtins_["sin"] = [](const std::vector<Value>& args) -> Value {
+        if (args.size() != 1) {
+            throw std::runtime_error("sin() expects exactly 1 argument");
+        }
+        double value = std::any_cast<double>(args[0]);
+        return std::sin(value);
+    };
+    
+    builtins_["cos"] = [](const std::vector<Value>& args) -> Value {
+        if (args.size() != 1) {
+            throw std::runtime_error("cos() expects exactly 1 argument");
+        }
+        double value = std::any_cast<double>(args[0]);
+        return std::cos(value);
+    };
+    
+    builtins_["tan"] = [](const std::vector<Value>& args) -> Value {
+        if (args.size() != 1) {
+            throw std::runtime_error("tan() expects exactly 1 argument");
+        }
+        double value = std::any_cast<double>(args[0]);
+        return std::tan(value);
+    };
+    
+    builtins_["asin"] = [](const std::vector<Value>& args) -> Value {
+        if (args.size() != 1) {
+            throw std::runtime_error("asin() expects exactly 1 argument");
+        }
+        double value = std::any_cast<double>(args[0]);
+        if (value < -1.0 || value > 1.0) {
+            throw std::runtime_error("asin() argument out of domain [-1, 1]");
+        }
+        return std::asin(value);
+    };
+    
+    builtins_["acos"] = [](const std::vector<Value>& args) -> Value {
+        if (args.size() != 1) {
+            throw std::runtime_error("acos() expects exactly 1 argument");
+        }
+        double value = std::any_cast<double>(args[0]);
+        if (value < -1.0 || value > 1.0) {
+            throw std::runtime_error("acos() argument out of domain [-1, 1]");
+        }
+        return std::acos(value);
+    };
+    
+    builtins_["atan"] = [](const std::vector<Value>& args) -> Value {
+        if (args.size() != 1) {
+            throw std::runtime_error("atan() expects exactly 1 argument");
+        }
+        double value = std::any_cast<double>(args[0]);
+        return std::atan(value);
+    };
+    
+    builtins_["atan2"] = [](const std::vector<Value>& args) -> Value {
+        if (args.size() != 2) {
+            throw std::runtime_error("atan2() expects exactly 2 arguments");
+        }
+        double y = std::any_cast<double>(args[0]);
+        double x = std::any_cast<double>(args[1]);
+        return std::atan2(y, x);
+    };
+    
+    // Exponential and logarithmic functions
+    builtins_["exp"] = [](const std::vector<Value>& args) -> Value {
+        if (args.size() != 1) {
+            throw std::runtime_error("exp() expects exactly 1 argument");
+        }
+        double value = std::any_cast<double>(args[0]);
+        return std::exp(value);
+    };
+    
+    builtins_["log"] = [](const std::vector<Value>& args) -> Value {
+        if (args.size() != 1) {
+            throw std::runtime_error("log() expects exactly 1 argument");
+        }
+        double value = std::any_cast<double>(args[0]);
+        if (value <= 0) {
+            throw std::runtime_error("log() of non-positive number");
+        }
+        return std::log(value);
+    };
+    
+    builtins_["log10"] = [](const std::vector<Value>& args) -> Value {
+        if (args.size() != 1) {
+            throw std::runtime_error("log10() expects exactly 1 argument");
+        }
+        double value = std::any_cast<double>(args[0]);
+        if (value <= 0) {
+            throw std::runtime_error("log10() of non-positive number");
+        }
+        return std::log10(value);
+    };
+    
+    builtins_["log2"] = [](const std::vector<Value>& args) -> Value {
+        if (args.size() != 1) {
+            throw std::runtime_error("log2() expects exactly 1 argument");
+        }
+        double value = std::any_cast<double>(args[0]);
+        if (value <= 0) {
+            throw std::runtime_error("log2() of non-positive number");
+        }
+        return std::log2(value);
+    };
+    
+    // Power functions
+    builtins_["pow"] = [](const std::vector<Value>& args) -> Value {
+        if (args.size() != 2) {
+            throw std::runtime_error("pow() expects exactly 2 arguments");
+        }
+        double base = std::any_cast<double>(args[0]);
+        double exponent = std::any_cast<double>(args[1]);
+        return std::pow(base, exponent);
+    };
+    
+    builtins_["cbrt"] = [](const std::vector<Value>& args) -> Value {
+        if (args.size() != 1) {
+            throw std::runtime_error("cbrt() expects exactly 1 argument");
+        }
+        double value = std::any_cast<double>(args[0]);
+        return std::cbrt(value);
+    };
+    
+    // Rounding and modular functions
+    builtins_["floor"] = [](const std::vector<Value>& args) -> Value {
+        if (args.size() != 1) {
+            throw std::runtime_error("floor() expects exactly 1 argument");
+        }
+        double value = std::any_cast<double>(args[0]);
+        return std::floor(value);
+    };
+    
+    builtins_["ceil"] = [](const std::vector<Value>& args) -> Value {
+        if (args.size() != 1) {
+            throw std::runtime_error("ceil() expects exactly 1 argument");
+        }
+        double value = std::any_cast<double>(args[0]);
+        return std::ceil(value);
+    };
+    
+    builtins_["round"] = [](const std::vector<Value>& args) -> Value {
+        if (args.size() != 1) {
+            throw std::runtime_error("round() expects exactly 1 argument");
+        }
+        double value = std::any_cast<double>(args[0]);
+        return std::round(value);
+    };
+    
+    builtins_["trunc"] = [](const std::vector<Value>& args) -> Value {
+        if (args.size() != 1) {
+            throw std::runtime_error("trunc() expects exactly 1 argument");
+        }
+        double value = std::any_cast<double>(args[0]);
+        return std::trunc(value);
+    };
+    
+    builtins_["fmod"] = [](const std::vector<Value>& args) -> Value {
+        if (args.size() != 2) {
+            throw std::runtime_error("fmod() expects exactly 2 arguments");
+        }
+        double x = std::any_cast<double>(args[0]);
+        double y = std::any_cast<double>(args[1]);
+        if (y == 0) {
+            throw std::runtime_error("fmod() division by zero");
+        }
+        return std::fmod(x, y);
+    };
+    
+    // Mathematical constants
+    builtins_["pi"] = [](const std::vector<Value>& args) -> Value {
+        if (args.size() != 0) {
+            throw std::runtime_error("pi() expects no arguments");
+        }
+        return M_PI;
+    };
+    
+    builtins_["e"] = [](const std::vector<Value>& args) -> Value {
+        if (args.size() != 0) {
+            throw std::runtime_error("e() expects no arguments");
+        }
+        return M_E;
+    };
+    
+    // Statistical functions (for variable number of arguments)
+    builtins_["mean"] = [](const std::vector<Value>& args) -> Value {
+        if (args.empty()) {
+            throw std::runtime_error("mean() expects at least 1 argument");
+        }
+        double sum = 0.0;
+        for (const auto& arg : args) {
+            sum += std::any_cast<double>(arg);
+        }
+        return sum / args.size();
+    };
+    
+    builtins_["sum"] = [](const std::vector<Value>& args) -> Value {
+        if (args.empty()) {
+            throw std::runtime_error("sum() expects at least 1 argument");
+        }
+        double sum = 0.0;
+        for (const auto& arg : args) {
+            sum += std::any_cast<double>(arg);
+        }
+        return sum;
+    };
+    
+    builtins_["count"] = [](const std::vector<Value>& args) -> Value {
+        return static_cast<double>(args.size());
+    };
+    
+    builtins_["stddev"] = [](const std::vector<Value>& args) -> Value {
+        if (args.size() < 2) {
+            throw std::runtime_error("stddev() expects at least 2 arguments");
+        }
+        
+        // Calculate mean
+        double sum = 0.0;
+        for (const auto& arg : args) {
+            sum += std::any_cast<double>(arg);
+        }
+        double mean = sum / args.size();
+        
+        // Calculate variance
+        double variance = 0.0;
+        for (const auto& arg : args) {
+            double val = std::any_cast<double>(arg);
+            variance += (val - mean) * (val - mean);
+        }
+        variance /= (args.size() - 1); // Sample standard deviation
+        
+        return std::sqrt(variance);
+    };
+    
+    builtins_["variance"] = [](const std::vector<Value>& args) -> Value {
+        if (args.size() < 2) {
+            throw std::runtime_error("variance() expects at least 2 arguments");
+        }
+        
+        // Calculate mean
+        double sum = 0.0;
+        for (const auto& arg : args) {
+            sum += std::any_cast<double>(arg);
+        }
+        double mean = sum / args.size();
+        
+        // Calculate variance
+        double variance = 0.0;
+        for (const auto& arg : args) {
+            double val = std::any_cast<double>(arg);
+            variance += (val - mean) * (val - mean);
+        }
+        return variance / (args.size() - 1); // Sample variance
+    };
+    
+    builtins_["median"] = [](const std::vector<Value>& args) -> Value {
+        if (args.empty()) {
+            throw std::runtime_error("median() expects at least 1 argument");
+        }
+        
+        // Convert to vector and sort
+        std::vector<double> values;
+        for (const auto& arg : args) {
+            values.push_back(std::any_cast<double>(arg));
+        }
+        std::sort(values.begin(), values.end());
+        
+        size_t n = values.size();
+        if (n % 2 == 0) {
+            // Even number of elements - average of middle two
+            return (values[n/2 - 1] + values[n/2]) / 2.0;
+        } else {
+            // Odd number of elements - middle element
+            return values[n/2];
+        }
+    };
+    
+    builtins_["percentile"] = [](const std::vector<Value>& args) -> Value {
+        if (args.size() < 2) {
+            throw std::runtime_error("percentile() expects at least 2 arguments (percentile, values...)");
+        }
+        
+        double p = std::any_cast<double>(args[0]);
+        if (p < 0.0 || p > 100.0) {
+            throw std::runtime_error("percentile() percentile must be between 0 and 100");
+        }
+        
+        // Convert remaining args to vector and sort
+        std::vector<double> values;
+        for (size_t i = 1; i < args.size(); i++) {
+            values.push_back(std::any_cast<double>(args[i]));
+        }
+        std::sort(values.begin(), values.end());
+        
+        double index = (p / 100.0) * (values.size() - 1);
+        size_t lower = static_cast<size_t>(std::floor(index));
+        size_t upper = static_cast<size_t>(std::ceil(index));
+        
+        if (lower == upper) {
+            return values[lower];
+        } else {
+            double weight = index - lower;
+            return values[lower] * (1.0 - weight) + values[upper] * weight;
+        }
+    };
+    
+    builtins_["correlation"] = [](const std::vector<Value>& args) -> Value {
+        if (args.size() % 2 != 0) {
+            throw std::runtime_error("correlation() expects pairs of values (even number of arguments)");
+        }
+        if (args.size() < 4) {
+            throw std::runtime_error("correlation() expects at least 2 pairs of values");
+        }
+        
+        size_t n = args.size() / 2;
+        std::vector<double> x, y;
+        
+        // Split into x and y arrays
+        for (size_t i = 0; i < n; i++) {
+            x.push_back(std::any_cast<double>(args[i]));
+            y.push_back(std::any_cast<double>(args[i + n]));
+        }
+        
+        // Calculate means
+        double mean_x = 0.0, mean_y = 0.0;
+        for (size_t i = 0; i < n; i++) {
+            mean_x += x[i];
+            mean_y += y[i];
+        }
+        mean_x /= n;
+        mean_y /= n;
+        
+        // Calculate correlation coefficient
+        double numerator = 0.0, sum_x_sq = 0.0, sum_y_sq = 0.0;
+        for (size_t i = 0; i < n; i++) {
+            double dx = x[i] - mean_x;
+            double dy = y[i] - mean_y;
+            numerator += dx * dy;
+            sum_x_sq += dx * dx;
+            sum_y_sq += dy * dy;
+        }
+        
+        double denominator = std::sqrt(sum_x_sq * sum_y_sq);
+        if (denominator == 0.0) {
+            return 0.0; // No correlation if no variance
+        }
+        
+        return numerator / denominator;
+    };
+    
     // Debugging functions
     builtins_["print"] = [this](const std::vector<Value>& args) -> Value {
         for (size_t i = 0; i < args.size(); ++i) {
@@ -1084,10 +1434,12 @@ Value UserFunction::call(Interpreter& interpreter, const std::vector<Value>& arg
 
     // Bind arguments to parameters
     for (size_t i = 0; i < declaration_.parameters.size(); i++) {
+        const std::string& param_name = declaration_.parameters[i].first;
+        // Type checking could be added here in the future using declaration_.parameters[i].second
         if (i < arguments.size()) {
-            function_env.define(declaration_.parameters[i], arguments[i]);
+            function_env.define(param_name, arguments[i]);
         } else {
-            function_env.define(declaration_.parameters[i], nullptr); // Default value for missing args
+            function_env.define(param_name, nullptr); // Default value for missing args
         }
     }
 
@@ -1244,10 +1596,12 @@ Value AsyncFunction::call(Interpreter& interpreter, const std::vector<Value>& ar
 
     // Bind arguments to parameters
     for (size_t i = 0; i < declaration_.parameters.size(); i++) {
+        const std::string& param_name = declaration_.parameters[i].first;
+        // Type checking could be added here in the future using declaration_.parameters[i].second
         if (i < arguments.size()) {
-            function_env.define(declaration_.parameters[i], arguments[i]);
+            function_env.define(param_name, arguments[i]);
         } else {
-            function_env.define(declaration_.parameters[i], nullptr); // Default value for missing args
+            function_env.define(param_name, nullptr); // Default value for missing args
         }
     }
 

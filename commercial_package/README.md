@@ -1,4 +1,22 @@
-# SEP DSL Commercial Package v1.0
+# SEP DSL Commercial Package v1.2.0
+
+## 🚀 Latest Commercial Release Features
+
+### ✨ **Advanced Language Features (NEW)**
+- **Type Annotations** - Professional error messages with optional type hints
+- **Source Location Tracking** - Precise line:column error reporting  
+- **Advanced Operator Precedence** - Table-driven expression parsing
+- **AST Optimization** - Constant folding and dead code elimination
+
+### 📊 **Enhanced Math & Statistics (NEW)**
+- **25+ Mathematical Functions** - Complete trig, exponential, power functions
+- **8 Statistical Functions** - mean, median, stddev, correlation, percentile
+- **Performance Benchmarks** - Documented ~1,200x overhead vs C++ (reasonable for DSL)
+
+### 🎨 **Professional Developer Experience (NEW)**
+- **VS Code Integration** - Custom .sep file icons and syntax highlighting
+- **Enhanced Error Messages** - Precise debugging with location tracking
+- **Auto-completion** - Context-aware IDE suggestions
 
 ## 🎯 What You're Getting
 

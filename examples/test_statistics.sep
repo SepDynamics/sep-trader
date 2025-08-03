@@ -1,0 +1,72 @@
+// Test comprehensive statistical functions
+
+pattern test_statistics {
+    // Sample data sets
+    dataset1: Number = 1
+    dataset2: Number = 2  
+    dataset3: Number = 3
+    dataset4: Number = 4
+    dataset5: Number = 5
+    
+    // Basic statistics
+    print("=== Basic Statistics ===")
+    print("Data: 1, 2, 3, 4, 5")
+    print("Sum:", sum(dataset1, dataset2, dataset3, dataset4, dataset5))
+    print("Count:", count(dataset1, dataset2, dataset3, dataset4, dataset5))
+    print("Mean:", mean(dataset1, dataset2, dataset3, dataset4, dataset5))
+    print("Median:", median(dataset1, dataset2, dataset3, dataset4, dataset5))
+    
+    // Variability measures
+    print("\n=== Variability Measures ===")
+    print("Variance:", variance(dataset1, dataset2, dataset3, dataset4, dataset5))
+    print("Standard Deviation:", stddev(dataset1, dataset2, dataset3, dataset4, dataset5))
+    
+    // Percentiles
+    print("\n=== Percentiles ===")
+    print("25th percentile:", percentile(25, dataset1, dataset2, dataset3, dataset4, dataset5))
+    print("50th percentile (median):", percentile(50, dataset1, dataset2, dataset3, dataset4, dataset5))
+    print("75th percentile:", percentile(75, dataset1, dataset2, dataset3, dataset4, dataset5))
+    print("90th percentile:", percentile(90, dataset1, dataset2, dataset3, dataset4, dataset5))
+    
+    // Different dataset for correlation
+    x1: Number = 1
+    x2: Number = 2
+    x3: Number = 3
+    y1: Number = 2
+    y2: Number = 4
+    y3: Number = 6
+    
+    print("\n=== Correlation Analysis ===")
+    print("X data: 1, 2, 3")
+    print("Y data: 2, 4, 6") 
+    print("Correlation:", correlation(x1, x2, x3, y1, y2, y3))
+    
+    // Test with different data
+    a1: Number = 10
+    a2: Number = 20
+    a3: Number = 15
+    a4: Number = 25
+    a5: Number = 30
+    
+    print("\n=== Different Dataset ===")
+    print("Data: 10, 20, 15, 25, 30")
+    print("Mean:", mean(a1, a2, a3, a4, a5))
+    print("Median:", median(a1, a2, a3, a4, a5))
+    print("Std Dev:", stddev(a1, a2, a3, a4, a5))
+    
+    // Financial analysis example
+    prices: Number = 100
+    prices2: Number = 105
+    prices3: Number = 98
+    prices4: Number = 110
+    prices5: Number = 95
+    
+    print("\n=== Financial Analysis Example ===")
+    print("Stock prices: 100, 105, 98, 110, 95")
+    avg_price: Number = mean(prices, prices2, prices3, prices4, prices5)
+    price_volatility: Number = stddev(prices, prices2, prices3, prices4, prices5)
+    
+    print("Average price:", avg_price)
+    print("Volatility (std dev):", price_volatility)
+    print("95th percentile price:", percentile(95, prices, prices2, prices3, prices4, prices5))
+}
