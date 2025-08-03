@@ -1,0 +1,11 @@
+pattern test_keyword {
+    if (true) {
+        print("if works")
+    }
+    while (false) {
+        print("while works")
+    }
+    function test() {
+        return 1
+    }
+}

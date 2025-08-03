@@ -57,6 +57,14 @@ enum class TokenType
     RETURN,
     BREAK,
     CONTINUE,
+    IMPORT,
+    EXPORT,
+    ASYNC,
+    AWAIT,
+    TRY,
+    CATCH,
+    THROW,
+    FINALLY,
     WEIGHTED_SUM,
     EOF_TOKEN,
     INVALID
@@ -127,6 +135,42 @@ struct FunctionDeclaration : Statement
     std::string name;
     std::vector<std::string> parameters;
     std::vector<std::unique_ptr<Statement>> body;
+};
+
+struct ImportStatement : Statement
+{
+    std::string module_path;
+    std::vector<std::string> imports; // empty = import all
+};
+
+struct ExportStatement : Statement
+{
+    std::vector<std::string> exports; // what to export from this module
+};
+
+struct AsyncFunctionDeclaration : Statement
+{
+    std::string name;
+    std::vector<std::string> parameters;
+    std::vector<std::unique_ptr<Statement>> body;
+};
+
+struct AwaitExpression : Expression
+{
+    std::unique_ptr<Expression> expression;
+};
+
+struct TryStatement : Statement
+{
+    std::vector<std::unique_ptr<Statement>> try_body;
+    std::vector<std::unique_ptr<Statement>> catch_body;
+    std::string catch_variable; // variable name for caught exception
+    std::vector<std::unique_ptr<Statement>> finally_body;
+};
+
+struct ThrowStatement : Statement
+{
+    std::unique_ptr<Expression> expression;
 };
 
 // Statements

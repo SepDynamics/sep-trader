@@ -1,0 +1,5 @@
+pattern test_import_export {
+    import "module.sep"
+    export { my_value }
+    my_value = 123
+}

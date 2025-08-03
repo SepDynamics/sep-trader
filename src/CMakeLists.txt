@@ -8,7 +8,6 @@ add_subdirectory(memory)
 add_subdirectory(quantum)
 add_subdirectory(connectors)
 add_subdirectory(ui)
-add_subdirectory(apps)
 add_subdirectory(c_api)
 
 # Standalone API server for headless engine operation (temporarily disabled)

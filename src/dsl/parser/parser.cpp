@@ -180,6 +180,31 @@ std::unique_ptr<ast::Statement> Parser::parse_statement() {
         return parse_return_statement();
     }
 
+    // Check for import statement
+    if (current_token_.type == ast::TokenType::IMPORT) {
+        return parse_import_statement();
+    }
+
+    // Check for export statement
+    if (current_token_.type == ast::TokenType::EXPORT) {
+        return parse_export_statement();
+    }
+
+    // Check for async function declaration
+    if (current_token_.type == ast::TokenType::ASYNC) {
+        return parse_async_function_declaration();
+    }
+
+    // Check for try statement
+    if (current_token_.type == ast::TokenType::TRY) {
+        return parse_try_statement();
+    }
+
+    // Check for throw statement
+    if (current_token_.type == ast::TokenType::THROW) {
+        return parse_throw_statement();
+    }
+
     // Check for assignment (identifier = expression)
     if (current_token_.type == ast::TokenType::IDENTIFIER) {
         // Look ahead to see if this is an assignment
@@ -406,6 +431,10 @@ std::unique_ptr<ast::Expression> Parser::parse_primary() {
        return parse_weighted_sum();
     }
     
+    if (current_token_.type == ast::TokenType::AWAIT) {
+        return parse_await_expression();
+    }
+    
     throw std::runtime_error("Unexpected token in expression: " + current_token_.value);
 }
 
@@ -555,6 +584,67 @@ std::unique_ptr<ast::ReturnStatement> Parser::parse_return_statement() {
     }
     
     return return_stmt;
+}
+
+std::unique_ptr<ast::ImportStatement> Parser::parse_import_statement() {
+    expect(ast::TokenType::IMPORT, "Expected 'import' keyword.");
+    
+    auto import_stmt = std::make_unique<ast::ImportStatement>();
+    
+    // Parse module path (string literal)
+    if (current_token_.type == ast::TokenType::STRING) {
+        import_stmt->module_path = current_token_.value;
+        advance();
+    } else {
+        throw std::runtime_error("Expected string literal for module path");
+    }
+    
+    // Check for specific imports (import "module" { pattern1, pattern2 })
+    if (current_token_.type == ast::TokenType::LBRACE) {
+        advance(); // consume '{'
+        
+        while (current_token_.type != ast::TokenType::RBRACE && current_token_.type != ast::TokenType::EOF_TOKEN) {
+            if (current_token_.type == ast::TokenType::IDENTIFIER) {
+                import_stmt->imports.push_back(current_token_.value);
+                advance();
+                
+                if (current_token_.type == ast::TokenType::COMMA) {
+                    advance(); // consume ','
+                }
+            } else {
+                throw std::runtime_error("Expected identifier in import list");
+            }
+        }
+        
+        expect(ast::TokenType::RBRACE, "Expected '}' after import list");
+    }
+    
+    return import_stmt;
+}
+
+std::unique_ptr<ast::ExportStatement> Parser::parse_export_statement() {
+    expect(ast::TokenType::EXPORT, "Expected 'export' keyword.");
+    
+    auto export_stmt = std::make_unique<ast::ExportStatement>();
+    
+    expect(ast::TokenType::LBRACE, "Expected '{' after 'export'");
+    
+    while (current_token_.type != ast::TokenType::RBRACE && current_token_.type != ast::TokenType::EOF_TOKEN) {
+        if (current_token_.type == ast::TokenType::IDENTIFIER) {
+            export_stmt->exports.push_back(current_token_.value);
+            advance();
+            
+            if (current_token_.type == ast::TokenType::COMMA) {
+                advance(); // consume ','
+            }
+        } else {
+            throw std::runtime_error("Expected identifier in export list");
+        }
+    }
+    
+    expect(ast::TokenType::RBRACE, "Expected '}' after export list");
+    
+    return export_stmt;
 }
 
 } // namespace dsl::parser

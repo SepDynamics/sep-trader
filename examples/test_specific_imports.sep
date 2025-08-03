@@ -1,0 +1,7 @@
+pattern test_specific_imports {
+    import "utils.sep" { helper_function, base_pattern }
+    export { computed_value, result }
+    
+    computed_value = 42
+    result = computed_value * 2
+}

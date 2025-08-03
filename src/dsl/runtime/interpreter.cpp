@@ -297,6 +297,10 @@ void Interpreter::execute(const ast::Statement& stmt) {
         visit_function_declaration(*func_decl);
     } else if (const auto* return_stmt = dynamic_cast<const ast::ReturnStatement*>(&stmt)) {
         visit_return_statement(*return_stmt);
+    } else if (const auto* import_stmt = dynamic_cast<const ast::ImportStatement*>(&stmt)) {
+        visit_import_statement(*import_stmt);
+    } else if (const auto* export_stmt = dynamic_cast<const ast::ExportStatement*>(&stmt)) {
+        visit_export_statement(*export_stmt);
     } else {
         throw std::runtime_error("Unknown statement type");
     }
@@ -1101,6 +1105,43 @@ void Interpreter::visit_function_declaration(const ast::FunctionDeclaration& nod
 void Interpreter::visit_return_statement(const ast::ReturnStatement& node) {
     Value value = node.value ? evaluate(*node.value) : nullptr;
     throw ReturnException(value);
+}
+
+void Interpreter::visit_import_statement(const ast::ImportStatement& node) {
+    std::cout << "Importing module: " << node.module_path << std::endl;
+    
+    // For now, just implement a basic file-based import system
+    // In a full implementation, this would parse and execute the imported file
+    // and bring the specified exports into the current environment
+    
+    if (!node.imports.empty()) {
+        std::cout << "Importing specific items: ";
+        for (const auto& import : node.imports) {
+            std::cout << import << " ";
+        }
+        std::cout << std::endl;
+    } else {
+        std::cout << "Importing all exports from module" << std::endl;
+    }
+    
+    // TODO: Implement actual module loading and namespace management
+    // This would involve:
+    // 1. Parse the module file
+    // 2. Execute it in an isolated environment
+    // 3. Extract the exported patterns/functions
+    // 4. Import them into the current environment
+}
+
+void Interpreter::visit_export_statement(const ast::ExportStatement& node) {
+    std::cout << "Exporting: ";
+    for (const auto& export_name : node.exports) {
+        std::cout << export_name << " ";
+    }
+    std::cout << std::endl;
+    
+    // TODO: Implement actual export tracking
+    // This would involve marking the specified variables/patterns/functions
+    // as available for import by other modules
 }
 
 // Variable access methods

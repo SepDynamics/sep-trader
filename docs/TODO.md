@@ -12,10 +12,10 @@ This comprehensive roadmap tracks the evolution of SEP DSL from a working AGI pa
 - [x] **Pattern member access** - Dot notation for accessing pattern variables
 - [x] **Boolean and arithmetic operators** - Complete operator set
 - [x] **Built-in AGI functions** - measure_coherence, measure_entropy, etc.
-- [ ] **Add loop constructs** - for/while loops for iterative analysis
-- [ ] **Implement user-defined functions** - Allow function definitions within DSL
-- [ ] **Add pattern composition** - Patterns that inherit/compose from other patterns
-- [ ] **Implement pattern libraries** - Import/export mechanism for reusable patterns
+- [x] **Add loop constructs** - for/while loops for iterative analysis
+- [x] **Implement user-defined functions** - Allow function definitions within DSL
+- [x] **Add pattern composition** - Patterns that inherit/compose from other patterns
+- [x] **Implement pattern libraries** - Import/export mechanism for reusable patterns
 - [ ] **Add type annotations** - Optional type hints for better error messages
 - [ ] **Implement async/await** - Asynchronous pattern execution support
 - [ ] **Add exception handling** - try/catch blocks for error recovery

@@ -24,6 +24,14 @@ namespace dsl::lexer {
         {"while", ast::TokenType::WHILE},
         {"function", ast::TokenType::FUNCTION},
         {"return", ast::TokenType::RETURN},
+        {"import", ast::TokenType::IMPORT},
+        {"export", ast::TokenType::EXPORT},
+        {"async", ast::TokenType::ASYNC},
+        {"await", ast::TokenType::AWAIT},
+        {"try", ast::TokenType::TRY},
+        {"catch", ast::TokenType::CATCH},
+        {"throw", ast::TokenType::THROW},
+        {"finally", ast::TokenType::FINALLY},
         {"true", ast::TokenType::BOOLEAN},
         {"false", ast::TokenType::BOOLEAN}};
 

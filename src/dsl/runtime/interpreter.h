@@ -114,6 +114,8 @@ private:
     void visit_while_statement(const ast::WhileStatement& node);
     void visit_function_declaration(const ast::FunctionDeclaration& node);
     void visit_return_statement(const ast::ReturnStatement& node);
+    void visit_import_statement(const ast::ImportStatement& node);
+    void visit_export_statement(const ast::ExportStatement& node);
 
     // Declaration handling
     void execute_stream_decl(const ast::StreamDecl& decl);
