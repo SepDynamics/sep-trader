@@ -21,7 +21,7 @@ The easiest way to get started:
 
 ```bash
 # Clone the repository
-git clone https://github.com/scrallex/dsl.git
+git clone https://github.com/SepDynamics/sep-dsl.git
 cd dsl
 
 # Build with Docker (includes CUDA support)
@@ -38,7 +38,7 @@ sudo apt-get update
 sudo apt-get install cmake build-essential clang-15 cuda-toolkit
 
 # Clone and build
-git clone https://github.com/scrallex/dsl.git
+git clone https://github.com/SepDynamics/sep-dsl.git
 cd dsl
 ./install.sh --local --no-docker
 ./build.sh --no-docker

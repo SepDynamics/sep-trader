@@ -114,7 +114,7 @@ CMD ["/bin/bash"]
 LABEL maintainer="SEP DSL Team"
 LABEL description="SEP DSL - AGI Coherence Framework"
 LABEL version="1.0.0"
-LABEL url="https://github.com/scrallex/dsl"
+LABEL url="https://github.com/SepDynamics/sep-dsl"
 
 # Expose ports for future web interfaces
 EXPOSE 8080 8443

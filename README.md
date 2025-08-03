@@ -35,7 +35,7 @@ SEP DSL is a specialized programming language designed for **AGI Coherence Frame
 
 ```bash
 # Clone the repository
-git clone https://github.com/scrallex/dsl.git
+git clone https://github.com/SepDynamics/sep-dsl.git
 cd dsl
 
 # Option 1: Docker-based build (recommended)
@@ -328,7 +328,7 @@ has_cuda = SEP.has_cuda?       # Check CUDA support
 
 ```bash
 # Full development build
-git clone https://github.com/scrallex/dsl.git
+git clone https://github.com/SepDynamics/sep-dsl.git
 cd dsl
 
 # Install dependencies (Ubuntu/Debian)
