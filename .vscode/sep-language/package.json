@@ -1,0 +1,45 @@
+{
+    "name": "sep-language",
+    "displayName": "SEP Language Support",
+    "description": "Syntax highlighting and language support for SEP DSL files",
+    "version": "1.0.0",
+    "engines": {
+        "vscode": "^1.60.0"
+    },
+    "categories": [
+        "Programming Languages"
+    ],
+    "contributes": {
+        "languages": [
+            {
+                "id": "sep",
+                "aliases": [
+                    "SEP",
+                    "sep"
+                ],
+                "extensions": [
+                    ".sep"
+                ],
+                "configuration": "./language-configuration.json",
+                "icon": {
+                    "light": "../../assets/sep.png",
+                    "dark": "../../assets/sep.png"
+                }
+            }
+        ],
+        "grammars": [
+            {
+                "language": "sep",
+                "scopeName": "source.sep",
+                "path": "./syntaxes/sep.tmLanguage.json"
+            }
+        ],
+        "iconThemes": [
+            {
+                "id": "sep-icons",
+                "label": "SEP File Icons",
+                "path": "./icon-theme.json"
+            }
+        ]
+    }
+}

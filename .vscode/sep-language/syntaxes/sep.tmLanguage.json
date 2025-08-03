@@ -1,0 +1,87 @@
+{
+    "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+    "name": "SEP",
+    "patterns": [
+        {
+            "include": "#keywords"
+        },
+        {
+            "include": "#strings"
+        },
+        {
+            "include": "#comments"
+        },
+        {
+            "include": "#numbers"
+        },
+        {
+            "include": "#functions"
+        },
+        {
+            "include": "#types"
+        }
+    ],
+    "repository": {
+        "keywords": {
+            "patterns": [
+                {
+                    "name": "keyword.control.sep",
+                    "match": "\\b(pattern|stream|signal|memory|function|async|await|return|if|else|while|for|try|catch|throw|finally|import|export|inherits|from|when|using|input|output|evolve)\\b"
+                },
+                {
+                    "name": "keyword.operator.sep",
+                    "match": "\\b(and|or|not)\\b"
+                },
+                {
+                    "name": "constant.language.sep",
+                    "match": "\\b(true|false)\\b"
+                }
+            ]
+        },
+        "types": {
+            "patterns": [
+                {
+                    "name": "entity.name.type.sep",
+                    "match": "\\b(Number|String|Bool|Pattern|Void)\\b"
+                }
+            ]
+        },
+        "functions": {
+            "patterns": [
+                {
+                    "name": "entity.name.function.sep",
+                    "match": "\\b(sin|cos|tan|asin|acos|atan|atan2|exp|log|log10|log2|pow|sqrt|cbrt|abs|floor|ceil|round|trunc|fmod|min|max|pi|e|print|measure_coherence|measure_entropy|qfh_analyze|extract_bits|manifold_optimize)\\b"
+                }
+            ]
+        },
+        "strings": {
+            "name": "string.quoted.double.sep",
+            "begin": "\"",
+            "end": "\"",
+            "patterns": [
+                {
+                    "name": "constant.character.escape.sep",
+                    "match": "\\\\."
+                }
+            ]
+        },
+        "comments": {
+            "patterns": [
+                {
+                    "name": "comment.line.double-slash.sep",
+                    "match": "//.*$"
+                },
+                {
+                    "name": "comment.block.sep",
+                    "begin": "/\\*",
+                    "end": "\\*/"
+                }
+            ]
+        },
+        "numbers": {
+            "name": "constant.numeric.sep",
+            "match": "\\b\\d+(\\.\\d+)?\\b"
+        }
+    },
+    "scopeName": "source.sep"
+}

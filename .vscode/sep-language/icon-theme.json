@@ -1,0 +1,11 @@
+{
+    "iconDefinitions": {
+        "sep-file": {
+            "iconPath": "../../assets/sep.png"
+        }
+    },
+    "fileExtensions": {
+        "sep": "sep-file"
+    },
+    "file": "sep-file"
+}
