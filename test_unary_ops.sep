@@ -1,0 +1,7 @@
+pattern test_unary {
+    x = 5
+    y = -x
+    z = !true
+    w = !false
+    result = y + abs(-10)
+}

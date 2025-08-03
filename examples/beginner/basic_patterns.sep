@@ -1,0 +1,161 @@
+#!/usr/bin/env /sep/build/src/dsl/sep_dsl_interpreter
+
+// Learn pattern basics and variable scoping
+
+// Pattern 1: Simple calculations
+pattern math_demo {
+    // Arithmetic operations
+    a = 10
+    b = 3
+    
+    sum = a + b
+    difference = a - b  
+    product = a * b
+    quotient = a / b
+    
+    print("=== Math Demo ===")
+    print("a =", a, "b =", b)
+    print("Sum:", sum)
+    print("Difference:", difference)
+    print("Product:", product)
+    print("Quotient:", quotient)
+}
+
+// Pattern 2: Working with strings and booleans
+pattern data_types {
+    // Numbers
+    integer = 42
+    decimal = 3.14159
+    
+    // Strings
+    greeting = "Hello"
+    target = "World"
+    
+    // Booleans
+    is_active = true
+    is_complete = false
+    
+    // Comparisons
+    is_equal = (integer == 42)
+    is_greater = (decimal > 3.0)
+    
+    print("=== Data Types ===")
+    print("Integer:", integer)
+    print("Decimal:", decimal)
+    print("Greeting:", greeting)
+    print("Target:", target)
+    print("Is Active:", is_active)
+    print("Is Complete:", is_complete)
+    print("Is Equal to 42:", is_equal)
+    print("Is Greater than 3:", is_greater)
+}
+
+// Pattern 3: Control flow with if/else
+pattern control_flow {
+    temperature = 25.5
+    humidity = 65.0
+    
+    // Temperature analysis
+    if (temperature > 30) {
+        temp_status = "Hot"
+    } else if (temperature > 20) {
+        temp_status = "Comfortable" 
+    } else {
+        temp_status = "Cold"
+    }
+    
+    // Humidity check
+    optimal_humidity = (humidity >= 40) && (humidity <= 70)
+    
+    print("=== Control Flow ===")
+    print("Temperature:", temperature, "°C")
+    print("Humidity:", humidity, "%")
+    print("Temperature Status:", temp_status)
+    print("Optimal Humidity:", optimal_humidity)
+    
+    // Combined conditions
+    if (temperature > 20) && optimal_humidity {
+        print("✅ Perfect conditions!")
+    } else {
+        print("⚠️  Conditions need adjustment")
+    }
+}
+
+// Pattern 4: Basic AGI functions
+pattern agi_intro {
+    // Different types of test data
+    regular_data = "steady_signal"
+    noisy_data = "chaotic_noise"
+    pattern_data = "repeating_pattern"
+    
+    // Analyze each type
+    regular_coherence = measure_coherence(regular_data)
+    regular_entropy = measure_entropy(regular_data)
+    
+    noisy_coherence = measure_coherence(noisy_data)
+    noisy_entropy = measure_entropy(noisy_data)
+    
+    pattern_coherence = measure_coherence(pattern_data)
+    pattern_entropy = measure_entropy(pattern_data)
+    
+    print("=== AGI Analysis Intro ===")
+    print("")
+    print("Regular Signal:")
+    print("  Coherence:", regular_coherence)
+    print("  Entropy:", regular_entropy)
+    print("")
+    
+    print("Noisy Signal:")
+    print("  Coherence:", noisy_coherence)  
+    print("  Entropy:", noisy_entropy)
+    print("")
+    
+    print("Pattern Signal:")
+    print("  Coherence:", pattern_coherence)
+    print("  Entropy:", pattern_entropy)
+    print("")
+    
+    // Signal classification
+    if (regular_coherence > 0.7) {
+        print("✅ Regular signal is highly coherent")
+    }
+    
+    if (noisy_entropy > 0.8) {
+        print("⚠️  Noisy signal has high entropy (chaotic)")
+    }
+    
+    if ((pattern_coherence > 0.6) && (pattern_entropy < 0.5)) {
+        print("🎯 Pattern signal shows good structure")
+    }
+}
+
+// Pattern 5: Pattern member access
+pattern member_access_demo {
+    // This pattern will be accessible from outside
+    internal_value = 99
+    processed_result = internal_value * 2
+    status_flag = true
+    
+    print("=== Pattern Members ===")
+    print("Internal Value:", internal_value)
+    print("Processed Result:", processed_result)
+    print("Status Flag:", status_flag)
+}
+
+// Pattern 6: Using results from other patterns
+pattern pattern_combination {
+    // Access variables from the member_access_demo pattern
+    // Note: In a real implementation, you'd access these via pattern.variable syntax
+    
+    base_value = 50
+    
+    print("=== Pattern Combination ===")
+    print("Base Value:", base_value)
+    print("")
+    print("💡 To access other pattern variables, use pattern.variable syntax")
+    print("   Example: result = member_access_demo.internal_value")
+    print("   This allows patterns to build on each other!")
+}
+
+print("🎓 Patterns tutorial completed!")
+print("Next: Try examples/advanced/ for more complex features")

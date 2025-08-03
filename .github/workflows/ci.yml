@@ -1,42 +1,307 @@
-name: CI
+name: SEP DSL CI/CD
 
 on:
   push:
-    branches: ["master"]
+    branches: [ main, develop ]
   pull_request:
+    branches: [ main, develop ]
+  release:
+    types: [ published ]
+
+env:
+  BUILD_TYPE: Release
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
+  # Build and test on multiple platforms
+  build-and-test:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-20.04, ubuntu-22.04]
+        cuda: [true, false]
+        include:
+          - os: ubuntu-20.04
+            cuda: true
+            cuda_version: "12.0"
+          - os: ubuntu-22.04  
+            cuda: true
+            cuda_version: "12.2"
+
     steps:
-      - uses: actions/checkout@v4
-      - name: Install dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y build-essential cmake ninja-build libgtest-dev libbenchmark-dev libglm-dev libfmt-dev clang-tidy nlohmann-json3-dev libgl1-mesa-dev libglx-dev libglu1-mesa-dev libglfw3-dev libcurl4-openssl-dev
-      - name: Configure
-        run: |
-          mkdir build
-          cd build
-          cmake .. -G Ninja -DSEP_USE_CUDA=OFF
-      - name: Build
-        run: |
-          cd build
-          ninja
-      - name: Test
-        run: |
-          cd build
-          ctest --output-on-failure
-      - name: Static Analysis
-        run: |
-          clang-tidy $(git ls-files 'src/**/*.cpp') -- -std=c++17 || true
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        submodules: recursive
+
+    - name: Install CUDA (if enabled)
+      if: matrix.cuda == true
+      uses: Jimver/cuda-toolkit@v0.2.11
+      with:
+        cuda: ${{ matrix.cuda_version }}
+        method: 'network'
+
+    - name: Install system dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y \
+          cmake \
+          build-essential \
+          clang-15 \
+          libc++-15-dev \
+          libc++abi-15-dev \
+          pkg-config \
+          curl \
+          git
+
+    - name: Configure CMake
+      run: |
+        cmake -B ${{github.workspace}}/build \
+          -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} \
+          -DCMAKE_CXX_COMPILER=clang++-15
+
+    - name: Build
+      run: |
+        cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}} -j$(nproc)
+
+    - name: Run Core Tests
+      working-directory: ${{github.workspace}}/build
+      run: |
+        # Core language tests
+        ./tests/dsl_parser_test
+        ./tests/dsl_interpreter_test
+        
+        # Integration tests
+        ./examples/dsl_test
+        ./examples/dsl_core_test
+
+    - name: Run DSL Examples
+      working-directory: ${{github.workspace}}
+      run: |
+        # Test basic examples
+        ./build/src/dsl/sep_dsl_interpreter examples/beginner/hello_world.sep
+        ./build/src/dsl/sep_dsl_interpreter examples/beginner/basic_patterns.sep
+
+    - name: Test C API
+      working-directory: ${{github.workspace}}
+      run: |
+        # Build C API test
+        g++ -std=c++17 -I. tests/c_api/basic_test.cpp \
+          -L./build/src/c_api -lsep -o test_c_api
+        
+        # Run with library path
+        LD_LIBRARY_PATH=./build/src/c_api ./test_c_api
+
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: sep-dsl-${{ matrix.os }}-cuda-${{ matrix.cuda }}
+        path: |
+          build/src/dsl/sep_dsl_interpreter
+          build/src/c_api/libsep.so*
+          build/tests/*
+        retention-days: 7
+
+  # Static analysis and code quality
+  static-analysis:
+    runs-on: ubuntu-22.04
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y clang-tools-15 cppcheck
+
+    - name: Run clang-tidy
+      run: |
+        # Generate compile commands
+        cmake -B build -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
+        
+        # Run clang-tidy on core source files
+        clang-tidy-15 src/dsl/**/*.cpp src/engine/**/*.cpp \
+          -p build --checks=-*,readability-*,performance-*,modernize-*
+
+    - name: Run cppcheck
+      run: |
+        cppcheck --enable=all --std=c++17 --language=c++ \
+          --suppress=missingIncludeSystem \
+          src/ --xml 2> cppcheck-report.xml
+
+    - name: Upload static analysis results
+      uses: actions/upload-artifact@v3
+      with:
+        name: static-analysis-results
+        path: |
+          cppcheck-report.xml
+        retention-days: 30
+
+  # Documentation build
+  documentation:
+    runs-on: ubuntu-22.04
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Install documentation dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y doxygen graphviz
+
+    - name: Build documentation
+      run: |
+        # Generate API documentation
+        doxygen docs/Doxyfile
+
+    - name: Upload documentation
+      uses: actions/upload-artifact@v3
+      with:
+        name: documentation
+        path: docs/html/
+        retention-days: 30
+
+  # Ruby bindings test
+  ruby-bindings:
+    runs-on: ubuntu-22.04
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Set up Ruby
+      uses: ruby/setup-ruby@v1
+      with:
+        ruby-version: '3.1'
+
+    - name: Build core library
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y cmake build-essential clang-15
+        ./build.sh
+
+    - name: Install Ruby dependencies
+      working-directory: bindings/ruby
+      run: |
+        gem install bundler
+        bundle install
+
+    - name: Build Ruby extension
+      working-directory: bindings/ruby
+      run: |
+        # Set library path for compilation
+        export LD_LIBRARY_PATH="../../build/src/c_api:$LD_LIBRARY_PATH"
+        bundle exec rake compile
+
+    - name: Test Ruby bindings
+      working-directory: bindings/ruby
+      run: |
+        export LD_LIBRARY_PATH="../../build/src/c_api:$LD_LIBRARY_PATH"
+        bundle exec rake test
+
+  # Performance benchmarks
+  benchmarks:
+    runs-on: ubuntu-22.04
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y cmake build-essential clang-15
+
+    - name: Build with benchmarks
+      run: |
+        cmake -B build -DCMAKE_BUILD_TYPE=Release -DBUILD_BENCHMARKS=ON
+        cmake --build build -j$(nproc)
+
+    - name: Run benchmarks
+      working-directory: build
+      run: |
+        ./benchmarks/coherence_benchmark --benchmark_format=json > benchmark_results.json
+
+    - name: Upload benchmark results
+      uses: actions/upload-artifact@v3
+      with:
+        name: benchmark-results
+        path: build/benchmark_results.json
+        retention-days: 90
+
+  # Release builds
   release:
-    if: startsWith(github.ref, 'refs/tags/')
-    needs: build
-    runs-on: ubuntu-latest
+    if: github.event_name == 'release'
+    runs-on: ubuntu-22.04
+    needs: [build-and-test, static-analysis]
     steps:
-      - uses: actions/checkout@v4
-      - name: Create Release
-        uses: softprops/action-gh-release@v1
-        with:
-          generate_release_notes: true
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y cmake build-essential clang-15 zip
+
+    - name: Build release
+      run: |
+        cmake -B build -DCMAKE_BUILD_TYPE=Release
+        cmake --build build -j$(nproc)
+
+    - name: Package release
+      run: |
+        # Create release package
+        mkdir -p sep-dsl-release/{bin,lib,include,examples,docs}
+        
+        # Copy binaries
+        cp build/src/dsl/sep_dsl_interpreter sep-dsl-release/bin/
+        cp build/src/c_api/libsep.so* sep-dsl-release/lib/
+        
+        # Copy headers
+        cp src/c_api/sep_c_api.h sep-dsl-release/include/
+        
+        # Copy examples and docs
+        cp -r examples/* sep-dsl-release/examples/
+        cp README.md CONTRIBUTING.md LICENSE sep-dsl-release/docs/
+        
+        # Create archive
+        zip -r sep-dsl-${{ github.event.release.tag_name }}-linux-x86_64.zip sep-dsl-release/
+
+    - name: Upload release assets
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ github.event.release.upload_url }}
+        asset_path: ./sep-dsl-${{ github.event.release.tag_name }}-linux-x86_64.zip
+        asset_name: sep-dsl-${{ github.event.release.tag_name }}-linux-x86_64.zip
+        asset_content_type: application/zip
+
+  # Docker images
+  docker:
+    runs-on: ubuntu-22.04
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.event_name == 'release')
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v2
+
+    - name: Login to Docker Hub
+      uses: docker/login-action@v2
+      with:
+        username: ${{ secrets.DOCKER_USERNAME }}
+        password: ${{ secrets.DOCKER_PASSWORD }}
+
+    - name: Build and push Docker image
+      uses: docker/build-push-action@v4
+      with:
+        context: .
+        platforms: linux/amd64,linux/arm64
+        push: true
+        tags: |
+          sepdsl/sep-dsl:latest
+          sepdsl/sep-dsl:${{ github.sha }}
+          ${{ github.event_name == 'release' && format('sepdsl/sep-dsl:{0}', github.event.release.tag_name) || '' }}
+        cache-from: type=gha
+        cache-to: type=gha,mode=max

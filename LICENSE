@@ -1,44 +1,21 @@
-Copyright (c) 2024-2025 SepDynamics. All rights reserved.
+MIT License
 
-Proprietary License for SEP Engine
+Copyright (c) 2024 SEP DSL Contributors
 
-NOTICE: This software and its associated documentation files (the "SEP Engine") 
-contain proprietary algorithms, data structures, and methodologies that are the 
-exclusive intellectual property of SepDynamics.
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
 
-TERMS AND CONDITIONS:
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
 
-1. OWNERSHIP: All rights, title, and interest in and to the SEP Engine, including 
-   but not limited to all quantum-inspired pattern analysis algorithms, financial 
-   modeling techniques, CUDA acceleration methods, and related innovations, are 
-   owned exclusively by SepDynamics.
-
-2. PATENT PROTECTION: This software contains inventions that are patent pending 
-   or may be subject to future patent applications. The following core innovations 
-   are considered proprietary intellectual property:
-   - Quantum Field Harmonics (QFH) algorithms
-   - Quantum Bit State Analysis (QBSA) methodologies  
-   - Quantum Manifold Optimization techniques
-   - Pattern evolution and coherence management systems
-   - CUDA-accelerated quantum-inspired financial prediction models
-
-3. RESTRICTIONS: No part of this software may be reproduced, distributed, 
-   transmitted, displayed, published, or broadcast without the prior written 
-   permission of SepDynamics. This includes but is not limited to:
-   - Source code, algorithms, and methodologies
-   - Documentation and technical specifications
-   - Binary distributions and compiled forms
-   - Derivative works based on this software
-
-4. RESEARCH AND DEVELOPMENT: This repository is made available for research 
-   transparency and collaboration purposes only. Any use, reproduction, or 
-   adaptation requires explicit written authorization from SepDynamics.
-
-5. THIRD-PARTY COMPONENTS: Some components may be subject to separate license 
-   terms (Apache-2.0 for specific modules as indicated in source files). 
-   However, the core SEP Engine innovations remain proprietary.
-
-For licensing inquiries, commercial use, or collaboration opportunities, 
-please contact: legal@sepdynamics.com
-
-SepDynamics reserves all rights not expressly granted herein.
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.

@@ -158,6 +158,14 @@ Token Lexer::next_token() {
         
         if (current_char == '\0') break;
         
+        // Skip shebang lines (#!/...)
+        if (current_char == '#' && line == 1 && column == 1) {
+            while (current_char != '\n' && current_char != '\0') {
+                advance();
+            }
+            continue;
+        }
+        
         // Skip comments
         if (current_char == '/' && (peek() == '/' || peek() == '*')) {
             skip_comment();

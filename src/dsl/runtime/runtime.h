@@ -25,6 +25,11 @@ public:
     void start_repl();
     void execute_line(const std::string& line);
     
+    // Variable access
+    Value get_variable(const std::string& name);
+    bool has_variable(const std::string& name);
+    std::unordered_map<std::string, Value> get_all_variables();
+    
     // Error handling
     void set_error_handler(std::function<void(const std::string&)> handler);
     

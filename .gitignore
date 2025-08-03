@@ -1,111 +1,262 @@
-# Build Artifacts
-_build/
-sep-build/
-out/
+# Build directories
+build/
 dist/
-bin/
-output/
-CMakeFiles/
-cache/
-Makefile
-_work/
-_diag/
-_deps/
-.codechecker/
-backup-src/
-temp_train_chunks/
-opentelemetry-cpp/
-workspace/
-actions-runner/
-*build*/
-*/build/
-Testing/OANDA/sample_48h.json
-cmake-build-*/
+out/
 
-# Compiled Files
+# Compiled binaries
+*.exe
+*.out
+*.app
 *.o
-*.a
 *.so
 *.dll
-*.exe
-*.obj
-*.lib
 *.dylib
-*.tar.gz
-*.cu.o
-*.device-link.o
+*.a
+
+# CMake
+CMakeCache.txt
+CMakeFiles/
+CMakeScripts/
+Testing/
+Makefile
+cmake_install.cmake
+install_manifest.txt
+compile_commands.json
+CTestTestfile.cmake
+_deps
+
+# CUDA
+*.i
+*.ii
+*.gpu
 *.ptx
 *.cubin
 *.fatbin
-*.deb
 
-# Dependencies
-vendor/
-extern/
-!extern/crow
-third_party/
-!third_party/imgui
-!third_party/implot
-cmake-make/
-intern/
-source/
-release/
-externals/
-boost/
-tbb/
-temp/
-ollama/
-.turbo/
-node_modules/
-asio/
-
-# IDE & Editor Files
+# IDE files
+.vscode/
 .idea/
-.cache/
 *.swp
 *.swo
-# .vscode/
+*~
 
-# OS Generated Files
+# OS generated files
 .DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
 Thumbs.db
-.Trash-1000/
 
-# Log & Data Files
+# Logs and output
 *.log
+output/
 logs/
-metrics.json
-market_data.csv
-*.sqlite
-*.nsys-rep
+*.txt
 
-# Security
-.env*
+# Dependencies
+node_modules/
+vendor/
+third_party/build/
+
+# Package files
+*.tar.gz
+*.zip
+*.deb
+*.rpm
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv/
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Ruby
+*.gem
+.bundle/
+Gemfile.lock
+pkg/
+tmp/
+
+# Test artifacts
+test_results/
+coverage/
+*.gcov
+*.gcda
+*.gcno
+
+# Documentation build
+docs/_build/
+docs/html/
+docs/latex/
+
+# Cache directories
+.cache/
+.kilocode/
+cache/
+
+# Temporary files
+temp/
+tmp/
+*.tmp
+*.temp
+
+# Configuration files (may contain secrets)
+.env
 *.key
 *.pem
-secrets/
+config/secrets/
 
-# Testing
-coverage/
-.nyc_output/
-test-results/
-.pytest_cache/
+# Docker
+.dockerignore
 
-# Generated Files
-.embeddings/
-CMakeCache.txt
-build.ninja
-compile_commands.json
-.ninja_deps
-.ninja_log
-build.log
-cmake_install.cmake
-CMakeScripts/
-CMakeTmp/
-DartConfiguration.tcl
+# Git
+*.orig
+*.rej
 
-# Project Specific
-sep_engine
-sep_workbench
-build.sh
-temp_test_chunks
+# Backup files
+*.bak
+*.backup
+
+# Editor artifacts
+*.kate-swp
+.#*
+
+# Clang tools
+.clang-format
+.clang-tidy
+
+# Static analysis
+static-analysis-results/
+cppcheck-report.xml
+
+# Benchmarks
+benchmark_results.json
+profiling_results.txt
+
+# SEP DSL specific
+*.sep.out
+sep_output/
+pattern_results/
+
+# Package manager artifacts
+Pipfile.lock
+yarn.lock
+package-lock.json
+
+# Local development
+local/
+dev/
+scratch/
+
+# CI/CD artifacts
+artifacts/
+reports/
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+
+# Large test data files
+data/large/
+datasets/
+*.csv
+*.json.gz
+
+# Jupyter notebooks
+.ipynb_checkpoints/
+
+# R
+.RData
+.Rhistory
+
+# MATLAB
+*.asv
+
+# Temporary network files
+*.networkx_cache
+
+# PyCharm
+.idea/
+
+# VSCode
+.vscode/settings.json
+.vscode/launch.json
+.vscode/extensions.json
+.vscode/*.code-snippets
+
+# Vim
+[._]*.s[a-v][a-z]
+[._]*.sw[a-p]
+[._]s[a-rt-v][a-z]
+[._]ss[a-gi-z]
+[._]sw[a-p]
+
+# Emacs
+*~
+\#*\#
+/.emacs.desktop
+/.emacs.desktop.lock
+*.elc
+auto-save-list
+tramp
+.\#*
+
+# JetBrains
+.idea/
+*.iws
+*.iml
+*.ipr
+
+# CodeBlocks
+*.depend
+*.layout
+*.cbp
+
+# Qt Creator
+CMakeLists.txt.user*
+
+# Eclipse CDT
+.autotools
+.cproject
+.metadata
+.project
+.settings/
+
+# NetBeans
+/nbproject/private/
+/build/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+
+# Visual Studio
+.vs/
+*.user
+*.suo
+*.sdf
+*.opensdf
+*.VC.db
+
+# Xcode
+*.xcodeproj/
+*.xcworkspace/
+
+# AppCode
+.idea/
+
+# CLion
+cmake-build-*/
+
+# Ignore generated files but not the templates
+*_generated.*
+!*_template.*

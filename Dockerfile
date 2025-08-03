@@ -1,77 +1,127 @@
-# Use fully qualified image reference for better compatibility with Docker
-# alternatives like Podman which require explicit registry prefixes.
-FROM docker.io/nvidia/cuda:12.9.0-devel-ubuntu22.04
+# Multi-stage Docker build for SEP DSL
+# Provides both development environment and production runtime
 
-# Set CUDA environment variables
-ENV CUDA_HOME=/usr/local/cuda
-ENV PATH=${CUDA_HOME}/bin:${PATH}
-ENV LD_LIBRARY_PATH=${CUDA_HOME}/lib64:${LD_LIBRARY_PATH}
+# Build stage with CUDA support
+FROM nvidia/cuda:12.2-devel-ubuntu22.04 as builder
 
-# Install build essentials, cmake, clang, and ninja
-RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y \
-    build-essential \
+# Install build dependencies
+RUN apt-get update && apt-get install -y \
     cmake \
-    git \
+    build-essential \
     clang-15 \
-    clang-tidy-15 \
-    clang-format-15 \
-    iwyu \
-    ninja-build \
-    libfmt-dev \
-    libtbb-dev \
-    libbenchmark-dev \
-    nlohmann-json3-dev \
+    libc++-15-dev \
+    libc++abi-15-dev \
     pkg-config \
-    libhiredis-dev \
-    libgtest-dev \
-    libspdlog-dev \
-    libglm-dev \
-    libyaml-cpp-dev \
-    libimgui-dev \
-    libgl1-mesa-dev \
-    libglfw3-dev \
-    libcurl4-openssl-dev \
     curl \
+    git \
     python3 \
     python3-pip \
-    gdb \
-    libpipewire-0.3-dev \
-    libspa-0.2-dev \
-    fftw3-dev \
     && rm -rf /var/lib/apt/lists/*
 
-# Configure CUDA environment with explicit paths
-ENV CUDA_HOME=/usr/local/cuda
-ENV CUDA_TOOLKIT_ROOT_DIR=/usr/local/cuda
-ENV CUDA_BIN_PATH=/usr/local/cuda/bin
-ENV CMAKE_CUDA_COMPILER=/usr/local/cuda/bin/nvcc
-ENV PATH=${CUDA_HOME}/bin:${PATH}
-ENV LD_LIBRARY_PATH=${CUDA_HOME}/lib64:${LD_LIBRARY_PATH}
+# Set up work directory
+WORKDIR /sep
 
-# Verify CUDA installation and create necessary symlinks
-RUN ls -la /usr/local/cuda/bin/nvcc && \
-    ls -la /usr/local/cuda/include && \
-    ls -la /usr/local/cuda/lib64 && \
-    mkdir -p /usr/local/include/cuda && \
-    mkdir -p /usr/local/lib/cuda && \
-    ln -sf /usr/local/cuda/bin/nvcc /usr/bin/nvcc && \
-    ln -sf /usr/local/cuda/include/* /usr/local/include/cuda/ && \
-    ln -sf /usr/local/cuda/lib64/* /usr/local/lib/cuda/ && \
-    ln -sf /usr/bin/clang-tidy-15 /usr/bin/clang-tidy && \
-    ln -sf /usr/bin/clang-format-15 /usr/bin/clang-format && \
-    echo "CUDA environment verification complete"
+# Copy source code
+COPY . .
 
-# Install Python packages for analysis
-RUN pip3 install pandas numpy matplotlib
+# Build SEP DSL
+RUN ./build.sh
 
-# Install PyTorch with CUDA support
-RUN pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
+# Runtime stage
+FROM nvidia/cuda:12.2-runtime-ubuntu22.04 as runtime
 
-# Install CodeChecker for static analysis
-RUN pip3 install codechecker
+# Install runtime dependencies
+RUN apt-get update && apt-get install -y \
+    libstdc++6 \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
 
-# Set the default working directory to the project root
-WORKDIR /project
+# Create non-root user
+RUN useradd -m -s /bin/bash sepdsl
+
+# Copy built artifacts from builder stage
+COPY --from=builder /sep/build/src/dsl/sep_dsl_interpreter /usr/local/bin/
+COPY --from=builder /sep/build/src/c_api/libsep.so* /usr/local/lib/
+COPY --from=builder /sep/src/c_api/sep_c_api.h /usr/local/include/sep/
+COPY --from=builder /sep/examples/ /home/sepdsl/examples/
+COPY --from=builder /sep/docs/ /home/sepdsl/docs/
+COPY --from=builder /sep/README.md /home/sepdsl/
+
+# Set up library path
+RUN echo "/usr/local/lib" > /etc/ld.so.conf.d/sep.conf && ldconfig
+
+# Create pkg-config file
+RUN mkdir -p /usr/local/lib/pkgconfig && \
+    echo "prefix=/usr/local" > /usr/local/lib/pkgconfig/sep.pc && \
+    echo "exec_prefix=\${prefix}" >> /usr/local/lib/pkgconfig/sep.pc && \
+    echo "libdir=\${exec_prefix}/lib" >> /usr/local/lib/pkgconfig/sep.pc && \
+    echo "includedir=\${prefix}/include" >> /usr/local/lib/pkgconfig/sep.pc && \
+    echo "" >> /usr/local/lib/pkgconfig/sep.pc && \
+    echo "Name: SEP DSL" >> /usr/local/lib/pkgconfig/sep.pc && \
+    echo "Description: AGI Coherence Framework DSL" >> /usr/local/lib/pkgconfig/sep.pc && \
+    echo "Version: 1.0.0" >> /usr/local/lib/pkgconfig/sep.pc && \
+    echo "Libs: -L\${libdir} -lsep" >> /usr/local/lib/pkgconfig/sep.pc && \
+    echo "Cflags: -I\${includedir}" >> /usr/local/lib/pkgconfig/sep.pc
+
+# Set permissions
+RUN chown -R sepdsl:sepdsl /home/sepdsl/
+
+# Switch to non-root user
+USER sepdsl
+WORKDIR /home/sepdsl
+
+# Test installation
+RUN echo 'pattern test { print("SEP DSL Docker build successful!") }' | sep_dsl_interpreter
+
+# Development stage (optional)
+FROM builder as development
+
+# Install additional development tools
+RUN apt-get update && apt-get install -y \
+    gdb \
+    valgrind \
+    clang-tools-15 \
+    cppcheck \
+    doxygen \
+    graphviz \
+    ruby \
+    ruby-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Ruby development gems
+RUN gem install bundler rake rake-compiler rspec
+
+# Create development user
+RUN useradd -m -s /bin/bash developer && \
+    usermod -aG sudo developer && \
+    echo "developer ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
+
+# Set up development workspace
+WORKDIR /workspace
+COPY . .
+RUN chown -R developer:developer /workspace
+
+USER developer
+
+# Set up development environment
+ENV PATH="/workspace/build/src/dsl:$PATH"
+ENV LD_LIBRARY_PATH="/workspace/build/src/c_api:$LD_LIBRARY_PATH"
 
 # Default command
-CMD ["bash"]
+CMD ["/bin/bash"]
+
+# Labels for the image
+LABEL maintainer="SEP DSL Team"
+LABEL description="SEP DSL - AGI Coherence Framework"
+LABEL version="1.0.0"
+LABEL url="https://github.com/scrallex/dsl"
+
+# Expose ports for future web interfaces
+EXPOSE 8080 8443
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+  CMD echo 'pattern health { print("OK") }' | sep_dsl_interpreter || exit 1
+
+# Default runtime image
+FROM runtime

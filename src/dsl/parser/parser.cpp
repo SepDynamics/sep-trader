@@ -319,9 +319,14 @@ std::unique_ptr<ast::Expression> Parser::parse_factor() {
 
 std::unique_ptr<ast::Expression> Parser::parse_unary() {
     if (current_token_.type == ast::TokenType::NOT || current_token_.type == ast::TokenType::MINUS) {
-        // TODO: Add UnaryOp node type for proper unary expression handling
+        std::string op = current_token_.value;
         advance();
-        return parse_unary();
+        auto right = parse_unary();
+        
+        auto unary = std::make_unique<ast::UnaryOp>();
+        unary->op = op;
+        unary->right = std::move(right);
+        return unary;
     }
     
     return parse_call();

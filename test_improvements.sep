@@ -1,0 +1,34 @@
+#!/usr/bin/env /sep/build/src/dsl/sep_dsl_interpreter
+
+pattern test_improvements {
+    // Test print function  
+    print("=== Testing AGI DSL Improvements ===")
+    
+    // Test basic arithmetic
+    x = 10
+    y = 5
+    result = x + y
+    print("Arithmetic test:", x, "+", y, "=", result)
+    
+    // Test real engine integration
+    pattern_data = "test_sensor_data"
+    bits = extract_bits(pattern_data)
+    coherence = measure_coherence(pattern_data)
+    entropy = measure_entropy(pattern_data)
+    
+    print("Real engine test:")
+    print("  Coherence:", coherence) 
+    print("  Entropy:", entropy)
+    
+    // Test logical operations
+    is_coherent = coherence > 0.5
+    is_stable = entropy < 0.5
+    system_healthy = is_coherent && is_stable
+    
+    print("System analysis:")
+    print("  Is coherent:", is_coherent)
+    print("  Is stable:", is_stable)
+    print("  System healthy:", system_healthy)
+    
+    print("=== All tests completed successfully ===")
+}

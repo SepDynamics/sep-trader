@@ -20,6 +20,9 @@ add_library(sep_dsl STATIC
     runtime/runtime.cpp
 )
 
+# Enable Position Independent Code for shared library compatibility
+set_target_properties(sep_dsl PROPERTIES POSITION_INDEPENDENT_CODE ON)
+
 # Set include directories
 target_include_directories(sep_dsl PUBLIC 
     ${CMAKE_CURRENT_SOURCE_DIR}

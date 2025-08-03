@@ -1,5 +1,6 @@
 #pragma once
 #include <any>
+#include <functional>
 #include <stdexcept>
 #include <string>
 #include <unordered_map>
@@ -76,12 +77,19 @@ class Interpreter {
     friend class UserFunction;
 
 public:
+    Interpreter();
     void interpret(const ast::Program& program);
+    
+    // Variable access
+    Value get_global_variable(const std::string& name);
+    bool has_global_variable(const std::string& name);
+    const std::unordered_map<std::string, Value>& get_global_variables() const;
 
 private:
     Environment globals_;
     Environment* environment_;
     const ast::Program* program_;  // Pointer to the current program being interpreted
+    std::unordered_map<std::string, std::function<Value(const std::vector<Value>&)>> builtins_;
 
     // Methods to "visit" and execute each AST node type
     Value evaluate(const ast::Expression& expr);
@@ -93,6 +101,7 @@ private:
     Value visit_boolean_literal(const ast::BooleanLiteral& node);
     Value visit_identifier(const ast::Identifier& node);
     Value visit_binary_op(const ast::BinaryOp& node);
+    Value visit_unary_op(const ast::UnaryOp& node);
     Value visit_call(const ast::Call& node);
     Value visit_member_access(const ast::MemberAccess& node);
     Value visit_weighted_sum(const ast::WeightedSum& node);
@@ -112,6 +121,7 @@ private:
     void execute_signal_decl(const ast::SignalDecl& decl);
     
     // Built-in functions
+    void register_builtins();
     Value call_builtin_function(const std::string& name, const std::vector<Value>& args);
     
     // Utility functions

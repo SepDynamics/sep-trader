@@ -39,6 +39,191 @@ void Environment::assign(const std::string& name, const Value& value) {
 }
 
 // Interpreter implementation
+Interpreter::Interpreter() : environment_(&globals_), program_(nullptr) {
+    register_builtins();
+}
+
+void Interpreter::register_builtins() {
+    // Get the singleton instance of the engine facade
+    auto& engine = sep::engine::EngineFacade::getInstance();
+    
+    // AGI Engine Bridge Functions - THE REAL POWER
+    builtins_["measure_coherence"] = [&engine](const std::vector<Value>& args) -> Value {
+        std::cout << "DSL: Calling real measure_coherence with " << args.size() << " arguments" << std::endl;
+        
+        sep::engine::PatternAnalysisRequest request;
+        if (!args.empty()) {
+            try {
+                request.pattern_id = std::any_cast<std::string>(args[0]);
+            } catch (const std::bad_any_cast&) {
+                request.pattern_id = "default_pattern";
+            }
+        }
+        request.analysis_depth = 3;
+        request.include_relationships = true;
+        
+        sep::engine::PatternAnalysisResponse response;
+        auto result = engine.analyzePattern(request, response);
+        
+        if (sep::core::isSuccess(result)) {
+            return static_cast<double>(response.confidence_score);
+        } else {
+            throw std::runtime_error("Engine call failed for measure_coherence");
+        }
+    };
+    
+    builtins_["qfh_analyze"] = [&engine](const std::vector<Value>& args) -> Value {
+        if (args.empty()) {
+            throw std::runtime_error("qfh_analyze expects a bitstream argument");
+        }
+
+        std::vector<uint8_t> bitstream;
+        try {
+            std::string bitstream_str = std::any_cast<std::string>(args[0]);
+            for (char c : bitstream_str) {
+                bitstream.push_back(c - '0');
+            }
+        } catch (const std::bad_any_cast&) {
+            throw std::runtime_error("Invalid bitstream argument for qfh_analyze");
+        }
+
+        sep::engine::QFHAnalysisRequest request;
+        request.bitstream = bitstream;
+        sep::engine::QFHAnalysisResponse response;
+        auto result = engine.qfhAnalyze(request, response);
+
+        if (sep::core::isSuccess(result)) {
+            return static_cast<double>(response.rupture_ratio);
+        } else {
+            throw std::runtime_error("Engine call failed for qfh_analyze");
+        }
+    };
+    
+    builtins_["measure_entropy"] = [&engine](const std::vector<Value>& args) -> Value {
+        std::cout << "DSL: Calling real measure_entropy with " << args.size() << " arguments" << std::endl;
+        
+        sep::engine::PatternAnalysisRequest request;
+        if (!args.empty()) {
+            try {
+                request.pattern_id = std::any_cast<std::string>(args[0]);
+            } catch (const std::bad_any_cast&) {
+                request.pattern_id = "entropy_pattern";
+            }
+        }
+        request.analysis_depth = 2;
+        request.include_relationships = false;
+        
+        sep::engine::PatternAnalysisResponse response;
+        auto result = engine.analyzePattern(request, response);
+        
+        if (sep::core::isSuccess(result)) {
+            std::cout << "Real entropy from engine: " << response.entropy << std::endl;
+            return static_cast<double>(response.entropy);
+        } else {
+            throw std::runtime_error("Engine call failed for measure_entropy");
+        }
+    };
+    
+    builtins_["extract_bits"] = [&engine](const std::vector<Value>& args) -> Value {
+        std::cout << "DSL: Calling real extract_bits with " << args.size() << " arguments" << std::endl;
+        
+        sep::engine::BitExtractionRequest request;
+        if (!args.empty()) {
+            try {
+                request.pattern_id = std::any_cast<std::string>(args[0]);
+            } catch (const std::bad_any_cast&) {
+                request.pattern_id = "bitstream_pattern";
+            }
+        }
+        
+        sep::engine::BitExtractionResponse response;
+        auto result = engine.extractBits(request, response);
+        
+        if (sep::core::isSuccess(result) && response.success) {
+            // Convert bitstream to string for DSL use
+            std::string bitstream_str;
+            for (uint8_t bit : response.bitstream) {
+                bitstream_str += (bit ? '1' : '0');
+            }
+            return bitstream_str;
+        } else {
+            throw std::runtime_error("Engine call failed for extract_bits");
+        }
+    };
+    
+    builtins_["manifold_optimize"] = [&engine](const std::vector<Value>& args) -> Value {
+        if (args.size() < 3) {
+            throw std::runtime_error("manifold_optimize expects pattern_id, target_coherence, target_stability");
+        }
+        
+        sep::engine::ManifoldOptimizationRequest request;
+        try {
+            request.pattern_id = std::any_cast<std::string>(args[0]);
+            request.target_coherence = static_cast<float>(std::any_cast<double>(args[1]));
+            request.target_stability = static_cast<float>(std::any_cast<double>(args[2]));
+        } catch (const std::bad_any_cast&) {
+            throw std::runtime_error("Invalid arguments for manifold_optimize");
+        }
+        
+        sep::engine::ManifoldOptimizationResponse response;
+        auto result = engine.manifoldOptimize(request, response);
+        
+        if (sep::core::isSuccess(result) && response.success) {
+            return static_cast<double>(response.optimized_coherence);
+        } else {
+            throw std::runtime_error("Engine call failed for manifold_optimize");
+        }
+    };
+    
+    // Math functions
+    builtins_["abs"] = [](const std::vector<Value>& args) -> Value {
+        if (args.size() != 1) {
+            throw std::runtime_error("abs() expects exactly 1 argument");
+        }
+        double value = std::any_cast<double>(args[0]);
+        return std::abs(value);
+    };
+    
+    builtins_["sqrt"] = [](const std::vector<Value>& args) -> Value {
+        if (args.size() != 1) {
+            throw std::runtime_error("sqrt() expects exactly 1 argument");
+        }
+        double value = std::any_cast<double>(args[0]);
+        if (value < 0) {
+            throw std::runtime_error("sqrt() of negative number");
+        }
+        return std::sqrt(value);
+    };
+    
+    builtins_["min"] = [](const std::vector<Value>& args) -> Value {
+        if (args.size() != 2) {
+            throw std::runtime_error("min() expects exactly 2 arguments");
+        }
+        double a = std::any_cast<double>(args[0]);
+        double b = std::any_cast<double>(args[1]);
+        return std::min(a, b);
+    };
+    
+    builtins_["max"] = [](const std::vector<Value>& args) -> Value {
+        if (args.size() != 2) {
+            throw std::runtime_error("max() expects exactly 2 arguments");
+        }
+        double a = std::any_cast<double>(args[0]);
+        double b = std::any_cast<double>(args[1]);
+        return std::max(a, b);
+    };
+    
+    // Debugging functions
+    builtins_["print"] = [this](const std::vector<Value>& args) -> Value {
+        for (size_t i = 0; i < args.size(); ++i) {
+            if (i > 0) std::cout << " ";
+            std::cout << stringify(args[i]);
+        }
+        std::cout << std::endl;
+        return 0.0; // Return dummy value
+    };
+}
+
 void Interpreter::interpret(const ast::Program& program) {
     environment_ = &globals_;
     program_ = &program;
@@ -80,6 +265,9 @@ Value Interpreter::evaluate(const ast::Expression& expr) {
     }
     if (const auto* binary_op = dynamic_cast<const ast::BinaryOp*>(&expr)) {
         return visit_binary_op(*binary_op);
+    }
+    if (const auto* unary_op = dynamic_cast<const ast::UnaryOp*>(&expr)) {
+        return visit_unary_op(*unary_op);
     }
     if (const auto* call = dynamic_cast<const ast::Call*>(&expr)) {
         return visit_call(*call);
@@ -190,8 +378,33 @@ Value Interpreter::visit_binary_op(const ast::BinaryOp& node) {
     if (node.op == "!=") {
         return !is_equal(left, right);
     }
+    if (node.op == "&&") {
+        bool left_bool = std::any_cast<bool>(left);
+        bool right_bool = std::any_cast<bool>(right);
+        return left_bool && right_bool;
+    }
+    if (node.op == "||") {
+        bool left_bool = std::any_cast<bool>(left);
+        bool right_bool = std::any_cast<bool>(right);
+        return left_bool || right_bool;
+    }
     
     throw std::runtime_error("Unknown binary operator: " + node.op);
+}
+
+Value Interpreter::visit_unary_op(const ast::UnaryOp& node) {
+    Value right = evaluate(*node.right);
+    
+    if (node.op == "-") {
+        double right_num = std::any_cast<double>(right);
+        return -right_num;
+    }
+    if (node.op == "!") {
+        bool right_bool = std::any_cast<bool>(right);
+        return !right_bool;
+    }
+    
+    throw std::runtime_error("Unknown unary operator: " + node.op);
 }
 
 Value Interpreter::visit_call(const ast::Call& node) {
@@ -365,6 +578,13 @@ void Interpreter::execute_signal_decl(const ast::SignalDecl& decl) {
 }
 
 Value Interpreter::call_builtin_function(const std::string& name, const std::vector<Value>& args) {
+    // First check the dynamic built-ins map
+    auto it = builtins_.find(name);
+    if (it != builtins_.end()) {
+        return it->second(args);
+    }
+    
+    // Fall back to legacy hardcoded functions (TODO: migrate all to builtins_ map)
     // Get the singleton instance of the engine facade
     auto& engine = sep::engine::EngineFacade::getInstance();
     
@@ -881,6 +1101,24 @@ void Interpreter::visit_function_declaration(const ast::FunctionDeclaration& nod
 void Interpreter::visit_return_statement(const ast::ReturnStatement& node) {
     Value value = node.value ? evaluate(*node.value) : nullptr;
     throw ReturnException(value);
+}
+
+// Variable access methods
+Value Interpreter::get_global_variable(const std::string& name) {
+    return globals_.get(name);
+}
+
+bool Interpreter::has_global_variable(const std::string& name) {
+    try {
+        globals_.get(name);
+        return true;
+    } catch (const std::runtime_error&) {
+        return false;
+    }
+}
+
+const std::unordered_map<std::string, Value>& Interpreter::get_global_variables() const {
+    return globals_.getVariables();
 }
 
 } // namespace dsl::runtime

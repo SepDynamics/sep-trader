@@ -1,3 +1,5 @@
+#!/usr/bin/env /sep/build/src/dsl/sep_dsl_interpreter
+
 # SEP DSL Test Script for Built-in Functions
 # This tests the core primitives, math, and statistical functions
 

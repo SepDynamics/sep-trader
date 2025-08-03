@@ -80,6 +80,11 @@ struct BinaryOp : Expression {
     std::unique_ptr<Expression> right;
 };
 
+struct UnaryOp : Expression {
+    std::string op;
+    std::unique_ptr<Expression> right;
+};
+
 struct Call : Expression {
     std::string callee;
     std::vector<std::unique_ptr<Expression>> args;

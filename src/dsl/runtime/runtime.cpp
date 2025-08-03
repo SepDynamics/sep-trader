@@ -73,4 +73,17 @@ void DSLRuntime::handle_error(const std::string& message) {
     }
 }
 
+// Variable access methods
+Value DSLRuntime::get_variable(const std::string& name) {
+    return interpreter_.get_global_variable(name);
+}
+
+bool DSLRuntime::has_variable(const std::string& name) {
+    return interpreter_.has_global_variable(name);
+}
+
+std::unordered_map<std::string, Value> DSLRuntime::get_all_variables() {
+    return interpreter_.get_global_variables();
+}
+
 } // namespace dsl::runtime

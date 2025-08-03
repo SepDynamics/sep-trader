@@ -63,3 +63,17 @@ add_executable(test_forward_window_metrics
 target_include_directories(test_forward_window_metrics PRIVATE ../src)
 target_link_libraries(test_forward_window_metrics GTest::gtest GTest::gtest_main sep_trader_logic sep_trader_cuda CUDA::cudart TBB::tbb)
 gtest_discover_tests(test_forward_window_metrics)
+
+# DSL Parser Tests
+add_executable(dsl_parser_test
+    dsl/unit/parser_test.cpp)
+target_include_directories(dsl_parser_test PRIVATE ../src)
+target_link_libraries(dsl_parser_test GTest::gtest GTest::gtest_main sep_dsl)
+gtest_discover_tests(dsl_parser_test)
+
+# DSL Interpreter Tests
+add_executable(dsl_interpreter_test
+    dsl/unit/interpreter_test.cpp)
+target_include_directories(dsl_interpreter_test PRIVATE ../src)
+target_link_libraries(dsl_interpreter_test GTest::gtest GTest::gtest_main sep_dsl)
+gtest_discover_tests(dsl_interpreter_test)
