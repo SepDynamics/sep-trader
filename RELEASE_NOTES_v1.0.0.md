@@ -290,8 +290,8 @@ Special thanks to the testing team who identified and helped resolve the critica
 
 - **Source**: `git clone https://github.com/SepDynamics/sep-dsl.git && git checkout v1.0.0`
 - **Docker**: `docker pull sepdsl/sep-dsl:1.0.0`
-- **Ruby Gem**: `gem install sep-dsl`
-- **Python Package**: `pip install sep-dsl` (coming soon)
+- **Build from Source**: All language bindings require building from source
+- **Package Distribution**: Not yet published to package repositories
 
 **The SEP DSL team**  
 August 3, 2025

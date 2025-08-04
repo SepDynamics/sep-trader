@@ -254,7 +254,7 @@ This comprehensive roadmap tracks the evolution of SEP DSL from a working AGI pa
 - [x] **Issue templates** - Community support infrastructure
 - [x] **Documentation structure** - Comprehensive docs and guides
 - [ ] **Website** - Product landing page
-- [ ] **Documentation portal** - docs.sepdsl.com
+- [ ] **Documentation portal** - future website (TBD)
 - [ ] **Support system** - Ticketing/forum
 - [ ] **Pricing model** - Freemium/enterprise tiers
 - [ ] **Payment integration** - Stripe/billing

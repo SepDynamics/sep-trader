@@ -59,8 +59,8 @@ Thank you for your interest in contributing to SEP DSL! This document provides g
 ### 🎯 High Priority
 
 #### Language Bindings
-- **Python bindings** (`pip install sep-dsl`)
-- **JavaScript/Node.js** (`npm install sep-dsl`)
+- **Language bindings** (Ruby, Python, JavaScript) - build from source only
+- **Package distribution** - not yet published to package repositories
 - **Go bindings** for systems programming
 - **Rust bindings** for high-performance applications
 

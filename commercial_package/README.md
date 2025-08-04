@@ -1,4 +1,4 @@
-# SEP DSL Commercial Package v1.3.0
+# SEP DSL Commercial Package v1.0.0
 
 ## 🚀 Latest Commercial Release Features
 
@@ -134,11 +134,13 @@ sep_value_t* result = sep_get_variable(interp, "analysis.result");
 
 ## ✅ Validation Results
 
-**DSL Language Foundation**: 100% test coverage across all components  
-- DSL Parser Test: ✅ Complete syntax validation
-- DSL Interpreter Test: ✅ Runtime execution verified  
-- Pattern Metrics Test: ✅ 8/8 tests passing
-- C API Test: ✅ Universal language binding validated
+**DSL Language Foundation**: Complete test coverage across all components  
+- **61/61 Tests Passing**: ✅ Complete DSL validation achieved
+- Parser Tests: ✅ Syntax validation (13/13 passing)
+- Interpreter Tests: ✅ Runtime execution (14/14 passing)  
+- Semantic Analysis Tests: ✅ Variable/type validation (12/12 passing)
+- Syntax Validation Tests: ✅ Advanced constructs (13/13 passing)
+- Serialization Tests: ✅ AST persistence (9/9 passing)
 
 **AGI Analysis Performance**: Production-grade pattern recognition and coherence analysis  
 **CUDA Performance**: 73ms execution time for quantum field harmonics (GPU-accelerated)  
@@ -207,6 +209,10 @@ This technology has achieved:
 
 ## 📄 License & Usage
 
-This commercial package is licensed for production use. See `support/LICENSE.txt` for complete terms.
+This commercial package contains **patent-pending technology** licensed for production use. 
+
+**Commercial Licensing**: For enterprise deployment, OEM integration, or custom development, see [COMMERCIAL.md](../COMMERCIAL.md) for licensing options.
+
+**Separate from Financial Tools**: This is a general-purpose AGI platform. For specialized financial market applications, see [SepDynamics](https://github.com/SepDynamics/sep).
 
 **Ready to unlock AGI pattern analysis across any domain from day one.**

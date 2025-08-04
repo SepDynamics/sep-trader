@@ -38,7 +38,7 @@ npm run build
 ### Using npm (when available)
 
 ```bash
-npm install sep-dsl
+# Build from source - not yet published
 ```
 
 ## Quick Start
@@ -423,4 +423,4 @@ MIT License - see [LICENSE](../../LICENSE) for details.
 
 - Issues: https://github.com/SepDynamics/sep-dsl/issues
 - Documentation: https://github.com/SepDynamics/sep-dsl#readme
-- Email: alex@sepdynamics.com
+- Email: contact@example.com

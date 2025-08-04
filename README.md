@@ -5,9 +5,11 @@
 ![SEP DSL](https://img.shields.io/badge/SEP-DSL-blue?style=for-the-badge)
 ![CUDA](https://img.shields.io/badge/CUDA-12.9-green?style=for-the-badge)
 ![C++17](https://img.shields.io/badge/C%2B%2B-17-blue?style=for-the-badge)
-![License](https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge)
+![License](https://img.shields.io/badge/License-Commercial-red?style=for-the-badge)
 
 **A high-performance Domain Specific Language for AGI pattern analysis and quantum signal processing**
+
+> **🏢 Commercial Notice**: This is a general-purpose AGI pattern analysis platform. For financial market applications, see our specialized financial tools at [SepDynamics](https://github.com/SepDynamics/sep). Commercial licensing available - see [LICENSE](LICENSE) for details.
 
 [🚀 Quick Start](#quick-start) • [📚 Documentation](#documentation) • [🤝 Contributing](#contributing) • [🔧 API Reference](#api-reference)
 
@@ -151,10 +153,10 @@ Run it:
 
 ### Language Bindings
 
-#### Ruby (Available Now)
+#### Ruby (Coming Soon)
 
 ```ruby
-gem install sep_dsl  # Coming soon
+# Not yet published - build from source
 
 require 'sep_dsl'
 
@@ -553,9 +555,17 @@ We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guid
 - **Discord/Slack**: Real-time community chat (coming soon)
 - **Blog**: Technical deep-dives and tutorials (coming soon)
 
-## License
+## License & Commercial Use
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under a **Commercial Dual License**:
+
+- **Open Source Use**: Free for academic research, education, and open source projects
+- **Commercial Use**: Requires commercial license for revenue-generating applications
+- **Patent Protection**: Algorithms subject to patent applications currently pending
+
+**Commercial Licensing Available**: For enterprise deployment, integration, and commercial applications, contact licensing@sep-dsl.com
+
+See the [LICENSE](LICENSE) file for complete terms and conditions.
 
 ## Roadmap
 
@@ -563,9 +573,8 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - ✅ Core DSL with CUDA integration
 - ✅ **Complete Test Coverage (61/61 tests passing)**
 - ✅ Advanced language features (async/await, exceptions, type annotations)
-- ✅ Ruby bindings (`gem install sep-dsl`)
-- ✅ Python bindings (`pip install sep-dsl`)
-- ✅ JavaScript/Node.js bindings (`npm install sep-dsl`)
+- 🔄 Language bindings (Ruby, Python, JavaScript) - in development
+- 🔄 Package distribution - not yet published
 - ✅ Pattern recognition and quantum analysis
 - ✅ Real-time data processing applications
 - ✅ LibFuzzer integration for robustness testing

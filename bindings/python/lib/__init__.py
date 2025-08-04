@@ -9,6 +9,6 @@ from .dsl import DSLInterpreter, DSLError
 
 __version__ = "1.0.0"
 __author__ = "SEP Engine Team"
-__email__ = "alex@sepdynamics.com"
+__email__ = "contact@example.com"
 
 __all__ = ["DSLInterpreter", "DSLError"]

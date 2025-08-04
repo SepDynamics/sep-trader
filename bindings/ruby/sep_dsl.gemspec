@@ -2,7 +2,7 @@ Gem::Specification.new do |spec|
   spec.name          = "sep_dsl"
   spec.version       = "1.0.0"
   spec.authors       = ["SEP Engine Team"]
-  spec.email         = ["alex@sepdynamics.com"]
+  spec.email         = ["contact@example.com"]
 
   spec.summary       = "AGI Coherence Framework DSL with CUDA acceleration"
   spec.description   = "Ruby bindings for the SEP DSL engine providing quantum pattern analysis and real-time signal generation"

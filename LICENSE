@@ -1,16 +1,49 @@
-MIT License
+SEP DSL Commercial License
+============================
 
-Copyright (c) 2024 SEP DSL Contributors
+Copyright (c) 2025 SEP DSL Project
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+## Patent Notice
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
+This software includes algorithms and methods subject to patent applications
+currently pending. Commercial use may require additional licensing.
+
+## License Grant
+
+### Open Source Use
+Permission is granted to use this software for:
+- Academic research and education
+- Open source projects (with attribution)  
+- Personal/non-commercial experimentation
+- Evaluation and testing purposes
+
+### Commercial Use
+Commercial use, including but not limited to:
+- Integration into commercial products
+- Use in commercial services
+- Distribution in commercial packages
+- Revenue-generating applications
+
+Requires a separate commercial license agreement.
+
+## Commercial Licensing
+
+For commercial licensing inquiries, including:
+- Enterprise deployment rights
+- Patent licensing for covered algorithms
+- Custom integration support
+- Volume licensing terms
+
+Contact: licensing@sep-dsl.com
+
+## Attribution Requirements
+
+All use (commercial and non-commercial) must include:
+1. This copyright notice
+2. Patent application acknowledgment
+3. Attribution to "SEP DSL Project"
+
+## Warranty Disclaimer
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
@@ -19,3 +52,15 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+
+## Additional Terms
+
+This license does not grant rights to trademarks, trade names, or other 
+intellectual property beyond the scope explicitly stated herein.
+
+Patent applications referenced herein are filed but not yet granted. 
+License terms may be updated upon patent issuance.
+
+---
+Last Updated: August 3, 2025
+License Version: 1.0 (Commercial Dual-License)

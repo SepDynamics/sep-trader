@@ -32,7 +32,7 @@ setup(
     name="sep-dsl",
     version="1.0.0",
     author="SEP Engine Team",
-    author_email="alex@sepdynamics.com",
+    author_email="contact@example.com",
     description="SEP DSL - Advanced AGI Pattern Analysis Language",
     long_description="""
 SEP DSL is a domain-specific language for advanced AGI pattern analysis.

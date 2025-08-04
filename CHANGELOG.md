@@ -152,8 +152,8 @@ This inaugural release establishes SEP DSL as a production-ready AGI coherence f
 - Ruby bindings require manual compilation until gem publication
 
 ### Upcoming in v1.1.0
-- Python bindings (`pip install sep-dsl`)
-- JavaScript/Node.js bindings (`npm install sep-dsl`)
+- Language bindings framework (Ruby, Python, JavaScript) - development in progress
+- Package distribution - not yet published
 - IDE integration with syntax highlighting
 - Additional built-in statistical functions
 - WebAssembly compilation target

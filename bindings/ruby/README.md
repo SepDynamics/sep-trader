@@ -5,7 +5,7 @@ Ruby bindings for the SEP (Sourcegraph Engine Platform) DSL - an AGI Coherence F
 ## Installation
 
 ```bash
-gem install sep_dsl
+# Build from source - not yet published
 ```
 
 ## Quick Start
