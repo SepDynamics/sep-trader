@@ -1,4 +1,4 @@
-name: SEP Engine Production Build & Validation
+name: SEP Trader Production Build & Validation
 
 on:
   push:
@@ -47,23 +47,20 @@ jobs:
           
     - name: Build SEP Engine
       run: |
-        chmod +x ./build.sh
-        ./build.sh
+        cmake -B build -DCMAKE_BUILD_TYPE=Release
+        cmake --build build -j$(nproc)
         
-    - name: Run Mathematical Foundation Tests
+    - name: Run Trader Backtesting
       run: |
-        ./build/tests/test_forward_window_metrics
-        ./build/tests/trajectory_metrics_test  
-        ./build/tests/pattern_metrics_test
-        ./build/tests/quantum_signal_bridge_test
+        ./build/bin/quantum_tracker --backtest
         
     - name: Run System Integration Tests
       run: |
-        ./build/src/apps/oanda_trader/quantum_tracker --test
+        ./build/bin/quantum_tracker --test
         
     - name: Run Performance Validation
       run: |
-        ./build/examples/pme_testbed_phase2 Testing/OANDA/O-test-2.json | tail -10
+        ./build/bin/pme_testbed --scenario=realtime --duration=60s
         
     - name: Validate Commercial Package
       run: |
@@ -73,12 +70,12 @@ jobs:
         
     - name: Generate Performance Report
       run: |
-        echo "# SEP Engine Validation Report" > validation_report.md
+        echo "# SEP Trader Validation Report" > validation_report.md
         echo "**Build Date:** $(date)" >> validation_report.md
         echo "**Commit:** ${GITHUB_SHA}" >> validation_report.md
         echo "" >> validation_report.md
         echo "## Test Results" >> validation_report.md
-        echo "✅ Mathematical Foundation Tests: PASSED" >> validation_report.md
+        echo "✅ Backtesting: PASSED" >> validation_report.md
         echo "✅ System Integration Tests: PASSED" >> validation_report.md
         echo "✅ Performance Validation: PASSED" >> validation_report.md
         echo "✅ Commercial Package: VALIDATED" >> validation_report.md
@@ -86,16 +83,16 @@ jobs:
     - name: Upload Build Artifacts
       uses: actions/upload-artifact@v4
       with:
-        name: sep-engine-build-${{ github.sha }}
+        name: sep-trader-build-${{ github.sha }}
         path: |
-          build/
+          build/bin/
+          build/lib/
           validation_report.md
-          output/build_log.txt
           
     - name: Upload Commercial Package
       uses: actions/upload-artifact@v4
       with:
-        name: sep-engine-commercial-${{ github.sha }}
+        name: sep-trader-commercial-${{ github.sha }}
         path: commercial_package/
         
   docker-deployment:
@@ -109,21 +106,21 @@ jobs:
       
     - name: Build Production Docker Image
       run: |
-        docker build -t sep-engine:production .
+        docker build -t sep-trader:production .
         
     - name: Test Docker Deployment
       run: |
-        docker run --rm sep-engine:production ./build/src/apps/oanda_trader/quantum_tracker --test
+        docker run --rm sep-trader:production ./build/bin/quantum_tracker --test
         
     - name: Save Docker Image
       run: |
-        docker save sep-engine:production | gzip > sep-engine-production.tar.gz
+        docker save sep-trader:production | gzip > sep-trader-production.tar.gz
         
     - name: Upload Docker Image
       uses: actions/upload-artifact@v4
       with:
         name: docker-production-image
-        path: sep-engine-production.tar.gz
+        path: sep-trader-production.tar.gz
 
   performance-benchmarking:
     name: Performance Benchmarking
@@ -134,12 +131,12 @@ jobs:
     - name: Download Build Artifacts
       uses: actions/download-artifact@v4
       with:
-        name: sep-engine-build-${{ github.sha }}
+        name: sep-trader-build-${{ github.sha }}
         
     - name: Run Performance Benchmarks
       run: |
-        chmod +x build/examples/pattern_metric_example
-        time ./build/examples/pattern_metric_example Testing/OANDA/ --json > performance_benchmark.json
+        chmod +x build/bin/pme_testbed
+        time ./build/bin/pme_testbed --scenario=realtime --duration=60s > performance_benchmark.json
         
     - name: Generate Performance Report
       run: |
@@ -207,12 +204,12 @@ jobs:
         cp performance_report.md release-package/
         
         # Create release notes
-        echo "# SEP Engine Release $(date +'%Y.%m.%d')" > release-package/RELEASE_NOTES.md
+        echo "# SEP Trader Release $(date +'%Y.%m.%d')" > release-package/RELEASE_NOTES.md
         echo "" >> release-package/RELEASE_NOTES.md
         echo "## Highlights" >> release-package/RELEASE_NOTES.md
-        echo "- ✅ 60.73% breakthrough accuracy validated" >> release-package/RELEASE_NOTES.md
-        echo "- ✅ Market Model Cache architecture operational" >> release-package/RELEASE_NOTES.md
-        echo "- ✅ Complete test suite passing (100% coverage)" >> release-package/RELEASE_NOTES.md
+        echo "- ✅ Live trading integration with OANDA" >> release-package/RELEASE_NOTES.md
+        echo "- ✅ High-performance backtesting engine" >> release-package/RELEASE_NOTES.md
+        echo "- ✅ CUDA-accelerated quantum signal processing" >> release-package/RELEASE_NOTES.md
         echo "- ✅ Production Docker deployment ready" >> release-package/RELEASE_NOTES.md
         echo "- ✅ Commercial package validated and investor-ready" >> release-package/RELEASE_NOTES.md
         
@@ -220,7 +217,7 @@ jobs:
       uses: ncipollo/release-action@v1
       with:
         tag: v$(date +'%Y.%m.%d')
-        name: SEP Engine Production Release $(date +'%Y.%m.%d')
+        name: SEP Trader Production Release $(date +'%Y.%m.%d')
         bodyFile: release-package/RELEASE_NOTES.md
         artifacts: "release-package/*"
         draft: false

@@ -1,24 +1,24 @@
 #!/bin/bash
 
-# SEP DSL Commercial Package Validation Script
-# This script validates the complete DSL platform package
+# SEP Trader Commercial Package Validation Script
+# This script validates the complete trader platform package
 
-echo "🚀 SEP DSL Commercial Package Validation"
+echo "🚀 SEP Trader Commercial Package Validation"
 echo "========================================"
 echo
 
 # Check executables
-echo "📦 Checking DSL Executables..."
-if [ -x "binaries/executables/sep_dsl_interpreter" ]; then
-    echo "  ✅ sep_dsl_interpreter - Core DSL interpreter"
+echo "📦 Checking Trader Executables..."
+if [ -x "binaries/executables/quantum_tracker" ]; then
+    echo "  ✅ quantum_tracker - Core trading application"
 else
-    echo "  ❌ sep_dsl_interpreter - MISSING"
+    echo "  ❌ quantum_tracker - MISSING"
 fi
 
-if [ -x "binaries/executables/pattern_metric_example" ]; then
-    echo "  ✅ pattern_metric_example - AGI pattern analyzer"
+if [ -x "binaries/executables/pme_testbed" ]; then
+    echo "  ✅ pme_testbed - Performance testing environment"
 else
-    echo "  ❌ pattern_metric_example - MISSING"
+    echo "  ❌ pme_testbed - MISSING"
 fi
 
 echo
@@ -26,7 +26,7 @@ echo
 # Check libraries
 echo "📚 Checking Core Libraries..."
 if [ -f "binaries/libraries/libsep.so" ]; then
-    echo "  ✅ libsep.so - Core DSL runtime and C API"
+    echo "  ✅ libsep.so - Core trader runtime and C API"
 else
     echo "  ❌ libsep.so - MISSING"
 fi
@@ -53,10 +53,10 @@ else
     echo "  ❌ sep_c_api.h - MISSING"
 fi
 
-if [ -d "headers/dsl" ]; then
-    echo "  ✅ DSL headers - Complete language implementation"
+if [ -d "headers/trader" ]; then
+    echo "  ✅ Trader headers - Complete trading application implementation"
 else
-    echo "  ❌ DSL headers - MISSING"
+    echo "  ❌ Trader headers - MISSING"
 fi
 
 if [ -d "headers/quantum" ]; then
@@ -78,14 +78,14 @@ fi
 echo
 
 # Technology validation
-echo "🎯 DSL Platform Capabilities:"
+echo "🎯 Trader Platform Capabilities:"
 echo "  🧠 AGI Coherence Framework: Quantum field harmonics analysis"
 echo "  📊 Universal Signal Processing: Any data domain supported"
 echo "  ⚡ CUDA Acceleration: GPU-powered pattern recognition"
 echo "  🔌 Language Bindings: C API enables universal integration"
 echo "  🎯 Real-time Processing: Sub-millisecond analysis capability"
-echo "  📝 Complete DSL: Full language implementation with interpreter"
-echo "  ✨ Type Annotations: Optional type hints for professional development"
+echo "  📈 Live Trading: OANDA and other broker integrations"
+echo "  ✨ Backtesting: High-performance backtesting engine"
 echo "  📍 Source Location Tracking: Precise error reporting with line:column"
 echo "  📈 Math & Statistics: 25+ math functions, 8 statistical functions"
 echo "  🎨 VS Code Integration: Custom file icons and syntax highlighting"
