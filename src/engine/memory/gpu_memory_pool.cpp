@@ -9,11 +9,19 @@ namespace engine {
 GPUMemoryPool::GPUMemoryPool(size_t initial_pool_size) 
     : pool_capacity_(initial_pool_size) {
     
+#ifdef SEP_USE_CUDA
     cudaError_t err = cudaMalloc(&pool_start_, pool_capacity_);
     if (err != cudaSuccess) {
         throw std::runtime_error("Failed to allocate GPU memory pool: " + 
                                 std::string(cudaGetErrorString(err)));
     }
+#else
+    // CPU fallback when CUDA is disabled
+    pool_start_ = malloc(pool_capacity_);
+    if (!pool_start_) {
+        throw std::runtime_error("Failed to allocate CPU memory pool");
+    }
+#endif
     
     // Initialize with one large free block
     blocks_.emplace_back(pool_start_, pool_capacity_);
@@ -25,7 +33,11 @@ GPUMemoryPool::GPUMemoryPool(size_t initial_pool_size)
 
 GPUMemoryPool::~GPUMemoryPool() {
     if (pool_start_) {
+#ifdef SEP_USE_CUDA
         cudaFree(pool_start_);
+#else
+        free(pool_start_);
+#endif
     }
 }
 
@@ -112,6 +124,7 @@ void* GPUMemoryPool::allocate_async(size_t size, cudaStream_t stream, size_t ali
 void GPUMemoryPool::deallocate_async(void* ptr, cudaStream_t stream) {
     // For async deallocation, we could defer until stream completion
     // For now, just do immediate deallocation
+    (void)stream; // Suppress unused parameter warning
     deallocate(ptr);
 }
 

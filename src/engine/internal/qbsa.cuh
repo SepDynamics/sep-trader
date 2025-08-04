@@ -1,6 +1,8 @@
 #pragma once
 
+#ifdef SEP_USE_CUDA
 #include <cuda_runtime.h>
+#endif
 #include <cstdint>
 
 namespace sep::quantum {

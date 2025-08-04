@@ -1,0 +1,3 @@
+pattern test {
+    print("SEP DSL working on droplet!")
+}

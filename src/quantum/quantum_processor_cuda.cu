@@ -1,5 +1,7 @@
 // Include compatibility header first to handle math function conflicts
+#ifdef SEP_USE_CUDA
 #include <cuda_runtime.h>
+#endif
 
 // GLM CUDA compatibility
 #define GLM_COMPILER 0

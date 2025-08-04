@@ -1,6 +1,8 @@
 #pragma once
 
+#ifdef SEP_USE_CUDA
 #include <cuda_runtime.h>
+#endif
 #include "tick_data.cuh"
 
 namespace sep::apps::cuda {

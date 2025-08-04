@@ -1,7 +1,9 @@
 #include "quantum/coherence_manager.h"
 
 #ifdef __CUDACC__
+#ifdef SEP_USE_CUDA
 #include <cuda_runtime.h>
+#endif
 #endif
 #include <tbb/concurrent_hash_map.h>
 #include <tbb/parallel_for.h>

@@ -1,5 +1,7 @@
 #include "memory.h"
+#ifdef SEP_USE_CUDA
 #include <cuda_runtime.h>
+#endif
 #include <stdexcept>
 
 namespace sep {

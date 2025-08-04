@@ -4,7 +4,9 @@
  * Implementation of CUDA functions in the sep::cuda namespace
  */
 
+#ifdef SEP_USE_CUDA
 #include <cuda_runtime.h>
+#endif
 
 #include <string>
 #include <vector>

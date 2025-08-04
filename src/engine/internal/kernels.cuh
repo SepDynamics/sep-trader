@@ -4,7 +4,9 @@
 #include "macros.h"
 
 #ifdef __CUDACC__
+#ifdef SEP_USE_CUDA
 #include <cuda_runtime.h>
+#endif
 #include <device_launch_parameters.h>
 
 #include <cmath>

@@ -1,4 +1,6 @@
+#ifdef SEP_USE_CUDA
 #include <cuda_runtime.h>
+#endif
 
 #include "kernels.h"
 #include "quantum/bitspace/qfh.h"

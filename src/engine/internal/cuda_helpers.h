@@ -2,7 +2,9 @@
 
 #include <cstdio>
 
+#ifdef SEP_USE_CUDA
 #include <cuda_runtime.h>
+#endif
 
 // Comprehensive CUDA helper utilities - consolidated from multiple files
 namespace sep {

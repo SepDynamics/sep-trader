@@ -1,19 +1,28 @@
-# SEP Professional Trader-Bot - Quick Start Guide
+# SEP Professional Trader-Bot - Remote Droplet Setup
 
-## System Requirements
-- **CUDA 12.9+** - GPU acceleration for quantum processing
+## 🌐 Distributed Trading Architecture
+
+**This guide sets up the REMOTE TRADING EXECUTION system on a droplet. Training happens on your local CUDA machine.**
+
+## Droplet Requirements (Trading Execution)
+- **Ubuntu 24.04 LTS** - Stable deployment environment
+- **8GB RAM, 2 vCPUs** - Sufficient for trading operations
 - **OANDA Account** - Live/demo trading API access
-- **Linux/Ubuntu** - Production deployment environment
-- **16GB+ RAM** - Multi-pair processing requirements
+- **No CUDA required** - CPU-only execution
 
-## Installation & Setup
+## Local PC Requirements (Training & Analysis)  
+- **CUDA 12.9+** - GPU acceleration for quantum processing
+- **16GB+ RAM** - Multi-pair model training
+- **Linux/Ubuntu** - Development environment
 
-### 1. Clone and Build
+## Droplet Installation & Setup
+
+### 1. Clone and Build (CPU-Only)
 ```bash
 git clone https://github.com/SepDynamics/sep-trader.git
 cd sep-trader
-./install.sh
-./build.sh
+./install.sh --minimal --no-docker
+./build.sh --no-docker
 ```
 
 ### 2. Configure OANDA Credentials
@@ -21,26 +30,25 @@ cd sep-trader
 # Edit OANDA.env with your credentials
 nano OANDA.env
 
-# Set required environment variables
-export OANDA_API_KEY='your_api_key'
-export OANDA_ACCOUNT_ID='your_account_id'
+# Add these lines:
+OANDA_API_KEY=your_api_key_here
+OANDA_ACCOUNT_ID=your_account_id_here
+OANDA_ENVIRONMENT=practice
 ```
 
-### 3. Check System Status
+### 3. Set Library Path and Test System
 ```bash
-# Professional CLI interface (NEW)
-./build/src/cli/trader-cli status           # Overall system status
-./build/src/cli/trader-cli pairs list       # List all trading pairs
-./build/src/cli/trader-cli config reload    # Hot reload configuration
+# Set library path for CLI access
+export LD_LIBRARY_PATH=./build/src/core:./build/src/config:./build/src/c_api
 
-# Legacy python interface  
-python train_manager.py status             # View all pair status
+# Test system status
+./build/src/cli/trader-cli status           # ✅ Overall system status
+./build/src/cli/trader-cli pairs list       # ✅ List all trading pairs
+./build/src/cli/trader-cli config show      # ✅ View configuration
 
-# Test individual pair training
-python train_currency_pair.py EUR_USD --quick
-
-# Check if system is ready
-./build/src/apps/oanda_trader/quantum_tracker --test
+# Test DSL engine
+echo 'pattern test { print("Droplet ready!") }' > test.sep
+./build/src/dsl/sep_dsl_interpreter test.sep  # ✅ DSL execution test
 ```
 
 ## Professional Trading Operations

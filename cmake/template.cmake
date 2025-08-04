@@ -24,8 +24,13 @@ function(add_sep_library name)
         add_library(${name} SHARED ${ALL_SOURCES})
     endif()
     
-    # Set CUDA properties if CUDA sources are present
-    if(ARG_CUDA_SOURCES)
+    # Set CUDA properties if CUDA sources are present and CUDA is enabled
+    if(ARG_CUDA_SOURCES AND SEP_USE_CUDA)
+        # Set default CUDA architectures if not specified
+        if(NOT DEFINED CMAKE_CUDA_ARCHITECTURES)
+            set(CMAKE_CUDA_ARCHITECTURES "75;80;86")
+        endif()
+        
         set_target_properties(${name} PROPERTIES
             CUDA_SEPARABLE_COMPILATION ON
             CUDA_RESOLVE_DEVICE_SYMBOLS ON
@@ -41,9 +46,19 @@ function(add_sep_library name)
         ${CMAKE_SOURCE_DIR}/src
     )
     
-    # Add dependencies
+    # Add dependencies (filter out CUDA when disabled)
     if(ARG_DEPENDENCIES)
-        target_link_libraries(${name} PUBLIC ${ARG_DEPENDENCIES})
+        set(FILTERED_DEPS "")
+        foreach(dep ${ARG_DEPENDENCIES})
+            if(dep MATCHES "CUDA::" AND NOT SEP_USE_CUDA)
+                # Skip CUDA dependencies when CUDA is disabled
+                continue()
+            endif()
+            list(APPEND FILTERED_DEPS ${dep})
+        endforeach()
+        if(FILTERED_DEPS)
+            target_link_libraries(${name} PUBLIC ${FILTERED_DEPS})
+        endif()
     endif()
     
     # Set C++17 standard

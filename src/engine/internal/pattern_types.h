@@ -1,8 +1,14 @@
 #pragma once
-#include <cuda_runtime.h>
 
-#ifdef __CUDACC__
+#ifdef SEP_USE_CUDA
 #include <cuda_runtime.h>
+#else
+// Define CUDA keywords as empty when CUDA is disabled
+#define __host__
+#define __device__
+#define __global__
+#define __shared__
+#define __constant__
 #endif
 
 #include <string>

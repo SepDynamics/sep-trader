@@ -1,7 +1,9 @@
 #ifndef SEP_COMPAT_CUFFT_H
 #define SEP_COMPAT_CUFFT_H
 
+#ifdef SEP_USE_CUDA
 #include <cuda_runtime.h>
+#endif
 
 #if SEP_ENGINE_HAS_CUDA
 #  if defined(__has_include) && __has_include(<cufft.h>)

@@ -6,7 +6,9 @@
 
 // CUDA compatibility layer for SEP engine
 #if SEP_CUDA_AVAILABLE
+#ifdef SEP_USE_CUDA
 #include <cuda_runtime.h>
+#endif
 
 #include "cuda_helpers.h"
 #include "math_common.h"

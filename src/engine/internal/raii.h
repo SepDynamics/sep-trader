@@ -1,7 +1,9 @@
 #ifndef SEP_CUDA_RAII_H
 #define SEP_CUDA_RAII_H
 
+#ifdef SEP_USE_CUDA
 #include <cuda_runtime.h>
+#endif
 #include <memory>
 
 namespace sep {

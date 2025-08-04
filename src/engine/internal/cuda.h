@@ -1,7 +1,9 @@
 #pragma once
 
 #ifdef __CUDACC__
+#ifdef SEP_USE_CUDA
 #include <cuda_runtime.h>
+#endif
 #include "engine/internal/cuda_helpers.h"
 #include "engine/internal/cuda_sep.h"
 #endif

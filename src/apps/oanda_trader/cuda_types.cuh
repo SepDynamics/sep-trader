@@ -1,6 +1,8 @@
 #pragma once
 
+#ifdef SEP_USE_CUDA
 #include <cuda_runtime.h>
+#endif
 #include <cstdint>
 
 // Include forward window result outside any namespace

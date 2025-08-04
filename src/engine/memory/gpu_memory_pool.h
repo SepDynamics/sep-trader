@@ -1,7 +1,27 @@
 #ifndef SEP_GPU_MEMORY_POOL_H
 #define SEP_GPU_MEMORY_POOL_H
 
+#include <cstdlib>
+#include <cstring>
+
+#ifdef SEP_USE_CUDA
 #include <cuda_runtime.h>
+#else
+// Define CUDA types when CUDA is disabled
+typedef void* cudaStream_t;
+typedef int cudaError_t;
+#define cudaSuccess 0
+#define cudaErrorInvalidValue 1
+#define cudaMemcpyHostToDevice 1
+#define cudaMemcpyDeviceToHost 2
+#define cudaMemcpyDeviceToDevice 3
+
+// Dummy CUDA functions
+inline cudaError_t cudaMalloc(void** ptr, std::size_t size) { *ptr = std::malloc(size); return *ptr ? cudaSuccess : cudaErrorInvalidValue; }
+inline cudaError_t cudaFree(void* ptr) { std::free(ptr); return cudaSuccess; }
+inline cudaError_t cudaMemcpy(void* dst, const void* src, std::size_t count, int kind) { (void)kind; std::memcpy(dst, src, count); return cudaSuccess; }
+inline cudaError_t cudaMemcpyAsync(void* dst, const void* src, std::size_t count, int kind, cudaStream_t stream) { (void)kind; (void)stream; std::memcpy(dst, src, count); return cudaSuccess; }
+#endif
 #include <memory>
 #include <vector>
 #include <unordered_map>

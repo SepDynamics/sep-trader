@@ -34,48 +34,57 @@ This repository contains the complete production system for autonomous cryptocur
 - **Quantum Manifold Optimizer** - Global optimization in non-linear spaces
 - **Hot-Swappable Architecture** - Zero-downtime configuration management
 
-## 🛠️ Quick Start
+## 🛠️ Quick Start - Remote Trading Droplet
 
-**Get started in 5 minutes:**
+**Deploy the trading execution engine on your droplet:**
 
 ```bash
-# 1. Clone and build
+# 1. Clone and build (CPU-only for droplet)
 git clone https://github.com/SepDynamics/sep-trader.git && cd sep-trader
-./install.sh && ./build.sh
+./install.sh --minimal --no-docker && ./build.sh --no-docker
 
-# 2. Configure OANDA (edit OANDA.env with your credentials)
-source OANDA.env
+# 2. Configure OANDA credentials
+nano OANDA.env  # Add your API key and account ID
 
-# 3. Check system status
-python train_manager.py status
+# 3. Check system status  
+LD_LIBRARY_PATH=./build/src/core:./build/src/config:./build/src/c_api ./build/src/cli/trader-cli status
 
-# 4. Start trading
-./run_trader.sh
+# 4. View trading pairs
+LD_LIBRARY_PATH=./build/src/core:./build/src/config:./build/src/c_api ./build/src/cli/trader-cli pairs list
 ```
+
+**Note:** This is the **remote execution system**. Training and signal generation happens on your local CUDA-enabled machine.
 
 📖 **[Complete Setup Guide →](QUICKSTART.md)**
 
-## 📈 Professional Trading Operations
+## 📈 Remote Trading Droplet Operations
 
-**Current Features:**
+**Currently Available on Droplet:**
 ```bash
-# Professional training management
-python train_manager.py status           # View all pair status
-python train_manager.py train EUR_USD    # Train specific pair
-python train_manager.py enable EUR_USD   # Enable for trading
+# Set library path for CLI access
+export LD_LIBRARY_PATH=./build/src/core:./build/src/config:./build/src/c_api
 
-# Live trading execution
-./run_trader.sh                          # Start autonomous trading
+# Professional CLI interface (working)
+./build/src/cli/trader-cli status           # ✅ System status
+./build/src/cli/trader-cli pairs list       # ✅ List all pairs  
+./build/src/cli/trader-cli config show      # ✅ View configuration
+
+# DSL interpreter (working)
+echo 'pattern test { print("Working!") }' > test.sep
+./build/src/dsl/sep_dsl_interpreter test.sep  # ✅ DSL execution
 ```
 
-**Professional Features (Now Available):**
+**Training & Signal Generation (Local CUDA Machine):**
 ```bash
-# Professional CLI interface
-./build/src/cli/trader-cli status           # System status
-./build/src/cli/trader-cli pairs list       # List all pairs
-./build/src/cli/trader-cli config reload    # Hot reload config
+# These run on your local PC with CUDA
+python train_manager.py status           # Train and generate signals
+python train_manager.py train EUR_USD    # Model training
+./scripts/sync_to_droplet.sh            # Push signals to droplet
+```
 
-# Professional API endpoints  
+**Planned API Endpoints (Development):**
+```bash
+# Future implementation for web control
 curl -X GET /api/v1/system/status          # System health
 curl -X POST /api/v1/pairs/EUR_USD/enable  # Enable trading pair
 curl -X PUT /api/v1/config/reload          # Reload configuration

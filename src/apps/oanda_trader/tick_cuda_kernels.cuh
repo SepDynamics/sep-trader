@@ -1,6 +1,8 @@
 #pragma once
 
+#ifdef SEP_USE_CUDA
 #include <cuda_runtime.h>
+#endif
 #include <vector>
 #include <cstdint>
 #include "cuda_types.cuh"

@@ -1,7 +1,26 @@
 #ifndef SEP_ENGINE_CUDA_TYPES_HPP
 #define SEP_ENGINE_CUDA_TYPES_HPP
 
+#ifdef SEP_USE_CUDA
 #include <cuda_runtime.h>
+#else
+// Define CUDA types as dummies when CUDA is disabled
+typedef void* cudaStream_t;
+typedef int cudaError_t;
+typedef void* cudaEvent_t;
+struct cudaDeviceProp {
+    char name[256];
+    size_t totalGlobalMem;
+    int major, minor;
+};
+#define cudaSuccess 0
+#define cudaStreamDefault 0
+
+// Dummy CUDA functions
+inline cudaError_t cudaSetDevice(int device) { (void)device; return cudaSuccess; }
+inline cudaError_t cudaStreamCreate(cudaStream_t* stream) { *stream = nullptr; return cudaSuccess; }
+inline const char* cudaGetErrorString(cudaError_t error) { return error == cudaSuccess ? "success" : "error"; }
+#endif
 #include <string>
 #include <vector>
 #include <memory>

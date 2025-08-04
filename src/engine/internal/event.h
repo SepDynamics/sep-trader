@@ -1,7 +1,9 @@
 #ifndef SEP_CUDA_EVENT_H
 #define SEP_CUDA_EVENT_H
 
+#ifdef SEP_USE_CUDA
 #include <cuda_runtime.h>
+#endif
 #include "engine/internal/stream.h"
 
 namespace sep {

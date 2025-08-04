@@ -2,7 +2,9 @@
 #define SEP_CUDA_STREAM_H
 
 #ifdef __CUDACC__
+#ifdef SEP_USE_CUDA
 #include <cuda_runtime.h>
+#endif
 #else
 #include "cuda_base.h"
 #endif
