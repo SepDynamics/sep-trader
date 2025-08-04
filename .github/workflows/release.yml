@@ -1,0 +1,169 @@
+name: SEP Dynamics Release Pipeline
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version'
+        required: true
+        default: 'v1.0.0'
+
+jobs:
+  build-engine:
+    runs-on: self-hosted
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v4
+      
+    - name: Setup Build Environment
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y build-essential cmake ninja-build
+        
+    - name: Build SEP Engine
+      run: |
+        ./build.sh
+        
+    - name: Run Test Suite
+      run: |
+        ./build/tests/test_forward_window_metrics
+        ./build/tests/trajectory_metrics_test
+        ./build/tests/pattern_metrics_test
+        ./build/tests/quantum_signal_bridge_test
+        ./build/src/apps/oanda_trader/quantum_tracker --test
+        
+    - name: Package Engine
+      run: |
+        mkdir -p release/sep-engine
+        cp -r build/src release/sep-engine/
+        cp -r build/examples release/sep-engine/
+        cp -r docs release/sep-engine/
+        cp README.md COMMERCIAL.md LICENSE release/sep-engine/
+        tar -czf sep-engine-${{ github.event.inputs.version || github.ref_name }}.tar.gz release/sep-engine
+        
+    - name: Upload Engine Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: sep-engine
+        path: sep-engine-*.tar.gz
+
+  build-website:
+    runs-on: self-hosted
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        cache-dependency-path: 'website/package-lock.json'
+        
+    - name: Build Website
+      run: |
+        cd website
+        npm ci
+        npm run build
+        
+    - name: Package Website
+      run: |
+        cd website
+        tar -czf ../sepdynamics-website-${{ github.event.inputs.version || github.ref_name }}.tar.gz dist/
+        
+    - name: Upload Website Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: sepdynamics-website
+        path: sepdynamics-website-*.tar.gz
+
+  deploy-website:
+    runs-on: self-hosted
+    needs: build-website
+    if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/')
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        cache-dependency-path: 'website/package-lock.json'
+        
+    - name: Build and Deploy Website
+      run: |
+        cd website
+        npm ci
+        npm run build
+        
+    - name: Deploy to GitHub Pages
+      uses: peaceiris/actions-gh-pages@v4
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_dir: ./website/dist
+        force_orphan: true
+        cname: sepdynamics.com
+        user_name: 'github-actions[bot]'
+        user_email: 'github-actions[bot]@users.noreply.github.com'
+        commit_message: 'Deploy SEP Dynamics v${{ github.event.inputs.version || github.ref_name }}'
+
+  create-release:
+    runs-on: self-hosted
+    needs: [build-engine, build-website]
+    if: startsWith(github.ref, 'refs/tags/')
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v4
+      
+    - name: Download Engine Artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: sep-engine
+        
+    - name: Download Website Artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: sepdynamics-website
+        
+    - name: Create Release
+      uses: softprops/action-gh-release@v1
+      with:
+        name: SEP Dynamics ${{ github.ref_name }}
+        body: |
+          ## SEP Dynamics Release ${{ github.ref_name }}
+          
+          ### 🚀 Patent-Pending Quantum Financial Intelligence
+          
+          **Quantum Field Harmonics Technology**
+          - 60.73% prediction accuracy in live trading
+          - Real-time pattern collapse detection
+          - CUDA-accelerated quantum processing
+          
+          **Commercial Platform**
+          - SEP Market Tool for institutional trading
+          - Professional deployment package
+          - Complete documentation and examples
+          
+          **Investment Opportunity**
+          - Series A: $15M funding round
+          - Patent Application #584961162ABX
+          - Contact: alex@sepdynamics.com
+          
+          ### 📦 Release Assets
+          - `sep-engine-*.tar.gz` - Complete trading engine
+          - `sepdynamics-website-*.tar.gz` - Marketing website
+          
+          ### 🔗 Links
+          - Website: [sepdynamics.com](https://sepdynamics.com)
+          - Investors: [sepdynamics.com/investors](https://sepdynamics.com/investors.html)
+          - Patent Documentation: `docs/patent/`
+        files: |
+          sep-engine-*.tar.gz
+          sepdynamics-website-*.tar.gz
+        draft: false
+        prerelease: false
