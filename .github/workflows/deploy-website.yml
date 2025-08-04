@@ -27,6 +27,7 @@ jobs:
     - name: Install Dependencies
       run: |
         cd website
+        rm -rf node_modules
         npm ci
         
     - name: Build Website
