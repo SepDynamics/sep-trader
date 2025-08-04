@@ -1,9 +1,0 @@
-pattern base_pattern {
-    base_value = 10
-    computed = base_value * 2
-}
-
-pattern child_pattern inherits base_pattern {
-    child_value = 5
-    total = base_value + child_value + computed
-}

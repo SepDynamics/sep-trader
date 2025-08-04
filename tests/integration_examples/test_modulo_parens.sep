@@ -1,7 +1,0 @@
-// Test modulo with parentheses
-pattern test_modulo {
-    a = 10
-    b = 3
-    result = (a) % (b)
-    print("10 % 3 =", result)
-}

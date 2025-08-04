@@ -1,6 +1,0 @@
-include README.md
-include LICENSE
-recursive-include ext *.c *.h
-recursive-include lib *.py
-global-exclude *.pyc
-global-exclude __pycache__

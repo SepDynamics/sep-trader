@@ -1,4 +1,0 @@
-pattern test_simple {
-    import "module.sep"
-    value = 123
-}

@@ -34,69 +34,49 @@ This repository contains the complete production system for autonomous cryptocur
 - **Quantum Manifold Optimizer** - Global optimization in non-linear spaces
 - **Hot-Swappable Architecture** - Zero-downtime configuration management
 
-## 🛠️ Quick Start Guide
+## 🛠️ Quick Start
 
-### System Requirements
-- **CUDA 12.9+** - GPU acceleration for quantum processing
-- **OANDA Account** - Live/demo trading API access
-- **Linux/Ubuntu** - Production deployment environment
-- **16GB+ RAM** - Multi-pair processing requirements
+**Get started in 5 minutes:**
 
-### Installation & Setup
 ```bash
-# Clone and build the system
-git clone https://github.com/SepDynamics/sep-trader.git
-cd sep-trader
-./install.sh
-./build.sh
+# 1. Clone and build
+git clone https://github.com/SepDynamics/sep-trader.git && cd sep-trader
+./install.sh && ./build.sh
 
-# Configure OANDA credentials
-export OANDA_API_KEY='your_api_key'
-export OANDA_ACCOUNT_ID='your_account_id'
+# 2. Configure OANDA (edit OANDA.env with your credentials)
+source OANDA.env
 
-# Check system status
-python train_currency_pair.py --help
+# 3. Check system status
+python train_manager.py status
+
+# 4. Start trading
+./run_trader.sh
 ```
+
+📖 **[Complete Setup Guide →](QUICKSTART.md)**
 
 ## 📈 Professional Trading Operations
 
-### Unified Training Interface
+**Current Features:**
 ```bash
-# Check all pair status (ready/training/failed)
-python train_manager.py status
+# Professional training management
+python train_manager.py status           # View all pair status
+python train_manager.py train EUR_USD    # Train specific pair
+python train_manager.py enable EUR_USD   # Enable for trading
 
-# Train specific pairs
-python train_currency_pair.py EUR_USD --quick
-python train_currency_pair.py GBP_USD --hours 72
-
-# Train multiple pairs in queue
-python train_manager.py train --pairs EUR_USD,GBP_USD,USD_JPY
+# Live trading execution
+./run_trader.sh                          # Start autonomous trading
 ```
 
-### Live Trading Management
+**Professional Features (Roadmap):**
 ```bash
-# Start autonomous multi-pair trading
-./run_trader.sh
-
 # Hot-swap configuration (zero downtime)
 curl -X POST /api/v1/pairs/EUR_USD/enable
 curl -X PUT /api/v1/config/reload
 
-# Monitor system health
-curl /api/v1/system/health
-curl /api/v1/trading/performance
-```
-
-### Production Deployment
-```bash
-# Docker deployment
+# Production deployment
 docker-compose up -d
-
-# Kubernetes deployment  
 kubectl apply -f deployment/kubernetes/
-
-# Full production stack
-./deployment/deploy.sh --env production --scale 10
 ```
 
 ## 📊 Performance Metrics
@@ -116,7 +96,13 @@ kubectl apply -f deployment/kubernetes/
 - **Automated** cache management and validation
 - **Hot-swappable** configuration without restart
 - **Production-grade** monitoring and alerting
-- Validated performance across multiple market conditions
+
+## 📚 Documentation
+
+- **[Quick Start Guide](QUICKSTART.md)** - Get running in 5 minutes
+- **[System Overview](SYSTEM_OVERVIEW.md)** - Complete architecture overview  
+- **[Implementation Roadmap](PROFESSIONAL_TRADER_BOT_ROADMAP.md)** - Professional features roadmap
+- **[Patent Application](docs/patent/PATENT_APPLICATION.md)** - Technical innovation details
 
 ## 🔒 Intellectual Property
 

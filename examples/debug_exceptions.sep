@@ -1,9 +1,0 @@
-pattern test_exceptions {
-    try {
-        x = 42
-        result = x * 2
-    }
-    catch (error) {
-        error_message = "Caught error"
-    }
-}

@@ -1,5 +1,0 @@
-pattern simple_test {
-    x = 42
-    y = x + 8
-    result = y * 2
-}

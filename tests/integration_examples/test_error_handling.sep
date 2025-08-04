@@ -1,3 +1,0 @@
-pattern test {
-    x = undefined_variable
-}

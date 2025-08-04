@@ -1,9 +1,0 @@
-pattern debug_precedence {
-    // Simple arithmetic test
-    simple = 2 + 3 * 4
-    print("Simple arithmetic: 2 + 3 * 4 =", simple)
-    
-    // Simple logical test
-    logical = true || false && false
-    print("Logical: true || false && false =", logical)
-}
