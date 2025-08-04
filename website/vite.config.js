@@ -8,11 +8,7 @@ export default defineConfig({
     rollupOptions: {
       input: {
         main: './index.html',
-        platform: './platform.html',
-        investors: './investors.html',
-        technology: './technology.html',
-        demo: './demo.html',
-        contact: './contact.html'
+        investors: './investors.html'
       }
     }
   },

@@ -5,7 +5,6 @@ on:
     branches: [ main, master ]
     paths:
       - 'website/**'
-      - 'docs/**'
       - '.github/workflows/deploy-website.yml'
   pull_request:
     branches: [ main, master ]
@@ -37,10 +36,6 @@ jobs:
         cd website
         npm run build
         
-    - name: Setup Custom Domain
-      run: |
-        echo "sepdynamics.com" > website/dist/CNAME
-        
     - name: Deploy to GitHub Pages
       uses: peaceiris/actions-gh-pages@v4
       if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
@@ -51,40 +46,9 @@ jobs:
         cname: sepdynamics.com
         user_name: 'github-actions[bot]'
         user_email: 'github-actions[bot]@users.noreply.github.com'
-        commit_message: 'Deploy website to GitHub Pages'
-        # Add .nojekyll file to disable Jekyll build
-        # This is necessary because the website is built with Vite, not Jekyll
-        # and the default Jekyll build process will fail.
-        # The .nojekyll file tells GitHub Pages to just serve the static files.
-        # See https://github.blog/2009-12-29-bypassing-jekyll-on-github-pages/
-        # for more information.
-        # The file is created automatically by the action when this option is set.
-        # The action will also commit the file to the gh-pages branch.
-        # This is the correct way to disable Jekyll for a subdirectory deployment.
-        # The alternative is to create the file manually in the build step,
-        # but this is cleaner and more reliable.
-        # The action will also handle the CNAME file correctly.
-        # The `cname` option is a shorthand for creating the CNAME file.
-        # The `force_orphan` option ensures a clean deployment history.
-        # The `user_name` and `user_email` options are required for the commit.
-        # The `commit_message` is a custom message for the deployment commit.
-        # The `publish_dir` is the directory containing the built website.
-        # The `github_token` is required to push to the gh-pages branch.
-        # The `if` condition ensures that the deployment only runs on pushes to main or master.
-        # The `peaceiris/actions-gh-pages@v4` action is the recommended action for deploying to GitHub Pages.
-        # It is well-maintained and has all the necessary features.
-        # The version is pinned to v4 to ensure stability.
-        # The action is configured to deploy to the `gh-pages` branch.
-        # The `force_orphan` option creates a new commit history for each deployment,
-        # which is useful for keeping the deployment branch clean.
-        # The `cname` option creates a CNAME file with the specified domain name.
-        # The `user_name` and `user_email` options are used for the commit author.
-        # The `commit_message` is the message for the deployment commit.
-        # The `.nojekyll` file is created by setting the `nojekyll` option to `true`.
-        no_jekyll: true
+        commit_message: 'Deploy SEP Dynamics website'
         
-    - name: Notify Deployment
+    - name: Deployment Status
       if: success()
       run: |
-        echo "✅ Website deployed successfully to sepdynamics.com"
-        echo "📊 Quantum-inspired financial intelligence platform is live!"
+        echo "✅ SEP Dynamics website deployed to sepdynamics.com"

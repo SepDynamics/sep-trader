@@ -17,7 +17,7 @@
     "algorithmic-trading",
     "patent-pending"
   ],
-  "author": "SEP Dynamics, Inc.",
+  "author": "SEP Dynamics, Inc. <alex@sepdynamics.com>",
   "license": "Proprietary",
   "devDependencies": {
     "vite": "^5.0.0",
