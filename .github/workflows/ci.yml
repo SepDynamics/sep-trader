@@ -93,7 +93,7 @@ jobs:
         LD_LIBRARY_PATH=./build/src/c_api ./test_c_api
 
     - name: Upload build artifacts
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: sep-dsl-${{ matrix.os }}-cuda-${{ matrix.cuda }}
         path: |
@@ -130,7 +130,7 @@ jobs:
           src/ --xml 2> cppcheck-report.xml
 
     - name: Upload static analysis results
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: static-analysis-results
         path: |
@@ -155,7 +155,7 @@ jobs:
         doxygen docs/Doxyfile
 
     - name: Upload documentation
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: documentation
         path: docs/html/
@@ -222,7 +222,7 @@ jobs:
         ./benchmarks/coherence_benchmark --benchmark_format=json > benchmark_results.json
 
     - name: Upload benchmark results
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: benchmark-results
         path: build/benchmark_results.json
