@@ -506,10 +506,12 @@ graph LR
 - **Week 7-8**: Final negotiations and term sheet execution
 
 ### Contact Information
-- **CEO**: [Founder Name] - founder@sepdynamics.com
 - **Investor Relations**: investors@sepdynamics.com
+- **Direct Line**: +1 (555) 123-4567
 - **Website**: https://sepdynamics.com
-- **Patent Information**: docs/patent/PATENT_OVERVIEW.md
+- **Schedule Meeting**: calendly.com/sepdynamics
+- **Data Room**: dataroom.sepdynamics.com
+- **Patent Information**: https://sepdynamics.com/patents
 
 ---
 
