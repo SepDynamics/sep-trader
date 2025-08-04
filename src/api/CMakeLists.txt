@@ -1,22 +1,50 @@
-add_library(sep_api STATIC auth_middleware.cpp bridge.cpp bridge_c.cpp client.cpp crow_adapter.cpp crow_error.cpp curl_http_client.cpp js_integration.cpp lock_free_rate_limiter.cpp ollama_client.cpp rate_limit_middleware.cpp sep_engine.cpp server.cpp)
+# SEP API Component - State Controller and Management API
+# This component provides RESTful API interface for professional trading control
 
-target_include_directories(sep_api
-    PUBLIC
-        ${CMAKE_SOURCE_DIR}/src
-        ${CMAKE_SOURCE_DIR}/extern
-        ${CMAKE_SOURCE_DIR}/extern/cycles/src
-        ${CMAKE_SOURCE_DIR}/extern/eigen
+project(sep_api)
+
+# API library
+add_library(sep_api STATIC
+    state_controller.cpp
 )
 
-# Link external dependencies when available
-target_link_libraries(sep_api PRIVATE ${CURL_LIBRARIES})
-if(HIREDIS_FOUND)
-    target_link_libraries(sep_api PRIVATE ${HIREDIS_LIBRARIES})
-endif()
-target_link_libraries(sep_api PUBLIC crow)
+target_include_directories(sep_api PUBLIC
+    ${CMAKE_CURRENT_SOURCE_DIR}
+    ${CMAKE_SOURCE_DIR}/src
+)
 
-if(MSVC)
-    target_compile_options(sep_api PRIVATE /FI"${CMAKE_SOURCE_DIR}/src/engine/internal/glm_config.h")
-else()
-    target_compile_options(sep_api PRIVATE -include "${CMAKE_SOURCE_DIR}/src/engine/internal/glm_config.h")
+target_link_libraries(sep_api PUBLIC
+    sep_core
+    sep_config
+    Threads::Threads
+)
+
+# Enable C++17 features
+target_compile_features(sep_api PUBLIC cxx_std_17)
+
+# Set compiler-specific options
+if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+    target_compile_options(sep_api PRIVATE 
+        -Wall 
+        -Wextra 
+        -Wpedantic
+        -O3
+    )
+elseif(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+    target_compile_options(sep_api PRIVATE 
+        /W4
+        /O2
+    )
 endif()
+
+# Install targets
+install(TARGETS sep_api
+    ARCHIVE DESTINATION lib
+    LIBRARY DESTINATION lib
+    RUNTIME DESTINATION bin
+)
+
+install(FILES
+    state_controller.hpp
+    DESTINATION include/sep/api
+)

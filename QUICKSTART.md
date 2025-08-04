@@ -28,8 +28,13 @@ export OANDA_ACCOUNT_ID='your_account_id'
 
 ### 3. Check System Status
 ```bash
-# View all pair status
-python train_manager.py status
+# Professional CLI interface (NEW)
+./build/src/cli/trader-cli status           # Overall system status
+./build/src/cli/trader-cli pairs list       # List all trading pairs
+./build/src/cli/trader-cli config reload    # Hot reload configuration
+
+# Legacy python interface  
+python train_manager.py status             # View all pair status
 
 # Test individual pair training
 python train_currency_pair.py EUR_USD --quick

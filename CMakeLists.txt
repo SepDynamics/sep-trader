@@ -98,7 +98,8 @@ FetchContent_Declare(
   GIT_REPOSITORY https://github.com/gabime/spdlog.git
   GIT_TAG v1.12.0
 )
-set(SPDLOG_FMT_EXTERNAL ON CACHE BOOL "" FORCE)
+set(SPDLOG_FMT_EXTERNAL OFF CACHE BOOL "" FORCE)
+set(SPDLOG_BUILD_SHARED ON CACHE BOOL "" FORCE)
 FetchContent_MakeAvailable(spdlog)
 
 FetchContent_Declare(
@@ -107,6 +108,8 @@ FetchContent_Declare(
   GIT_TAG v2021.10.0
 )
 set(TBB_BUILD_SHARED ON CACHE BOOL "" FORCE)
+set(BUILD_SHARED_LIBS ON CACHE BOOL "" FORCE)
+set(TBB_BUILD_STATIC OFF CACHE BOOL "" FORCE)
 set(CMAKE_BUILD_WITH_INSTALL_RPATH ON)
 FetchContent_MakeAvailable(tbb)
 
@@ -159,8 +162,15 @@ endif()
 add_subdirectory(extern/crow)
 # Trigger rebuild again
 add_subdirectory(src)
-add_subdirectory(examples)
-add_subdirectory(tests)
+
+# Only add examples and tests if they exist
+if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/examples)
+    add_subdirectory(examples)
+endif()
+
+if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/tests)
+    add_subdirectory(tests)
+endif()
 
 # Enable fuzzing if explicitly requested
 option(ENABLE_FUZZING "Enable fuzz testing with LibFuzzer" OFF)

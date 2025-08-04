@@ -1,10 +1,14 @@
 #include "engine/internal/standard_includes.h"
 
-// GLM isolation layer
+// GLM isolation layer - commented out for now due to CUDA 12.9 compatibility issues
+/*
 #ifndef SEP_CUDACC_DISABLE_EXCEPTION_SPEC_CHECKS
 #define SEP_CUDACC_DISABLE_EXCEPTION_SPEC_CHECKS 1
 #endif
+#define GLM_FORCE_CUDA
+#define GLM_COMPILER GLM_COMPILER_CUDA75
 #include <glm/glm.hpp>
+*/
 
 #include "constants.h"
 
