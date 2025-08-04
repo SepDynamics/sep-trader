@@ -3,6 +3,7 @@ build/
 build_*/
 dist/
 out/
+!src/cache/
 
 # Compiled binaries
 *.exe
@@ -101,7 +102,7 @@ docs/latex/
 # Cache directories
 .cache/
 .kilocode/
-cache/
+# cache/
 tests/fuzzing/corpus/
 build_asan/
 
