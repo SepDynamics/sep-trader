@@ -261,7 +261,7 @@ sep::quantum::QFHResult sep::quantum::QFHBasedProcessor::analyze(const std::vect
 
     // Transform bits to events
     result.events = transform_rich(bits);
-    std::cerr << "analyze: events size: " << result.events.size() << std::endl;
+    // std::cerr << "analyze: events size: " << result.events.size() << std::endl;
 
     // Aggregate events
     result.aggregated_events = aggregate(result.events);

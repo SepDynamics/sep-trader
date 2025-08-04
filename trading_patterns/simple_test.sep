@@ -1,0 +1,21 @@
+// Simple trading test to verify DSL can call trading functions
+
+pattern simple_trading_test {
+    print("Testing DSL trading functions...")
+    
+    // Test basic trading function calls
+    result1 = load_market_data("EUR_USD", "M1", "2025-07-24")
+    print("Load market data result:", result1)
+    
+    // Test stability calculation
+    price_data = [1.12827, 1.12828, 1.12823, 1.12827]
+    lambda = 0.5
+    stability = calculate_stability_with_damping(price_data, lambda)
+    print("Stability with damping:", stability)
+    
+    // Test existing quantum functions
+    coherence = measure_coherence("test_data")
+    print("Coherence measurement:", coherence)
+    
+    print("DSL trading functions test complete!")
+}

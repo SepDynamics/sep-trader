@@ -1,0 +1,60 @@
+#!/usr/bin/env /sep/build/src/dsl/sep_dsl_interpreter
+
+// SEP DSL Trading Bot
+
+pattern trading_bot {
+    print("=== SEP Trading Bot ===")
+
+    // --- Configuration ---
+    oanda_endpoint = "https://api-fxpractice.oanda.com"
+    instrument = "EUR_USD"
+    stream_name = "oanda_market_feed"
+    timeframe = "M1"
+    spread_threshold = 3.0
+    buy_threshold = 0.47
+    sell_threshold = 0.55
+
+    // --- Stream Creation ---
+    print("Creating OANDA market data stream for", instrument)
+    stream_created = create_stream(stream_name, "oanda", oanda_endpoint, instrument, 1000, 100)
+
+    if (stream_created) {
+        print("✅ Stream '", stream_name, "' created successfully")
+
+        // --- Start Stream ---
+        active_streams = start_stream(stream_name)
+        print("🚀 Stream started - Active streams:", active_streams)
+
+        // --- Trading Logic ---
+        i = 0
+        while (i < 10) {
+            stream_data = query_stream(stream_name, 1, true)
+
+            if (stream_data) {
+                coherence = stream_data.average_coherence
+                entropy = stream_data.average_entropy
+
+                print("Coherence:", coherence, "Entropy:", entropy)
+
+                if (coherence > buy_threshold && entropy < (1.0 - buy_threshold)) {
+                    print("BUY SIGNAL: High coherence, low entropy")
+                } else if (coherence < sell_threshold && entropy > sell_threshold) {
+                    print("SELL SIGNAL: Low coherence, high entropy")
+                } else {
+                    print("HOLD: No clear signal")
+                }
+            }
+            i = i + 1
+        }
+
+        // --- Stop Stream ---
+        stop_stream(stream_name)
+        print("🛑 Stream stopped")
+
+    } else {
+        print("❌ Failed to create stream")
+    }
+}
+
+// --- Execute the Trading Bot ---
+trading_bot

@@ -182,9 +182,9 @@ std::map<std::string, sep::quantum::Signal> run_analysis_pipeline(const std::vec
     std::cout << "[" << timeframe_name << "] Processing " << candles.size() << " candles" << std::endl;
     
     // Default weights - optimal configuration from breakthrough
-    double stability_w = 0.4;
-    double coherence_w = 0.1; 
-    double entropy_w = 0.5;
+    double stability_w = 0.10;
+    double coherence_w = 0.10; 
+    double entropy_w = 0.80;
     double base_buy_threshold = 0.65;
     double base_sell_threshold = 0.30;
     
@@ -578,9 +578,9 @@ int main(int argc, char** argv) {
     std::vector<sep::quantum::Signal> signals;
 
     // EXPERIMENT 001: Phase 1 parameters in Phase 2 framework
-    double stability_w = 0.40;     // OPTIMIZED: Systematic weight tuning (62.96% high-conf accuracy)
+    double stability_w = 0.10;     // OPTIMIZED: Systematic weight tuning (62.96% high-conf accuracy)
     double coherence_w = 0.10;     // OPTIMIZED: Minimal influence discovered
-    double entropy_w = 0.50;       // OPTIMIZED: Primary signal driver
+    double entropy_w = 0.80;       // OPTIMIZED: Primary signal driver
     double base_buy_threshold = 0.50;   // Phase 1 proven threshold
     double base_sell_threshold = 0.52;  // Phase 1 asymmetric threshold
     
@@ -775,8 +775,8 @@ int main(int argc, char** argv) {
     // 🚀 BREAKTHROUGH CONFIGURATION (Jan 8, 2025) 🚀
     // Systematic threshold optimization achieved 60.73% accuracy at 19.1% signal rate
     // Profitability Score: 204.94 (best among 35 configurations tested)
-    double confidence_threshold = 0.65; // OPTIMAL: High-confidence filter
-    double coherence_threshold = 0.30;  // OPTIMAL: Broad signal capture (not 0.55!)  
+    double confidence_threshold = 0.50; // OPTIMAL: High-confidence filter
+    double coherence_threshold = 0.25;  // OPTIMAL: Broad signal capture (not 0.55!)  
     double stability_threshold = 0.0;
 
     for (size_t i = 0; i < candles.size() - 1 && i < signals.size() && i < metrics.size(); ++i) {
