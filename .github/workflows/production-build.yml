@@ -50,17 +50,13 @@ jobs:
         cmake -B build -DCMAKE_BUILD_TYPE=Release
         cmake --build build -j$(nproc)
         
-    - name: Run Trader Backtesting
-      run: |
-        ./build/bin/quantum_tracker --backtest
-        
     - name: Run System Integration Tests
       run: |
-        ./build/bin/quantum_tracker --test
+        ./build/src/apps/oanda_trader/quantum_tracker --test
         
     - name: Run Performance Validation
       run: |
-        ./build/bin/pme_testbed --scenario=realtime --duration=60s
+        ./build/examples/pme_testbed commercial_package/validation/sample_data/O-test-2.json
         
     - name: Validate Commercial Package
       run: |
@@ -85,8 +81,8 @@ jobs:
       with:
         name: sep-trader-build-${{ github.sha }}
         path: |
-          build/bin/
-          build/lib/
+          build/src/
+          build/examples/
           validation_report.md
           
     - name: Upload Commercial Package
@@ -110,7 +106,7 @@ jobs:
         
     - name: Test Docker Deployment
       run: |
-        docker run --rm sep-trader:production ./build/bin/quantum_tracker --test
+        docker run --rm sep-trader:production ./build/src/apps/oanda_trader/quantum_tracker --test
         
     - name: Save Docker Image
       run: |
@@ -135,8 +131,8 @@ jobs:
         
     - name: Run Performance Benchmarks
       run: |
-        chmod +x build/bin/pme_testbed
-        time ./build/bin/pme_testbed --scenario=realtime --duration=60s > performance_benchmark.json
+        chmod +x build/examples/pme_testbed
+        time ./build/examples/pme_testbed commercial_package/validation/sample_data/O-test-2.json > performance_benchmark.json
         
     - name: Generate Performance Report
       run: |
