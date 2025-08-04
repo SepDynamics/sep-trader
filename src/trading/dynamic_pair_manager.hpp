@@ -202,6 +202,10 @@ public:
     bool isOperationsPaused() const;
     void emergencyStopAllPairs();
     void forceCleanupResources();
+    
+    // Additional helper methods for CLI interface
+    std::vector<std::string> getAllPairs() const;
+    bool isPairEnabled(const std::string& pair) const;
 
 private:
     mutable std::mutex manager_mutex_;

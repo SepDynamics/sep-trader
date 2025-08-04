@@ -1,0 +1,56 @@
+// SEP Training CLI Commands
+// Command implementations for the professional training interface
+
+#ifndef CLI_COMMANDS_HPP
+#define CLI_COMMANDS_HPP
+
+#include <string>
+#include <vector>
+#include <memory>
+#include "training/training_coordinator.hpp"
+
+namespace sep {
+namespace training {
+
+class CLICommands {
+public:
+    explicit CLICommands(TrainingCoordinator& coordinator);
+    
+    // Training operations
+    bool trainPair(const std::string& pair);
+    bool trainAllPairs(bool quick_mode = false);
+    bool trainSelectedPairs(const std::string& pairs_csv);
+    bool retrainFailedPairs();
+    
+    // Data management
+    bool fetchWeeklyData(const std::string& pair = "");
+    bool validateCache();
+    bool cleanupCache();
+    
+    // Remote integration
+    bool configureRemoteTrader(const std::string& remote_ip);
+    bool syncPatternsToRemote();
+    bool syncParametersFromRemote();
+    bool testRemoteConnection();
+    
+    // Live tuning
+    bool startLiveTuning(const std::string& pairs_csv);
+    bool stopLiveTuning();
+    
+    // System operations
+    bool runBenchmark();
+    
+private:
+    TrainingCoordinator& coordinator_;
+    
+    // Utility methods
+    std::vector<std::string> parsePairsList(const std::string& pairs_csv);
+    void printProgress(const std::string& operation, int current, int total);
+    void printTrainingResult(const std::string& pair, const TrainingResult& result);
+    bool confirmOperation(const std::string& operation);
+};
+
+} // namespace training
+} // namespace sep
+
+#endif // CLI_COMMANDS_HPP

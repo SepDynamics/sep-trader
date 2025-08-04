@@ -1,14 +1,27 @@
 #pragma once
 
-#ifdef SEP_USE_CUDA
+// Include CUDA headers if CUDA is available
+#if defined(__CUDACC__) || defined(SEP_USE_CUDA)
 #include <cuda_runtime.h>
-#else
-// Define CUDA keywords as empty when CUDA is disabled
+#endif
+
+// Only define CUDA keywords if they're not already defined by CUDA headers
+#if !defined(__CUDACC__) && !defined(SEP_USE_CUDA)
+#ifndef __host__
 #define __host__
+#endif
+#ifndef __device__
 #define __device__
+#endif
+#ifndef __global__
 #define __global__
+#endif
+#ifndef __shared__
 #define __shared__
+#endif
+#ifndef __constant__
 #define __constant__
+#endif
 #endif
 
 #include <string>

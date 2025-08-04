@@ -1,7 +1,8 @@
 #ifndef SEP_ENGINE_CUDA_TYPES_HPP
 #define SEP_ENGINE_CUDA_TYPES_HPP
 
-#ifdef SEP_USE_CUDA
+#if defined(__CUDACC__) || defined(CUDA_VERSION)
+// CUDA is available - use real CUDA types
 #include <cuda_runtime.h>
 #else
 // Define CUDA types as dummies when CUDA is disabled
