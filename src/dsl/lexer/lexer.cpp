@@ -37,11 +37,15 @@ namespace dsl::lexer {
         {"true", ast::TokenType::BOOLEAN},
         {"false", ast::TokenType::BOOLEAN},
         // Type annotation keywords
-        {"Number", ast::TokenType::NUMBER_TYPE},
-        {"String", ast::TokenType::STRING_TYPE},
-        {"Bool", ast::TokenType::BOOL_TYPE},
-        {"Pattern", ast::TokenType::PATTERN_TYPE},
-        {"Void", ast::TokenType::VOID_TYPE}};
+        {"number", ast::TokenType::NUMBER_TYPE},
+        {"string", ast::TokenType::STRING_TYPE},
+        {"bool", ast::TokenType::BOOL_TYPE},
+        {"boolean", ast::TokenType::BOOL_TYPE},
+        {"pattern", ast::TokenType::PATTERN_TYPE},
+        {"void", ast::TokenType::VOID_TYPE},
+        {"Vec2", ast::TokenType::VEC2_TYPE},
+        {"Vec3", ast::TokenType::VEC3_TYPE},
+        {"Vec4", ast::TokenType::VEC4_TYPE}};  
 
     Lexer::Lexer(const std::string& source) : source(source), position(0), line(1), column(1)
     {
@@ -249,6 +253,7 @@ Token Lexer::next_token() {
             case '-': advance(); return Token(ast::TokenType::MINUS, "-", token_line, token_column);
             case '*': advance(); return Token(ast::TokenType::MULTIPLY, "*", token_line, token_column);
             case '/': advance(); return Token(ast::TokenType::DIVIDE, "/", token_line, token_column);
+            case '%': advance(); return Token(ast::TokenType::MODULO, "%", token_line, token_column);
             case '<': advance(); return Token(ast::TokenType::LT, "<", token_line, token_column);
             case '>': advance(); return Token(ast::TokenType::GT, ">", token_line, token_column);
             case '!': advance(); return Token(ast::TokenType::NOT, "!", token_line, token_column);

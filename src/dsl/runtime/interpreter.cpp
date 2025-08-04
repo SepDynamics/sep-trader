@@ -564,6 +564,91 @@ void Interpreter::register_builtins() {
         return numerator / denominator;
     };
     
+    // Vector math functions
+    builtins_["vec2"] = [](const std::vector<Value>& args) -> Value {
+        if (args.size() != 2) {
+            throw std::runtime_error("vec2() expects exactly 2 arguments");
+        }
+        std::vector<double> vec = {
+            std::any_cast<double>(args[0]),
+            std::any_cast<double>(args[1])
+        };
+        return vec;
+    };
+    
+    builtins_["vec3"] = [](const std::vector<Value>& args) -> Value {
+        if (args.size() != 3) {
+            throw std::runtime_error("vec3() expects exactly 3 arguments");
+        }
+        std::vector<double> vec = {
+            std::any_cast<double>(args[0]),
+            std::any_cast<double>(args[1]),
+            std::any_cast<double>(args[2])
+        };
+        return vec;
+    };
+    
+    builtins_["vec4"] = [](const std::vector<Value>& args) -> Value {
+        if (args.size() != 4) {
+            throw std::runtime_error("vec4() expects exactly 4 arguments");
+        }
+        std::vector<double> vec = {
+            std::any_cast<double>(args[0]),
+            std::any_cast<double>(args[1]),
+            std::any_cast<double>(args[2]),
+            std::any_cast<double>(args[3])
+        };
+        return vec;
+    };
+    
+    builtins_["length"] = [](const std::vector<Value>& args) -> Value {
+        if (args.size() != 1) {
+            throw std::runtime_error("length() expects exactly 1 argument");
+        }
+        auto vec = std::any_cast<std::vector<double>>(args[0]);
+        double sum = 0.0;
+        for (double component : vec) {
+            sum += component * component;
+        }
+        return std::sqrt(sum);
+    };
+    
+    builtins_["dot"] = [](const std::vector<Value>& args) -> Value {
+        if (args.size() != 2) {
+            throw std::runtime_error("dot() expects exactly 2 arguments");
+        }
+        auto vec1 = std::any_cast<std::vector<double>>(args[0]);
+        auto vec2 = std::any_cast<std::vector<double>>(args[1]);
+        if (vec1.size() != vec2.size()) {
+            throw std::runtime_error("dot() vectors must have same dimensions");
+        }
+        double result = 0.0;
+        for (size_t i = 0; i < vec1.size(); i++) {
+            result += vec1[i] * vec2[i];
+        }
+        return result;
+    };
+    
+    builtins_["normalize"] = [](const std::vector<Value>& args) -> Value {
+        if (args.size() != 1) {
+            throw std::runtime_error("normalize() expects exactly 1 argument");
+        }
+        auto vec = std::any_cast<std::vector<double>>(args[0]);
+        double len = 0.0;
+        for (double component : vec) {
+            len += component * component;
+        }
+        len = std::sqrt(len);
+        if (len == 0.0) {
+            throw std::runtime_error("Cannot normalize zero-length vector");
+        }
+        std::vector<double> result;
+        for (double component : vec) {
+            result.push_back(component / len);
+        }
+        return result;
+    };
+    
     // Time series functions
     builtins_["moving_average"] = [](const std::vector<Value>& args) -> Value {
         if (args.size() < 2) {
@@ -687,41 +772,7 @@ void Interpreter::register_builtins() {
         return result;
     };
     
-    // Data transformation functions
-    builtins_["normalize"] = [](const std::vector<Value>& args) -> Value {
-        if (args.empty()) {
-            throw std::runtime_error("normalize() expects at least 1 argument (data...)");
-        }
-        
-        // Convert args to data array
-        std::vector<double> data;
-        for (const auto& arg : args) {
-            data.push_back(std::any_cast<double>(arg));
-        }
-        
-        if (data.size() == 1) {
-            return std::vector<Value>{1.0}; // Single value normalizes to 1
-        }
-        
-        // Find min and max
-        double min_val = *std::min_element(data.begin(), data.end());
-        double max_val = *std::max_element(data.begin(), data.end());
-        
-        if (min_val == max_val) {
-            // All values are the same, return array of ones
-            std::vector<Value> result(data.size(), 1.0);
-            return result;
-        }
-        
-        // Normalize to [0, 1] range
-        std::vector<Value> result;
-        for (double val : data) {
-            double normalized = (val - min_val) / (max_val - min_val);
-            result.push_back(normalized);
-        }
-        
-        return result;
-    };
+    // Data transformation functions (removed duplicate normalize - using vector normalize above)
     
     builtins_["standardize"] = [](const std::vector<Value>& args) -> Value {
         if (args.empty()) {
@@ -1277,6 +1328,7 @@ void Interpreter::interpret(const ast::Program& program) {
         
     } catch (const std::exception& e) {
         std::cerr << "Runtime error: " << e.what() << std::endl;
+        throw; // Re-throw the exception for proper error handling in tests
     }
 }
 
@@ -1312,11 +1364,20 @@ Value Interpreter::evaluate(const ast::Expression& expr) {
     if (const auto* await_expr = dynamic_cast<const ast::AwaitExpression*>(&expr)) {
         return visit_await_expression(*await_expr);
     }
+    if (const auto* if_expr = dynamic_cast<const ast::IfExpression*>(&expr)) {
+        return visit_if_expression(*if_expr);
+    }
     if (const auto* array_literal = dynamic_cast<const ast::ArrayLiteral*>(&expr)) {
         return visit_array_literal(*array_literal);
     }
     if (const auto* array_access = dynamic_cast<const ast::ArrayAccess*>(&expr)) {
         return visit_array_access(*array_access);
+    }
+    if (const auto* vector_literal = dynamic_cast<const ast::VectorLiteral*>(&expr)) {
+        return visit_vector_literal(*vector_literal);
+    }
+    if (const auto* vector_access = dynamic_cast<const ast::VectorAccess*>(&expr)) {
+        return visit_vector_access(*vector_access);
     }
     
     throw std::runtime_error("Unknown expression type");
@@ -1333,6 +1394,8 @@ void Interpreter::execute(const ast::Statement& stmt) {
         visit_if_statement(*if_stmt);
     } else if (const auto* while_stmt = dynamic_cast<const ast::WhileStatement*>(&stmt)) {
         visit_while_statement(*while_stmt);
+    } else if (const auto* for_stmt = dynamic_cast<const ast::ForStatement*>(&stmt)) {
+        visit_for_statement(*for_stmt);
     } else if (const auto* func_decl = dynamic_cast<const ast::FunctionDeclaration*>(&stmt)) {
         visit_function_declaration(*func_decl);
     } else if (const auto* return_stmt = dynamic_cast<const ast::ReturnStatement*>(&stmt)) {
@@ -1401,6 +1464,14 @@ Value Interpreter::visit_binary_op(const ast::BinaryOp& node) {
             throw std::runtime_error("Division by zero");
         }
         return left_num / right_num;
+    }
+    if (node.op == "%") {
+        double left_num = std::any_cast<double>(left);
+        double right_num = std::any_cast<double>(right);
+        if (right_num == 0.0) {
+            throw std::runtime_error("Modulo by zero");
+        }
+        return std::fmod(left_num, right_num);
     }
     if (node.op == ">") {
         double left_num = std::any_cast<double>(left);
@@ -2545,7 +2616,19 @@ std::string Interpreter::stringify(const Value& value) {
                     result += "]";
                     return result;
                 } catch (const std::bad_any_cast&) {
-                    return "<unknown value>";
+                    try {
+                        // Handle vectors (std::vector<double>)
+                        auto vector = std::any_cast<std::vector<double>>(value);
+                        std::string result = "vec" + std::to_string(vector.size()) + "(";
+                        for (size_t i = 0; i < vector.size(); ++i) {
+                            if (i > 0) result += ", ";
+                            result += std::to_string(vector[i]);
+                        }
+                        result += ")";
+                        return result;
+                    } catch (const std::bad_any_cast&) {
+                        return "<unknown value>";
+                    }
                 }
             }
         }
@@ -2554,14 +2637,10 @@ std::string Interpreter::stringify(const Value& value) {
 
 Value Interpreter::visit_weighted_sum(const ast::WeightedSum& node) {
    double total = 0.0;
-   for (const auto& pair : node.pairs) {
-       Value weight_val = evaluate(*pair.first);
-       Value value_val = evaluate(*pair.second);
-       
-       double weight = std::any_cast<double>(weight_val);
-       double value = std::any_cast<double>(value_val);
-       
-       total += weight * value;
+   for (const auto& expr : node.expressions) {
+       Value expr_val = evaluate(*expr);
+       double value = std::any_cast<double>(expr_val);
+       total += value;
    }
    return total;
 }
@@ -2628,6 +2707,35 @@ void Interpreter::visit_while_statement(const ast::WhileStatement& node) {
         for (const auto& stmt : node.body) {
             execute(*stmt);
         }
+    }
+    
+    // Restore previous environment
+    environment_ = previous;
+}
+
+void Interpreter::visit_for_statement(const ast::ForStatement& node) {
+    // Evaluate the iterable expression
+    Value iterable_value = evaluate(*node.iterable);
+    
+    // Create a new environment for the for block
+    Environment for_env(environment_);
+    Environment* previous = environment_;
+    environment_ = &for_env;
+    
+    // Handle array iteration
+    try {
+        const auto& array = std::any_cast<std::vector<Value>>(iterable_value);
+        for (const auto& element : array) {
+            // Bind the loop variable to the current element
+            for_env.define(node.variable, element);
+            
+            // Execute the loop body
+            for (const auto& stmt : node.body) {
+                execute(*stmt);
+            }
+        }
+    } catch (const std::bad_any_cast&) {
+        throw std::runtime_error("For loop iterable must be an array");
     }
     
     // Restore previous environment
@@ -2750,6 +2858,34 @@ Value Interpreter::visit_await_expression(const ast::AwaitExpression& node) {
     return result;
 }
 
+Value Interpreter::visit_if_expression(const ast::IfExpression& node) {
+    // Evaluate the condition
+    Value condition_result = evaluate(*node.condition);
+    
+    // Convert condition to boolean
+    bool condition_value = false;
+    try {
+        condition_value = std::any_cast<bool>(condition_result);
+    } catch (const std::bad_any_cast&) {
+        try {
+            condition_value = std::any_cast<double>(condition_result) != 0.0;
+        } catch (const std::bad_any_cast&) {
+            try {
+                condition_value = !std::any_cast<std::string>(condition_result).empty();
+            } catch (const std::bad_any_cast&) {
+                condition_value = false; // Default to false for unknown types
+            }
+        }
+    }
+    
+    // Return the appropriate branch result
+    if (condition_value) {
+        return evaluate(*node.then_expr);
+    } else {
+        return evaluate(*node.else_expr);
+    }
+}
+
 void Interpreter::visit_try_statement(const ast::TryStatement& node) {
     try {
         // Execute try block
@@ -2861,6 +2997,47 @@ Value Interpreter::visit_array_access(const ast::ArrayAccess& node) {
         return array[idx];
     } catch (const std::bad_any_cast&) {
         throw std::runtime_error("Cannot index into non-array value");
+    }
+}
+
+Value Interpreter::visit_vector_literal(const ast::VectorLiteral& node) {
+    std::vector<double> components;
+    components.reserve(node.components.size());
+    
+    for (const auto& component_expr : node.components) {
+        Value component_value = evaluate(*component_expr);
+        double component = std::any_cast<double>(component_value);
+        components.push_back(component);
+    }
+    
+    return components;
+}
+
+Value Interpreter::visit_vector_access(const ast::VectorAccess& node) {
+    Value vector_value = evaluate(*node.vector);
+    
+    try {
+        auto vector = std::any_cast<std::vector<double>>(vector_value);
+        
+        // Handle component access by name (x, y, z, w)
+        if (node.component == "x" && vector.size() >= 1) return vector[0];
+        if (node.component == "y" && vector.size() >= 2) return vector[1];
+        if (node.component == "z" && vector.size() >= 3) return vector[2];
+        if (node.component == "w" && vector.size() >= 4) return vector[3];
+        
+        // Handle component access by index [0], [1], [2], [3]
+        try {
+            size_t index = std::stoul(node.component);
+            if (index >= vector.size()) {
+                throw std::runtime_error("Vector component index " + std::to_string(index) + " out of bounds (size: " + std::to_string(vector.size()) + ")");
+            }
+            return vector[index];
+        } catch (const std::invalid_argument&) {
+            throw std::runtime_error("Invalid vector component: " + node.component);
+        }
+        
+    } catch (const std::bad_any_cast&) {
+        throw std::runtime_error("Cannot access component of non-vector value");
     }
 }
 

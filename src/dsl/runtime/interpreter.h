@@ -134,8 +134,11 @@ private:
     Value visit_member_access(const ast::MemberAccess& node);
     Value visit_weighted_sum(const ast::WeightedSum& node);
     Value visit_await_expression(const ast::AwaitExpression& node);
+    Value visit_if_expression(const ast::IfExpression& node);
     Value visit_array_literal(const ast::ArrayLiteral& node);
     Value visit_array_access(const ast::ArrayAccess& node);
+    Value visit_vector_literal(const ast::VectorLiteral& node);
+    Value visit_vector_access(const ast::VectorAccess& node);
 
     // Statement execution visitors
     void visit_assignment(const ast::Assignment& node);
@@ -143,6 +146,7 @@ private:
     void visit_evolve_statement(const ast::EvolveStatement& node);
     void visit_if_statement(const ast::IfStatement& node);
     void visit_while_statement(const ast::WhileStatement& node);
+    void visit_for_statement(const ast::ForStatement& node);
     void visit_function_declaration(const ast::FunctionDeclaration& node);
     void visit_return_statement(const ast::ReturnStatement& node);
     void visit_import_statement(const ast::ImportStatement& node);

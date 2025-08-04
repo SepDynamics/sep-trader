@@ -43,6 +43,12 @@ std::unique_ptr<ast::Program> Parser::parse() {
             // Handle top-level assignments or expressions
             // For now, we'll just parse and ignore them
             parse_statement();
+        } else if (current_token_.type == ast::TokenType::FOR) {
+            // Handle top-level for loops
+            parse_statement();
+        } else if (current_token_.type == ast::TokenType::WHILE) {
+            // Handle top-level while loops
+            parse_statement();
         } else {
             throw std::runtime_error("Unexpected token: " + current_token_.value + " at line " + std::to_string(current_token_.line));
         }
@@ -361,7 +367,7 @@ std::unique_ptr<ast::Expression> Parser::parse_term() {
 std::unique_ptr<ast::Expression> Parser::parse_factor() {
     auto expr = parse_unary();
     
-    while (current_token_.type == ast::TokenType::MULTIPLY || current_token_.type == ast::TokenType::DIVIDE) {
+    while (current_token_.type == ast::TokenType::MULTIPLY || current_token_.type == ast::TokenType::DIVIDE || current_token_.type == ast::TokenType::MODULO) {
         auto op = current_token_.value;
         advance();
         auto right = parse_unary();
@@ -471,6 +477,14 @@ std::unique_ptr<ast::Expression> Parser::parse_primary() {
         return parse_await_expression();
     }
     
+    std::cout << "[DEBUG] Current token: " << static_cast<int>(current_token_.type) << " value: " << current_token_.value << std::endl;
+    std::cout << "[DEBUG] IF token type: " << static_cast<int>(ast::TokenType::IF) << std::endl;
+    
+    if (current_token_.type == ast::TokenType::IF) {
+        std::cout << "[DEBUG] Parsing if expression" << std::endl;
+        return parse_if_expression();
+    }
+    
     // Array literals
     if (current_token_.type == ast::TokenType::LBRACKET) {
         auto location = current_location();
@@ -490,6 +504,34 @@ std::unique_ptr<ast::Expression> Parser::parse_primary() {
         return array;
     }
     
+    // Vector literals: vec2(x, y), vec3(x, y, z), vec4(x, y, z, w)
+    if (current_token_.type == ast::TokenType::IDENTIFIER && 
+        (current_token_.value == "vec2" || current_token_.value == "vec3" || current_token_.value == "vec4")) {
+        
+        std::string vec_type = current_token_.value;
+        advance(); // consume vector type
+        expect(ast::TokenType::LPAREN, "Expected '(' after vector type");
+        
+        auto vector_lit = std::make_unique<ast::VectorLiteral>();
+        
+        // Parse vector components
+        if (current_token_.type != ast::TokenType::RPAREN) {
+            do {
+                vector_lit->components.push_back(parse_expression());
+            } while (current_token_.type == ast::TokenType::COMMA && (advance(), true));
+        }
+        
+        expect(ast::TokenType::RPAREN, "Expected ')' after vector components");
+        
+        // Validate component count
+        size_t expected_components = (vec_type == "vec2") ? 2 : (vec_type == "vec3") ? 3 : 4;
+        if (vector_lit->components.size() != expected_components) {
+            throw std::runtime_error(vec_type + " requires exactly " + std::to_string(expected_components) + " components");
+        }
+        
+        return vector_lit;
+    }
+    
     throw std::runtime_error("Unexpected token in expression: " + current_token_.value);
 }
 
@@ -499,13 +541,16 @@ std::unique_ptr<ast::WeightedSum> Parser::parse_weighted_sum() {
 
    auto weighted_sum = std::make_unique<ast::WeightedSum>();
 
-   if (current_token_.type != ast::TokenType::RBRACE) {
-       do {
-           auto weight = parse_expression();
-           expect(ast::TokenType::COLON, "Expected ':' separating weight and value.");
-           auto value = parse_expression();
-           weighted_sum->pairs.emplace_back(std::move(weight), std::move(value));
-       } while (current_token_.type == ast::TokenType::COMMA && (advance(), true));
+   // Parse expressions (comma-separated, semicolon-separated, or newline-separated)
+   while (current_token_.type != ast::TokenType::RBRACE && current_token_.type != ast::TokenType::EOF_TOKEN) {
+   auto expr = parse_expression();
+   weighted_sum->expressions.push_back(std::move(expr));
+   
+   // Accept optional comma, semicolon, or continue to next expression
+   if (current_token_.type == ast::TokenType::COMMA || current_token_.type == ast::TokenType::SEMICOLON) {
+   advance(); // consume separator
+   }
+   // Otherwise, continue parsing the next expression if not at closing brace
    }
 
    expect(ast::TokenType::RBRACE, "Expected '}' to close 'weighted_sum' block.");
@@ -642,6 +687,15 @@ ast::TypeAnnotation Parser::parse_type_annotation() {
         case ast::TokenType::VOID_TYPE:
             advance();
             return ast::TypeAnnotation::VOID;
+        case ast::TokenType::VEC2_TYPE:
+            advance();
+            return ast::TypeAnnotation::VEC2;
+        case ast::TokenType::VEC3_TYPE:
+            advance();
+            return ast::TypeAnnotation::VEC3;
+        case ast::TokenType::VEC4_TYPE:
+            advance();
+            return ast::TypeAnnotation::VEC4;
         default:
             return ast::TypeAnnotation::INFERRED;
     }
@@ -688,6 +742,7 @@ const std::unordered_map<ast::TokenType, Parser::OperatorInfo>& Parser::get_oper
         // Multiplicative operators
         {ast::TokenType::MULTIPLY, {Precedence::MULTIPLICATIVE, OperatorInfo::Associativity::LEFT, false, false}},
         {ast::TokenType::DIVIDE, {Precedence::MULTIPLICATIVE, OperatorInfo::Associativity::LEFT, false, false}},
+        {ast::TokenType::MODULO, {Precedence::MULTIPLICATIVE, OperatorInfo::Associativity::LEFT, false, false}},
         
         // Unary operators
         {ast::TokenType::NOT, {Precedence::UNARY, OperatorInfo::Associativity::RIGHT, true, false}},
@@ -795,6 +850,18 @@ std::unique_ptr<ast::Expression> Parser::parse_precedence(Precedence precedence)
             
             expect(ast::TokenType::RBRACKET, "Expected ']' after array elements");
             left = std::move(array);
+            break;
+        }
+        case ast::TokenType::IF: {
+            left = parse_if_expression();
+            break;
+        }
+        case ast::TokenType::WEIGHTED_SUM: {
+            left = parse_weighted_sum();
+            break;
+        }
+        case ast::TokenType::AWAIT: {
+            left = parse_await_expression();
             break;
         }
         default:
@@ -1059,6 +1126,36 @@ std::unique_ptr<ast::ThrowStatement> Parser::parse_throw_statement() {
     throw_stmt->expression = parse_expression();
     
     return throw_stmt;
+}
+
+std::unique_ptr<ast::IfExpression> Parser::parse_if_expression() {
+    expect(ast::TokenType::IF, "Expected 'if' keyword.");
+    expect(ast::TokenType::LPAREN, "Expected '(' after 'if'.");
+    
+    auto if_expr = std::make_unique<ast::IfExpression>();
+    if_expr->condition = parse_expression();
+    
+    expect(ast::TokenType::RPAREN, "Expected ')' after condition.");
+    expect(ast::TokenType::LBRACE, "Expected '{' after if condition.");
+    
+    // Parse the then expression (should be a single expression)
+    if_expr->then_expr = parse_expression();
+    
+    expect(ast::TokenType::RBRACE, "Expected '}' to close if block.");
+    expect(ast::TokenType::ELSE, "Expected 'else' after if expression.");
+    
+    // Check if this is an 'else if' chain
+    if (current_token_.type == ast::TokenType::IF) {
+        // This is an 'else if', recursively parse the next if expression
+        if_expr->else_expr = parse_if_expression();
+    } else {
+        // This is a regular else clause
+        expect(ast::TokenType::LBRACE, "Expected '{' after 'else'.");
+        if_expr->else_expr = parse_expression();
+        expect(ast::TokenType::RBRACE, "Expected '}' to close else block.");
+    }
+    
+    return if_expr;
 }
 
 } // namespace dsl::parser

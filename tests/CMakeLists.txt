@@ -81,6 +81,20 @@ target_include_directories(dsl_interpreter_test PRIVATE ../src)
 target_link_libraries(dsl_interpreter_test GTest::gtest GTest::gtest_main sep_dsl)
 gtest_discover_tests(dsl_interpreter_test)
 
+# DSL Syntax Validation Tests
+add_executable(dsl_syntax_validation_test
+    dsl/unit/syntax_validation_test.cpp)
+target_include_directories(dsl_syntax_validation_test PRIVATE ../src)
+target_link_libraries(dsl_syntax_validation_test GTest::gtest GTest::gtest_main sep_dsl)
+gtest_discover_tests(dsl_syntax_validation_test)
+
+# DSL Semantic Analysis Tests
+add_executable(dsl_semantic_analysis_test
+    dsl/unit/semantic_analysis_test.cpp)
+target_include_directories(dsl_semantic_analysis_test PRIVATE ../src)
+target_link_libraries(dsl_semantic_analysis_test GTest::gtest GTest::gtest_main sep_dsl)
+gtest_discover_tests(dsl_semantic_analysis_test)
+
 # DSL AST Serialization Tests
 add_executable(dsl_serialization_test
     dsl/ast/test_serialization.cpp)

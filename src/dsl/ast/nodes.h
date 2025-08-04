@@ -40,6 +40,7 @@ enum class TokenType
     MINUS,
     MULTIPLY,
     DIVIDE,
+    MODULO,
     GT,
     LT,
     GE,
@@ -73,6 +74,9 @@ enum class TokenType
     BOOL_TYPE,
     PATTERN_TYPE,
     VOID_TYPE,
+    VEC2_TYPE,
+    VEC3_TYPE,
+    VEC4_TYPE,
     // Array tokens
     LBRACKET,
     RBRACKET,
@@ -107,6 +111,9 @@ enum class TypeAnnotation {
     PATTERN,
     VOID,
     ARRAY,    // Array of numbers
+    VEC2,     // 2D vector
+    VEC3,     // 3D vector
+    VEC4,     // 4D vector
     INFERRED  // Type will be inferred
 };
 
@@ -149,8 +156,17 @@ struct ArrayAccess : Expression {
     std::unique_ptr<Expression> index;
 };
 
+struct VectorLiteral : Expression {
+    std::vector<std::unique_ptr<Expression>> components; // 2, 3, or 4 components
+};
+
+struct VectorAccess : Expression {
+    std::unique_ptr<Expression> vector;
+    std::string component; // "x", "y", "z", "w" or [0], [1], [2], [3]
+};
+
 struct WeightedSum : Expression {
-    std::vector<std::pair<std::unique_ptr<Expression>, std::unique_ptr<Expression>>> pairs; // weight : value pairs
+    std::vector<std::unique_ptr<Expression>> expressions; // weighted expressions like "0.3 * value1"
 };
 
 struct EvolveStatement : Statement {
@@ -213,6 +229,13 @@ struct AsyncFunctionDeclaration : Statement
 struct AwaitExpression : Expression
 {
     std::unique_ptr<Expression> expression;
+};
+
+struct IfExpression : Expression
+{
+    std::unique_ptr<Expression> condition;
+    std::unique_ptr<Expression> then_expr;
+    std::unique_ptr<Expression> else_expr;
 };
 
 struct TryStatement : Statement

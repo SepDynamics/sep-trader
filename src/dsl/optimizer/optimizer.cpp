@@ -113,6 +113,12 @@ std::unique_ptr<ast::BinaryOp> ASTOptimizer::optimize_binary_op(std::unique_ptr<
             } else {
                 return binary; // Don't optimize division by zero
             }
+        } else if (binary->op == "%") {
+            if (right_val != 0.0) {
+                result = std::fmod(left_val, right_val);
+            } else {
+                return binary; // Don't optimize modulo by zero
+            }
         } else {
             return binary; // Unknown operator
         }
@@ -202,6 +208,7 @@ double ASTOptimizer::evaluate_constant_expression(const ast::Expression& expr) {
         if (binary->op == "-") return left - right;
         if (binary->op == "*") return left * right;
         if (binary->op == "/") return right != 0.0 ? left / right : 0.0;
+        if (binary->op == "%") return right != 0.0 ? std::fmod(left, right) : 0.0;
     }
     
     // Evaluate unary operations

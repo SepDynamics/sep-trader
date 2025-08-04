@@ -1,0 +1,6 @@
+pattern test {
+    result = weighted_sum {
+        0.3 * value1
+        0.7 * value2
+    }
+}

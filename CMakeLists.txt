@@ -160,7 +160,7 @@ add_subdirectory(extern/crow)
 # Trigger rebuild again
 add_subdirectory(src)
 add_subdirectory(examples)
-# add_subdirectory(tests)
+add_subdirectory(tests)
 
 # Enable fuzzing if explicitly requested
 option(ENABLE_FUZZING "Enable fuzz testing with LibFuzzer" OFF)

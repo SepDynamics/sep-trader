@@ -96,6 +96,7 @@ private:
     std::unique_ptr<ast::ExportStatement> parse_export_statement();
     std::unique_ptr<ast::AsyncFunctionDeclaration> parse_async_function_declaration();
     std::unique_ptr<ast::AwaitExpression> parse_await_expression();
+    std::unique_ptr<ast::IfExpression> parse_if_expression();
     std::unique_ptr<ast::TryStatement> parse_try_statement();
     std::unique_ptr<ast::ThrowStatement> parse_throw_statement();
 };

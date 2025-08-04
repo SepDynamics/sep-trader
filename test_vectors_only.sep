@@ -1,0 +1,19 @@
+// Test vector creation and operations only
+pattern test_vectors {
+    // Test vec2
+    v2 = vec2(3, 4)
+    print("vec2(3, 4) =", v2)
+    
+    // Test vec3
+    v3 = vec3(1, 2, 3)
+    print("vec3(1, 2, 3) =", v3)
+    
+    // Test vector length
+    len = length(v2)
+    print("length of vec2(3, 4) =", len)
+    
+    // Test vector dot product
+    v2_other = vec2(1, 2)
+    dot_result = dot(v2, v2_other)
+    print("dot(vec2(3,4), vec2(1,2)) =", dot_result)
+}

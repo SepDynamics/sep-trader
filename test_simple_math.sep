@@ -1,0 +1,13 @@
+// Test basic arithmetic
+pattern test_math {
+    a = 10
+    b = 3
+    add = a + b
+    sub = a - b
+    mul = a * b
+    div = a / b
+    print("10 + 3 =", add)
+    print("10 - 3 =", sub)
+    print("10 * 3 =", mul)
+    print("10 / 3 =", div)
+}

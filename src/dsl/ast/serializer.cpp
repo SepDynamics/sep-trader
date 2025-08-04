@@ -110,12 +110,9 @@ json ASTSerializer::serialize(const Expression& expr) {
     }
     else if (const auto* weighted = dynamic_cast<const WeightedSum*>(&expr)) {
         j["type"] = "WeightedSum";
-        j["pairs"] = json::array();
-        for (const auto& pair : weighted->pairs) {
-            json pair_json;
-            pair_json["weight"] = serialize(*pair.first);
-            pair_json["value"] = serialize(*pair.second);
-            j["pairs"].push_back(pair_json);
+        j["expressions"] = json::array();
+        for (const auto& expr : weighted->expressions) {
+            j["expressions"].push_back(serialize(*expr));
         }
     }
     else {
@@ -335,7 +332,7 @@ std::unique_ptr<Program> ASTSerializer::load_from_file(const std::string& filena
     return deserialize_program(j);
 }
 
-// Basic deserialization implementation (simplified for now)
+// Full deserialization implementation
 std::unique_ptr<Program> ASTSerializer::deserialize_program(const json& j) {
     auto program = std::make_unique<Program>();
     
@@ -343,15 +340,99 @@ std::unique_ptr<Program> ASTSerializer::deserialize_program(const json& j) {
         program->location = deserialize_source_location(j["location"]);
     }
     
-    // For now, we'll implement basic deserialization
-    // Full implementation would deserialize all streams, patterns, and signals
-    // This is a foundation that can be extended
+    // Deserialize patterns
+    if (j.contains("patterns") && j["patterns"].is_array()) {
+        for (const auto& pattern_json : j["patterns"]) {
+            auto pattern = std::make_unique<PatternDecl>();
+            
+            if (pattern_json.contains("name")) {
+                pattern->name = pattern_json["name"].get<std::string>();
+            }
+            if (pattern_json.contains("parent_pattern")) {
+                pattern->parent_pattern = pattern_json["parent_pattern"].get<std::string>();
+            }
+            if (pattern_json.contains("location")) {
+                pattern->location = deserialize_source_location(pattern_json["location"]);
+            }
+            
+            // Deserialize pattern inputs
+            if (pattern_json.contains("inputs") && pattern_json["inputs"].is_array()) {
+                for (const auto& input : pattern_json["inputs"]) {
+                    pattern->inputs.push_back(input.get<std::string>());
+                }
+            }
+            
+            // Deserialize pattern body
+            if (pattern_json.contains("body") && pattern_json["body"].is_array()) {
+                for (const auto& stmt_json : pattern_json["body"]) {
+                    auto stmt = deserialize_statement(stmt_json);
+                    if (stmt) {
+                        pattern->body.push_back(std::move(stmt));
+                    }
+                }
+            }
+            
+            program->patterns.push_back(std::move(pattern));
+        }
+    }
+    
+    // Deserialize streams
+    if (j.contains("streams") && j["streams"].is_array()) {
+        for (const auto& stream_json : j["streams"]) {
+            auto stream = std::make_unique<StreamDecl>();
+            
+            if (stream_json.contains("name")) {
+                stream->name = stream_json["name"].get<std::string>();
+            }
+            if (stream_json.contains("source")) {
+                stream->source = stream_json["source"].get<std::string>();
+            }
+            if (stream_json.contains("location")) {
+                stream->location = deserialize_source_location(stream_json["location"]);
+            }
+            
+            // Deserialize parameters
+            if (stream_json.contains("params") && stream_json["params"].is_object()) {
+                for (auto& [key, value] : stream_json["params"].items()) {
+                    stream->params[key] = value.get<std::string>();
+                }
+            }
+            
+            program->streams.push_back(std::move(stream));
+        }
+    }
+    
+    // Deserialize signals
+    if (j.contains("signals") && j["signals"].is_array()) {
+        for (const auto& signal_json : j["signals"]) {
+            auto signal = std::make_unique<SignalDecl>();
+            
+            if (signal_json.contains("name")) {
+                signal->name = signal_json["name"].get<std::string>();
+            }
+            if (signal_json.contains("action")) {
+                signal->action = signal_json["action"].get<std::string>();
+            }
+            if (signal_json.contains("location")) {
+                signal->location = deserialize_source_location(signal_json["location"]);
+            }
+            
+            // Deserialize trigger and confidence expressions
+            if (signal_json.contains("trigger")) {
+                signal->trigger = deserialize_expression(signal_json["trigger"]);
+            }
+            if (signal_json.contains("confidence")) {
+                signal->confidence = deserialize_expression(signal_json["confidence"]);
+            }
+            
+            program->signals.push_back(std::move(signal));
+        }
+    }
     
     return program;
 }
 
 std::unique_ptr<Expression> ASTSerializer::deserialize_expression(const json& j) {
-    // Basic implementation - can be extended for full deserialization
     if (!j.contains("type")) {
         return nullptr;
     }
@@ -366,13 +447,91 @@ std::unique_ptr<Expression> ASTSerializer::deserialize_expression(const json& j)
         }
         return expr;
     }
-    // Add more expression types as needed
+    else if (type == "StringLiteral") {
+        auto expr = std::make_unique<StringLiteral>();
+        expr->value = j["value"].get<std::string>();
+        if (j.contains("location")) {
+            expr->location = deserialize_source_location(j["location"]);
+        }
+        return expr;
+    }
+    else if (type == "BooleanLiteral") {
+        auto expr = std::make_unique<BooleanLiteral>();
+        expr->value = j["value"].get<bool>();
+        if (j.contains("location")) {
+            expr->location = deserialize_source_location(j["location"]);
+        }
+        return expr;
+    }
+    else if (type == "Identifier") {
+        auto expr = std::make_unique<Identifier>();
+        expr->name = j["name"].get<std::string>();
+        if (j.contains("location")) {
+            expr->location = deserialize_source_location(j["location"]);
+        }
+        return expr;
+    }
+    else if (type == "BinaryOp") {
+        auto expr = std::make_unique<BinaryOp>();
+        expr->op = j["op"].get<std::string>();
+        if (j.contains("left")) {
+            expr->left = deserialize_expression(j["left"]);
+        }
+        if (j.contains("right")) {
+            expr->right = deserialize_expression(j["right"]);
+        }
+        if (j.contains("location")) {
+            expr->location = deserialize_source_location(j["location"]);
+        }
+        return expr;
+    }
+    else if (type == "UnaryOp") {
+        auto expr = std::make_unique<UnaryOp>();
+        expr->op = j["op"].get<std::string>();
+        if (j.contains("right")) {
+            expr->right = deserialize_expression(j["right"]);
+        }
+        if (j.contains("location")) {
+            expr->location = deserialize_source_location(j["location"]);
+        }
+        return expr;
+    }
+    else if (type == "Call") {
+        auto expr = std::make_unique<Call>();
+        expr->callee = j["callee"].get<std::string>();
+        if (j.contains("args") && j["args"].is_array()) {
+            for (const auto& arg_json : j["args"]) {
+                auto arg = deserialize_expression(arg_json);
+                if (arg) {
+                    expr->args.push_back(std::move(arg));
+                }
+            }
+        }
+        if (j.contains("location")) {
+            expr->location = deserialize_source_location(j["location"]);
+        }
+        return expr;
+    }
+    else if (type == "ArrayLiteral") {
+        auto expr = std::make_unique<ArrayLiteral>();
+        if (j.contains("elements") && j["elements"].is_array()) {
+            for (const auto& elem_json : j["elements"]) {
+                auto elem = deserialize_expression(elem_json);
+                if (elem) {
+                    expr->elements.push_back(std::move(elem));
+                }
+            }
+        }
+        if (j.contains("location")) {
+            expr->location = deserialize_source_location(j["location"]);
+        }
+        return expr;
+    }
     
     return nullptr;
 }
 
 std::unique_ptr<Statement> ASTSerializer::deserialize_statement(const json& j) {
-    // Basic implementation - can be extended for full deserialization
     if (!j.contains("type")) {
         return nullptr;
     }
@@ -385,13 +544,78 @@ std::unique_ptr<Statement> ASTSerializer::deserialize_statement(const json& j) {
         if (j.contains("type_annotation")) {
             stmt->type = deserialize_type_annotation(j["type_annotation"]);
         }
+        if (j.contains("value")) {
+            stmt->value = deserialize_expression(j["value"]);
+        }
         if (j.contains("location")) {
             stmt->location = deserialize_source_location(j["location"]);
         }
-        // Note: value deserialization would need to be implemented
         return stmt;
     }
-    // Add more statement types as needed
+    else if (type == "ExpressionStatement") {
+        auto stmt = std::make_unique<ExpressionStatement>();
+        if (j.contains("expression")) {
+            stmt->expression = deserialize_expression(j["expression"]);
+        }
+        if (j.contains("location")) {
+            stmt->location = deserialize_source_location(j["location"]);
+        }
+        return stmt;
+    }
+    else if (type == "IfStatement") {
+        auto stmt = std::make_unique<IfStatement>();
+        if (j.contains("condition")) {
+            stmt->condition = deserialize_expression(j["condition"]);
+        }
+        if (j.contains("then_branch") && j["then_branch"].is_array()) {
+            for (const auto& then_stmt : j["then_branch"]) {
+                auto deserialized_stmt = deserialize_statement(then_stmt);
+                if (deserialized_stmt) {
+                    stmt->then_branch.push_back(std::move(deserialized_stmt));
+                }
+            }
+        }
+        if (j.contains("else_branch") && j["else_branch"].is_array()) {
+            for (const auto& else_stmt : j["else_branch"]) {
+                auto deserialized_stmt = deserialize_statement(else_stmt);
+                if (deserialized_stmt) {
+                    stmt->else_branch.push_back(std::move(deserialized_stmt));
+                }
+            }
+        }
+        if (j.contains("location")) {
+            stmt->location = deserialize_source_location(j["location"]);
+        }
+        return stmt;
+    }
+    else if (type == "WhileStatement") {
+        auto stmt = std::make_unique<WhileStatement>();
+        if (j.contains("condition")) {
+            stmt->condition = deserialize_expression(j["condition"]);
+        }
+        if (j.contains("body") && j["body"].is_array()) {
+            for (const auto& body_stmt : j["body"]) {
+                auto deserialized_stmt = deserialize_statement(body_stmt);
+                if (deserialized_stmt) {
+                    stmt->body.push_back(std::move(deserialized_stmt));
+                }
+            }
+        }
+        if (j.contains("location")) {
+            stmt->location = deserialize_source_location(j["location"]);
+        }
+        return stmt;
+    }
+    else if (type == "ReturnStatement") {
+        auto stmt = std::make_unique<ReturnStatement>();
+        if (j.contains("value")) {
+            stmt->value = deserialize_expression(j["value"]);
+        }
+        if (j.contains("location")) {
+            stmt->location = deserialize_source_location(j["location"]);
+        }
+        return stmt;
+    }
     
     return nullptr;
 }
