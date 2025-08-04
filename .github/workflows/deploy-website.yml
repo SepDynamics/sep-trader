@@ -1,48 +1,24 @@
-name: Deploy SEP Dynamics Website
+name: Deploy Website
 
 on:
   push:
-    branches: [ main, master ]
-  pull_request:
-    branches: [ main, master ]
+    branches: [ main ]
 
 jobs:
   deploy:
     runs-on: self-hosted
-    
     steps:
-    - name: Checkout Repository
-      uses: actions/checkout@v4
-      
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '18'
-        
-    - name: Install Dependencies
-      run: |
-        cd website
-        rm -rf node_modules
-        npm ci
-        
+    - uses: actions/checkout@v4
+    
     - name: Build Website
       run: |
         cd website
+        npm install
         npm run build
         
-    - name: Deploy to GitHub Pages
+    - name: Deploy
       uses: peaceiris/actions-gh-pages@v4
-      if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
         publish_dir: ./website/dist
-        force_orphan: true
         cname: sepdynamics.com
-        user_name: 'github-actions[bot]'
-        user_email: 'github-actions[bot]@users.noreply.github.com'
-        commit_message: 'Deploy SEP Dynamics website'
-        
-    - name: Deployment Status
-      if: success()
-      run: |
-        echo "✅ SEP Dynamics website deployed to sepdynamics.com"
