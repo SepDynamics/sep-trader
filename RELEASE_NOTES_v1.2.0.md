@@ -1,5 +1,5 @@
 # SEP DSL v1.2.0 Release Notes
-**Release Date: January 3, 2025**
+**Release Date: AUGUST 3, 2025**
 
 ## 🚀 Major Commercial Release - Advanced Language Features
 
