@@ -1,0 +1,129 @@
+{
+  "pair": "EUR_USD",
+  "data_path": "/sep/commercial_package/validation/sample_data/O-test-2.json",
+  "best_config": {
+    "s_w": 0.1,
+    "c_w": 0.1,
+    "e_w": 0.8,
+    "overall": 41.56,
+    "high_conf": 56.97,
+    "rate": 22.4,
+    "profitability_score": 156.12799999999996,
+    "composite_score": 50.431000000000004,
+    "timestamp": "2025-08-04T11:35:53.888367"
+  },
+  "all_results": [
+    {
+      "s_w": 0.1,
+      "c_w": 0.1,
+      "e_w": 0.8,
+      "overall": 41.56,
+      "high_conf": 56.97,
+      "rate": 22.4,
+      "profitability_score": 156.12799999999996,
+      "composite_score": 50.431000000000004,
+      "timestamp": "2025-08-04T11:35:53.888367"
+    },
+    {
+      "s_w": 0.1,
+      "c_w": 0.3,
+      "e_w": 0.6,
+      "overall": 41.56,
+      "high_conf": 56.97,
+      "rate": 22.4,
+      "profitability_score": 156.12799999999996,
+      "composite_score": 50.431000000000004,
+      "timestamp": "2025-08-04T11:35:56.123084"
+    },
+    {
+      "s_w": 0.1,
+      "c_w": 0.5,
+      "e_w": 0.4,
+      "overall": 41.56,
+      "high_conf": 56.97,
+      "rate": 22.4,
+      "profitability_score": 156.12799999999996,
+      "composite_score": 50.431000000000004,
+      "timestamp": "2025-08-04T11:35:58.418460"
+    },
+    {
+      "s_w": 0.1,
+      "c_w": 0.7,
+      "e_w": 0.2,
+      "overall": 41.56,
+      "high_conf": 56.97,
+      "rate": 22.4,
+      "profitability_score": 156.12799999999996,
+      "composite_score": 50.431000000000004,
+      "timestamp": "2025-08-04T11:36:00.623855"
+    },
+    {
+      "s_w": 0.3,
+      "c_w": 0.1,
+      "e_w": 0.6,
+      "overall": 41.56,
+      "high_conf": 56.97,
+      "rate": 22.4,
+      "profitability_score": 156.12799999999996,
+      "composite_score": 50.431000000000004,
+      "timestamp": "2025-08-04T11:36:02.836557"
+    },
+    {
+      "s_w": 0.3,
+      "c_w": 0.3,
+      "e_w": 0.4,
+      "overall": 41.56,
+      "high_conf": 56.97,
+      "rate": 22.4,
+      "profitability_score": 156.12799999999996,
+      "composite_score": 50.431000000000004,
+      "timestamp": "2025-08-04T11:36:05.069022"
+    },
+    {
+      "s_w": 0.3,
+      "c_w": 0.5,
+      "e_w": 0.2,
+      "overall": 41.56,
+      "high_conf": 56.97,
+      "rate": 22.4,
+      "profitability_score": 156.12799999999996,
+      "composite_score": 50.431000000000004,
+      "timestamp": "2025-08-04T11:36:07.315238"
+    },
+    {
+      "s_w": 0.5,
+      "c_w": 0.1,
+      "e_w": 0.4,
+      "overall": 41.56,
+      "high_conf": 56.97,
+      "rate": 22.4,
+      "profitability_score": 156.12799999999996,
+      "composite_score": 50.431000000000004,
+      "timestamp": "2025-08-04T11:36:09.540769"
+    },
+    {
+      "s_w": 0.5,
+      "c_w": 0.3,
+      "e_w": 0.2,
+      "overall": 41.56,
+      "high_conf": 56.97,
+      "rate": 22.4,
+      "profitability_score": 156.12799999999996,
+      "composite_score": 50.431000000000004,
+      "timestamp": "2025-08-04T11:36:11.736107"
+    },
+    {
+      "s_w": 0.7,
+      "c_w": 0.1,
+      "e_w": 0.2,
+      "overall": 41.56,
+      "high_conf": 56.97,
+      "rate": 22.4,
+      "profitability_score": 156.12799999999996,
+      "composite_score": 50.431000000000004,
+      "timestamp": "2025-08-04T11:36:13.985339"
+    }
+  ],
+  "optimization_type": "weights",
+  "quick_mode": true
+}
