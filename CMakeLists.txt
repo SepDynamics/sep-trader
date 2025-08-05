@@ -169,9 +169,9 @@ add_subdirectory(extern/crow)
 add_subdirectory(src)
 
 # Only add examples and tests if they exist
-if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/examples)
-    add_subdirectory(examples)
-endif()
+# if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/examples)
+#    add_subdirectory(examples)
+# endif()
 
 if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/tests)
     add_subdirectory(tests)

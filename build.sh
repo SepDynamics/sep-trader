@@ -96,6 +96,15 @@ fi
     # Build as root - no user switching needed
     # Add exception for dubious ownership
     git config --global --add safe.directory '*'
+    
+    # Install PostgreSQL and HWLOC development headers
+    apt-get update && apt-get install -y libpqxx-dev libpq-dev postgresql-client libhwloc-dev libhwloc15
+    
+    # Ensure hwloc symlinks are correct
+    if [ ! -e /usr/lib/x86_64-linux-gnu/libhwloc.so ]; then
+        ln -sf /usr/lib/x86_64-linux-gnu/libhwloc.so.15 /usr/lib/x86_64-linux-gnu/libhwloc.so || true
+    fi
+    
     cd /sep
     cd build
     
