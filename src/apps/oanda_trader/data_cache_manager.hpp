@@ -1,5 +1,6 @@
 #pragma once
 
+#include <array>
 #include "connectors/oanda_connector.h"
 #include <chrono>
 #include <memory>

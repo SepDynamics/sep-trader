@@ -9,6 +9,8 @@
 #include <stdexcept>
 #include <thread>
 #include <vector>
+#include <fstream>
+#include <filesystem>
 
 // GLM includes
 
@@ -538,6 +540,51 @@ bool SepEngine::validateFields(const nlohmann::json&           data,
         }
     }
     return true;
+}
+
+nlohmann::json SepEngine::reloadData(const nlohmann::json& request_data)
+{
+    if (!impl_->initialized) {
+        json result;
+        result["success"] = false;
+        result["error"]   = "Engine not initialized";
+        return result;
+    }
+
+        auto redis_manager = sep::persistence::createRedisManager(impl_->config.redis);
+    if (!redis_manager->isConnected()) {
+        json result;
+        result["success"] = false;
+        result["error"]   = "Redis is not connected";
+        return result;
+    }
+
+    std::string data_dir = "/opt/sep-trader/data";
+    int patterns_loaded = 0;
+
+    for (const auto& entry : std::filesystem::directory_iterator(data_dir)) {
+        if (entry.is_regular_file()) {
+            std::ifstream file(entry.path());
+            if (file.is_open()) {
+                json data = json::parse(file);
+                for (const auto& item : data) {
+                    uint64_t id = item["id"].get<uint64_t>();
+                    std::string tier = item["tier"].get<std::string>();
+                    sep::persistence::PersistentPatternData pattern_data;
+                    pattern_data.coherence = item["coherence"].get<float>();
+                    pattern_data.stability = item["stability"].get<float>();
+                    pattern_data.generation_count = item["generation_count"].get<uint32_t>();
+                    redis_manager->storePattern(id, pattern_data, tier);
+                    patterns_loaded++;
+                }
+            }
+        }
+    }
+
+    json result;
+    result["success"] = true;
+    result["patterns_loaded"] = patterns_loaded;
+    return result;
 }
 
 nlohmann::json SepEngine::getMetrics(const HealthMetrics& metrics)

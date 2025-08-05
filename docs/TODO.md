@@ -1,443 +1,217 @@
-SEP DSL Commercial Grade Roadmap - Updated August 2025
+Of course. I've analyzed the build errors and the project structure. This is a classic and straightforward compiler dependency issue that's blocking everything.
 
-This comprehensive roadmap tracks the evolution of SEP DSL from a working AGI pattern analysis language to a fully commercial-grade platform.
+The compiler doesn't know what `std::array` is because the `<array>` header file is missing from a core include file that gets pulled into both your CUDA (`.cu`) and C++ (`.cpp`) source files.
 
-## 🎯 SEP DSL Commercial Grade Todo List
-
-### Phase 1: Core Language Completion
-
-#### Language Features
-- [x] **Core DSL syntax** - Patterns, variables, expressions, print statements
-- [x] **Control flow constructs** - if/else statements within patterns
-- [x] **Pattern member access** - Dot notation for accessing pattern variables
-- [x] **Boolean and arithmetic operators** - Complete operator set
-- [x] **Built-in AGI functions** - measure_coherence, measure_entropy, etc.
-- [x] **Add loop constructs** - for/while loops for iterative analysis
-- [x] **Implement user-defined functions** - Allow function definitions within DSL
-- [x] **Add pattern composition** - Patterns that inherit/compose from other patterns
-- [x] **Implement pattern libraries** - Import/export mechanism for reusable patterns
-- [x] **Add type annotations** - Optional type hints for better error messages  
-- [x] **Implement async/await** - Asynchronous pattern execution support
-- [x] **Add exception handling** - try/catch blocks for error recovery
-
-#### Parser & AST Enhancements
-- [x] **Complete parser implementation** - Full DSL syntax parsing with async/await and exceptions
-- [x] **AST nodes for core constructs** - Patterns, expressions, statements, async functions, try/catch
-- [x] **Basic operator precedence** - Arithmetic and boolean operators
-- [x] **Tree-walking interpreter** - Complete runtime execution with exception handling
-- [x] **Async/await language constructs** - Full parser and interpreter support
-- [x] **Exception handling constructs** - try/catch/finally/throw parsing and execution
-- [x] **Advanced operator precedence table** - More sophisticated precedence rules
-- [x] **Add source location tracking** - Better error reporting with line/column
-- [x] **Implement AST optimization passes** - Constant folding, dead code elimination
-- [x] **Add AST serialization** - Save/load parsed programs
-
-### Phase 2: Engine Integration & Built-ins
-
-#### C++/CUDA Engine Bridge
-- [x] **Complete EngineFacade implementation** - Wire up all quantum/memory systems  
-- [x] **Implement AGI built-in functions** - Real engine calls for coherence/entropy
-- [x] **CUDA acceleration integration** - GPU-powered pattern analysis
-- [x] **Quantum field harmonics** - QFH analysis with trajectory damping
-- [x] **Production engine integration** - Real mathematical validation
-- [x] **Add streaming data support** - Real-time data ingestion from engine
-- [x] **Implement pattern caching** - Cache computed patterns in engine memory
-- [x] **Add GPU memory management** - Efficient data transfer between DSL and CUDA
-- [x] **Implement batch processing** - Process multiple patterns in parallel
-- [x] **Add engine configuration** - DSL directives for engine tuning
-
-#### Built-in Function Library
-- [x] **Core math functions** - sin, cos, exp, log, sqrt, etc.
-- [x] **Statistical functions** - mean, median, stddev, correlation, variance, percentile
-- [x] **Array/List support** - Array literals `[1,2,3]`, array access `arr[index]`, mixed types
-- [x] **Time series functions** - moving_average, exponential_moving_average, trend_detection, rate_of_change
-- [x] **Data transformation functions** - normalize, standardize, scale, filter_above, filter_below, filter_range, clamp
-- [x] **Pattern matching functions** - regex, fuzzy matching
-- [x] **Aggregation functions** - groupby, pivot, rollup
-
-### Phase 3: Testing & Quality Assurance
-
-#### Testing Infrastructure
-- [x] **Core test framework** - DSL parser and interpreter tests
-- [x] **Integration test suite** - DSL → Engine integration validated
-- [x] **Mathematical validation** - All AGI algorithms tested
-- [x] **Production testing** - Real-world pattern analysis verified
-- [x] **Performance benchmarks** - Measure DSL overhead vs direct C++
-- [x] **Regression test suite** - Ensure backward compatibility
-- [x] **Fuzz testing** - Random input generation for robustness
-- [x] **Memory leak detection** - Valgrind/ASAN integration with Docker
-- [x] **Code coverage analysis** - Automated >90% coverage targeting with CI integration
-- [ ] **Cross-platform testing** - Linux, Windows, macOS
-
-#### Language Validation
-- [ ] **Syntax validation suite** - Test all language constructs
-- [ ] **Semantic analysis tests** - Type checking, scope validation
-- [ ] **Error recovery tests** - Graceful handling of malformed input
-- [ ] **Edge case testing** - Boundary conditions, large inputs
-- [ ] **Stress testing** - Large programs, deep nesting
-
-### Phase 4: Developer Experience
-
-#### Language Server Protocol (LSP)
-- [x] **Implement DSL language server** - VSCode/IDE integration  
-- [x] **Syntax highlighting** - TextMate grammar for editors
-- [x] **Auto-completion** - Context-aware suggestions
-- [x] **File icons** - Custom .sep file icons for VS Code
-- [x] **Go-to-definition** - Navigate pattern/signal references with full symbol resolution
-- [x] **Inline documentation** - Hover tooltips for built-ins
-- [x] **Real-time error checking** - Squiggly lines for errors
-- [x] **Code formatting** - Auto-format DSL code
-- [x] **Refactoring support** - Rename symbols with collision detection and validation
-
-#### Development Tools
-- [ ] **REPL improvements** - History, tab completion, multiline
-- [ ] **Debugger support** - Step through DSL execution
-- [ ] **Profiler integration** - Identify performance bottlenecks
-- [ ] **DSL playground** - Web-based interactive environment
-- [ ] **Code generators** - Generate DSL from templates
-- [ ] **Migration tools** - Convert from other languages/formats
-
-### Phase 5: Documentation & Learning
-
-#### Documentation
-- [x] **Comprehensive README** - Project overview and quick start
-- [x] **Getting started guide** - Step-by-step tutorials for beginners
-- [x] **Contributing guidelines** - Developer onboarding and standards
-- [x] **Examples repository** - Beginner, advanced, and real-world examples
-- [x] **Language reference manual** - Complete syntax/semantics documentation
-- [x] **API documentation** - Document all built-in functions
-- [ ] **Architecture guide** - How DSL integrates with engine
-- [ ] **Performance guide** - Best practices for efficient DSL code
-- [ ] **Security guide** - Safe DSL practices
-- [ ] **Deployment guide** - Production deployment instructions
-
-#### Tutorials & Examples
-- [x] **Beginner tutorials** - Hello world and basic patterns
-- [x] **Real-world examples** - Sensor monitoring, pattern analysis
-- [x] **Advanced examples** - Quantum coherence analysis
-- [ ] **Domain-specific guides** - IoT, scientific computing, data analysis
-- [ ] **Video tutorials** - Screencast series
-- [ ] **Pattern cookbook** - Common pattern recipes
-- [ ] **Interactive tutorials** - In-browser learning
-
-### Phase 6: API & SDK Development
-
-#### Language Bindings
-- [x] **C API foundation** - Universal language binding interface
-- [x] **Ruby SDK** - Complete gem with full DSL integration
-- [x] **Python SDK** - Import DSL engine into Python
-- [x] **JavaScript/Node.js SDK** - DSL for web applications
-- [ ] **Java SDK** - Enterprise integration
-- [ ] **C# SDK** - .NET integration
-- [ ] **Go SDK** - Cloud-native applications
-- [ ] **Rust SDK** - Systems programming integration
-
-#### REST API
-- [x] **HTTP API server** - RESTful DSL execution service
-- [ ] **GraphQL endpoint** - Query pattern results
-- [x] **WebSocket support** - Real-time pattern updates
-- [ ] **gRPC service** - High-performance RPC
-- [x] **OpenAPI specification** - API documentation
-- [x] **Rate limiting** - API usage controls
-
-### Phase 7: Performance & Optimization
-
-#### Compiler Optimizations
-- [x] **Implement bytecode compiler** - Replace tree-walk interpreter
-- [ ] **JIT compilation** - Hot path optimization
-- [ ] **Pattern fusion** - Combine similar patterns
-- [x] **Common subexpression elimination** - Reduce redundant computation
-- [ ] **Loop unrolling** - Optimize tight loops
-- [ ] **Vectorization** - SIMD optimizations
-
-#### Runtime Optimizations
-- [ ] **Memory pooling** - Reduce allocation overhead
-- [ ] **Pattern result caching** - Memoization
-- [ ] **Lazy evaluation** - Compute only when needed
-- [ ] **Parallel execution** - Multi-threaded pattern evaluation
-- [ ] **GPU offloading** - Automatic CUDA dispatch
-- [ ] **Distributed execution** - Cluster support
-
-### Phase 8: Security & Sandboxing
-
-#### Security Features
-- [ ] **Sandboxed execution** - Isolate DSL programs
-- [ ] **Resource limits** - CPU/memory/time constraints
-- [ ] **Input validation** - Sanitize external data
-- [ ] **Access control** - Pattern/signal permissions
-- [ ] **Audit logging** - Track DSL execution
-- [ ] **Encryption support** - Secure pattern storage
-- [ ] **Code signing** - Verify DSL program integrity
-
-#### Compliance
-- [ ] **GDPR compliance** - Data privacy controls
-- [ ] **SOC 2 compliance** - Security controls
-- [ ] **HIPAA compliance** - Medical data handling
-- [ ] **Financial regulations** - Trading compliance
-
-### Phase 9: Deployment Infrastructure
-
-#### Packaging & Distribution
-- [x] **Docker images** - Containerized DSL runtime with multi-stage builds
-- [x] **GitHub Actions CI/CD** - Automated testing and releases
-- [x] **Binary releases** - Pre-compiled executables ready
-- [ ] **Package managers** - npm, pip, apt, brew packages
-- [ ] **Kubernetes operators** - Cloud-native deployment
-- [ ] **Helm charts** - K8s package management
-- [ ] **Source distributions** - Build from source
-
-#### Platform Support
-- [ ] **Linux packages** - .deb, .rpm, snap, flatpak
-- [ ] **Windows installer** - MSI package
-- [ ] **macOS support** - Universal binary, notarization
-- [ ] **Mobile support** - Android AAR, iOS framework
-- [ ] **WebAssembly** - Run DSL in browser
-- [ ] **Embedded systems** - ARM, RISC-V support
-
-### Phase 10: Monitoring & Analytics
-
-#### Observability
-- [ ] **Metrics collection** - Pattern execution statistics
-- [ ] **Distributed tracing** - Track pattern flow
-- [ ] **Logging framework** - Structured logging
-- [ ] **Performance monitoring** - Real-time dashboards
-- [ ] **Error tracking** - Sentry/Rollbar integration
-- [ ] **Health checks** - Liveness/readiness probes
-
-#### Analytics
-- [ ] **Usage analytics** - Track DSL feature usage
-- [ ] **Performance analytics** - Identify slow patterns
-- [ ] **Pattern effectiveness** - Measure pattern accuracy
-- [ ] **A/B testing framework** - Compare pattern variants
-- [ ] **ML model integration** - Learn from pattern results
-
-### Phase 11: Enterprise Features
-
-#### Multi-tenancy
-- [ ] **Tenant isolation** - Separate execution contexts
-- [ ] **Resource quotas** - Per-tenant limits
-- [ ] **Custom built-ins** - Tenant-specific functions
-- [ ] **Data isolation** - Separate data stores
-- [ ] **Billing integration** - Usage-based pricing
-
-#### High Availability
-- [ ] **Clustering support** - Multi-node deployment
-- [ ] **Failover mechanisms** - Automatic recovery
-- [ ] **Load balancing** - Distribute pattern execution
-- [ ] **State replication** - Distributed pattern storage
-- [ ] **Backup/restore** - Pattern/data backup
-
-### Phase 12: Commercial Readiness
-
-#### Legal & Licensing
-- [x] **Choose open source license** - MIT License selected
-- [x] **Commercial package structure** - Professional distribution ready
-- [ ] **Patent applications** - File for DSL innovations
-- [ ] **Trademark registration** - Protect brand
-- [ ] **Terms of service** - Legal agreements
-- [ ] **Privacy policy** - Data handling policies
-- [ ] **Contributor agreements** - CLA for contributions
-
-#### Business Infrastructure
-- [x] **GitHub repository** - Professional open source presence
-- [x] **Issue templates** - Community support infrastructure
-- [x] **Documentation structure** - Comprehensive docs and guides
-- [ ] **Website** - Product landing page
-- [ ] **Documentation portal** - docs.sepdsl.com
-- [ ] **Support system** - Ticketing/forum
-- [ ] **Pricing model** - Freemium/enterprise tiers
-- [ ] **Payment integration** - Stripe/billing
-- [ ] **Customer onboarding** - Guided setup
-- [ ] **Partner program** - Integration partnerships
-
-#### Marketing & Community
-- [ ] **Blog platform** - Technical articles
-- [ ] **Social media presence** - Twitter/LinkedIn
-- [ ] **Conference talks** - Present at AGI/ML conferences
-- [ ] **Academic papers** - Publish DSL research
-- [ ] **Community forum** - User discussions
-- [ ] **Newsletter** - Product updates
-- [ ] **Case studies** - Success stories
-
-### Deployment Targets
-
-#### Desktop Application
-- [ ] **Electron app** - Cross-platform GUI
-- [ ] **Native GUI** - Qt/GTK interface
-- [ ] **CLI enhancement** - Rich terminal UI
-- [ ] **System tray integration** - Background service
-
-#### Mobile Application (APK)
-- [ ] **Android app** - React Native/Flutter
-- [ ] **iOS app** - Swift/React Native
-- [ ] **Pattern editor** - Mobile-friendly UI
-- [ ] **Push notifications** - Signal alerts
-- [ ] **Offline mode** - Local pattern execution
-
-#### Cloud Service
-- [ ] **SaaS platform** - Multi-tenant cloud service
-- [ ] **Marketplace** - Pattern sharing/selling
-- [ ] **CI/CD integration** - GitHub/GitLab apps
-- [ ] **Cloud functions** - Serverless DSL execution
-
-## 🏆 Current Status Summary
-
-### ✅ **Phase 1: COMPLETED** - Core Language Implementation
-- Full DSL syntax with patterns, variables, expressions, and control flow
-- Tree-walking interpreter with complete runtime execution and exception handling
-- Pattern member access and variable scoping
-- **✅ Async/await support** - Asynchronous pattern execution with real engine integration
-- **✅ Exception handling** - try/catch/finally/throw constructs with proper propagation
-- **✅ Type annotations** - Optional type hints for better error messages
-- **✅ Source location tracking** - Better error reporting with line/column precision
-- **✅ Advanced operator precedence** - Table-driven expression parsing
-- **✅ AST optimization** - Constant folding and dead code elimination
-- User-defined functions, pattern inheritance, and import/export libraries
-
-### ✅ **Phase 2: COMPLETED** - AGI Engine Integration  
-- Real quantum coherence and entropy analysis functions
-- CUDA-accelerated pattern recognition
-- Production-grade mathematical validation
-- **✅ Advanced batch processing** - Parallel pattern execution with configurable threading
-- **✅ Engine configuration system** - Runtime tuning of quantum, CUDA, memory, and performance parameters
-- **✅ Streaming data support** - Real-time data ingestion and analysis
-- **✅ Pattern caching** - Intelligent caching for computed pattern results
-- **✅ GPU memory management** - Efficient CUDA memory pooling and allocation
-
-### ✅ **Phase 3: COMPLETED** - Testing & Validation
-- Comprehensive test suite with mathematical validation
-- Real-world pattern analysis verification
-- Production testing completed
-- **✅ Performance benchmarks** - Complete DSL vs C++ performance analysis
-- **✅ Fuzz testing** - LibFuzzer integration with Docker-based execution for parser and interpreter robustness
-
-### ✅ **Phase 5: COMPLETED** - Documentation & Examples
-- Professional README and getting started guides
-- Beginner tutorials and real-world examples
-- Contributing guidelines and community structure
-- **✅ Enhanced built-in functions** - 25+ math functions, 8 statistical functions
-- **✅ VS Code integration** - Custom file icons and syntax highlighting
-
-### ✅ **Phase 6: FOUNDATION COMPLETED** - API & SDK Development
-- Universal C API for language bindings
-- Complete Ruby SDK with gem structure
-
-### ✅ **Phase 9: FOUNDATION COMPLETED** - Deployment Infrastructure
-- Docker containerization with multi-stage builds
-- GitHub Actions CI/CD pipeline
-- Professional commercial package structure
-
-### ✅ **Phase 12: FOUNDATION COMPLETED** - Commercial Readiness
-- MIT open source license
-- Professional repository structure
-- Commercial distribution package
+Here is the immediate fix and the updated, comprehensive `todo.md` that starts with this fix and then continues the plan to get your system online.
 
 ---
 
-This comprehensive roadmap tracks the evolution from the current **production-ready AGI pattern analysis DSL with advanced engine integration** to a fully commercial-grade platform. **Phase 2 engine integration is now complete** with batch processing, configuration management, streaming data, pattern caching, and GPU memory management. The foundation is rock-solid - ready to scale and expand into new domains and languages.
+### **Immediate Fix: Solve the Build Error**
 
+1.  **Open this file:**
+    `src/engine/internal/standard_includes.h`
 
-# SEP Professional Trader-Bot - Development Path
-## Production Deployment Roadmap (August 2025)
+2.  **Add the missing include:**
+    Add the line `#include <array>` to the list of standard library includes.
 
-### 🎯 IMMEDIATE PRIORITY: Local CUDA Training → Remote Trading Bot Path
+    **Change this:**
+    ```cpp
+    // src/engine/internal/standard_includes.h
 
-#### **Phase 1: Resolve Critical Build Issues** (Priority: HIGH)
-- [ ] **Fix critical std::string type conflicts and missing header paths** documented in `/sep/src/memory/dothis.md`
-  - Comment out includes in `/sep/include/core/types.h` one by one to isolate problematic include
-  - Focus on `compat/shim.h` for macros/typedefs conflicting with `std::string`
-  - Replace `#include "engine/internal/cuda.h"` with correct public header
-  - Ensure CMakeLists.txt has proper include directories for memory and core modules
+    #pragma once
 
-- [ ] **Make CUDA optional with graceful fallback** in CMakeLists.txt
-  - Remove FATAL_ERROR requirement for missing CUDA_HOME
-  - Add conditional CUDA compilation with CPU fallback
-  - Allow builds to succeed on systems without CUDA 12.9
+    #include <vector>
+    #include <string>
+    #include <memory>
+    // ... other includes
+    ```
 
-- [ ] **Standardize package management** 
-  - Fix mixed dnf/apt issues in `/sep/scripts/setup_training_env.sh` and `/sep/install.sh`
-  - Choose consistent package manager based on OS detection
+    **To this:**
+    ```cpp
+    // src/engine/internal/standard_includes.h
 
-#### **Phase 2: Local CUDA Training Setup** (Priority: HIGH)
-- [ ] **Enable all 6 major currency pairs** in `/sep/config/pair_registry.json`
-  - Currently only EUR_USD through USD_CHF enabled (priority 1-6)
-  - Set `"enabled": true` for all major pairs for initial training
+    #pragma once
 
-- [ ] **Configure and test local CUDA training** using `/sep/config/training_config.json`
-  - Verify CUDA optimization settings: device_id=0, memory_pool_size_mb=2048
-  - Test "quick" training mode (100 iterations, batch_size=512) on first 2-3 currency pairs
-  - Validate pattern quality thresholds: high_quality=70.0, minimum_acceptable=50.0
+    #include <array> // <--- ADD THIS LINE
+    #include <vector>
+    #include <string>
+    #include <memory>
+    // ... other includes
+    ```
 
-- [ ] **Build and test training system**
-  - Run `./build.sh` and resolve any remaining build issues
-  - Execute training coordinator: `./build/src/training/training_coordinator`
-  - Verify CUDA acceleration and pattern generation
+3.  **Re-run the build:**
+    From your `/sep` directory, run the build script again.
+    ```bash
+    ./build.sh
+    ```
+    This should resolve all the compilation errors. Once the build is successful, proceed with the updated roadmap below.
 
-#### **Phase 3: Remote Sync & Redis Storage** (Priority: MEDIUM)
-- [ ] **Verify external volume for droplet Redis pattern storage**
-  - Check droplet at `165.227.109.187` has mounted external volume
-  - Verify `/opt/sep-trader/data/` has sufficient space for pattern storage
-  - Test Redis connection and pattern persistence
+---
 
-- [ ] **Test sync system** using `/sep/scripts/sync_to_droplet.sh`
-  - Verify SSH connection to droplet `165.227.109.187`
-  - Test rsync of output/, config/, and models/ directories
-  - Validate pattern reload API endpoint: `http://localhost:8080/api/data/reload`
+### **Updated `todo.md`: Full System Activation Roadmap**
 
-#### **Phase 4: Remote Trading Bot Activation** (Priority: HIGH)
-- [ ] **Enable trading bot remotely on demo account**
-  - Use `/sep/config/demo_trading.json` configuration
-  - Verify OANDA demo API credentials and sandbox mode
-  - Test risk management: max_position_size=1000, stop_loss_pips=20
+Here is the revised `todo.md`. It incorporates the build fix as "Phase 0" and then systematically guides you through the rest of the process, pointing to the exact files and commands needed at each step.
 
-- [ ] **Validate remote trading execution**
-  - Start remote trading service on droplet
-  - Monitor trade execution via API: `http://165.227.109.187/api/status`
-  - Verify signal generation and order placement
+---
 
-#### **Phase 5: Scale Additional Tickers** (Priority: LOW)
-- [ ] **Bring additional currency pair tickers online**
-  - Enable cross pairs (EUR_GBP, EUR_JPY, EUR_AUD, GBP_JPY, AUD_JPY) after first pairs validated
-  - Enable minor pairs (NZD_USD) as system proves stable
-  - Monitor performance with `max_concurrent_pairs: 4` limit
+# todo.md: SEP Trader Bot Online Activation (Revised)
 
-### 🔧 CRITICAL DEPENDENCY FIXES NEEDED
+This document provides a line-by-line roadmap to bring the complete SEP Trader Bot system online. The goal is to establish a workflow for training any currency pair on the previous week's OANDA data using a local GPU, storing metrics in Redis, deploying the results to a remote droplet, and activating live trading.
 
-1. **Header Path Issues** (BLOCKING):
-   - `std::string` type conflicts in `/sep/include/core/types.h`
-   - Missing `'compat/cuda.h'` and `'core/common.h'` files
-   - CMakeLists.txt include directory configuration
+## Phase 0: Build Fix & Prerequisite Check
 
-2. **CUDA Configuration** (BLOCKING):
-   - Strict CUDA 12.9 requirement prevents builds on other systems
-   - No graceful CPU fallback for development
+**Objective:** Resolve the critical build error and verify a clean compilation on the local training machine before proceeding.
 
-3. **Package Management** (MEDIUM):
-   - Mixed dnf/apt commands causing environment-specific failures
-   - Docker dependency installation during build rather than base image
+-   [ ] **Apply Build Fix:**
+    -   **File:** `src/engine/internal/standard_includes.h`
+    -   **Action:** Add the line `#include <array>` to the list of standard library headers.
+-   [ ] **Verify Full System Build (Local GPU Machine):**
+    -   **Action:** Run the primary build script. This compiles all C++ and CUDA components.
+    -   **Command:** `./build.sh`
+    -   **Verification:** Check `output/build_log.txt` to ensure there are no compilation errors.
+-   [ ] **Run System-Wide Tests (Local GPU Machine):**
+    -   **Action:** Execute the end-to-end headless test to verify the core C++/CUDA engine is functioning correctly after the fix.
+    -   **Command:** `./build/src/apps/oanda_trader/quantum_tracker --test`
+    -   **Reference:** "Complete Test Suite Validation" section in `AGENT.md`.
+    -   **Verification:** Ensure all 7 test suites pass.
 
-### 📊 CURRENT SYSTEM STATE
+---
 
-**Working Components:**
-- ✅ Complete todo documentation in `/sep/docs/TODO.md` (Phase 1-2 complete)
-- ✅ Training configuration in `/sep/config/training_config.json`
-- ✅ Currency pair registry with 12 pairs defined
-- ✅ Demo trading configuration with OANDA API setup
-- ✅ Sync scripts for remote droplet deployment
-- ✅ Professional baseline: 60.73% high-confidence accuracy achieved
+## Phase 1: Environment Configuration & Verification
 
-**Deployment Targets:**
-- **Local**: CUDA training and pattern generation
-- **Remote**: Droplet at `165.227.109.187` for live trading
-- **Demo Account**: OANDA fxpractice API (account: 101-001-31229774-001)
-- **Data Storage**: Redis pattern storage with external volume
+**Objective:** Ensure both local and remote environments are correctly configured with necessary credentials and can communicate.
 
-### 🚀 EXECUTION SEQUENCE
+### 1.1: Configure Local Training Machine
 
-1. **Fix build issues** → Run `./build.sh` successfully
-2. **Train locally** → Generate patterns for first 3 currency pairs
-3. **Sync to droplet** → Upload patterns and configuration
-4. **Enable remote bot** → Start demo trading on droplet
-5. **Scale gradually** → Add more currency pairs as system proves stable
+-   [ ] **Configure Local Redis Connection:**
+    -   **Action:** Ensure your local Redis server is running.
+    -   **File:** `config/database.conf` (This file likely exists or needs to be created based on `README.md`'s enterprise features).
+    -   **Action:** Configure it to point to your local Redis instance (e.g., `host: localhost`, `port: 6379`). This is used by `src/memory/redis_manager.cpp`.
+-   [ ] **Verify Local CLI Tool:**
+    -   **Action:** Set the library path so the CLI can find its dependencies.
+    -   **Command:** `export LD_LIBRARY_PATH=./build/src/core:./build/src/config:./build/src/c_api`
+    -   **Command:** `./build/src/cli/trader-cli status`
+    -   **Verification:** The command should execute and report a system status.
 
-This roadmap prioritizes getting the core system working end-to-end before scaling to additional currency pairs.
+### 1.2: Configure Remote Trading Droplet
+
+-   [ ] **Run Automated Deployment Script:**
+    -   **Action:** From your **local machine**, execute the droplet deployment script to set up the base infrastructure.
+    -   **File:** `scripts/deploy_to_droplet.sh`
+    -   **Command:** `./scripts/deploy_to_droplet.sh`
+    -   **Reference:** `DROPLET_SETUP.md`.
+-   [ ] **SSH into Droplet and Build CPU-Only Version:**
+    -   **Command (Local):** `ssh root@165.227.109.187`
+    -   **Commands (Droplet):**
+        ```bash
+        cd /opt/sep-trader
+        ./install.sh --minimal --no-docker
+        ./build.sh --no-docker
+        ```
+    -   **Reference:** `QUICKSTART.md`.
+-   [ ] **Configure Droplet Environment:**
+    -   **Action:** On the droplet, create and edit `/opt/sep-trader/OANDA.env` with the same credentials as your local machine.
+    -   **Action:** On the droplet, edit `/opt/sep-trader/config/database.conf` to point to the droplet's local Redis and PostgreSQL instances.
+-   [ ] **Verify Droplet Services and CLI:**
+    -   **Action (Droplet):** Set the library path: `export LD_LIBRARY_PATH=./build/src/core:./build/src/config:./build/src/c_api`
+    -   **Action (Droplet):** Run status checks to confirm connectivity to its local services.
+        ```bash
+        ./build/src/cli/trader-cli status      # Checks overall system
+        ./build/src/cli/trader-cli data status # Verifies DB connection
+        ./build/src/cli/trader-cli cache stats # Verifies Redis connection
+        ```
+    -   **Verification:** All commands should run without connection errors.
+
+---
+
+## Phase 2: The Core Workflow - Train & Deploy
+
+**Objective:** Execute the primary operational loop of fetching data, training a model on the GPU, and deploying it to the droplet. (All commands in this phase are run from your **local training machine**).
+
+### 2.1: Fetch OANDA Data for the Previous Week
+
+-   [ ] **Action:** Use the training manager to download the last 7 days of M1 data for all currency pairs defined in your configuration.
+-   [ ] **Component:** `train_manager.py` orchestrates the C++ backend logic in `src/training/weekly_data_fetcher.cpp`.
+-   [ ] **Command:** `python train_manager.py fetch-all`
+-   [ ] **Verification:** Check the `cache/` directory for newly created JSON files containing the market data.
+
+### 2.2: Train a Currency Pair (e.g., EUR_USD) via GPU
+
+-   [ ] **Action:** Train the model for `EUR_USD` using the fetched data. This process will leverage the GPU for acceleration.
+-   [ ] **Components:**
+    -   Orchestrator: `train_manager.py`
+    -   Backend: `src/trading/quantum_pair_trainer.cpp` (which calls CUDA kernels).
+-   [ ] **Command:** `python train_manager.py train EUR_USD`
+-   [ ] **Verification:** The script should output performance metrics upon completion. Confirm `high-confidence accuracy` is ~60% and `profitability score` is > 200, as per `TECHNICAL_PERFORMANCE_DATA.md`.
+
+### 2.3: Store & Export Metrics for Deployment
+
+-   [ ] **Action:** After training, the `train_manager.py` script should automatically store the generated metrics (optimal thresholds, accuracy scores) into your local Redis instance. Now, we need to export them to a file for transfer.
+-   [ ] **Components:** `train_manager.py`, `src/memory/redis_manager.cpp`.
+-   [ ] **Command (to implement or verify):** `python train_manager.py export-metrics EUR_USD`
+-   [ ] **Verification:** A new file, `output/metrics/EUR_USD_metrics.json`, is created containing the key performance indicators for the trained model.
+
+### 2.4: Synchronize Data to the Droplet
+
+-   [ ] **Action:** Transfer the exported metrics file and any other necessary configuration or model files to the remote droplet.
+-   [ ] **Component:** `scripts/sync_to_droplet.sh`.
+-   [ ] **Configuration:**
+    -   Edit `scripts/sync_to_droplet.sh`.
+    -   Ensure `DROPLET_IP` is `165.227.109.187` and `REMOTE_DIR` is `/opt/sep-trader`.
+    -   Confirm it copies the `output/`, `config/`, and any `models/` directories.
+-   [ ] **Command:** `./scripts/sync_to_droplet.sh`
+-   [ ] **Verification:** SSH into the droplet and confirm the new `output/metrics/EUR_USD_metrics.json` file is present.
+
+---
+
+## Phase 3: Activating & Managing Live Trading
+
+**Objective:** Bring the trained currency pair online for live trading on the droplet. (All commands in this phase are run on the **remote trading droplet**).
+
+### 3.1: Import Metrics into Droplet's Redis
+
+-   [ ] **Action:** Load the synced metrics from the JSON file into the droplet's Redis instance so the live trader can access them.
+-   [ ] **Component:** This requires a command in the `trader-cli` tool.
+-   [ ] **Command (to implement or verify):** `./build/src/cli/trader-cli metrics import output/metrics/EUR_USD_metrics.json`
+-   [ ] **Verification:** Use `redis-cli` on the droplet to confirm keys for `EUR_USD` have been populated.
+
+### 3.2: Enable the Pair for Trading
+
+-   [ ] **Action:** Update the system's persistent state to mark the newly trained pair as active for live trading.
+-   [ ] **Component:** Professional state management logic in `src/core/pair_manager.cpp` exposed via `trader-cli`.
+-   [ ] **Command:** `./build/src/cli/trader-cli pairs enable EUR_USD`
+-   [ ] **Verification:** Check the pair's status. The status for `EUR_USD` should now be `READY` or `ENABLED`.
+-   [ ] **Command:** `./build/src/cli/trader-cli pairs list`
+
+### 3.3: Launch the Autonomous Trader
+
+-   [ ] **Action:** Start the main C++ trading application. It's highly recommended to run this within a `tmux` or `screen` session to keep it running after you disconnect.
+-   [ ] **Components:** `run_trader.sh` wrapper script and the main executable `build/src/apps/oanda_trader/quantum_tracker`.
+-   [ ] **Command:**
+    ```bash
+    tmux new -s trader
+    ./run_trader.sh
+    # (Press Ctrl+B then D to detach from tmux)
+    ```
+-   [ ] **Verification:** The application will log its startup sequence, including the dynamic bootstrap process. It will then listen for signals for all *enabled* pairs. Check the log file for activity.
+
+### 3.4: Monitor the Live System
+
+-   [ ] **Action:** In a separate terminal session on the droplet, use the `trader-cli` tool and log files to monitor the system's health and trading activity.
+-   [ ] **Commands:**
+    ```bash
+    ./build/src/cli/trader-cli status           # Overall system health
+    ./build/src/cli/trader-cli pairs list       # Status of all pairs
+    tail -f output/quantum_tracker.log        # Live trade execution log
+    # (To re-attach to the running trader: tmux attach -t trader)
+    ```
+
+---
+
+## Phase 4: Ongoing Operations & Maintenance
+
+**Objective:** Establish the recurring tasks to keep the system running optimally.
+
+-   [ ] **Weekly Retraining:** Every Sunday, repeat **Phase 2** for all desired pairs to adapt the models to the latest market data. A `train-all` command in `train_manager.py` is perfect for this.
+-   [ ] **Adding New Pairs:** Follow the complete workflow: add the pair to config, run **Phase 2** (fetch, train, export, sync), and then run **Phase 3** (import, enable) to bring it online.
+-   [ ] **System Log Review:** At least once per day, review the logs in the `output/` directory on the droplet for any errors or warnings.

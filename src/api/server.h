@@ -1,5 +1,6 @@
 #pragma once
 
+#include <array>
 #include "engine/internal/config.h"
 
 // Math constants are already defined in crow.h

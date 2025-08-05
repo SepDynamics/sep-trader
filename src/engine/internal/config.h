@@ -5,6 +5,7 @@
 #include "quantum/config.h"
 #include "quantum/types.h"
 #include "types.h"
+#include "api/types.h"
 
 namespace sep {
 namespace config {
@@ -37,6 +38,7 @@ namespace config {
         CudaConfig cuda;
         LogConfig logging;
         AnalyticsConfig analytics;
+        sep::api::RedisConfig redis;
     };
 }  // namespace config
 }  // namespace sep

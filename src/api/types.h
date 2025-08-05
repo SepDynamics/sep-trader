@@ -1,5 +1,6 @@
 #pragma once
 
+#include "array_workaround.h"
 #include <string>
 #include <atomic>
 #include <chrono>
@@ -128,6 +129,11 @@ struct RateLimitConfig {
 struct AuthConfig {
     bool enabled = false;
     std::vector<std::string> tokens;
+};
+
+struct RedisConfig {
+    std::string host = "localhost";
+    int port = 6379;
 };
 
 } // namespace sep::api

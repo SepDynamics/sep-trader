@@ -1,5 +1,13 @@
 #pragma once
 
+// GCC 11 functional header bug workaround - must come first
+#include <array>
+#ifdef __GNUC__
+#if __GNUC__ == 11
+using std::array;
+#endif
+#endif
+
 #include <vector>
 #include <string>
 #include <memory>

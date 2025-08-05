@@ -1,6 +1,7 @@
 #ifndef SEP_MEMORY_TIER_MANAGER_SERIALIZATION_HPP
 #define SEP_MEMORY_TIER_MANAGER_SERIALIZATION_HPP
 
+#include <array>
 #include <nlohmann/json.hpp>
 
 #include "memory/memory_tier_manager.hpp"

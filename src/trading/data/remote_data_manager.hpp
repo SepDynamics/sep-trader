@@ -1,19 +1,20 @@
 #pragma once
 
+#include "array_workaround.h"
 #include <string>
 #include <vector>
 #include <memory>
 #include <future>
 #include <chrono>
-#include "json/json.h"
+#include <nlohmann/json.hpp>
 
 namespace sep::trading {
 
 struct DataSyncConfig {
-    std::string remote_host = "165.227.109.187";
+    std::string remote_host = "localhost";
     int remote_port = 5432;
     std::string db_name = "sep_trading";
-    std::string redis_host = "165.227.109.187";
+    std::string redis_host = "localhost";
     int redis_port = 6379;
     std::string data_path = "/opt/sep-data";
     
@@ -37,7 +38,7 @@ struct ModelState {
     std::vector<uint8_t> weights;
     double accuracy;
     std::chrono::system_clock::time_point trained_at;
-    Json::Value hyperparameters;
+    nlohmann::json hyperparameters;
 };
 
 class RemoteDataManager {
@@ -71,7 +72,7 @@ public:
     
     // Health and status
     bool test_connection();
-    Json::Value get_remote_status();
+    nlohmann::json get_remote_status();
     
 private:
     class Impl;
@@ -86,7 +87,7 @@ public:
     // Coordinate training between local and remote
     std::future<bool> start_distributed_training(
         const std::string& pair,
-        const Json::Value& training_config
+        const nlohmann::json& training_config
     );
     
     // Sync local training results to remote
@@ -96,7 +97,7 @@ public:
     std::future<bool> pull_remote_updates();
     
     bool is_training_active() const;
-    Json::Value get_training_status() const;
+    nlohmann::json get_training_status() const;
     
 private:
     std::shared_ptr<RemoteDataManager> remote_manager_;

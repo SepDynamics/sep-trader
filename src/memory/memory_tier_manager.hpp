@@ -1,5 +1,6 @@
 #pragma once
 
+#include <array>
 /**
  * @brief Manager for STM/MTM/LTM memory tiers.
  *

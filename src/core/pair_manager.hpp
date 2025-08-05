@@ -1,4 +1,5 @@
 #pragma once
+#include "../array_workaround.h"
 
 #include <string>
 #include <unordered_map>

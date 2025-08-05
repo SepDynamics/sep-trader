@@ -700,6 +700,50 @@ void SEPApiServer::setup_routes() {
         #endif
       });
 
+    // Data reload endpoint
+  app_->route_dynamic("/api/data/reload")
+      .methods(::crow::HTTPMethod::POST)([this, &engine](const ::crow::request& req) {
+        auto start_time = std::chrono::steady_clock::now();
+
+#if SEP_HAS_EXCEPTIONS
+        try {
+#endif
+          nlohmann::json request_data = parse_json(std::string(req.body));
+          auto future = thread_pool_->enqueue(
+              [&engine, request_data] { return engine.reloadData(request_data); });
+          auto result = future.get();
+
+          auto end_time = std::chrono::steady_clock::now();
+          auto duration =
+              std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time).count();
+
+          logRequest(req, HTTP_OK, result.dump(), duration);
+          return makeCrowJsonResponse(HTTP_OK, result);
+
+#if SEP_HAS_EXCEPTIONS
+        } catch (const nlohmann::json::parse_error& e) {
+          auto end_time = std::chrono::steady_clock::now();
+          auto duration =
+              std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time).count();
+
+          auto error_crow =
+              handleCrowError("Invalid JSON: " + std::string(e.what()), HTTP_BAD_REQUEST);
+          logRequest(req, HTTP_BAD_REQUEST, error_crow.dump(), duration);
+          return makeCrowJsonResponse(HTTP_BAD_REQUEST, error_crow);
+
+        } catch (const std::exception& e) {
+          auto end_time = std::chrono::steady_clock::now();
+          auto duration =
+              std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time).count();
+
+          auto error_crow = handleCrowError("Data reload failed: " + std::string(e.what()),
+                                            HTTP_INTERNAL_ERROR);
+          logRequest(req, HTTP_INTERNAL_ERROR, error_crow.dump(), duration);
+          return makeCrowJsonResponse(HTTP_INTERNAL_ERROR, error_crow);
+        }
+#endif
+      });
+
   logger_->info("API routes configured successfully");
 }
 

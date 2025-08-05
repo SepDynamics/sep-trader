@@ -14,6 +14,7 @@ void TrainingCoordinator::sync_latest_model() {
 }
 
 void TrainingCoordinator::distribute_new_model(const Model& model) {
+    (void)model; // Mark as unused
     // Implementation to be added
 }
 

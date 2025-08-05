@@ -1,4 +1,5 @@
 #pragma once
+#include <array>
 
 #include "../core/pair_manager.hpp"
 #include "../core/trading_state.hpp"

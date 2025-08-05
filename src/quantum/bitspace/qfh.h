@@ -1,6 +1,7 @@
 #ifndef SEP_QUANTUM_QFH_H
 #define SEP_QUANTUM_QFH_H
 
+#include "../../array_workaround.h"
 #include <algorithm>  // For std::sort, std::unique
 #include <cstddef>    // For ptrdiff_t, max_align_t
 #include <cstdint>

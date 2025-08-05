@@ -1,6 +1,7 @@
 #ifndef SEP_API_BRIDGE_HPP
 #define SEP_API_BRIDGE_HPP
 
+#include <array>
 #include "api/types.h"
 #include "quantum/processor.h"
 #include "quantum/types.h"

@@ -1,6 +1,10 @@
 #include "ticker_pattern_analyzer.hpp"
-#include <random>
+
+#include <iomanip>
+#include <sstream>
 #include <thread>
+
+#include "quantum/types.h"
 
 namespace sep::trading {
 
@@ -14,10 +18,12 @@ TickerPatternAnalyzer::TickerPatternAnalyzer(const PatternAnalysisConfig& config
     // Initialize manifold optimizer
     sep::quantum::manifold::QuantumManifoldOptimizer::Config manifold_config;
     manifold_optimizer_ = std::make_unique<sep::quantum::manifold::QuantumManifoldOptimizer>(manifold_config);
-    
-    // Initialize OANDA connector (stub)
-    // oanda_connector_ = std::make_unique<sep::connectors::OandaConnector>();
-    
+
+    // Initialize OANDA connector
+    oanda_connector_ = std::make_unique<sep::connectors::OandaConnector>(
+        "9e406b9a85efc53a6e055f7a30136e8e-3ef8b49b63d878ee273e8efa201e1536", "101-001-31229774-001",
+        true);
+
     // Reset performance stats
     performance_stats_.last_reset = std::chrono::system_clock::now();
 }
@@ -202,23 +208,32 @@ TickerPatternAnalysis TickerPatternAnalyzer::performQuantumAnalysis(const std::s
     
     // Perform QFH analysis
     auto qfh_result = performQFHAnalysis(market_data);
-    
-    // Map QFH results to analysis metrics
-    analysis.coherence_score = qfh_result.coherence;
-    analysis.entropy_level = qfh_result.entropy;
-    analysis.stability_index = 1.0 - qfh_result.rupture_ratio;
+
+    // Use the manifold optimizer to process the QFH result
+    sep::quantum::QuantumState initial_state;
+    initial_state.coherence = qfh_result.coherence;
+    initial_state.entropy = qfh_result.entropy;
+    initial_state.stability = 1.0 - qfh_result.rupture_ratio;
+
+    sep::quantum::manifold::QuantumManifoldOptimizer::OptimizationTarget target;
+    auto optimization_result = manifold_optimizer_->optimize(initial_state, target);
+
+    if (optimization_result.success)
+    {
+        analysis.coherence_score = optimization_result.optimized_state.coherence;
+        analysis.entropy_level = optimization_result.optimized_state.entropy;
+        analysis.stability_index = optimization_result.optimized_state.stability;
+    }
+    else
+    {
+        // Fallback to raw QFH results if optimization fails
+        analysis.coherence_score = qfh_result.coherence;
+        analysis.entropy_level = qfh_result.entropy;
+        analysis.stability_index = 1.0 - qfh_result.rupture_ratio;
+    }
+
     analysis.rupture_probability = qfh_result.rupture_ratio;
-    
-    // Generate additional metrics (simulated)
-    std::random_device rd;
-    std::mt19937 gen(rd());
-    std::uniform_real_distribution<> dis(0.0, 1.0);
-    
-    analysis.trend_strength = dis(gen);
-    analysis.volatility_factor = dis(gen);
-    analysis.regime_confidence = dis(gen);
-    analysis.correlation_index = dis(gen);
-    
+
     // Classify pattern type
     analysis.dominant_pattern = classifyPattern(market_data, qfh_result);
     
@@ -238,33 +253,53 @@ TickerPatternAnalysis TickerPatternAnalyzer::performQuantumAnalysis(const std::s
     return analysis;
 }
 
+#include <iomanip>
+#include <sstream>
+
 std::vector<sep::connectors::MarketData> TickerPatternAnalyzer::fetchMarketData(
     const std::string& ticker_symbol, size_t hours_back) {
-    
-    // Simulated market data (same as in trainer)
-    std::vector<sep::connectors::MarketData> data;
-    
-    double base_price = 1.0850;
-    auto now = std::chrono::system_clock::now();
-    
-    for (size_t i = 0; i < hours_back * 60; ++i) {
-        sep::connectors::MarketData point;
-        point.instrument = ticker_symbol;
-        point.timestamp = std::chrono::duration_cast<std::chrono::milliseconds>(
-            now.time_since_epoch()).count() - (i * 60 * 1000);
-        
-        double noise = (std::rand() % 100 - 50) / 100000.0;
-        point.bid = base_price + noise - 0.0001;
-        point.ask = base_price + noise + 0.0001;
-        point.mid = base_price + noise;
-        point.volume = 100 + (std::rand() % 500);
-        point.atr = 0.0050;
-        
-        data.push_back(point);
-        base_price += (std::rand() % 3 - 1) / 100000.0;
+    if (!oanda_connector_)
+    {
+        throw std::runtime_error("OANDA connector is not initialized");
     }
-    
-    return data;
+
+    auto now = std::chrono::system_clock::now();
+    auto to_time = now;
+    auto from_time = now - std::chrono::hours(hours_back);
+
+    std::time_t to_time_t = std::chrono::system_clock::to_time_t(to_time);
+    std::time_t from_time_t = std::chrono::system_clock::to_time_t(from_time);
+
+    char to_buf[sizeof "2011-10-08T07:07:09Z"];
+    strftime(to_buf, sizeof to_buf, "%Y-%m-%dT%H:%M:%SZ", gmtime(&to_time_t));
+
+    char from_buf[sizeof "2011-10-08T07:07:09Z"];
+    strftime(from_buf, sizeof from_buf, "%Y-%m-%dT%H:%M:%SZ", gmtime(&from_time_t));
+
+    auto oanda_candles = oanda_connector_->getHistoricalData(ticker_symbol, "M1", from_buf, to_buf);
+
+    std::vector<sep::connectors::MarketData> market_data;
+    for (const auto& oanda_candle : oanda_candles)
+    {
+        sep::connectors::MarketData md;
+        md.instrument = ticker_symbol;
+
+        std::tm tm = {};
+        std::stringstream ss(oanda_candle.time);
+        ss >> std::get_time(&tm, "%Y-%m-%dT%H:%M:%S");
+        auto time_point = std::chrono::system_clock::from_time_t(timegm(&tm));
+        md.timestamp =
+            std::chrono::duration_cast<std::chrono::milliseconds>(time_point.time_since_epoch())
+                .count();
+
+        md.mid = oanda_candle.close;
+        md.bid = oanda_candle.low;
+        md.ask = oanda_candle.high;
+        md.volume = oanda_candle.volume;
+        market_data.push_back(md);
+    }
+
+    return market_data;
 }
 
 sep::quantum::QFHResult TickerPatternAnalyzer::performQFHAnalysis(
@@ -288,18 +323,14 @@ std::vector<TickerPatternAnalysis::TimeframeAnalysis> TickerPatternAnalyzer::ana
     for (const auto& timeframe : config_.timeframes) {
         TickerPatternAnalysis::TimeframeAnalysis tf_analysis;
         tf_analysis.timeframe = timeframe;
-        
-        // Simulated timeframe analysis
-        std::random_device rd;
-        std::mt19937 gen(rd());
-        std::uniform_real_distribution<> dis(0.0, 1.0);
-        
-        tf_analysis.pattern_strength = dis(gen);
-        tf_analysis.signal_quality = dis(gen);
-        tf_analysis.breakout_detected = dis(gen) > 0.7;
-        tf_analysis.reversal_pattern = dis(gen) > 0.8;
-        tf_analysis.confidence_level = dis(gen);
-        
+
+        // TODO: Implement real timeframe analysis
+        tf_analysis.pattern_strength = 0.0;
+        tf_analysis.signal_quality = 0.0;
+        tf_analysis.breakout_detected = false;
+        tf_analysis.reversal_pattern = false;
+        tf_analysis.confidence_level = 0.0;
+
         results.push_back(tf_analysis);
     }
     

@@ -8,6 +8,7 @@
 
 #pragma once
 
+#include <array>
 #include <atomic>
 #include <memory>
 #include <nlohmann/json.hpp>
@@ -112,6 +113,14 @@ public:
      * @return JSON response with blending results
      */
     nlohmann::json blendContexts(const nlohmann::json& request_data);
+
+    /**
+     * @brief Reload data from synced files
+     *
+     * @param request_data JSON request data containing reload information
+     * @return JSON response with reload results
+     */
+    nlohmann::json reloadData(const nlohmann::json& request_data);
 
     /**
      * @brief Get the health status of the SEP Engine

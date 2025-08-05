@@ -1,4 +1,4 @@
-m#!/bin/bash
+#!/bin/bash
 # Simplified build script for running inside a container
 
 # Allow overriding the container runtime via DOCKER_BIN.

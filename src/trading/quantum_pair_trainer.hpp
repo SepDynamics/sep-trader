@@ -1,4 +1,5 @@
 #pragma once
+#include <array>
 
 #include <string>
 #include <vector>
@@ -8,6 +9,7 @@
 #include <future>
 #include <map>
 #include <chrono>
+#include <array>
 
 #include "quantum/bitspace/qfh.h"
 #include "quantum/quantum_manifold_optimizer.h"

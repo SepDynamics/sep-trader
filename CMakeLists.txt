@@ -34,6 +34,7 @@ if(SEP_USE_CUDA)
     
     # Add flags for better diagnostics and features
     set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} --allow-unsupported-compiler --extended-lambda --display-error-number")
+    set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -Xcompiler -include,${CMAKE_SOURCE_DIR}/src/engine/internal/standard_includes.h")
     
     # Print CUDA configuration for debugging
     message(STATUS "CUDA Home: $ENV{CUDA_HOME}")
@@ -51,7 +52,7 @@ include(cmake/template.cmake)
 
 # Set C++ standard
 set(CMAKE_CXX_STANDARD 17 CACHE STRING "C++ standard")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D_GLIBCXX_USE_CXX11_ABI=0")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D_GLIBCXX_USE_CXX11_ABI=0 -include ${CMAKE_SOURCE_DIR}/src/engine/internal/standard_includes.h")
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # GLM configuration is included per-target in cmake template
@@ -68,6 +69,8 @@ include(cmake/gtest.cmake)
 # spdlog built via FetchContent to use our fmt
 find_package(glm REQUIRED)
 find_package(OpenGL REQUIRED)
+find_package(PostgreSQL REQUIRED)
+
 
 
 include(FetchContent)
@@ -195,5 +198,3 @@ add_custom_target(generate_docs
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
     COMMENT "Generating documentation from source headers"
 )
-
-

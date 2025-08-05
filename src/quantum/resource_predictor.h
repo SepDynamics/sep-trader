@@ -1,6 +1,7 @@
 #ifndef SEP_CONTEXT_RESOURCE_PREDICTOR_H
 #define SEP_CONTEXT_RESOURCE_PREDICTOR_H
 
+#include <array>
 #include <cstddef>
 #include <nlohmann/json.hpp>
 #include <vector>

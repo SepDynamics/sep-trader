@@ -1,4 +1,5 @@
 #pragma once
+#include <array>
 #include "nodes.h"
 #include <nlohmann/json.hpp>
 #include <memory>

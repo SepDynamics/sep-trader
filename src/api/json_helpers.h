@@ -1,5 +1,6 @@
 #pragma once
 
+#include <array>
 #include <nlohmann/json.hpp>
 #include <string>
 

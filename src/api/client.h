@@ -1,6 +1,7 @@
 #ifndef SEP_API_CLIENT_H
 #define SEP_API_CLIENT_H
 
+#include <array>
 #include <chrono>
 #include <condition_variable>
 #include <functional>
