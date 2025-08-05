@@ -96,5 +96,10 @@
       "error_message": "",
       "last_updated": 1754342313
     }
+  },
+  "EUR_USD": {
+    "state": "failed",
+    "last_trained": null,
+    "accuracy": null
   }
 }

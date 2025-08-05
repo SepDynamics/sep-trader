@@ -108,7 +108,8 @@ void Interpreter::register_builtins() {
         std::cout << "DSL: Fetching LIVE data from your OANDA account..." << std::endl;
         
         // Use your actual OANDA historical fetcher with your real API key
-        std::string cmd = "cd /sep && source ./OANDA.env && timeout 60 ./build/examples/oanda_historical_fetcher --instrument EUR_USD --granularity M1 --hours 24 --output /tmp/live_oanda_data.json";
+        // Use the working quantum_tracker system for OANDA data
+        std::string cmd = "cd /sep && source ./config/OANDA.env && timeout 60 ./build/src/trading/quantum_pair_trainer train EUR_USD";
         
         int result = std::system(cmd.c_str());
         if (result == 0) {
@@ -1462,7 +1463,7 @@ void Interpreter::register_builtins() {
             
             if (!api_key || !account_id) {
                 std::cout << "❌ OANDA credentials not found in environment" << std::endl;
-                std::cout << "   Run: source OANDA.env" << std::endl;
+                std::cout << "   Run: source config/OANDA.env" << std::endl;
                 return 0.0;
             }
             
