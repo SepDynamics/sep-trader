@@ -107,11 +107,14 @@ FetchContent_Declare(
   GIT_REPOSITORY https://github.com/oneapi-src/oneTBB.git
   GIT_TAG v2021.10.0
 )
+# TBB Configuration - Build requirements only  
 set(TBB_BUILD_SHARED ON CACHE BOOL "" FORCE)
 set(BUILD_SHARED_LIBS ON CACHE BOOL "" FORCE)
 set(TBB_BUILD_STATIC OFF CACHE BOOL "" FORCE)
-set(TBB_ENABLE_HWLOC OFF CACHE BOOL "" FORCE)
-set(TBB_BUILD_TBBBIND OFF CACHE BOOL "" FORCE)
+set(TBB_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+set(TBB_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
+# Help find hwloc on Fedora systems (libraries in /usr/lib64)
+link_directories(/usr/lib64)
 set(CMAKE_BUILD_WITH_INSTALL_RPATH ON)
 FetchContent_MakeAvailable(tbb)
 

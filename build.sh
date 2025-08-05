@@ -93,11 +93,6 @@ fi
     echo "CMAKE_CUDA_COMPILER: $CMAKE_CUDA_COMPILER"
     ls -la $CUDA_HOME/bin/nvcc || echo "NVCC not found!"
     
-    # Install dependencies in the running container
-    echo "Installing PostgreSQL, Redis, and HWLOC dependencies..."
-    apt-get update > /dev/null 2>&1
-    apt-get install -y libpqxx-dev libhiredis-dev libhwloc-dev pkg-config > /dev/null 2>&1
-    
     # Build as root - no user switching needed
     # Add exception for dubious ownership
     git config --global --add safe.directory '*'
@@ -139,10 +134,5 @@ if [ -f output/build_log.txt ]; then
     grep -i "error\|failed\|fatal" output/build_log.txt > output/errors.txt 2>/dev/null || echo "No errors found" > output/errors.txt
 fi
 
-# Run include analysis if there were errors
-if [ -f output/errors.txt ] && [ -s output/errors.txt ] && [ "$(head -1 output/errors.txt)" != "No errors found" ]; then
-    echo "Running include dependency analysis..."
-    ./scripts/analyze_includes.sh
-fi
 
 echo "Build complete!"
