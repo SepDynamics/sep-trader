@@ -621,6 +621,114 @@ bool isPairLifecycleStageActive(PairLifecycleStage stage) {
     return stage == PairLifecycleStage::READY || stage == PairLifecycleStage::TRADING;
 }
 
+std::vector<std::string> DynamicPairManager::getAllPairs() const {
+    std::lock_guard<std::mutex> lock(config_mutex_);
+    
+    std::vector<std::string> pairs;
+    pairs.reserve(dynamic_configs_.size());
+    
+    for (const auto& config_pair : dynamic_configs_) {
+        pairs.push_back(config_pair.first);
+    }
+    
+    return pairs;
+}
+
+bool DynamicPairManager::isPairEnabled(const std::string& pair) const {
+    PairLifecycleStage stage = getPairLifecycleStage(pair);
+    return stage == PairLifecycleStage::TRADING;
+}
+
+std::string DynamicPairManager::enablePairAsync(const std::string& pair_symbol) {
+    if (operations_paused_.load()) {
+        return ""; // Operations are paused
+    }
+    
+    std::string operation_id = generateOperationId();
+    
+    std::lock_guard<std::mutex> lock(queue_mutex_);
+    
+    operation_queue_.push([this, pair_symbol, operation_id]() {
+        std::lock_guard<std::mutex> ops_lock(operations_mutex_);
+        
+        PairOperation operation = createOperation(pair_symbol, "ENABLE");
+        operation.operation_id = operation_id;
+        
+        active_operations_[operation_id] = operation;
+        
+        PairOperationResult result = performEnablePair(pair_symbol, active_operations_[operation_id]);
+        completeOperation(active_operations_[operation_id], result);
+    });
+    
+    operation_cv_.notify_one();
+    return operation_id;
+}
+
+std::string DynamicPairManager::disablePairAsync(const std::string& pair_symbol) {
+    if (operations_paused_.load()) {
+        return ""; // Operations are paused
+    }
+    
+    std::string operation_id = generateOperationId();
+    
+    std::lock_guard<std::mutex> lock(queue_mutex_);
+    
+    operation_queue_.push([this, pair_symbol, operation_id]() {
+        std::lock_guard<std::mutex> ops_lock(operations_mutex_);
+        
+        PairOperation operation = createOperation(pair_symbol, "DISABLE");
+        operation.operation_id = operation_id;
+        
+        active_operations_[operation_id] = operation;
+        
+        PairOperationResult result = performDisablePair(pair_symbol, active_operations_[operation_id]);
+        completeOperation(active_operations_[operation_id], result);
+    });
+    
+    operation_cv_.notify_one();
+    return operation_id;
+}
+
+PairOperationResult DynamicPairManager::enablePair(const std::string& pair_symbol, std::chrono::seconds timeout) {
+    std::string operation_id = enablePairAsync(pair_symbol);
+    if (operation_id.empty()) {
+        return PairOperationResult::SYSTEM_ERROR;
+    }
+    
+    // Wait for completion
+    auto start_time = std::chrono::steady_clock::now();
+    while (std::chrono::steady_clock::now() - start_time < timeout) {
+        if (isOperationComplete(operation_id)) {
+            return getOperation(operation_id).result;
+        }
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    }
+    
+    // Timeout
+    cancelOperation(operation_id);
+    return PairOperationResult::SYSTEM_ERROR;
+}
+
+PairOperationResult DynamicPairManager::disablePair(const std::string& pair_symbol, std::chrono::seconds timeout) {
+    std::string operation_id = disablePairAsync(pair_symbol);
+    if (operation_id.empty()) {
+        return PairOperationResult::SYSTEM_ERROR;
+    }
+    
+    // Wait for completion
+    auto start_time = std::chrono::steady_clock::now();
+    while (std::chrono::steady_clock::now() - start_time < timeout) {
+        if (isOperationComplete(operation_id)) {
+            return getOperation(operation_id).result;
+        }
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    }
+    
+    // Timeout
+    cancelOperation(operation_id);
+    return PairOperationResult::SYSTEM_ERROR;
+}
+
 // Global dynamic pair manager instance
 DynamicPairManager& getGlobalDynamicPairManager() {
     static DynamicPairManager instance;

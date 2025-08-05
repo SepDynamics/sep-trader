@@ -1,0 +1,15 @@
+[Unit]
+Description=SEP Training Coordinator
+After=network.target
+
+[Service]
+Type=simple
+User=ajn
+WorkingDirectory=/sep
+Environment=CUDA_VISIBLE_DEVICES=0
+ExecStart=/sep/build/src/training/sep_training_cli monitor --duration=86400
+Restart=always
+RestartSec=30
+
+[Install]
+WantedBy=multi-user.target

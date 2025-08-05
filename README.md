@@ -17,6 +17,9 @@ This repository contains the complete production system for autonomous cryptocur
 - **REST API Control**: Complete programmatic management interface
 - **Real-time Monitoring**: Professional health monitoring and alerting
 - **Risk Management**: Multi-level risk controls and circuit breakers
+- **🆕 Enterprise Data Layer**: PostgreSQL integration with TimescaleDB for high-performance time-series data
+- **🆕 Redis Cache System**: High-speed distributed caching with automatic invalidation
+- **🆕 HWLOC Integration**: Optimized NUMA-aware processing for maximum performance
 
 ## 🚀 Patent-Pending Core Technology
 
@@ -33,24 +36,28 @@ This repository contains the complete production system for autonomous cryptocur
 - **Quantum Bit State Analysis (QBSA)** - Pattern integrity validation  
 - **Quantum Manifold Optimizer** - Global optimization in non-linear spaces
 - **Hot-Swappable Architecture** - Zero-downtime configuration management
+- **🆕 Remote Data Manager** - Enterprise PostgreSQL/Redis data orchestration
+- **🆕 Training Coordinator** - Distributed model training and synchronization
 
 ## 🛠️ Quick Start - Remote Trading Droplet
 
 **Deploy the trading execution engine on your droplet:**
 
 ```bash
-# 1. Clone and build (CPU-only for droplet)
+# 1. Clone and build (includes PostgreSQL/Redis dependencies)
 git clone https://github.com/SepDynamics/sep-trader.git && cd sep-trader
 ./install.sh --minimal --no-docker && ./build.sh --no-docker
 
-# 2. Configure OANDA credentials
+# 2. Configure OANDA credentials and database
 nano OANDA.env  # Add your API key and account ID
+nano config/database.conf  # Configure PostgreSQL/Redis if using external servers
 
 # 3. Check system status  
 LD_LIBRARY_PATH=./build/src/core:./build/src/config:./build/src/c_api ./build/src/cli/trader-cli status
 
-# 4. View trading pairs
+# 4. View trading pairs and data sources
 LD_LIBRARY_PATH=./build/src/core:./build/src/config:./build/src/c_api ./build/src/cli/trader-cli pairs list
+LD_LIBRARY_PATH=./build/src/core:./build/src/config:./build/src/c_api ./build/src/cli/trader-cli data status
 ```
 
 **Note:** This is the **remote execution system**. Training and signal generation happens on your local CUDA-enabled machine.
@@ -107,6 +114,9 @@ curl -X PUT /api/v1/config/reload          # Reload configuration
 - **Comprehensive Cache System** - Advanced cache validation and health monitoring
 - **Professional CLI Interface** - Command-line tools for system administration
 - **Production-Ready Build** - Clean build system with dynamic libraries and testing
+- **🆕 Enterprise Data Architecture** - PostgreSQL + TimescaleDB + Redis distributed data layer
+- **🆕 Remote Training Coordination** - Distributed model training across multiple nodes
+- **🆕 HWLOC Performance Optimization** - NUMA-aware processing for maximum throughput
 
 ## 📚 Documentation
 

@@ -120,9 +120,13 @@ std::vector<OandaCandle> OandaConnector::getHistoricalData(
                     }
                 }
             }
+        } else {
+            std::cerr << "[OANDA] HTTP Error " << response.response_code << " for endpoint: " << endpoint << std::endl;
+            std::cerr << "[OANDA] Response: " << response.data << std::endl;
         }
-    } catch (...) {
-        // Ignore errors, return empty
+    } catch (const std::exception& e) {
+        std::cerr << "[OANDA] Exception in getHistoricalData: " << e.what() << std::endl;
+        std::cerr << "[OANDA] Endpoint: " << endpoint << std::endl;
     }
     
     if (!candles.empty()) {

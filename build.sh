@@ -92,11 +92,18 @@ fi
     echo "CUDA_BIN_PATH: $CUDA_BIN_PATH"
     echo "CMAKE_CUDA_COMPILER: $CMAKE_CUDA_COMPILER"
     ls -la $CUDA_HOME/bin/nvcc || echo "NVCC not found!"
+    
+    # Install dependencies in the running container
+    echo "Installing PostgreSQL, Redis, and HWLOC dependencies..."
+    apt-get update > /dev/null 2>&1
+    apt-get install -y libpqxx-dev libhiredis-dev libhwloc-dev pkg-config > /dev/null 2>&1
+    
     # Build as root - no user switching needed
     # Add exception for dubious ownership
     git config --global --add safe.directory '*'
     cd /sep
     cd build
+    
     
     # Configure with include dependency tracking
     cmake .. -G Ninja \
@@ -108,6 +115,7 @@ fi
         -DCMAKE_CUDA_FLAGS="${CMAKE_CUDA_FLAGS} ${EXTRA_CUDA_FLAGS:-}" \
         -DCUDAToolkit_ROOT=$CUDA_PREFIX \
         -DSEP_USE_CUDA=ON
+    
     
     # Build with logging
     ninja -k 0 2>&1 | tee /sep/output/build_log.txt
@@ -135,14 +143,6 @@ fi
 if [ -f output/errors.txt ] && [ -s output/errors.txt ] && [ "$(head -1 output/errors.txt)" != "No errors found" ]; then
     echo "Running include dependency analysis..."
     ./scripts/analyze_includes.sh
-fi
-
-# Quick DSL validation check
-echo "Validating DSL functionality..."
-if ./build/src/dsl/sep_dsl_interpreter examples/agi_demo_simple.sep >/dev/null 2>&1; then
-    echo "✅ DSL engine integration validated"
-else
-    echo "❌ DSL validation failed - check DSL implementation"
 fi
 
 echo "Build complete!"

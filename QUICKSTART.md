@@ -9,6 +9,7 @@
 - **8GB RAM, 2 vCPUs** - Sufficient for trading operations
 - **OANDA Account** - Live/demo trading API access
 - **No CUDA required** - CPU-only execution
+- **🆕 Database Support** - PostgreSQL, Redis, and HWLOC automatically installed
 
 ## Local PC Requirements (Training & Analysis)  
 - **CUDA 12.9+** - GPU acceleration for quantum processing
@@ -17,13 +18,18 @@
 
 ## Droplet Installation & Setup
 
-### 1. Clone and Build (CPU-Only)
+### 1. Clone and Build (CPU-Only with Enterprise Dependencies)
 ```bash
 git clone https://github.com/SepDynamics/sep-trader.git
 cd sep-trader
 ./install.sh --minimal --no-docker
-./build.sh --no-docker
+./build.sh --no-docker  # Automatically installs PostgreSQL, Redis, HWLOC
 ```
+
+**Note**: The build system now automatically installs enterprise dependencies:
+- `libpqxx-dev` - PostgreSQL C++ client library
+- `libhiredis-dev` - Redis C client library  
+- `libhwloc-dev` - Hardware locality optimization
 
 ### 2. Configure OANDA Credentials
 ```bash
@@ -45,6 +51,10 @@ export LD_LIBRARY_PATH=./build/src/core:./build/src/config:./build/src/c_api
 ./build/src/cli/trader-cli status           # ✅ Overall system status
 ./build/src/cli/trader-cli pairs list       # ✅ List all trading pairs
 ./build/src/cli/trader-cli config show      # ✅ View configuration
+
+# 🆕 Test enterprise data layer
+./build/src/cli/trader-cli data status      # ✅ Database connectivity status
+./build/src/cli/trader-cli cache stats      # ✅ Redis cache performance
 
 # Test DSL engine
 echo 'pattern test { print("Droplet ready!") }' > test.sep

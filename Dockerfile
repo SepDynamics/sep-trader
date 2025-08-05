@@ -1,8 +1,20 @@
 # Multi-stage Docker build for SEP DSL
 # Provides both development environment and production runtime
 
-# Build stage with CUDA support
-FROM nvidia/cuda:12.2-devel-ubuntu22.04 as builder
+# Build stage with CUDA support  
+FROM nvidia/cuda:12.9.0-devel-ubuntu22.04 as builder
+
+# Set environment to avoid interactive prompts
+ENV DEBIAN_FRONTEND=noninteractive
+ENV TZ=UTC
+
+# Set CUDA environment variables
+ENV CUDA_HOME=/usr/local/cuda-12.9
+ENV CUDA_TOOLKIT_ROOT_DIR=/usr/local/cuda-12.9
+ENV CUDA_BIN_PATH=/usr/local/cuda-12.9/bin
+ENV CMAKE_CUDA_COMPILER=/usr/local/cuda-12.9/bin/nvcc
+ENV PATH=${CUDA_HOME}/bin:${PATH}
+ENV LD_LIBRARY_PATH=${CUDA_HOME}/lib64:${LD_LIBRARY_PATH}
 
 # Install build dependencies
 RUN apt-get update && apt-get install -y \
@@ -13,11 +25,19 @@ RUN apt-get update && apt-get install -y \
     clang-15 \
     libc++-15-dev \
     libc++abi-15-dev \
+    ninja-build \
     pkg-config \
     curl \
     git \
     python3 \
     python3-pip \
+    postgresql-client \
+    libpq-dev \
+    libpqxx-dev \
+    libhiredis-dev \
+    libhwloc-dev \
+    libbenchmark-dev \
+    nlohmann-json3-dev \
     && rm -rf /var/lib/apt/lists/*
 
 # Set up work directory
@@ -30,7 +50,11 @@ COPY . .
 RUN ./build.sh
 
 # Runtime stage
-FROM nvidia/cuda:12.2-runtime-ubuntu22.04 as runtime
+FROM nvidia/cuda:12.9.0-runtime-ubuntu22.04 as runtime
+
+# Set environment to avoid interactive prompts
+ENV DEBIAN_FRONTEND=noninteractive
+ENV TZ=UTC
 
 # Install runtime dependencies
 RUN apt-get update && apt-get install -y \

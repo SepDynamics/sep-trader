@@ -29,6 +29,23 @@ if ! python3 -c "import requests, pandas, numpy" &> /dev/null; then
     pip3 install requests pandas numpy tqdm colorama
 fi
 
+# Check for system dependencies
+echo "🔧 Checking for system dependencies..."
+REQUIRED_PACKAGES="libpq-devel hwloc-devel tbb-devel"
+PACKAGES_TO_INSTALL=""
+for pkg in $REQUIRED_PACKAGES; do
+    if ! dnf -q list installed "$pkg" &> /dev/null; then
+        PACKAGES_TO_INSTALL="$PACKAGES_TO_INSTALL $pkg"
+    fi
+done
+
+if [ -n "$PACKAGES_TO_INSTALL" ]; then
+    echo "📦 Installing system dependencies:$PACKAGES_TO_INSTALL"
+    sudo dnf install -y $PACKAGES_TO_INSTALL
+else
+    echo "✅ System dependencies are already installed."
+fi
+
 # Create necessary directories
 echo "📁 Creating directory structure..."
 mkdir -p "$SEP_ROOT/cache/weekly_data"
@@ -104,6 +121,11 @@ echo "  sep-monitor          - Real-time monitoring"
 EOF
 
 chmod +x "$SEP_ROOT/scripts/training_aliases.sh"
+
+# Source aliases in .zshrc
+if [ -f ~/.zshrc ]; then
+    echo "source $SEP_ROOT/scripts/training_aliases.sh" >> ~/.zshrc
+fi
 
 # Set up systemd service for continuous training (optional)
 echo "🔧 Setting up optional systemd service..."

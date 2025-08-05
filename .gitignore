@@ -113,7 +113,8 @@ tmp/
 *.temp
 
 # Configuration files (may contain secrets)
-.env
+*.env
+OANDA.env
 *.key
 *.pem
 config/secrets/
@@ -264,3 +265,4 @@ cmake-build-*/
 # Ignore generated files but not the templates
 *_generated.*
 !*_template.*
+config/OANDA.env
