@@ -93,7 +93,7 @@ This folder contains a comprehensive investment package for SEP Dynamics' **$15M
 
 ### **Initial Interest**
 1. **Review Executive Summary** - [EXECUTIVE_SUMMARY.md](./EXECUTIVE_SUMMARY.md)
-2. **Schedule Initial Call** - alexander@sepdynamics.com
+2. **Schedule Initial Call** - alex@sepdynamics.com
 3. **NDA Execution** - Required for detailed materials
 4. **Pitch Presentation** - Full presentation and demo
 
@@ -161,13 +161,13 @@ This folder contains a comprehensive investment package for SEP Dynamics' **$15M
 ### **Company**
 **SEP Dynamics, Inc.**  
 **Alexander J Nagy, Founder & CEO**  
-📧 alexander@sepdynamics.com  
+📧 alex@sepdynamics.com  
 🌐 [sepdynamics.com](https://sepdynamics.com)  
 💼 [LinkedIn](https://linkedin.com/in/alexanderjnagy)  
 
 ### **Investment Inquiries**
 For qualified investors interested in participating in our Series A round:
-1. **Email:** alexander@sepdynamics.com
+1. **Email:** alex@sepdynamics.com
 2. **Subject Line:** "Series A Investment Interest - [Your Fund Name]"
 3. **Include:** Brief fund overview and investment thesis fit
 4. **Response Time:** 24-48 hours for qualified inquiries

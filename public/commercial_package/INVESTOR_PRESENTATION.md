@@ -34,5 +34,5 @@
 - **2028**: $85M revenue
 
 ## Contact Information
-**Email**: alexander@sepdynamics.com  
+**Email**: alex@sepdynamics.com  
 **LinkedIn**: [Alexander J Nagy](https://www.linkedin.com/in/alexanderjnagy)

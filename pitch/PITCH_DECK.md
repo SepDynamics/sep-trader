@@ -13,7 +13,7 @@
 *Patent-pending technology achieving 60.73% prediction accuracy*
 
 **Alexander J Nagy, Founder & CEO**  
-**alexander@sepdynamics.com**
+**alex@sepdynamics.com**
 
 ---
 
@@ -402,7 +402,7 @@
 
 ### Contact Information
 **Alexander J Nagy, Founder & CEO**  
-📧 alexander@sepdynamics.com  
+📧 alex@sepdynamics.com  
 🌐 sepdynamics.com  
 💼 linkedin.com/in/alexanderjnagy
 

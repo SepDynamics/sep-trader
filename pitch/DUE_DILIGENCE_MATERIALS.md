@@ -365,7 +365,7 @@
 
 ### **Management Team**
 **Alexander J Nagy, Founder & CEO**  
-📧 alexander@sepdynamics.com  
+📧 alex@sepdynamics.com  
 📱 Direct line available upon request  
 
 ### **Legal Counsel**

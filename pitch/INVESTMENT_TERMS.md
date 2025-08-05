@@ -216,7 +216,7 @@
 
 ### **Company**
 **Alexander J Nagy, Founder & CEO**  
-📧 alexander@sepdynamics.com  
+📧 alex@sepdynamics.com  
 📱 +1 (XXX) XXX-XXXX  
 🌐 sepdynamics.com  
 
