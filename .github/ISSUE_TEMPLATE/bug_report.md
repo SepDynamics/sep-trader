@@ -14,7 +14,7 @@ A clear and concise description of what the bug is.
 - **OS**: (e.g., Ubuntu 22.04, Windows 11, macOS 13)
 - **SEP DSL Version**: (e.g., 1.0.0)
 - **CUDA Version**: (e.g., 12.2, or "None" if not using CUDA)
-- **Compiler**: (e.g., clang++-15, g++-11)
+- **Compiler**: (e.g., g++, g++-11)
 - **Installation Method**: (Docker, local build, package manager)
 
 ## To Reproduce

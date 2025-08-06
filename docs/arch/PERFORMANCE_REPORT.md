@@ -8,7 +8,7 @@ This report documents the performance characteristics of the SEP DSL interpreter
 
 ### Test Configuration
 - **Platform**: Docker container with CUDA 12.9
-- **Compiler**: clang++-15 with -O3 optimization  
+- **Compiler**: g++ with -O3 optimization  
 - **Test Size**: 100,000 iterations
 - **Benchmark Types**: Math operations, function calls
 

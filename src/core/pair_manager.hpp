@@ -1,14 +1,5 @@
 #pragma once
-#include "../array_workaround.h"
-
-#include <string>
-#include <unordered_map>
-#include <atomic>
-#include <memory>
-#include <mutex>
-#include <shared_mutex>
-#include <functional>
-#include <chrono>
+#include "engine/internal/standard_includes.h"
 #include "trading_state.hpp"
 
 namespace sep::core {

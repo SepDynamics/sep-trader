@@ -2,9 +2,10 @@
 
 #include "compiler.h"
 #include <stack>
-#include <unordered_map>
-#include <functional>
 #include <chrono>
+#include <ratio>
+#include <deque>
+#include "engine/internal/standard_includes.h"
 
 namespace sep_dsl {
 namespace bytecode {
@@ -64,8 +65,8 @@ struct VMMetrics {
     size_t instructions_executed = 0;
     size_t function_calls = 0;
     size_t pattern_executions = 0;
-    std::chrono::duration<double> execution_time{0};
-    std::chrono::duration<double> builtin_time{0};
+    std::chrono::duration<double, std::ratio<1>> execution_time{0};
+    std::chrono::duration<double, std::ratio<1>> builtin_time{0};
     
     void reset();
     void dump() const;

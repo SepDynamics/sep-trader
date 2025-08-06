@@ -293,7 +293,7 @@ source OANDA.env && ./build/src/apps/oanda_trader/quantum_tracker
 
 ### Environment
 - **CUDA Version**: 12.9
-- **Compiler**: clang++-15 (host compiler)
+- **Compiler**: g++ (host compiler)
 - **Known Fix**: CMakeLists.txt includes `-Xcompiler -Dnoexcept\\(x\\)=` workaround
 
 ### Profiling Commands

@@ -1,61 +1,52 @@
 ---
-description: Defines quantum-inspired pattern data structures, coherence metrics, and stability tracking for market analysis
-globs: src/quantum/*,src/memory/*,src/engine/*,src/api/*,scripts/*
+description: Defines pattern data models, relationships, coherence metrics, and evolution for quantum analysis
+globs: src/quantum/**/*,src/pattern/**/*,src/memory/**/*
 alwaysApply: false
 ---
 
 
 # pattern-data-model
 
+Pattern Evolution System:
+- Core quantum pattern states: NULL_STATE, FLIP, RUPTURE 
+- Coherence calculation based on normalized manifold positions
+- Stability scoring using weighted factors:
+  * Historical stability (30%)
+  * Generation count (20%) 
+  * Coherence (40%)
+  * Access frequency (10%)
+
+Pattern Relationships:
+- Multi-generational tracking with inheritance
+- Entanglement between related patterns using:
+  * Spatial proximity in quantum manifold
+  * Phase correlation between states
+  * Combined coherence product
+  * Minimum entanglement threshold (0.6)
+
+Memory Tier Classification:
+- Three-tier architecture based on pattern metrics:
+  * LTM: coherence ≥0.9, stability ≥0.85, generations ≥100
+  * MTM: coherence ≥0.7, generations ≥5 
+  * STM: Default for new patterns
+
+Coherence Evolution:
+- Dynamic decay rates based on entropy measurements
+- Amplification through successful pattern matches (5% boost)
+- Stability enhancement through generations (2% per generation)
+- Mutation effects on coherence based on stability index
+
 Pattern Data Structure:
-```cpp
-struct Pattern {
-  float coherence;      // Pattern internal consistency
-  float stability;      // Resistance to mutation
-  float entropy;        // Measure of randomness
-  uint32_t generation;  // Evolution count
-  Vector4 position;     // Market position vector
-  float amplitude;      // Pattern strength
-  float phase;         // Market cycle position
-}
-```
+- Quantum state vector (coherence, phase, stability)
+- Relationship graph with strength metrics
+- Generation counter and mutation history
+- Memory tier classification
+- Access frequency tracking
 
-Coherence Metrics:
-1. Primary Stability Calculation
-```cpp
-stability = 0.9f * current_stability + 0.1f * coherence;
-coherence *= (1.0f - decay_factor * COHERENCE_DECAY_RATE);
-```
-
-2. Pattern Evolution Rules
-- Promotion Thresholds:
-  * STM -> MTM: coherence > 0.7, generation > 5
-  * MTM -> LTM: coherence > 0.9, stability > 0.85
-- Demotion triggers when coherence drops below 0.3
-- Minimum coherence floor of 0.1 maintained
-
-3. Relationship Tracking
-- Entanglement strength between patterns:
-  * Spatial proximity (70% weight)
-  * Phase correlation (30% weight)
-- Maximum 8 relationships per pattern
-- Bidirectional relationship maintenance
-
-4. Memory Tier Classification:
-```cpp
-enum MemoryTier {
-  STM,  // Short-term memory
-  MTM,  // Medium-term memory
-  LTM   // Long-term memory
-};
-```
-
-Key Files:
-- src/quantum/pattern.h
-- src/memory/memory_tier.hpp
-- src/quantum/quantum_processor.cpp
-
-The pattern data model implements quantum-inspired metrics for financial market analysis, with emphasis on pattern stability, coherence tracking, and multi-tier memory management.
+Core Files:
+src/quantum/pattern_processor.hpp
+src/quantum/pattern_evolution.cpp
+src/memory/memory_tier_manager.hpp
 
 $END$
 

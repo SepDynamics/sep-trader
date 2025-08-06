@@ -6,18 +6,21 @@ ENV DEBIAN_FRONTEND=noninteractive
 
 # Install all dependencies in a single layer to optimize image size
 RUN apt-get update && apt-get install -y \
-    lcov gcovr cmake build-essential clang-15 libc++-15-dev libc++abi-15-dev \
+    lcov gcovr cmake build-essential gcc-10 g++-10 \
     ninja-build pkg-config curl git python3 python3-pip postgresql-client \
     libpq-dev libpqxx-dev libhiredis-dev libhwloc-dev libbenchmark-dev \
     nlohmann-json3-dev libglm-dev libglfw3-dev libgl1-mesa-dev libfmt-dev libcurl4-openssl-dev \
-    && rm -rf /var/lib/apt/lists/*
+    && rm -rf /var/lib/apt/lists/* \
+    && update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-10 100 \
+    && update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-10 100
 
 # Set up the working directory
 WORKDIR /sep
 
 # Set environment variables for the build
-ENV CXX=clang++-15
-ENV CC=clang-15
+ENV CXX=g++-10
+ENV CC=gcc-10
+ENV CUDAHOSTCXX=g++-10
 ENV CUDA_TOOLKIT_ROOT_DIR=/usr/local/cuda
 ENV CUDA_HOME=/usr/local/cuda
 ENV PATH="/usr/local/cuda/bin:${PATH}"
@@ -29,13 +32,26 @@ COPY . .
 # Set up the working directory
 WORKDIR /sep
 
-# Install dependencies and build
+# Fix system headers for build environment
+RUN sed -i '1i#include <array>' /usr/include/c++/10/functional && \
+    sed -i '4i#include <array>' /usr/include/nlohmann/json.hpp && \
+    sed -i 's/_GLIBCXX_STD_C::array/std::array/g' /usr/include/c++/10/functional
+
+# Build environment stage (for development)
+FROM builder AS sep_build_env
+WORKDIR /sep
+
+# Production build stage  
+FROM builder AS production_builder
 RUN mkdir build && cd build && \
-    cmake .. -G Ninja -DCMAKE_BUILD_TYPE=Release -DSEP_USE_CUDA=ON && \
+    cmake .. -G Ninja -DCMAKE_BUILD_TYPE=Release -DSEP_USE_CUDA=ON \
+    -DCMAKE_CUDA_HOST_COMPILER=/usr/bin/g++-10 \
+    -DCMAKE_CXX_COMPILER=/usr/bin/g++-10 \
+    -DCMAKE_C_COMPILER=/usr/bin/gcc-10 && \
     ninja
 
-# Final stage
+# Final runtime stage
 FROM nvidia/cuda:12.9.0-runtime-ubuntu22.04
 WORKDIR /sep
-COPY --from=builder /sep/build/sep_engine .
+COPY --from=production_builder /sep/build/sep_engine .
 CMD ["./sep_engine"]

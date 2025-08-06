@@ -2,9 +2,7 @@
 
 #include <string>
 #include <vector>
-#include <memory>
-#include <functional>
-#include <map>
+#include "engine/internal/standard_includes.h"
 
 namespace sep {
 namespace cli {

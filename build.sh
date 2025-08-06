@@ -1,4 +1,4 @@
-m#!/bin/bash
+#!/bin/bash
 # Simplified build script for running inside a container
 
 # Allow overriding the container runtime via DOCKER_BIN.
@@ -58,7 +58,8 @@ if [ "$SKIP_DOCKER" = true ] || ! "$DOCKER_BIN" info >/dev/null 2>&1; then
     fi
     
     cmake .. -G Ninja -DCMAKE_BUILD_TYPE=Release $CUDA_FLAGS \
-        -DCMAKE_CXX_COMPILER=clang++-15 -DCMAKE_C_COMPILER=clang-15 \
+        -DCMAKE_CXX_COMPILER=g++-10 -DCMAKE_C_COMPILER=gcc-10 \
+        -DCMAKE_BUILD_WITH_INSTALL_RPATH=ON \
         -DCMAKE_EXPORT_COMPILE_COMMANDS=TRUE
     ninja -k 0 2>&1 | tee ../output/build_log.txt
     
@@ -67,34 +68,23 @@ if [ "$SKIP_DOCKER" = true ] || ! "$DOCKER_BIN" info >/dev/null 2>&1; then
     exit 0
 fi
 
-# Build and setup development environment
-CUDA_PREFIX="$(dirname "$(command -v nvcc 2>/dev/null)" 2>/dev/null | sed 's#/bin$##')"
-if [ -z "$CUDA_PREFIX" ] || [ ! -d "$CUDA_PREFIX" ]; then
-    CUDA_PREFIX=/usr/local/cuda
-fi
-if [ ! -d "$CUDA_PREFIX" ]; then
-    CUDA_PREFIX=/usr
-fi
+# Build and setup development environment using Docker
 "${DOCKER_BIN}" run --gpus all --rm \
     -v $(pwd):/sep \
-    -e CUDA_HOME=$CUDA_PREFIX \
-    -e CUDA_TOOLKIT_ROOT_DIR=$CUDA_PREFIX \
-    -e CUDA_BIN_PATH=$CUDA_PREFIX/bin \
-    -e CMAKE_CUDA_COMPILER=$CUDA_PREFIX/bin/nvcc \
-    -e CUDAToolkit_ROOT=$CUDA_PREFIX \
-    -e PATH=$CUDA_PREFIX/bin:${PATH} \
     sep_build_env bash -c '
     # Add exception for dubious ownership
     git config --global --add safe.directory "*"
     
     cd /sep/build
     
-    # Configure and build
+    # Configure and build with Docker container paths
     cmake .. -G Ninja \
         -DCMAKE_BUILD_TYPE=Release \
-        -DCMAKE_C_COMPILER=clang-15 \
+        -DCMAKE_C_COMPILER=/usr/bin/gcc-10 \
+        -DCMAKE_CXX_COMPILER=/usr/bin/g++-10 \
+        -DCMAKE_CUDA_HOST_COMPILER=/usr/bin/g++-10 \
+        -DCMAKE_BUILD_WITH_INSTALL_RPATH=ON \
         -DCMAKE_EXPORT_COMPILE_COMMANDS=TRUE \
-        -DCMAKE_CXX_COMPILER=clang++-15 \
         -DSEP_USE_CUDA=ON
     
     ninja -k 0 2>&1 | tee /sep/output/build_log.txt

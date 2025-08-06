@@ -1,7 +1,8 @@
 #pragma once
-#include "../ast/nodes.h"
 #include <string>
 #include <unordered_map>
+
+#include "ast/nodes.h"
 
 namespace dsl::lexer {
 

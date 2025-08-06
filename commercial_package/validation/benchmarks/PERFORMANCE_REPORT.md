@@ -119,7 +119,7 @@ Building SEP Engine...
 CUDA Version 12.9.0
 -- CUDA Home: /usr/local/cuda
 -- CUDA Compiler: /usr/local/cuda/bin/nvcc
--- CUDA Host Compiler: /usr/bin/clang++-15
+-- CUDA Host Compiler: /usr/bin/g++
 -- CUDA Architectures: 61;75;86;89
 -- Build type: Release
 -- Configuring done

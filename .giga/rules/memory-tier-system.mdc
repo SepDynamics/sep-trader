@@ -1,79 +1,59 @@
 ---
-description: Specifications for the memory tier management system including pattern storage, coherence tracking, and tier transitions
-globs: src/memory/**/*,src/quantum/**/*,src/engine/**/*,src/api/**/*
+description: Specification for memory tier management system including pattern storage/retrieval, block allocation, and tier promotion/demotion logic
+globs: **/memory/**,**/cache/**,**/quantum/coherence_manager.*,**/memory_tier*
 alwaysApply: false
 ---
 
 
 # memory-tier-system
 
-## Core Memory Architecture
+Memory Tier Architecture:
+- Three-tier memory hierarchy: STM (Short-term), MTM (Medium-term), LTM (Long-term)
+- Tier-specific coherence thresholds: LTM (0.8), MTM (0.5), STM (0.2)
+- Block migration based on coherence, stability and access patterns
 
-Three-tier memory hierarchy with distinct characteristics and transition rules:
+Pattern Management Logic:
+1. Pattern Classification
+- Coherence scoring (0.0-1.0) based on quantum state stability
+- Generation counting for pattern maturity tracking
+- Relationship strength calculation between patterns
 
-1. STM (Short-term Memory)
-- Default tier for new patterns
-- Retains data for 1 hour
-- Promotion requires coherence > 0.7 and generation > 5
+2. Promotion/Demotion Rules
+- Promotion criteria:
+  * STM → MTM: coherence ≥ 0.5, 5+ generations
+  * MTM → LTM: coherence ≥ 0.8, 50+ generations 
+- Demotion triggers:
+  * Low coherence (below tier threshold)
+  * Memory pressure (>0.8 utilization)
+  * Pattern fragmentation
 
-2. MTM (Medium-term Memory) 
-- Intermediate storage for evolved patterns
-- 7 day retention period
-- Promotion requires coherence > 0.9 and stability > 0.8
+3. Block Allocation Strategy 
+- Multi-factor scoring for placement:
+  * Coherence (40% weight)
+  * Stability (30% weight) 
+  * Access frequency (20% weight)
+  * Entanglement density (10% weight)
+- Hysteresis prevention using minimum residency periods
 
-3. LTM (Long-term Memory)
-- Permanent storage for stable patterns
-- Compressed storage with quantum state preservation
-- Demotion triggered by coherence < 0.3
+4. Pattern Storage Implementation
+- Quantum state preservation during tier transitions
+- Relationship graph maintenance across tiers
+- Entanglement tracking between related patterns
+- Phase correlation preservation during migrations
 
-## Pattern Evolution System
+5. Memory Pressure Optimization
+- Selective demotion of 20% lowest coherence patterns
+- Automatic defragmentation at 0.8 pressure threshold
+- Pattern compaction with relationship preservation
+- Minimum coherence floor (0.1) for persistence
 
-Quantum-inspired pattern management with:
-
-1. Coherence Calculation
-```cpp
-coherence = (baseCoherence * 0.4) + 
-           (stability * 0.3) + 
-           (generationBonus * 0.2) +
-           (accessFrequency * 0.1)
-```
-
-2. Pattern Properties
-- Stability metrics from quantum state analysis
-- Generation tracking for evolutionary progress
-- Access frequency monitoring
-- Quantum state coherence measurements
-
-3. Tier Migration Rules
-- Promotion triggered by exceeding tier thresholds
-- Demotion based on coherence decay
-- Hysteresis prevention through minimum dwell time
-- Migration tracking with quantum state preservation
-
-## Memory Management Logic
-
-1. Block Allocation
-- Dynamic sizing based on pattern complexity
-- Fragmentation monitoring (30% threshold)
-- Automatic defragmentation
-- Quantum state-aware block placement
-
-2. Pattern Storage
-- Relationship preservation during tier transitions
-- Quantum entanglement tracking between patterns
-- Coherence-based storage optimization
-- Pattern lineage preservation
-
-3. Pattern Loading
-- Priority-based retrieval system
-- Quantum state reconstruction
-- Cache coherence maintenance
-- Relationship graph preservation
-
-Key files:
+Key Components:
 - src/memory/memory_tier_manager.cpp
 - src/memory/quantum_coherence_manager.cpp
-- src/quantum/pattern_processor.cpp
+- src/memory/pattern_storage.cpp
+- src/cache/cache_validator.cpp
+
+The system implements quantum-inspired memory management focused on pattern coherence and stability across different retention periods. The unique value lies in maintaining quantum properties while enabling efficient pattern evolution and relationship preservation.
 
 $END$
 

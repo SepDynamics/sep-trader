@@ -1,4 +1,6 @@
 #ifdef SEP_USE_CUDA
+#include "cuda_array_fix.h"
+#include "engine/internal/standard_includes.h"
 #include <cuda_runtime.h>
 #include <device_launch_parameters.h>
 

@@ -1,11 +1,6 @@
 #pragma once
 
-#include "array_workaround.h"
-#include <string>
-#include <atomic>
-#include <chrono>
-#include <map>
-#include <vector>
+#include "engine/internal/standard_includes.h"
 #include <nlohmann/json.hpp>
 
 namespace sep::api {

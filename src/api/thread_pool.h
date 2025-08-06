@@ -5,8 +5,7 @@
 #include <queue>
 #include <thread>
 #include <mutex>
-#include <condition_variable>
-#include <functional>
+#include "engine/internal/standard_includes.h"
 #include <future>
 
 namespace sep::api {

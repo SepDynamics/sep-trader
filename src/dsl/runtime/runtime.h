@@ -1,8 +1,7 @@
 #pragma once
 #include "interpreter.h"
 #include "parser/parser.h"
-#include <string>
-#include <functional>
+#include "engine/internal/standard_includes.h"
 
 namespace dsl::runtime {
 

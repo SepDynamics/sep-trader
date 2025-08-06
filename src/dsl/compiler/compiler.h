@@ -1,8 +1,6 @@
 #pragma once
 #include "ast/nodes.h"
-#include <memory>
-#include <functional>
-#include <unordered_map>
+#include "engine/internal/standard_includes.h"
 #include <vector>
 #include <any>
 #include <stdexcept>

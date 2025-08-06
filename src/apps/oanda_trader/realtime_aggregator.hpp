@@ -1,5 +1,6 @@
 #pragma once
 #include "candle_types.h" // For the Candle struct
+#include <array>  // Must come before <functional> for GCC 11+ compatibility
 #include <vector>
 #include <functional>
 #include <map>

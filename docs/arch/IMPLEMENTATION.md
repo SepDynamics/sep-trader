@@ -298,7 +298,7 @@ double calculateCoherence(const std::vector<uint8_t>& bit_sequence) {
 ### Prerequisites
 - **Docker**: For hermetic builds
 - **CUDA 12.9**: For GPU acceleration  
-- **clang++-15**: Host compiler
+- **g++**: Host compiler
 - **CMake 3.20+**: Build system
 
 ### Development Workflow

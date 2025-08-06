@@ -35,7 +35,7 @@ For development or custom builds:
 ```bash
 # Install dependencies (Ubuntu/Debian)
 sudo apt-get update
-sudo apt-get install cmake build-essential clang-15 cuda-toolkit
+sudo apt-get install cmake build-essential gcc cuda-toolkit
 
 # Clone and build
 git clone https://github.com/SepDynamics/sep-dsl.git

@@ -1,5 +1,9 @@
 cmake_minimum_required(VERSION 3.15)
 
+# CRITICAL: Set compilers BEFORE project() to avoid CMake loops
+# set(CMAKE_CXX_COMPILER "/usr/bin/g++")
+# set(CMAKE_CUDA_HOST_COMPILER "/usr/bin/g++")
+
 # Set the module path to include our custom cmake modules
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 message(STATUS "CMAKE_MODULE_PATH: ${CMAKE_MODULE_PATH}")
@@ -25,7 +29,7 @@ if(SEP_USE_CUDA)
     
     # Set CUDA paths before enabling language
     set(CMAKE_CUDA_COMPILER "$ENV{CUDA_HOME}/bin/nvcc")
-    set(CMAKE_CUDA_HOST_COMPILER "/usr/bin/clang++-15")
+    set(CMAKE_CUDA_HOST_COMPILER "/usr/bin/g++")
     set(CMAKE_CUDA_ARCHITECTURES 61;75;86;89)
     
     # Now enable CUDA language
@@ -33,8 +37,7 @@ if(SEP_USE_CUDA)
     find_package(CUDAToolkit REQUIRED)
     
     # Add flags for better diagnostics and features
-    set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} --allow-unsupported-compiler --extended-lambda --display-error-number")
-    set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -Xcompiler -include,${CMAKE_SOURCE_DIR}/src/engine/internal/standard_includes.h")
+    # set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} --allow-unsupported-compiler --extended-lambda --display-error-number")
     
     # Print CUDA configuration for debugging
     message(STATUS "CUDA Home: $ENV{CUDA_HOME}")
@@ -52,8 +55,10 @@ include(cmake/template.cmake)
 
 # Set C++ standard
 set(CMAKE_CXX_STANDARD 17 CACHE STRING "C++ standard")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D_GLIBCXX_USE_CXX11_ABI=0 -include ${CMAKE_SOURCE_DIR}/src/engine/internal/standard_includes.h")
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+# Force compiler selection before project() call - move this to top
+# This must be set before project() declaration to avoid CMake loops
 
 # GLM configuration is included per-target in cmake template
 

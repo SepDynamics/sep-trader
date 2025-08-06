@@ -9,10 +9,10 @@
 #pragma once
 
 // Include Crow headers with correct path
-#include "../extern/crow/crow_isolation.h"
-
-#include <string>
 #include <memory>
+#include <string>
+
+#include "extern/crow/crow_isolation.h"
 
 namespace sep {
 namespace api {

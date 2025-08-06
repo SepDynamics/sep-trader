@@ -10,49 +10,56 @@
 - Explain your OBSERVATIONS clearly, then provide REASONING to identify the exact issue. Add console logs when needed to gather more information.
 
 
-## Core Business Architecture
+High-Level Business Logic Organization
 
-The system implements a quantum-inspired pattern analysis engine for financial markets with three key components:
+Core Trading Components:
+1. Quantum Field Harmonics (QFH) Engine
+- Patent-pending pattern analysis system achieving 60.73% accuracy
+- Implements dynamic decay calculation: λ = k1 * Entropy + k2 * (1 - Coherence)
+- Exponential damping: V_i = Σ(p_j - p_i) * e^(-λ(j-i))
+- Location: src/quantum/bitspace/qfh.cpp
 
-1. Quantum Pattern Processing (`src/quantum/*`)
-- Three-state quantum system tracking NULL_STATE, FLIP, and RUPTURE transitions
-- Pattern coherence calculation using quantum mechanics principles
-- Evolution tracking through quantum manifolds with stability metrics
+2. Pattern Recognition System
+- Eight specialized pattern types for market analysis
+- Real-time pattern integrity verification using QBSA
+- Multi-timeframe confirmation logic across M1/M5/M15
+- Location: src/trading/ticker_pattern_analyzer.cpp
 
-2. Financial Analysis (`src/connectors/`, `forex/*`)
-- Market data processing with custom technical indicators
-- Real-time volatility classification (4 levels)
-- Signal generation using logistic chaos mathematics
-- Dynamic risk adjustment based on market conditions
+3. Cache Management 
+- Weekly-based cache management for financial data
+- Implements data quality validation with 85% threshold
+- Trading readiness verification through cache health monitoring
+- Location: src/cache/weekly_cache_manager.cpp
 
-3. Memory Management (`src/memory/*`)
-- Three-tier memory architecture (STM, MTM, LTM)
-- Quantum coherence-based promotion system
+4. Trading Signal Generation
+- Signal confidence scoring using quantum metrics
+- Position sizing based on pattern coherence
+- Risk management through stability measurements
+- Location: src/trading/quantum_pair_trainer.cpp
+
+5. Memory Tier Management
+- Three-tier system (STM, MTM, LTM) for pattern storage
+- Coherence-based promotion/demotion rules
 - Pattern relationship tracking with strength metrics
-- Automatic defragmentation at 30% threshold
+- Location: src/memory/memory_tier_manager.cpp
 
-## Key Integration Points
-
+Key Integration Points:
 1. Pattern Evolution Pipeline
-- Quantum state detection in market patterns
-- Coherence calculation between related patterns
-- Stability metrics based on quantum transitions
-- Generation tracking for pattern maturity
+- QFH Analysis -> Pattern Recognition -> Signal Generation
+- Continuous feedback loop for pattern optimization
+- Real-time coherence monitoring and adjustment
 
-2. Trading Signal Generation 
-- Resonance threshold validation (>= 0.55)
-- Volatility-based pattern matching
-- Risk-reward calculation using ATR multipliers
-- Pattern performance feedback loop
+2. Trading Decision Flow
+- Pattern Detection -> Multi-timeframe Validation -> Risk Assessment -> Trade Execution
+- Uses quantum stability metrics for position sizing
+- Integrates cache health status for trading permissions
 
-3. Memory Optimization
-- Pattern promotion based on coherence thresholds:
-  * STM -> MTM: 0.7 coherence requirement
-  * MTM -> LTM: 0.9 coherence requirement
+3. Memory Management Hierarchy
+- Pattern Storage -> Coherence Analysis -> Tier Assignment
 - Relationship strength tracking between patterns
-- Quantum state persistence management
+- Automatic cleanup of low-coherence patterns
 
-The system uniquely combines quantum computing concepts with financial market analysis, using sophisticated pattern recognition and multi-tier memory management to generate trading signals.
+The system implements a unique approach to forex trading using quantum-inspired pattern analysis with multi-tier pattern storage and sophisticated cache management for market data.
 
 $END$
 

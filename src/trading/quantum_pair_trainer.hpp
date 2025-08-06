@@ -1,22 +1,21 @@
 #pragma once
 #include <array>
-
-#include <string>
-#include <vector>
-#include <memory>
 #include <atomic>
-#include <mutex>
+#include <chrono>
 #include <future>
 #include <map>
-#include <chrono>
-#include <array>
+#include <memory>
+#include <mutex>
+#include <string>
+#include <vector>
 
-#include "quantum/bitspace/qfh.h"
-#include "quantum/quantum_manifold_optimizer.h"
-#include "quantum/pattern_evolution_bridge.h"
-#include "engine/facade/facade.h"
 #include "connectors/oanda_connector.h"
 #include "core_types/result.h"
+#include "engine/facade/facade.h"
+#include "engine/internal/standard_includes.h"
+#include "quantum/bitspace/qfh.h"
+#include "quantum/pattern_evolution_bridge.h"
+#include "quantum/quantum_manifold_optimizer.h"
 
 namespace sep::trading {
 

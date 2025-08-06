@@ -1,18 +1,20 @@
 #include "trader_cli.hpp"
-#include "../core/pair_manager.hpp"
-#include "../core/trading_state.hpp"
-#include "../config/dynamic_config_manager.hpp"
-#include "../cache/cache_validator.hpp"
-#include "../cache/weekly_cache_manager.hpp"
-#include "../cache/cache_health_monitor.hpp"
 
-#include <iostream>
-#include <iomanip>
-#include <fstream>
-#include <filesystem>
-#include <chrono>
-#include <thread>
 #include <signal.h>
+
+#include <chrono>
+#include <filesystem>
+#include <fstream>
+#include <iomanip>
+#include <iostream>
+#include <thread>
+
+#include "cache/cache_health_monitor.hpp"
+#include "cache/cache_validator.hpp"
+#include "cache/weekly_cache_manager.hpp"
+#include "config/dynamic_config_manager.hpp"
+#include "core/pair_manager.hpp"
+#include "core/trading_state.hpp"
 
 namespace sep {
 namespace cli {

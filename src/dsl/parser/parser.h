@@ -1,7 +1,7 @@
 #pragma once
-#include "../ast/nodes.h"
-#include "../lexer/lexer.h"
-#include "../optimizer/optimizer.h"
+#include "ast/nodes.h"
+#include "lexer/lexer.h"
+#include "optimizer/optimizer.h"
 
 namespace dsl::parser {
 class Parser {

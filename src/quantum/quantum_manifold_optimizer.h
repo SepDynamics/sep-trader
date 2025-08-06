@@ -30,8 +30,8 @@ namespace sep::cuda {
 #include <complex>
 #include <condition_variable>
 #include <cstdint>
+#include "engine/internal/standard_includes.h"
 #include <execution>
-#include <functional>
 #include <future>
 #include <glm/glm.hpp>
 #include <memory>

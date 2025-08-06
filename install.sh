@@ -81,7 +81,7 @@ BUILD_DIR="$WS_DIR/build/deps"
 mkdir -p "$LOG_DIR" "$BUILD_DIR"
 
 MIN_PACKAGES=(
-  build-essential cmake git clang-15 clang-tidy-15 clang-format-15 ninja-build
+  build-essential cmake git gcc clang-tidy-15 clang-format-15 ninja-build
   libspdlog-dev libfmt-dev libbenchmark-dev libgtest-dev 
   nlohmann-json3-dev pkg-config libhiredis-dev libglm-dev
   libyaml-cpp-dev libimgui-dev libgl1-mesa-dev libglfw3-dev

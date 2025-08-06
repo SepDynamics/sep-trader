@@ -1,7 +1,6 @@
 #include "error_handler.h"
 
-#include <functional>  // Required for std::function
-#include <mutex>
+#include "engine/internal/standard_includes.h"
 #include <vector>
 
 #include "engine/internal/standard_includes.h"

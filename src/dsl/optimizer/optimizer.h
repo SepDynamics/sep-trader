@@ -1,6 +1,7 @@
 #pragma once
-#include "../ast/nodes.h"
 #include <memory>
+
+#include "ast/nodes.h"
 
 namespace dsl::optimizer {
 

@@ -5,8 +5,7 @@
 #include <memory>
 #include <mutex>
 #include <shared_mutex>
-#include <functional>
-#include <chrono>
+#include "engine/internal/standard_includes.h"
 #include <atomic>
 #include <thread>
 #include <condition_variable>

@@ -1,11 +1,13 @@
 #include "batch_processor.h"
-#include "../facade/facade.h"
-#include <chrono>
-#include <iostream>
+
 #include <algorithm>
-#include <sstream>
+#include <chrono>
 #include <cstdlib>
+#include <iostream>
 #include <mutex>
+#include <sstream>
+
+#include "facade/facade.h"
 
 namespace sep::engine::batch {
 

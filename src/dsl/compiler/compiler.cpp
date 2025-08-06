@@ -1,7 +1,9 @@
 #include "compiler.h"
-#include "../stdlib/stdlib.h"
-#include <iostream>
+
 #include <cmath>
+#include <iostream>
+
+#include "stdlib/stdlib.h"
 
 namespace dsl::compiler {
 

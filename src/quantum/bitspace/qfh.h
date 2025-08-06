@@ -1,13 +1,8 @@
 #ifndef SEP_QUANTUM_QFH_H
 #define SEP_QUANTUM_QFH_H
 
-#include "../../array_workaround.h"
-#include <algorithm>  // For std::sort, std::unique
-#include <cstddef>    // For ptrdiff_t, max_align_t
-#include <cstdint>
+#include "engine/internal/standard_includes.h"
 #include <optional>
-#include <vector>
-
 #include "quantum/bitspace/trajectory.h"
 
 namespace sep::quantum {

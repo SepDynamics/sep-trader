@@ -1,8 +1,7 @@
 #ifndef SEP_CORE_FILE_SYSTEM_WATCHER_H
 #define SEP_CORE_FILE_SYSTEM_WATCHER_H
 
-#include <functional>
-#include <memory>
+#include "engine/internal/standard_includes.h"
 #include <string>
 
 #include "engine/internal/standard_includes.h"

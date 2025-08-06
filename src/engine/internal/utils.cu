@@ -1,5 +1,3 @@
-#include "engine/internal/standard_includes.h"
-
 // GLM isolation layer - commented out for now due to CUDA 12.9 compatibility issues
 /*
 #ifndef SEP_CUDACC_DISABLE_EXCEPTION_SPEC_CHECKS

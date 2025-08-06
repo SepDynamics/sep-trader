@@ -1,11 +1,11 @@
 #pragma once
 
-#include "../core/pair_manager.hpp"
-#include "../core/trading_state.hpp"
-#include <memory>
+#include "engine/internal/standard_includes.h"
 #include <string>
 #include <vector>
-#include <functional>
+
+#include "core/pair_manager.hpp"
+#include "core/trading_state.hpp"
 
 namespace sep::api {
 

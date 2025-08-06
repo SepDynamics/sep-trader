@@ -1,18 +1,20 @@
-#include <iostream>
-#include <string>
-#include <vector>
-#include <map>
+#include <fmt/format.h>
+#include <spdlog/spdlog.h>
+
 #include <chrono>
 #include <iomanip>
+#include <iostream>
+#include <map>
 #include <sstream>
-
-#include "../quantum_pair_trainer.hpp"
-#include "../ticker_pattern_analyzer.hpp"
-#include "../dynamic_pair_manager.hpp"
-#include "../../core_types/result.h"
+#include <string>
 #include <thread>
-#include <spdlog/spdlog.h>
-#include <fmt/format.h>
+#include <vector>
+
+#include "core_types/result.h"
+#include "dynamic_pair_manager.hpp"
+#include "engine/internal/standard_includes.h"
+#include "quantum_pair_trainer.hpp"
+#include "ticker_pattern_analyzer.hpp"
 
 using namespace sep::trading;
 
@@ -60,7 +62,7 @@ public:
             printUsage();
             return 0;
         } else {
-            std::cerr << "Unknown command: " << command << std::endl;
+            spdlog::error("Unknown command: " + command);
             printUsage();
             return 1;
         }
@@ -809,7 +811,7 @@ int main(int argc, char* argv[]) {
         return cli.run(argc, argv);
         
     } catch (const std::exception& e) {
-        spdlog::error("Fatal error: {}", e.what());
+        spdlog::error("Fatal error: " + std::string(e.what()));
         std::cerr << "❌ Fatal error: " << e.what() << std::endl;
         return 1;
     }

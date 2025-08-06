@@ -39,3 +39,9 @@ target_include_directories(sep_quantum PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${CMAKE_SOURCE_DIR}/src
 )
+
+if(CUDAToolkit_FOUND)
+    target_compile_options(sep_quantum PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:--allow-unsupported-compiler --extended-lambda --display-error-number>)
+endif()
+
+# Fixed by proper include order in standard_includes.h

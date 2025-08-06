@@ -1,9 +1,7 @@
 #pragma once
 
 #include <atomic>
-#include <chrono>
-#include <functional>
-#include <thread>
+#include "engine/internal/standard_includes.h"
 
 namespace sep::api {
 

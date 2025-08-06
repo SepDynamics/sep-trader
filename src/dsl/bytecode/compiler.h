@@ -1,10 +1,12 @@
 #pragma once
 
-#include <vector>
+#include <cstdint>
+#include <memory>
 #include <string>
 #include <unordered_map>
-#include <memory>
-#include "../ast/ast_nodes.h"
+#include <vector>
+
+#include "../ast/nodes.h"
 
 namespace sep_dsl {
 namespace bytecode {
@@ -105,23 +107,21 @@ public:
     /**
      * Compile AST to bytecode
      */
-    std::unique_ptr<BytecodeProgram> compile(const std::vector<std::unique_ptr<ast::ASTNode>>& ast);
+    std::unique_ptr<BytecodeProgram> compile(const std::vector<std::unique_ptr<dsl::ast::Node>>& ast);
     
 private:
     std::unique_ptr<BytecodeProgram> program_;
     uint32_t label_counter_;
     
     // Compilation methods
-    void compile_node(const ast::ASTNode* node);
-    void compile_pattern(const ast::PatternNode* pattern);
-    void compile_assignment(const ast::AssignmentNode* assignment);
-    void compile_if_statement(const ast::IfNode* if_stmt);
-    void compile_print_statement(const ast::PrintNode* print_stmt);
-    void compile_expression(const ast::ExpressionNode* expr);
-    void compile_binary_op(const ast::BinaryOpNode* binop);
-    void compile_function_call(const ast::FunctionCallNode* call);
-    void compile_variable_ref(const ast::VariableRefNode* var_ref);
-    void compile_literal(const ast::LiteralNode* literal);
+    void compile_node(const dsl::ast::Node* node);
+    void compile_pattern(const dsl::ast::PatternDecl* pattern);
+    void compile_assignment(const dsl::ast::Assignment* assignment);
+    void compile_if_statement(const dsl::ast::IfStatement* if_stmt);
+    void compile_expression(const dsl::ast::Expression* expr);
+    void compile_binary_op(const dsl::ast::BinaryOp* binop);
+    void compile_function_call(const dsl::ast::Call* call);
+    void compile_variable_ref(const dsl::ast::Identifier* var_ref);
     
     // Helper methods
     uint32_t generate_label();

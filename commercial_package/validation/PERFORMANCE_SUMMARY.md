@@ -89,7 +89,7 @@ Market Data → Bitstream → Pattern Recognition → CUDA Processing → Signal
 ## 🔧 System Architecture Performance
 
 ### CUDA Integration
-- **CUDA Version**: 12.9 with clang++-15 host compiler
+- **CUDA Version**: 12.9 with g++ host compiler
 - **GPU Architectures**: 61, 75, 86, 89 (RTX 30xx/40xx series supported)
 - **Memory Management**: Device memory for path history and confidence scores
 - **Execution Time**: 73ms for trajectory calculations (GPU-accelerated)

@@ -5,8 +5,7 @@
 #include <memory>
 #include <mutex>
 #include <shared_mutex>
-#include <chrono>
-#include <functional>
+#include "engine/internal/standard_includes.h"
 #include <regex>
 
 namespace sep::core {

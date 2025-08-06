@@ -5,8 +5,7 @@
 #include <future>
 #include <thread>
 #include <atomic>
-#include <memory>
-#include <functional>
+#include "engine/internal/standard_includes.h"
 
 namespace sep::engine::batch {
 

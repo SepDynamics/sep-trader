@@ -433,7 +433,7 @@ Please include:
 ## Environment
 - OS: Ubuntu 20.04
 - CUDA Version: 12.9
-- Compiler: clang++-15
+- Compiler: g++
 - SEP DSL Version: 1.0.0
 
 ## Expected Behavior

@@ -1,14 +1,9 @@
 #pragma once
-#include <array>
+#include "engine/internal/standard_includes.h"
 
-#include "../core/pair_manager.hpp"
-#include "../core/trading_state.hpp"
-#include "../cache/weekly_cache_manager.hpp"
-#include <string>
-#include <vector>
-#include <unordered_map>
-#include <memory>
-#include <functional>
+#include "core/pair_manager.hpp"
+#include "core/trading_state.hpp"
+#include "cache/weekly_cache_manager.hpp"
 #include <mutex>
 #include <atomic>
 #include <thread>
