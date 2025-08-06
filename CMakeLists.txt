@@ -14,6 +14,9 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON CACHE INTERNAL "")
 # Project declaration with initial C++ support
 project(sep_engine VERSION 1.0.0 LANGUAGES CXX)
 
+add_compile_options(-Wall -Wextra -Wpedantic -O3)
+
+
 # Set up CUDA support
 option(SEP_USE_CUDA "Enable CUDA support" OFF)
 
@@ -31,13 +34,16 @@ if(SEP_USE_CUDA)
     set(CMAKE_CUDA_COMPILER "$ENV{CUDA_HOME}/bin/nvcc")
     set(CMAKE_CUDA_HOST_COMPILER "/usr/bin/g++")
     set(CMAKE_CUDA_ARCHITECTURES 61;75;86;89)
+set(CUDA_USE_STATIC_CUDA_RUNTIME OFF)
     
     # Set CUDA flags BEFORE enabling language to ensure they're available during compiler identification
     set(CMAKE_CUDA_FLAGS "--allow-unsupported-compiler --extended-lambda --display-error-number")
     
     # Now enable CUDA language
     enable_language(CUDA)
-    find_package(CUDAToolkit REQUIRED)
+    find_package(CUDAToolkit REQUIRED COMPONENTS cudart nvml)
+    message(STATUS "Found CUDAToolkit")
+    message(STATUS "CUDA Libraries: ${CUDAToolkit_LIBRARIES}")
     
     # Print CUDA configuration for debugging
     message(STATUS "CUDA Home: $ENV{CUDA_HOME}")
@@ -48,6 +54,7 @@ if(SEP_USE_CUDA)
     # Add CUDA paths to include and link directories
     include_directories("$ENV{CUDA_HOME}/include")
     link_directories("$ENV{CUDA_HOME}/lib64")
+
 endif()
 
 # Include the template
@@ -71,7 +78,6 @@ find_package(Threads REQUIRED)
 find_package(benchmark REQUIRED)
 find_package(nlohmann_json REQUIRED)
 include(cmake/gtest.cmake)
-# spdlog built via FetchContent to use our fmt
 find_package(glm REQUIRED)
 find_package(OpenGL REQUIRED)
 find_package(PostgreSQL REQUIRED)
@@ -85,6 +91,7 @@ FetchContent_Declare(
   GIT_TAG 0.8.0
 )
 FetchContent_MakeAvailable(yaml-cpp)
+
 set_target_properties(yaml-cpp PROPERTIES CXX_STANDARD 17)
 
 FetchContent_Declare(
@@ -101,14 +108,6 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(implot)
 
-FetchContent_Declare(
-  spdlog
-  GIT_REPOSITORY https://github.com/gabime/spdlog.git
-  GIT_TAG v1.12.0
-)
-set(SPDLOG_FMT_EXTERNAL OFF CACHE BOOL "" FORCE)
-set(SPDLOG_BUILD_SHARED ON CACHE BOOL "" FORCE)
-FetchContent_MakeAvailable(spdlog)
 
 FetchContent_Declare(
   tbb
@@ -119,12 +118,13 @@ FetchContent_Declare(
 set(TBB_BUILD_SHARED ON CACHE BOOL "" FORCE)
 set(BUILD_SHARED_LIBS ON CACHE BOOL "" FORCE)
 set(TBB_BUILD_STATIC OFF CACHE BOOL "" FORCE)
-set(TBB_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+set(TBB_TEST OFF CACHE BOOL "Build TBB tests" FORCE)
 set(TBB_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
 # Help find hwloc on Fedora systems (libraries in /usr/lib64)
 link_directories(/usr/lib64)
 set(CMAKE_BUILD_WITH_INSTALL_RPATH ON)
 FetchContent_MakeAvailable(tbb)
+
 
 # Create imgui library manually since imgui doesn't provide CMakeLists.txt
 set(IMGUI_SOURCES
@@ -144,6 +144,7 @@ target_include_directories(imgui PUBLIC
     ${imgui_SOURCE_DIR}/backends
 )
 
+
 set(IMPLOT_SOURCES
     ${implot_SOURCE_DIR}/implot.cpp
     ${implot_SOURCE_DIR}/implot_items.cpp
@@ -156,6 +157,7 @@ target_include_directories(implot PUBLIC
     ${implot_SOURCE_DIR}
 )
 
+
 target_link_libraries(implot PUBLIC imgui)
 
 # Find and link required dependencies
@@ -166,12 +168,21 @@ find_package(OpenGL REQUIRED)
 target_link_libraries(imgui PUBLIC glfw OpenGL::GL)
 
 # Add subdirectories
-if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/third_party/fmt")
-    set(FMT_INSTALL OFF CACHE BOOL "" FORCE)
-    add_subdirectory(third_party/fmt)
-else()
-    find_package(fmt REQUIRED)
-endif()
+find_package(fmt REQUIRED)
+FetchContent_Declare(
+  spdlog
+  GIT_REPOSITORY https://github.com/gabime/spdlog.git
+  GIT_TAG v1.11.0
+)
+FetchContent_MakeAvailable(spdlog)
+
+# Interface library for global includes
+add_library(sep_global_includes INTERFACE)
+target_precompile_headers(sep_global_includes INTERFACE "${CMAKE_CURRENT_SOURCE_DIR}/cmake/global_includes.h")
+target_compile_options(sep_global_includes INTERFACE "$<$<COMPILE_LANGUAGE:CUDA>:-include=${CMAKE_CURRENT_SOURCE_DIR}/cmake/global_includes.h>")
+target_link_libraries(sep_global_includes INTERFACE spdlog::spdlog)
+
+
 add_subdirectory(extern/crow)
 # Trigger rebuild again
 add_subdirectory(src)

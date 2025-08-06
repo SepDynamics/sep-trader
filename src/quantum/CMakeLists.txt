@@ -26,11 +26,11 @@ add_sep_library(sep_quantum
     sep_memory
     sep_common
     fmt::fmt
-    spdlog::spdlog
     nlohmann_json::nlohmann_json
     CUDA::cudart
     CUDA::cuda_driver
     tbb
+    sep_global_includes
 )
 
 add_dependencies(sep_quantum sep_memory)

@@ -833,7 +833,7 @@ int64_t OandaConnector::parseTimestamp(const std::string& time_str)
 
 DataValidationResult OandaConnector::validateCandle(const OandaCandle& candle)
 {
-    DataValidationResult result{true};
+    DataValidationResult result{true, {}, {}};
     if (candle.high < candle.low || candle.high < candle.open || candle.high < candle.close)
     {
         result.valid = false;
@@ -855,7 +855,7 @@ DataValidationResult OandaConnector::validateCandle(const OandaCandle& candle)
 DataValidationResult OandaConnector::validateCandleSequence(const std::vector<OandaCandle>& candles,
                                                             const std::string& granularity)
 {
-    DataValidationResult result{true};
+    DataValidationResult result{true, {}, {}};
     if (candles.size() < 2u) return result;  // Not enough data to check sequence
 
     for (size_t i = 0; i < candles.size(); ++i)

@@ -3,19 +3,8 @@
 // Standard includes for SEP engine  
 // Include fundamental headers in correct order for g++/GCC compatibility
 
-// Force array inclusion before anything else to prevent GCC compatibility issues
-#ifndef _GLIBCXX_ARRAY
 #include <array>
-#endif
-
-#include <cstddef>
-#include <type_traits>
-
-// Ensure functional gets array properly  
-#ifndef _GLIBCXX_FUNCTIONAL
-#include <array>  // Double-ensure array is available
 #include <functional>
-#endif
 
 #include <vector>
 #include <string>

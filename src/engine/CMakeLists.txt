@@ -40,6 +40,7 @@ add_sep_library(sep_engine
         sep_quantum
         CUDA::cudart
         CUDA::cuda_driver
+        sep_global_includes
 )
 
 target_include_directories(sep_engine PUBLIC

@@ -1,6 +1,7 @@
 // SEP Professional Training Coordinator Implementation
 // Coordinates local CUDA training with remote trading deployment
 
+#include "engine/internal/standard_includes.h"
 #include "training_coordinator.hpp"
 #include <iostream>
 #include <fstream>

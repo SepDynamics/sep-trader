@@ -20,6 +20,7 @@ target_link_libraries(sep_connectors PUBLIC
     sep_engine
     ${CURL_LIBRARIES}
     nlohmann_json::nlohmann_json
+    sep_global_includes
 )
 
 target_compile_options(sep_connectors PRIVATE ${CURL_CFLAGS_OTHER})
