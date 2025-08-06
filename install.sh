@@ -251,7 +251,7 @@ if [ "$SKIP_DOCKER" -eq 0 ]; then
   if $SUDO docker info >/dev/null 2>&1; then
     if ! $SUDO docker image inspect sep-engine-builder >/dev/null 2>&1; then
       echo "Building sep-engine-builder Docker image..."
-      $SUDO docker build -t sep-engine-builder .
+      $SUDO docker build --no-cache -t sep-engine-builder .
     fi
   else
     echo "Warning: Docker is not running, skipping image build" >&2

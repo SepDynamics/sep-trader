@@ -14,7 +14,18 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON CACHE INTERNAL "")
 # Project declaration with initial C++ support
 project(sep_engine VERSION 1.0.0 LANGUAGES CXX)
 
-add_compile_options(-Wall -Wextra -Wpedantic -O3)
+# Ensure consistent C++17 standard
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
+
+add_compile_options(
+    -Wall -Wextra -Wpedantic -O3
+    -D_GLIBCXX_NO_ASSERT    # Fix functional header std::array issues
+    -DPSTL_USE_TBB          # Enable proper TBB integration with PSTL
+    -D_GLIBCXX_DEBUG_PEDANTIC=0  # Disable pedantic debug checks
+    -D_GLIBCXX_CONCEPT_CHECKS=0  # Disable concept checks that might interfere
+)
 
 
 # Set up CUDA support
@@ -178,23 +189,11 @@ FetchContent_MakeAvailable(spdlog)
 
 # Interface library for global includes
 add_library(sep_global_includes INTERFACE)
-target_precompile_headers(sep_global_includes INTERFACE "${CMAKE_CURRENT_SOURCE_DIR}/cmake/global_includes.h")
+
 target_compile_options(sep_global_includes INTERFACE "$<$<COMPILE_LANGUAGE:CUDA>:-include=${CMAKE_CURRENT_SOURCE_DIR}/cmake/global_includes.h>")
-target_link_libraries(sep_global_includes INTERFACE spdlog::spdlog)
+target_link_libraries(sep_global_includes INTERFACE spdlog::spdlog nlohmann_json::nlohmann_json TBB::tbb)
 
 
-add_subdirectory(extern/crow)
-# Trigger rebuild again
-add_subdirectory(src)
-
-# Only add examples and tests if they exist
-# if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/examples)
-#    add_subdirectory(examples)
-# endif()
-
-if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/tests)
-    add_subdirectory(tests)
-endif()
 
 # Enable fuzzing if explicitly requested
 option(ENABLE_FUZZING "Enable fuzz testing with LibFuzzer" OFF)
@@ -214,3 +213,10 @@ add_custom_target(generate_docs
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
     COMMENT "Generating documentation from source headers"
 )
+
+add_subdirectory(extern/crow)
+add_subdirectory(src)
+
+if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/tests)
+    add_subdirectory(tests)
+endif()

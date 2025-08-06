@@ -41,6 +41,7 @@ add_sep_library(sep_engine
         CUDA::cudart
         CUDA::cuda_driver
         sep_global_includes
+        tbb
 )
 
 target_include_directories(sep_engine PUBLIC

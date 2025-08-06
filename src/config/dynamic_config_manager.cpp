@@ -10,9 +10,10 @@
 
 namespace sep::config {
 
-DynamicConfigManager::DynamicConfigManager() {
-    last_modified_.store(std::chrono::system_clock::now());
-    last_reload_.store(std::chrono::system_clock::now());
+DynamicConfigManager::DynamicConfigManager() 
+    : last_modified_{std::chrono::system_clock::now()},
+      last_reload_{std::chrono::system_clock::now()}
+{
 }
 
 DynamicConfigManager::~DynamicConfigManager() {

@@ -11,7 +11,7 @@ add_sep_library(sep_memory
         sep_common
         fmt::fmt
         Threads::Threads
-        TBB::tbb
+        tbb
         CUDA::cudart
         CUDA::cuda_driver
         sep_global_includes

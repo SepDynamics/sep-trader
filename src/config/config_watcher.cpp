@@ -7,8 +7,9 @@
 namespace sep::config {
 
 ConfigWatcher::ConfigWatcher() 
-    : watching_start_time_(std::chrono::system_clock::now()) {
-    last_event_time_.store(std::chrono::system_clock::now());
+    : last_event_time_{std::chrono::system_clock::now()}
+{
+    watching_start_time_ = std::chrono::system_clock::now();
 }
 
 ConfigWatcher::~ConfigWatcher() {

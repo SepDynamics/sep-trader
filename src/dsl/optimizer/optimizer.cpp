@@ -2,6 +2,12 @@
 #include <iostream>
 #include <cmath>
 
+// Disable problematic concept checks for unique_ptr operations in GCC 11
+#ifdef __GNUC__
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wconversion"
+#endif
+
 namespace dsl::optimizer {
 
 void ASTOptimizer::optimize(ast::Program& program) {
@@ -28,7 +34,8 @@ void ASTOptimizer::dead_code_elimination(ast::Program& program) {
             if (auto return_stmt = dynamic_cast<ast::ReturnStatement*>(pattern->body[i].get())) {
                 // Remove any statements after return
                 if (i + 1 < pattern->body.size()) {
-                    pattern->body.erase(pattern->body.begin() + i + 1, pattern->body.end());
+                    // Use resize instead of erase to avoid move-semantic issues with unique_ptr in older compilers
+                    pattern->body.resize(i + 1);
                     optimizations_applied++;
                     std::cout << "  Removed dead code after return statement" << std::endl;
                 }
@@ -230,3 +237,7 @@ std::unique_ptr<ast::NumberLiteral> ASTOptimizer::create_number_literal(double v
 }
 
 } // namespace dsl::optimizer
+
+#ifdef __GNUC__
+#pragma GCC diagnostic pop
+#endif

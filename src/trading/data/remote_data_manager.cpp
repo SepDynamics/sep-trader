@@ -2,11 +2,14 @@
 #include <spdlog/spdlog.h>
 #include <curl/curl.h>
 #include <pqxx/pqxx>
+#include "common/pqxx_time_point_traits.h"  // Must come after pqxx include
 #include <hiredis/hiredis.h>
 #include <filesystem>
 #include <fstream>
 #include <thread>
 #include <mutex>
+#include <optional>
+#include <nlohmann/json.hpp>
 // #include <compression/gzip.hpp> // Optional compression - not available
 
 namespace sep::trading {
@@ -57,12 +60,13 @@ public:
                     record.timestamp = row[1].as<std::chrono::system_clock::time_point>();
                     
                     // Parse JSON features array
-                    Json::Value features_json;
-                    Json::Reader reader;
-                    if (reader.parse(row[2].as<std::string>(), features_json)) {
+                    try {
+                        nlohmann::json features_json = nlohmann::json::parse(row[2].as<std::string>());
                         for (const auto& val : features_json) {
-                            record.features.push_back(val.asDouble());
+                            record.features.push_back(val.get<double>());
                         }
+                    } catch (const nlohmann::json::parse_error&) {
+                        // Skip invalid JSON features
                     }
                     
                     record.target = row[3].as<double>();
@@ -93,13 +97,12 @@ public:
                 
                 for (const auto& record : batch) {
                     // Convert features to JSON
-                    Json::Value features_json(Json::arrayValue);
+                    nlohmann::json features_json = nlohmann::json::array();
                     for (double feature : record.features) {
-                        features_json.append(feature);
+                        features_json.push_back(feature);
                     }
                     
-                    Json::StreamWriterBuilder builder;
-                    std::string features_str = Json::writeString(builder, features_json);
+                    std::string features_str = features_json.dump();
                     
                     txn.exec_params(
                         "INSERT INTO training_data (pair, timestamp, features, target, metadata) "
@@ -140,8 +143,7 @@ public:
                 pqxx::connection conn(build_connection_string());
                 pqxx::work txn(conn);
                 
-                Json::StreamWriterBuilder builder;
-                std::string hyperparams_str = Json::writeString(builder, model.hyperparameters);
+                std::string hyperparams_str = model.hyperparameters.dump();
                 
                 txn.exec_params(
                     "INSERT INTO models (model_id, pair, accuracy, trained_at, hyperparameters, redis_key) "
@@ -280,7 +282,7 @@ TrainingCoordinator::TrainingCoordinator(std::shared_ptr<RemoteDataManager> remo
 
 std::future<bool> TrainingCoordinator::start_distributed_training(
     const std::string& pair,
-    const Json::Value& training_config) {
+    const nlohmann::json& training_config) {
     
     return std::async(std::launch::async, [this, pair, training_config]() {
         training_active_ = true;

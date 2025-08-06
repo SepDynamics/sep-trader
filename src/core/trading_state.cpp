@@ -7,9 +7,10 @@
 namespace sep::core {
 
 TradingState::TradingState() 
-    : startup_time_(std::chrono::system_clock::now()) {
-    last_trade_time_.store(startup_time_);
-    last_config_update_.store(startup_time_);
+    : last_trade_time_{std::chrono::system_clock::now()},
+      last_config_update_{std::chrono::system_clock::now()}
+{
+    startup_time_ = std::chrono::system_clock::now();
     loadState();
 }
 

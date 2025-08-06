@@ -18,6 +18,7 @@ target_link_libraries(sep_api PUBLIC
     sep_config
     Threads::Threads
     sep_global_includes
+    tbb
 )
 
 # Enable C++17 features
