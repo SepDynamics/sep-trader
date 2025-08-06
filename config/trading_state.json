@@ -1,0 +1,16 @@
+{
+  "system_status": "STOPPING",
+  "market_condition": "UNKNOWN",
+  "emergency_stop": false,
+  "trading_paused": false,
+  "global_trading_enabled": false,
+  "maintenance_mode": false,
+  "configuration_valid": false,
+  "risk_level": 0.5,
+  "max_positions": 10,
+  "total_trades": 0,
+  "total_errors": 0,
+  "startup_time": 1754464436,
+  "last_trade_time": 1754464436,
+  "last_config_update": 1754464436
+}

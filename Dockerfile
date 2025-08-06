@@ -35,7 +35,16 @@ WORKDIR /sep
 # Fix system headers for build environment
 RUN sed -i '1i#include <array>' /usr/include/c++/10/functional && \
     sed -i '4i#include <array>' /usr/include/nlohmann/json.hpp && \
-    sed -i 's/_GLIBCXX_STD_C::array/std::array/g' /usr/include/c++/10/functional
+    sed -i 's/_GLIBCXX_STD_C::array/std::array/g' /usr/include/c++/10/functional && \
+    sed -i '1i #include <array>' /usr/include/nlohmann/detail/value_t.hpp && \
+    sed -i '1i #include <array>' /usr/include/nlohmann/detail/conversions/from_json.hpp && \
+    sed -i '1i #include <array>' /usr/include/nlohmann/detail/conversions/to_json.hpp && \
+    sed -i '1i #include <array>' /usr/include/nlohmann/detail/input/input_adapters.hpp && \
+    sed -i '1i #include <array>' /usr/include/nlohmann/detail/input/lexer.hpp && \
+    sed -i '1i #include <array>' /usr/include/nlohmann/detail/input/binary_reader.hpp && \
+    sed -i '1i #include <array>' /usr/include/nlohmann/detail/output/binary_writer.hpp && \
+    sed -i '1i #include <array>' /usr/include/nlohmann/detail/conversions/to_chars.hpp && \
+    sed -i '1i #include <array>' /usr/include/nlohmann/detail/output/serializer.hpp
 
 # Build environment stage (for development)
 FROM builder AS sep_build_env
