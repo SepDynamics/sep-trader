@@ -15,7 +15,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON CACHE INTERNAL "")
 project(sep_engine VERSION 1.0.0 LANGUAGES CXX)
 
 # Set up CUDA support
-option(SEP_USE_CUDA "Enable CUDA support" ON)
+option(SEP_USE_CUDA "Enable CUDA support" OFF)
 
 if(SEP_USE_CUDA)
     # First verify CUDA paths
@@ -32,12 +32,12 @@ if(SEP_USE_CUDA)
     set(CMAKE_CUDA_HOST_COMPILER "/usr/bin/g++")
     set(CMAKE_CUDA_ARCHITECTURES 61;75;86;89)
     
+    # Set CUDA flags BEFORE enabling language to ensure they're available during compiler identification
+    set(CMAKE_CUDA_FLAGS "--allow-unsupported-compiler --extended-lambda --display-error-number")
+    
     # Now enable CUDA language
     enable_language(CUDA)
     find_package(CUDAToolkit REQUIRED)
-    
-    # Add flags for better diagnostics and features
-    # set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} --allow-unsupported-compiler --extended-lambda --display-error-number")
     
     # Print CUDA configuration for debugging
     message(STATUS "CUDA Home: $ENV{CUDA_HOME}")

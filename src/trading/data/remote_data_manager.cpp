@@ -7,7 +7,7 @@
 #include <fstream>
 #include <thread>
 #include <mutex>
-#include <compression/gzip.hpp>
+// #include <compression/gzip.hpp> // Optional compression - not available
 
 namespace sep::trading {
 

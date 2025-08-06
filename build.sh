@@ -58,7 +58,7 @@ if [ "$SKIP_DOCKER" = true ] || ! "$DOCKER_BIN" info >/dev/null 2>&1; then
     fi
     
     cmake .. -G Ninja -DCMAKE_BUILD_TYPE=Release $CUDA_FLAGS \
-        -DCMAKE_CXX_COMPILER=g++-10 -DCMAKE_C_COMPILER=gcc-10 \
+        -DCMAKE_CXX_COMPILER=g++ -DCMAKE_C_COMPILER=gcc \
         -DCMAKE_BUILD_WITH_INSTALL_RPATH=ON \
         -DCMAKE_EXPORT_COMPILE_COMMANDS=TRUE
     ninja -k 0 2>&1 | tee ../output/build_log.txt
