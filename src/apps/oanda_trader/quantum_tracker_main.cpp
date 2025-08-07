@@ -1,3 +1,4 @@
+#include <sep_precompiled.h>
 #include "quantum_tracker_app.hpp"
 #include <iostream>
 #include <thread>

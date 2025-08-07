@@ -1,3 +1,4 @@
+#include <sep_precompiled.h>
 #include "remote_data_manager.hpp"
 #include <spdlog/spdlog.h>
 #include <curl/curl.h>

@@ -1,8 +1,11 @@
+#include <sep_precompiled.h>
 #include "oanda_trader_app.hpp"
 
+#ifdef SEP_USE_GUI
 #include <GL/gl.h>
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_opengl3.h>
+#endif
 
 #include <chrono>
 #include <cstdlib>
@@ -13,7 +16,9 @@
 
 #include "connectors/market_data_converter.h"
 #include "engine/internal/engine.h"
+#ifdef SEP_USE_GUI
 #include "imgui.h"
+#endif
 
 namespace sep::apps {
 
@@ -82,6 +87,7 @@ bool OandaTraderApp::initializeGraphics() {
 }
 
 void OandaTraderApp::setupImGui() {
+#ifdef SEP_USE_GUI
     // Setup Dear ImGui context
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
@@ -111,6 +117,7 @@ void OandaTraderApp::setupImGui() {
     // Setup Platform/Renderer backends
     ImGui_ImplGlfw_InitForOpenGL(window_, true);
     ImGui_ImplOpenGL3_Init("#version 330");
+#endif
 }
 
 void OandaTraderApp::run() {
@@ -132,6 +139,7 @@ void OandaTraderApp::run() {
         }
         glfwPollEvents();
         
+#ifdef SEP_USE_GUI
         // Start the Dear ImGui frame
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplGlfw_NewFrame();
@@ -148,12 +156,14 @@ void OandaTraderApp::run() {
         glClearColor(0.06f, 0.08f, 0.12f, 1.00f);
         glClear(GL_COLOR_BUFFER_BIT);
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+#endif
         
         glfwSwapBuffers(window_);
     }
 }
 
 void OandaTraderApp::renderMainInterface() {
+#ifdef SEP_USE_GUI
     // Main menu bar
     if (ImGui::BeginMainMenuBar()) {
         if (ImGui::BeginMenu("File")) {
@@ -204,9 +214,11 @@ void OandaTraderApp::renderMainInterface() {
     renderOrderHistory();
 
     // Quantum analysis is handled by separate quantum_tracker app
+#endif
 }
 
 void OandaTraderApp::renderConnectionStatus() {
+#ifdef SEP_USE_GUI
     ImGui::Begin("Connection Status");
     
     // Connection indicator
@@ -232,9 +244,11 @@ void OandaTraderApp::renderConnectionStatus() {
     }
     
     ImGui::End();
+#endif
 }
 
 void OandaTraderApp::renderAccountInfo() {
+#ifdef SEP_USE_GUI
     ImGui::Begin("Account Information");
     
     ImGui::Text("Account Balance: %s %s", account_balance_.c_str(), account_currency_.c_str());
@@ -245,9 +259,11 @@ void OandaTraderApp::renderAccountInfo() {
     }
     
     ImGui::End();
+#endif
 }
 
 void OandaTraderApp::renderMarketData() {
+#ifdef SEP_USE_GUI
     ImGui::Begin("Market Data");
 
     ImGui::Text("Real-time market data:");
@@ -272,9 +288,11 @@ void OandaTraderApp::renderMarketData() {
     }
 
     ImGui::End();
+#endif
 }
 
 void OandaTraderApp::renderTradePanel() {
+#ifdef SEP_USE_GUI
     ImGui::Begin("Trade Panel");
 
     static char instrument[64] = "EUR_USD";
@@ -352,9 +370,11 @@ void OandaTraderApp::renderTradePanel() {
     }
 
     ImGui::End();
+#endif
 }
 
 void OandaTraderApp::renderPositions() {
+#ifdef SEP_USE_GUI
     ImGui::Begin("Open Positions");
     
     if (ImGui::Button("Refresh Positions")) {
@@ -379,6 +399,7 @@ void OandaTraderApp::renderPositions() {
     }
     
     ImGui::End();
+#endif
 }
 
 void OandaTraderApp::refreshPositions() {
@@ -402,6 +423,7 @@ void OandaTraderApp::refreshOrderHistory() {
 }
 
 void OandaTraderApp::renderOrderHistory() {
+#ifdef SEP_USE_GUI
     ImGui::Begin("Order History");
     
     if (ImGui::Button("Refresh History")) {
@@ -423,6 +445,7 @@ void OandaTraderApp::renderOrderHistory() {
     }
     
     ImGui::End();
+#endif
 }
 
 void OandaTraderApp::connectToOanda() {
@@ -541,6 +564,7 @@ void OandaTraderApp::shutdown() {
 }
 
 void OandaTraderApp::cleanupGraphics() {
+#ifdef SEP_USE_GUI
     if (window_) {
         // Cleanup ImGui
         ImGui_ImplOpenGL3_Shutdown();
@@ -552,6 +576,7 @@ void OandaTraderApp::cleanupGraphics() {
         glfwTerminate();
         window_ = nullptr;
     }
+#endif
 }
 
 } // namespace sep::apps

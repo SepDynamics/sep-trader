@@ -19,6 +19,7 @@ add_subdirectory(connectors)
 add_subdirectory(ui)
 add_subdirectory(c_api)
 add_subdirectory(cli)
+add_subdirectory(apps)
 
 # Standalone API server for headless engine operation (temporarily disabled)
 # add_executable(sep_api_server

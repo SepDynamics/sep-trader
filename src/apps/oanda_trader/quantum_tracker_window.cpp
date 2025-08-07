@@ -1,6 +1,8 @@
 #include "quantum_tracker_window.hpp"
+#ifdef SEP_USE_GUI
 #include "imgui.h"
 #include <implot.h>
+#endif
 #include <algorithm>
 #include <iomanip>
 #include <iostream>
@@ -331,6 +333,7 @@ void QuantumTrackerWindow::updateStatistics() {
 }
 
 void QuantumTrackerWindow::render() {
+#ifdef SEP_USE_GUI
     ImGui::Begin("🔮 Quantum Signal Tracker - Live Performance", nullptr, 
                  ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize);
     
@@ -368,9 +371,11 @@ void QuantumTrackerWindow::render() {
     renderRecentPredictions();
     
     ImGui::End();
+#endif
 }
 
 void QuantumTrackerWindow::renderPredictionStats() {
+#ifdef SEP_USE_GUI
     ImGui::Text("📊 PREDICTION STATISTICS");
     
     // Main stats in colored boxes
@@ -423,9 +428,11 @@ void QuantumTrackerWindow::renderPredictionStats() {
         ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), "ACCURACY: %.1f%%", stats_.accuracy_percentage);
     }
     // ImGui::PopFont();
+#endif
 }
 
 void QuantumTrackerWindow::renderLatestSignal() {
+#ifdef SEP_USE_GUI
     ImGui::Text("🔬 LATEST QUANTUM SIGNAL");
     
     if (!has_latest_signal_) {
@@ -469,9 +476,11 @@ void QuantumTrackerWindow::renderLatestSignal() {
     } else {
         ImGui::TextColored(ImVec4(0.7f, 0.7f, 0.7f, 1.0f), "○ Signal below threshold");
     }
+#endif
 }
 
 void QuantumTrackerWindow::renderAccuracyMetrics() {
+#ifdef SEP_USE_GUI
     ImGui::Text("📈 TIME-BASED ACCURACY");
     
     ImGui::Text("Last Hour:  %.1f%%", stats_.last_hour_accuracy);
@@ -491,9 +500,11 @@ void QuantumTrackerWindow::renderAccuracyMetrics() {
     ImGui::Text("Avg Confidence: %.3f", stats_.average_confidence);
     ImGui::Text("Avg Coherence:  %.3f", stats_.average_coherence);
     ImGui::Text("Avg Stability:  %.3f", stats_.average_stability);
+#endif
 }
 
 void QuantumTrackerWindow::renderConfidenceBuckets() {
+#ifdef SEP_USE_GUI
     ImGui::Text("🎯 CONFIDENCE ANALYSIS");
     
     // High confidence
@@ -522,6 +533,7 @@ void QuantumTrackerWindow::renderConfidenceBuckets() {
     } else {
         ImGui::Text("Low (<60%%):  0/0 (N/A)");
     }
+#endif
 }
 
 void QuantumTrackerWindow::renderRecentPredictions() {
@@ -929,6 +941,7 @@ void QuantumTrackerWindow::renderLiveTradingPerformance() {
     }
     
     ImGui::End();
+#endif
 }
 
 } // namespace sep::apps

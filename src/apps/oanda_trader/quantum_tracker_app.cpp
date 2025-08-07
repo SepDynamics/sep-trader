@@ -4,11 +4,13 @@
 #include "candle_types.h"
 #include "market_utils.hpp"
 #include "weekend_optimizer.hpp"
+#ifdef SEP_USE_GUI
 #include <GL/gl.h>
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_opengl3.h>
 #include <imgui.h>
 #include <implot.h>
+#endif
 
 #include <chrono>
 #include <cstdlib>
@@ -258,6 +260,7 @@ bool QuantumTrackerApp::initializeGraphics() {
 }
 
 void QuantumTrackerApp::setupImGui() {
+#ifdef SEP_USE_GUI
     // Setup Dear ImGui context
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
@@ -300,6 +303,7 @@ void QuantumTrackerApp::setupImGui() {
     // Setup Platform/Renderer backends
     ImGui_ImplGlfw_InitForOpenGL(window_, true);
     ImGui_ImplOpenGL3_Init("#version 330");
+#endif
 }
 
 void QuantumTrackerApp::run() {
@@ -330,6 +334,7 @@ void QuantumTrackerApp::run() {
             break;
         }
         
+#ifdef SEP_USE_GUI
         // Start ImGui frame
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplGlfw_NewFrame();
@@ -370,6 +375,7 @@ void QuantumTrackerApp::run() {
         glClearColor(0.05f, 0.05f, 0.12f, 1.00f);
         glClear(GL_COLOR_BUFFER_BIT);
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+#endif
         
         // Check for OpenGL errors
         GLenum gl_error = glGetError();

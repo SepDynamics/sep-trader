@@ -1,57 +1,58 @@
+// /sep/src/common/pqxx_time_point_traits.h
 #pragma once
 
 #include <pqxx/pqxx>
 #include <chrono>
 #include <string>
+#include <string_view>
 #include <sstream>
-#include <iomanip>
-#include <ctime>
+#include <iomanip> // For std::put_time, std::get_time
+#include <ctime>   // For std::tm, gmtime
 
 namespace pqxx {
-    // Specialization for std::chrono::system_clock::time_point
+    // Full specialization for std::chrono::system_clock::time_point
     template<>
     struct string_traits<std::chrono::time_point<std::chrono::system_clock>> {
-        using time_point_type = std::chrono::time_point<std::chrono::system_clock>;
+        using subject_type = std::chrono::time_point<std::chrono::system_clock>;
         
-        static bool is_null(const time_point_type&) {
-            return false; // time_point instances are never null conceptually
+        static constexpr const char* name() noexcept { return "time_point"; }
+        
+        static constexpr bool has_null() noexcept { return true; }
+        
+        static bool is_null(const subject_type& obj) {
+            // A time_point is never conceptually "null". If you use epoch as a sentinel, check here.
+            return obj.time_since_epoch().count() == 0;
         }
 
-        static std::string to_string(const time_point_type& obj) {
-            // Convert to time_t first, then to tm struct (UTC)
-            auto tt = std::chrono::system_clock::to_time_t(obj);
-            std::tm tm = *std::gmtime(&tt); // Using gmtime for UTC
+        static subject_type null() {
+            // Return epoch time as null representation
+            return std::chrono::time_point<std::chrono::system_clock>{};
+        }
 
+        static std::string to_string(const subject_type& obj) {
+            auto tt = std::chrono::system_clock::to_time_t(obj);
+            std::tm tm = *std::gmtime(&tt); // Use gmtime for UTC
             std::stringstream ss;
-            // Format as ISO 8601, which PostgreSQL can easily parse
-            ss << std::put_time(&tm, "%Y-%m-%d %H:%M:%S"); 
+            // Format as ISO 8601, which PostgreSQL loves.
+            ss << std::put_time(&tm, "%Y-%m-%d %H:%M:%S");
             return ss.str();
         }
 
-        static void from_string(const char* str, time_point_type& obj) {
-            if (str == nullptr || *str == '\0') {
-                // Handle null/empty string
-                obj = time_point_type{};
-                return;
-            }
-            
+        static subject_type from_string(std::string_view str) {
             std::tm tm{};
-            std::stringstream ss(str);
-            // Parse from ISO 8601 format
-            ss >> std::get_time(&tm, "%Y-%m-%d %H:%M:%S"); 
+            std::stringstream ss(std::string(str));
+            ss >> std::get_time(&tm, "%Y-%m-%d %H:%M:%S");
 
             if (ss.fail()) {
                 throw std::runtime_error("Failed to parse time_point from string: " + std::string(str));
             }
-            
-            // Convert tm to time_t (mktime assumes local time, but we'll use it for now)
-            // For precise UTC handling, a more robust solution would be needed
-            obj = std::chrono::system_clock::from_time_t(std::mktime(&tm));
+            // timegm is a non-standard but common function for this. A portable way is more complex.
+            // This will work on most Linux systems.
+            return std::chrono::system_clock::from_time_t(timegm(&tm));
         }
         
-        // REQUIRED: null() method for pqxx to handle NULL database values
-        static std::string null() {
-            return ""; // Empty string represents NULL for timestamp in PostgreSQL
+        static std::size_t size_buffer(const subject_type& /*obj*/) {
+            return 32; // Enough for ISO timestamp
         }
     };
 } // namespace pqxx

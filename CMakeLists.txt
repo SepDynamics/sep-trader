@@ -30,6 +30,7 @@ add_compile_options(
 
 # Set up CUDA support
 option(SEP_USE_CUDA "Enable CUDA support" OFF)
+option(SEP_USE_GUI "Enable GUI support (ImGui)" OFF)
 
 if(SEP_USE_CUDA)
     # First verify CUDA paths
@@ -105,19 +106,21 @@ FetchContent_MakeAvailable(yaml-cpp)
 
 set_target_properties(yaml-cpp PROPERTIES CXX_STANDARD 17)
 
-FetchContent_Declare(
-  imgui
-  GIT_REPOSITORY https://github.com/ocornut/imgui.git
-  GIT_TAG v1.91.6
-)
-FetchContent_MakeAvailable(imgui)
+if(SEP_USE_GUI)
+    FetchContent_Declare(
+      imgui
+      GIT_REPOSITORY https://github.com/ocornut/imgui.git
+      GIT_TAG v1.91.6
+    )
+    FetchContent_MakeAvailable(imgui)
 
-FetchContent_Declare(
-  implot
-  GIT_REPOSITORY https://github.com/epezent/implot.git
-  GIT_TAG v0.16
-)
-FetchContent_MakeAvailable(implot)
+    FetchContent_Declare(
+      implot
+      GIT_REPOSITORY https://github.com/epezent/implot.git
+      GIT_TAG v0.16
+    )
+    FetchContent_MakeAvailable(implot)
+endif()
 
 
 FetchContent_Declare(
@@ -137,46 +140,46 @@ set(CMAKE_BUILD_WITH_INSTALL_RPATH ON)
 FetchContent_MakeAvailable(tbb)
 
 
-# Create imgui library manually since imgui doesn't provide CMakeLists.txt
-set(IMGUI_SOURCES
-    ${imgui_SOURCE_DIR}/imgui.cpp
-    ${imgui_SOURCE_DIR}/imgui_demo.cpp
-    ${imgui_SOURCE_DIR}/imgui_draw.cpp
-    ${imgui_SOURCE_DIR}/imgui_tables.cpp
-    ${imgui_SOURCE_DIR}/imgui_widgets.cpp
-    ${imgui_SOURCE_DIR}/backends/imgui_impl_glfw.cpp
-    ${imgui_SOURCE_DIR}/backends/imgui_impl_opengl3.cpp
-)
+if(SEP_USE_GUI)
+    # Create imgui library manually since imgui doesn't provide CMakeLists.txt
+    set(IMGUI_SOURCES
+        ${imgui_SOURCE_DIR}/imgui.cpp
+        ${imgui_SOURCE_DIR}/imgui_demo.cpp
+        ${imgui_SOURCE_DIR}/imgui_draw.cpp
+        ${imgui_SOURCE_DIR}/imgui_tables.cpp
+        ${imgui_SOURCE_DIR}/imgui_widgets.cpp
+        ${imgui_SOURCE_DIR}/backends/imgui_impl_glfw.cpp
+        ${imgui_SOURCE_DIR}/backends/imgui_impl_opengl3.cpp
+    )
 
-add_library(imgui STATIC ${IMGUI_SOURCES})
+    add_library(imgui STATIC ${IMGUI_SOURCES})
 
-target_include_directories(imgui PUBLIC
-    ${imgui_SOURCE_DIR}
-    ${imgui_SOURCE_DIR}/backends
-)
+    target_include_directories(imgui PUBLIC
+        ${imgui_SOURCE_DIR}
+        ${imgui_SOURCE_DIR}/backends
+    )
 
+    set(IMPLOT_SOURCES
+        ${implot_SOURCE_DIR}/implot.cpp
+        ${implot_SOURCE_DIR}/implot_items.cpp
+        ${implot_SOURCE_DIR}/implot_demo.cpp
+    )
 
-set(IMPLOT_SOURCES
-    ${implot_SOURCE_DIR}/implot.cpp
-    ${implot_SOURCE_DIR}/implot_items.cpp
-    ${implot_SOURCE_DIR}/implot_demo.cpp
-)
+    add_library(implot STATIC ${IMPLOT_SOURCES})
 
-add_library(implot STATIC ${IMPLOT_SOURCES})
+    target_include_directories(implot PUBLIC
+        ${implot_SOURCE_DIR}
+    )
 
-target_include_directories(implot PUBLIC
-    ${implot_SOURCE_DIR}
-)
+    target_link_libraries(implot PUBLIC imgui)
 
+    # Find and link required dependencies
+    find_package(PkgConfig REQUIRED)
+    find_package(glfw3 REQUIRED)
+    find_package(OpenGL REQUIRED)
 
-target_link_libraries(implot PUBLIC imgui)
-
-# Find and link required dependencies
-find_package(PkgConfig REQUIRED)
-find_package(glfw3 REQUIRED)
-find_package(OpenGL REQUIRED)
-
-target_link_libraries(imgui PUBLIC glfw OpenGL::GL)
+    target_link_libraries(imgui PUBLIC glfw OpenGL::GL)
+endif()
 
 # Add subdirectories
 find_package(fmt REQUIRED)
@@ -190,7 +193,11 @@ FetchContent_MakeAvailable(spdlog)
 # Interface library for global includes
 add_library(sep_global_includes INTERFACE)
 
-target_compile_options(sep_global_includes INTERFACE "$<$<COMPILE_LANGUAGE:CUDA>:-include=${CMAKE_CURRENT_SOURCE_DIR}/cmake/global_includes.h>")
+# Temporarily disable global includes to isolate remaining errors
+# target_compile_options(sep_global_includes INTERFACE 
+#     "$<$<COMPILE_LANGUAGE:CXX>:-include;${CMAKE_CURRENT_SOURCE_DIR}/cmake/global_includes.h>"
+#     "$<$<COMPILE_LANGUAGE:CUDA>:-include;${CMAKE_CURRENT_SOURCE_DIR}/cmake/global_includes.h>"
+# )
 target_link_libraries(sep_global_includes INTERFACE spdlog::spdlog nlohmann_json::nlohmann_json TBB::tbb)
 
 

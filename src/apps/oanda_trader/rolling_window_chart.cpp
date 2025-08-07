@@ -1,7 +1,9 @@
 #include "rolling_window_chart.hpp"
 #include "tick_data_manager.hpp"
+#ifdef SEP_USE_GUI
 #include <imgui.h>
 #include <implot.h>
+#endif
 #include <iostream>
 #include <chrono>
 
@@ -14,6 +16,7 @@ void RollingWindowChart::setTickManager(std::shared_ptr<TickDataManager> tick_ma
 }
 
 void RollingWindowChart::render() {
+#ifdef SEP_USE_GUI
     if (!tick_manager_ || !tick_manager_->isDataReady()) {
         ImGui::Begin("Rolling Window Analysis - Initializing...");
         ImGui::Text("Loading tick data...");
@@ -137,6 +140,7 @@ void RollingWindowChart::render() {
     }
     
     ImGui::End();
+#endif
 }
 
 void RollingWindowChart::updateWindowSizes(int hourly_minutes, int daily_hours) {

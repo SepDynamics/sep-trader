@@ -1,3 +1,4 @@
+#include <sep_precompiled.h>
 #include "lexer/lexer.h"
 #include "parser/parser.h"
 #include "runtime/interpreter.h"

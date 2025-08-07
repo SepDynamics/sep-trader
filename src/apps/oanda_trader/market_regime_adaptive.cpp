@@ -1,3 +1,4 @@
+#include <sep_precompiled.h>
 #include "market_regime_adaptive.hpp"
 #include <algorithm>
 #include <numeric>

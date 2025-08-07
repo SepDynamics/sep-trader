@@ -13,7 +13,9 @@
 #include "quantum/bitspace/forward_window_result.h"
 #include "connectors/oanda_connector.h"
 #include "engine/internal/engine.h"
+#ifdef SEP_USE_GUI
 #include "imgui.h"
+#endif
 #include "apps/oanda_trader/cuda_types.cuh"
 #include "apps/oanda_trader/forward_window_kernels.cuh"
 #include "apps/oanda_trader/tick_cuda_kernels.cuh"

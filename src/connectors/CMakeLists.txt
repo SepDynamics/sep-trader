@@ -8,6 +8,9 @@ add_library(sep_connectors STATIC
     market_data_converter.cpp
 )
 
+# Enable Position Independent Code for shared library compatibility
+set_target_properties(sep_connectors PROPERTIES POSITION_INDEPENDENT_CODE ON)
+
 target_include_directories(sep_connectors PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${CMAKE_SOURCE_DIR}/src

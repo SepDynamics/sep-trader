@@ -6,7 +6,7 @@
       "accuracy": 0,
       "model_path": "",
       "error_message": "",
-      "last_updated": 1754464438
+      "last_updated": 1754524400
     },
     "NZD_USD": {
       "status": "UNTRAINED",
@@ -14,7 +14,7 @@
       "accuracy": 0,
       "model_path": "",
       "error_message": "",
-      "last_updated": 1754464438
+      "last_updated": 1754524400
     },
     "EUR_AUD": {
       "status": "UNTRAINED",
@@ -22,7 +22,7 @@
       "accuracy": 0,
       "model_path": "",
       "error_message": "",
-      "last_updated": 1754464438
+      "last_updated": 1754524400
     },
     "USD_CHF": {
       "status": "UNTRAINED",
@@ -30,7 +30,7 @@
       "accuracy": 0,
       "model_path": "",
       "error_message": "",
-      "last_updated": 1754464438
+      "last_updated": 1754524400
     },
     "EUR_GBP": {
       "status": "UNTRAINED",
@@ -38,7 +38,7 @@
       "accuracy": 0,
       "model_path": "",
       "error_message": "",
-      "last_updated": 1754464438
+      "last_updated": 1754524400
     },
     "AUD_USD": {
       "status": "UNTRAINED",
@@ -46,7 +46,7 @@
       "accuracy": 0,
       "model_path": "",
       "error_message": "",
-      "last_updated": 1754464438
+      "last_updated": 1754524400
     },
     "USD_JPY": {
       "status": "UNTRAINED",
@@ -54,7 +54,7 @@
       "accuracy": 0,
       "model_path": "",
       "error_message": "",
-      "last_updated": 1754464438
+      "last_updated": 1754524400
     },
     "AUD_JPY": {
       "status": "UNTRAINED",
@@ -62,7 +62,7 @@
       "accuracy": 0,
       "model_path": "",
       "error_message": "",
-      "last_updated": 1754464438
+      "last_updated": 1754524400
     },
     "USD_CAD": {
       "status": "UNTRAINED",
@@ -70,7 +70,7 @@
       "accuracy": 0,
       "model_path": "",
       "error_message": "",
-      "last_updated": 1754464438
+      "last_updated": 1754524400
     },
     "GBP_USD": {
       "status": "UNTRAINED",
@@ -78,7 +78,7 @@
       "accuracy": 0,
       "model_path": "",
       "error_message": "",
-      "last_updated": 1754464438
+      "last_updated": 1754524400
     },
     "EUR_JPY": {
       "status": "UNTRAINED",
@@ -86,7 +86,7 @@
       "accuracy": 0,
       "model_path": "",
       "error_message": "",
-      "last_updated": 1754464438
+      "last_updated": 1754524400
     },
     "EUR_USD": {
       "status": "UNTRAINED",
@@ -94,7 +94,7 @@
       "accuracy": 0,
       "model_path": "",
       "error_message": "",
-      "last_updated": 1754464438
+      "last_updated": 1754524400
     }
   }
 }

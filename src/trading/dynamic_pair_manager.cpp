@@ -1,6 +1,7 @@
+#include <sep_precompiled.h>
 #include "dynamic_pair_manager.hpp"
+
 #include <algorithm>
-#include <random>
 #include <regex>
 
 namespace sep::trading {

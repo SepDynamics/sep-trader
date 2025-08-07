@@ -1,11 +1,17 @@
 #pragma once
 
-// CRITICAL: Force std::array definition before any other headers that might conflict
-#ifndef _GLIBCXX_ARRAY
-#include <array>
-#endif
+// This file MUST be included first to prevent macro conflicts with std::array
 
-// Core C++ headers that need to be available globally
+// Step 1: Include array before anything else can pollute it
+#include <array>
+
+// Step 2: Immediately save std::array in case it gets corrupted later
+namespace __array_guard {
+    template<typename T, std::size_t N>
+    using safe_array = std::array<T, N>;
+}
+
+// Step 3: Include other essential headers that should be available globally
 #include <vector>
 #include <string>
 #include <memory>
@@ -18,10 +24,12 @@
 #include <cstddef>
 #include <cstdint>
 
-// Note: nlohmann/json.hpp removed from global includes to avoid header pollution
-// Include it directly in files that need it
+// Step 4: Force undefine any array macros and restore
+#ifdef array
+#undef array
+#endif
 
-// TBB headers - try modern path first
+// Step 5: TBB headers (after array protection)
 #ifdef __has_include
   #if __has_include(<oneapi/tbb.h>)
     #include <oneapi/tbb.h>
@@ -31,12 +39,18 @@
     #include <tbb/task.h>
   #endif
 #else
-  // Fallback for older compilers
   #include <tbb/task.h>
 #endif
 
-// CRITICAL: Undefine any conflicting 'array' macro that might be interfering with std::array
-// This must come AFTER all system headers that might define it
+// Step 6: Final cleanup - aggressively undefine any conflicting macros
 #ifdef array
 #undef array
+#endif
+
+// Step 7: Restore std::array if it was corrupted (fallback mechanism)
+#ifndef std
+namespace std {
+    template<typename T, std::size_t N>
+    using array = ::__array_guard::safe_array<T, N>;
+}
 #endif

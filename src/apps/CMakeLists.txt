@@ -1,6 +1,5 @@
 # SEP Apps - Standalone Applications
 
-
 add_executable(data_downloader data_downloader.cpp)
 target_link_libraries(data_downloader PRIVATE
     sep_global_includes
@@ -13,3 +12,6 @@ target_link_libraries(data_downloader PRIVATE
     curl
     tbb
 )
+
+# Add the oanda_trader subdirectory
+add_subdirectory(oanda_trader)

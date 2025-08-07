@@ -1,8 +1,7 @@
 #pragma once
 
-#ifdef SEP_USE_CUDA
+// Always include CUDA headers when building oanda_trader apps
 #include <cuda_runtime.h>
-#endif
 #include <cstdint>
 
 // Include forward window result outside any namespace

@@ -1,3 +1,4 @@
+#include <array>
 #include "quantum_signal_bridge.hpp"
 #include "realtime_aggregator.hpp"
 #include "candle_types.h"

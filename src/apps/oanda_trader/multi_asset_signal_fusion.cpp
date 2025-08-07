@@ -1,3 +1,4 @@
+#include <sep_precompiled.h>
 #include "multi_asset_signal_fusion.hpp"
 #include <algorithm>
 #include <numeric>

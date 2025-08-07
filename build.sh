@@ -60,7 +60,8 @@ if [ "$SKIP_DOCKER" = true ] || ! "$DOCKER_BIN" info >/dev/null 2>&1; then
     cmake .. -G Ninja -DCMAKE_BUILD_TYPE=Release $CUDA_FLAGS \
         -DCMAKE_CXX_COMPILER=g++ -DCMAKE_C_COMPILER=gcc \
         -DCMAKE_BUILD_WITH_INSTALL_RPATH=ON \
-        -DCMAKE_EXPORT_COMPILE_COMMANDS=TRUE
+        -DCMAKE_EXPORT_COMPILE_COMMANDS=TRUE \
+        -DSEP_USE_GUI=OFF
     ninja -k 0 2>&1 | tee ../output/build_log.txt
     
     # Copy compile_commands.json for IDE integration
@@ -70,12 +71,17 @@ fi
 
 # Build and setup development environment using Docker
 "${DOCKER_BIN}" run --gpus all --rm \
-    -v $(pwd):/sep \
+    -v $(pwd):/workspace \
     sep_build_env bash -c '
     # Add exception for dubious ownership
     git config --global --add safe.directory "*"
     
-    cd /sep/build
+    cd /workspace
+    
+    # Clean any existing build directory to avoid cache conflicts
+    rm -rf build
+    mkdir -p build output
+    cd build
     
     # Configure and build with Docker container paths
     cmake .. -G Ninja \
@@ -85,19 +91,20 @@ fi
         -DCMAKE_CUDA_HOST_COMPILER=/usr/bin/g++-11 \
         -DCMAKE_BUILD_WITH_INSTALL_RPATH=ON \
         -DCMAKE_EXPORT_COMPILE_COMMANDS=TRUE \
-        -DSEP_USE_CUDA=ON
+        -DSEP_USE_CUDA=ON \
+        -DSEP_USE_GUI=OFF
     
-    ninja -k 0 2>&1 | tee /sep/output/build_log.txt
+    ninja -k 0 2>&1 | tee /workspace/output/build_log.txt
     
     # Copy compile_commands.json for IDE
     cp compile_commands.json ..
 '
 
 # Fix ownership of all generated files
-sudo chown -R $USER_ID:$GROUP_ID /sep/.cache /sep/.codechecker /sep/build /sep/output 
+sudo chown -R $USER_ID:$GROUP_ID .cache .codechecker build output 2>/dev/null || true
 fix_compile_commands() {
     # Replace container paths with host paths for IDE integration
-    sed -i "s|/sep/|$(pwd)/|g" compile_commands.json
+    sed -i "s|/workspace/|$(pwd)/|g" compile_commands.json
 }
 
 # Extract errors from build log

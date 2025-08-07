@@ -31,7 +31,22 @@ ENV LD_LIBRARY_PATH="/usr/local/cuda/lib64:${LD_LIBRARY_PATH}"
 # Copy the entire project
 COPY . .
 
-# Note: std::array header fixes now handled via global_includes.h and CMake flags
+# Apply comprehensive fixes to resolve std::array header conflicts  
+# COMPREHENSIVE FIX: GCC 11 functional header bug - uses unqualified 'array'
+# Fix the specific lines that use unqualified 'array' in functional header
+RUN cp /usr/include/c++/11/functional /tmp/functional_backup && \
+    printf '#ifdef array\n#undef array\n#endif\n#include <array>\n%s\n' "$(cat /usr/include/c++/11/functional)" > /tmp/functional_fixed && \
+    sed -i 's/tuple<array<_Tp, _Len>/tuple<std::array<_Tp, _Len>/g' /tmp/functional_fixed && \
+    sed -i 's/{ array<_Tp, _Len>/{ std::array<_Tp, _Len>/g' /tmp/functional_fixed && \
+    mv /tmp/functional_fixed /usr/include/c++/11/functional && \
+    echo "FIXED FUNCTIONAL HEADER - unqualified array usage:" && \
+    grep -n "std::array<_Tp" /usr/include/c++/11/functional | head -3
+
+# Fix ALL nlohmann JSON headers with same protection  
+RUN find /usr/include/nlohmann -name "*.hpp" -exec sh -c 'printf "#ifdef array\n#undef array\n#endif\n#include <array>\n%s\n" "$(cat "$1")" > "/tmp/$(basename "$1")" && mv "/tmp/$(basename "$1")" "$1"' _ {} \;
+
+# Fix git ownership issues for Docker builds
+RUN git config --global --add safe.directory '*'
 
 # Set up the working directory
 WORKDIR /sep

@@ -1,3 +1,4 @@
+#include <sep_precompiled.h>
 #include <iostream>
 #include "connectors/oanda_connector.h"
 

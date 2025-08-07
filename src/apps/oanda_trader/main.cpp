@@ -1,3 +1,4 @@
+#include <sep_precompiled.h>
 #include "oanda_trader_app.hpp"
 #include <iostream>
 #include <exception>

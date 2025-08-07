@@ -1,15 +1,23 @@
 #pragma once
-#include "engine/internal/standard_includes.h"
 
-#include "core/pair_manager.hpp"
-#include "core/trading_state.hpp"
-#include "cache/weekly_cache_manager.hpp"
-#include <mutex>
+// Force array header inclusion before functional
+#include <array>
+// Include functional with array already declared
+#include <functional>
+// Now continue with other includes
 #include <atomic>
-#include <thread>
 #include <chrono>
-#include <queue>
 #include <condition_variable>
+#include <memory>
+#include <mutex>
+#include <queue>
+#include <string>
+#include <thread>
+#include <unordered_map>
+#include <vector>
+#include "core/pair_manager.hpp"
+#include "trading_state.hpp"
+#include "weekly_cache_manager.hpp"
 
 namespace sep::trading {
 
