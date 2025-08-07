@@ -1,4 +1,5 @@
-#include <sep_precompiled.h>
+#include <array>
+#include <vector>
 #ifdef SEP_USE_CUDA
 #include "engine/internal/standard_includes.h"
 #include <cuda_runtime.h>

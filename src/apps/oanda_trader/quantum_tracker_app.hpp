@@ -1,6 +1,11 @@
 #pragma once
 
+#ifdef SEP_USE_GUI
 #include <GLFW/glfw3.h>
+#include "quantum_tracker_window.hpp"
+#include "rolling_window_chart.hpp"
+#endif
+
 #include <memory>
 #include <string>
 #include <thread>
@@ -8,10 +13,8 @@
 #include <mutex>
 
 #include "connectors/oanda_connector.h"
-#include "quantum_tracker_window.hpp"
 #include "data_cache_manager.hpp"
 #include "tick_data_manager.hpp"
-#include "rolling_window_chart.hpp"
 #include "candle_types.h"
 #include "market_model_cache.hpp"
 
@@ -63,12 +66,14 @@ private:
     void logFileSimulatedTrade(const sep::trading::QuantumTradingSignal& signal, const Candle& candle);
     
     // Core components
+#ifdef SEP_USE_GUI
     GLFWwindow* window_ = nullptr;
-    std::unique_ptr<sep::connectors::OandaConnector> oanda_connector_;
     std::unique_ptr<QuantumTrackerWindow> quantum_tracker_;
+    std::unique_ptr<RollingWindowChart> window_chart_;
+#endif
+    std::unique_ptr<sep::connectors::OandaConnector> oanda_connector_;
     std::unique_ptr<DataCacheManager> cache_manager_;
     std::unique_ptr<TickDataManager> tick_manager_;
-    std::unique_ptr<RollingWindowChart> window_chart_;
     std::unique_ptr<MarketModelCache> market_model_cache_;
     
     // Threading for market data

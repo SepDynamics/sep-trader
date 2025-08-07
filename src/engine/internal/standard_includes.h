@@ -1,15 +1,14 @@
 #pragma once
 
-// Standard includes for SEP engine  
-// Include fundamental headers in correct order for g++/GCC compatibility
-
+// 1. CRITICAL: Include the REAL <array> header FIRST, before anything else.
 #include <array>
-#include <functional>
 
+// 2. NOW include all your other essential standard library and third-party headers.
 #include <vector>
 #include <string>
 #include <memory>
-#include <algorithm>  // Now safe since <functional> is already included
+#include <functional>
+#include <algorithm>
 #include <cmath>
 #include <numeric>
 #include <iostream>
@@ -29,3 +28,10 @@
 #include <unordered_map>
 #include <set>
 #include <unordered_set>
+#include <nlohmann/json.hpp>
+
+// 3. AT THE VERY END, forcefully undefine the conflicting macro.
+// This cleans up any pollution from headers included above, ensuring that
+// when the compiler proceeds to the actual .cpp/.cu source files,
+// 'array' is no longer a macro.
+#undef array

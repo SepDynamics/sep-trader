@@ -1,8 +1,7 @@
 // SEP Professional Training Coordinator Implementation
 // Coordinates local CUDA training with remote trading deployment
 
-// CRITICAL: Include precompiled header first to prevent functional header conflicts
-#include <sep_precompiled.h>
+// Standard includes (functional header conflicts fixed in standard_includes.h)
 #include <functional>
 
 #include "training_coordinator.hpp"

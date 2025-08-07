@@ -31,6 +31,8 @@ add_compile_options(
 # Set up CUDA support
 option(SEP_USE_CUDA "Enable CUDA support" OFF)
 option(SEP_USE_GUI "Enable GUI support (ImGui)" OFF)
+# Force GUI to be completely disabled for professional CLI system
+set(SEP_USE_GUI OFF CACHE BOOL "GUI disabled for professional CLI trading system" FORCE)
 
 if(SEP_USE_CUDA)
     # First verify CUDA paths

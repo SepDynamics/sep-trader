@@ -38,17 +38,20 @@ namespace pqxx {
             return ss.str();
         }
 
-        static subject_type from_string(std::string_view str) {
+        // THIS IS THE CORRECTED FUNCTION
+        static void from_string(const char* str, subject_type& obj) {
+            if (str == nullptr || *str == '\0') {
+                obj = std::chrono::system_clock::time_point{}; // Handle NULL from DB
+                return;
+            }
             std::tm tm{};
-            std::stringstream ss(std::string(str));
+            std::stringstream ss{str};
             ss >> std::get_time(&tm, "%Y-%m-%d %H:%M:%S");
 
             if (ss.fail()) {
                 throw std::runtime_error("Failed to parse time_point from string: " + std::string(str));
             }
-            // timegm is a non-standard but common function for this. A portable way is more complex.
-            // This will work on most Linux systems.
-            return std::chrono::system_clock::from_time_t(timegm(&tm));
+            obj = std::chrono::system_clock::from_time_t(timegm(&tm));
         }
         
         static std::size_t size_buffer(const subject_type& /*obj*/) {
