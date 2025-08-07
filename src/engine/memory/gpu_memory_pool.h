@@ -4,10 +4,12 @@
 #include <cstdlib>
 #include <cstring>
 
-#ifdef SEP_USE_CUDA
-#include <cuda_runtime.h>
-#else
-// Define CUDA types when CUDA is disabled
+// This guard checks if the official CUDA runtime header has been included.
+// If it HAS NOT, it will define your simple mock types for CPU-only compilation.
+// If it HAS, this entire block will be skipped, avoiding the conflict.
+#ifndef __CUDA_RUNTIME_H__
+
+// Mock CUDA types for CPU-only compilation
 typedef void* cudaStream_t;
 typedef int cudaError_t;
 #define cudaSuccess 0
@@ -16,12 +18,13 @@ typedef int cudaError_t;
 #define cudaMemcpyDeviceToHost 2
 #define cudaMemcpyDeviceToDevice 3
 
-// Dummy CUDA functions
+// Mock CUDA API functions
 inline cudaError_t cudaMalloc(void** ptr, std::size_t size) { *ptr = std::malloc(size); return *ptr ? cudaSuccess : cudaErrorInvalidValue; }
 inline cudaError_t cudaFree(void* ptr) { std::free(ptr); return cudaSuccess; }
 inline cudaError_t cudaMemcpy(void* dst, const void* src, std::size_t count, int kind) { (void)kind; std::memcpy(dst, src, count); return cudaSuccess; }
 inline cudaError_t cudaMemcpyAsync(void* dst, const void* src, std::size_t count, int kind, cudaStream_t stream) { (void)kind; (void)stream; std::memcpy(dst, src, count); return cudaSuccess; }
-#endif
+
+#endif // End of the guard for mock types
 #include <memory>
 #include <vector>
 #include <unordered_map>

@@ -17,6 +17,7 @@
 #include "tick_data_manager.hpp"
 #include "candle_types.h"
 #include "market_model_cache.hpp"
+#include "quantum_signal_bridge.hpp"
 
 namespace sep::apps {
 
@@ -71,6 +72,8 @@ private:
     std::unique_ptr<QuantumTrackerWindow> quantum_tracker_;
     std::unique_ptr<RollingWindowChart> window_chart_;
 #endif
+    // Essential quantum functionality (always available)
+    std::unique_ptr<sep::trading::QuantumSignalBridge> quantum_bridge_;
     std::unique_ptr<sep::connectors::OandaConnector> oanda_connector_;
     std::unique_ptr<DataCacheManager> cache_manager_;
     std::unique_ptr<TickDataManager> tick_manager_;
@@ -84,6 +87,11 @@ private:
     // State
     bool oanda_connected_ = false;
     std::string last_error_;
+    
+    // Simulation state variables
+    int simulation_cycles = 1000; // Provide a sensible default
+    int trade_count = 0;
+    double base_price = 0.0;
     
     // Time Machine parameters
     std::string simulation_start_time_;

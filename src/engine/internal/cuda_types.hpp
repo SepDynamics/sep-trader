@@ -3,13 +3,12 @@
 
 #include <cstddef>
 
-#ifdef SEP_USE_CUDA
-// CUDA is available - use real CUDA types 
-#include <cuda_runtime.h>
-#else
-// CUDA not available - define dummy types only when we really need them
-// Check if CUDA types are already defined to avoid conflicts
-#if !defined(CUDA_VERSION) && !defined(__CUDA_RUNTIME_H__)
+// This guard checks if the official CUDA runtime header has been included.
+// If it HAS NOT, it will define your simple mock types for CPU-only compilation.
+// If it HAS, this entire block will be skipped, avoiding the conflict.
+#ifndef __CUDA_RUNTIME_H__
+
+// Mock CUDA types for CPU-only compilation
 typedef void* cudaStream_t;
 typedef int cudaError_t;
 typedef void* cudaEvent_t;
@@ -34,8 +33,7 @@ const cudaStream_t cudaStreamDefault = nullptr;
 inline cudaError_t cudaSetDevice(int device) { (void)device; return cudaSuccess; }
 inline cudaError_t cudaStreamCreate(cudaStream_t* stream) { *stream = nullptr; return cudaSuccess; }
 inline const char* cudaGetErrorString(cudaError_t error) { return error == cudaSuccess ? "success" : "error"; }
-#endif // !defined(CUDA_VERSION) && !defined(__CUDA_RUNTIME_H__)
-#endif // SEP_USE_CUDA
+#endif // End of the guard for mock types
 #include <string>
 #include <vector>
 #include <memory>

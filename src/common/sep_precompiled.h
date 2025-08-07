@@ -16,4 +16,8 @@
 #define _GLIBCXX_ARRAY 1
 #endif
 
+// CRITICAL: Clean up any macro pollution that might corrupt std::array
+// This must be done AFTER array is included but BEFORE other headers
+#undef array
+
 #endif // SEP_PRECOMPILED_H

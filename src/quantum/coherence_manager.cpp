@@ -1,4 +1,5 @@
 #include "quantum/coherence_manager.h"
+#include "engine/internal/cuda_types.hpp"
 
 #ifdef __CUDACC__
 #ifdef SEP_USE_CUDA

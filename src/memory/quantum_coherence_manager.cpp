@@ -1,4 +1,5 @@
 #include "memory/quantum_coherence_manager.h"
+#include "engine/internal/cuda_types.hpp"
 
 #include "engine/internal/core.h"
 #include "engine/internal/cuda_helpers.h"
