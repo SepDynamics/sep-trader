@@ -1,4 +1,6 @@
 #pragma once
+// CRITICAL: For CUDA compilation, apply comprehensive std::array protection
+#include "../../array_protection.h"
 
 // CUDA-specific fix for std::array compatibility
 // This header must be included before any standard library headers in CUDA files

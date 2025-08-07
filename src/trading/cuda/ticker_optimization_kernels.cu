@@ -1,8 +1,10 @@
-#include <array>
-#include <vector>
+// CRITICAL: For CUDA compilation, apply comprehensive std::array protection
+#include "../../array_protection.h"
+
 #ifdef SEP_USE_CUDA
-#include "engine/internal/standard_includes.h"
 #include <cuda_runtime.h>
+
+#include <cstdint>
 
 extern "C" {
 
