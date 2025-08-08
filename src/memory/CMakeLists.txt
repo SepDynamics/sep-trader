@@ -7,7 +7,6 @@ add_sep_library(sep_memory
         redis_manager.cpp
     DEPENDENCIES
         sep_core_types
-        sep_engine
         sep_common
         fmt::fmt
         Threads::Threads
@@ -16,6 +15,7 @@ add_sep_library(sep_memory
         CUDA::cuda_driver
         sep_global_includes
         spdlog::spdlog
+        hiredis
 )
 
 target_include_directories(sep_memory PUBLIC
