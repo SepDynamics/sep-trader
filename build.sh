@@ -57,7 +57,13 @@ if [ "$SKIP_DOCKER" = true ] || ! "$DOCKER_BIN" info >/dev/null 2>&1; then
         CUDA_FLAGS="-DSEP_USE_CUDA=OFF"
     fi
     
-    cmake .. -G Ninja -DCMAKE_BUILD_TYPE=Release $CUDA_FLAGS         -DCMAKE_CXX_COMPILER=g++ -DCMAKE_C_COMPILER=gcc         -DCMAKE_BUILD_WITH_INSTALL_RPATH=ON         -DCMAKE_EXPORT_COMPILE_COMMANDS=TRUE         -DSEP_USE_GUI=OFF         -DCMAKE_CXX_FLAGS="-Wno-error=pedantic"         -DCMAKE_CUDA_FLAGS="-Wno-deprecated-gpu-targets"
+    cmake .. -G Ninja -DCMAKE_BUILD_TYPE=Release $CUDA_FLAGS \
+        -DCMAKE_CXX_COMPILER=g++ -DCMAKE_C_COMPILER=gcc \
+        -DCMAKE_BUILD_WITH_INSTALL_RPATH=ON \
+        -DCMAKE_EXPORT_COMPILE_COMMANDS=TRUE \
+        -DSEP_USE_GUI=OFF \
+        -DCMAKE_CXX_FLAGS="-Wno-error=pedantic" \
+        -DCMAKE_CUDA_FLAGS="-Wno-deprecated-gpu-targets"
     ninja -k 0 2>&1 | tee ../output/build_log.txt
     
     # Copy compile_commands.json for IDE integration
@@ -68,7 +74,7 @@ fi
 # Build and setup development environment using Docker
 "${DOCKER_BIN}" run --gpus all --rm \
     -v $(pwd):/workspace \
-    sep_build_env bash -c '
+    sep-engine-builder bash -c '
     # Add exception for dubious ownership
     git config --global --add safe.directory "*"
     
@@ -82,13 +88,14 @@ fi
     # Configure and build with Docker container paths
     cmake .. -G Ninja \
         -DCMAKE_BUILD_TYPE=Release \
-        -DCMAKE_C_COMPILER=/usr/bin/gcc-11 \
-        -DCMAKE_CXX_COMPILER=/usr/bin/g++-11 \
-        -DCMAKE_CUDA_HOST_COMPILER=/usr/bin/g++-11 \
+        -DCMAKE_C_COMPILER=/usr/bin/gcc-12 \
+        -DCMAKE_CXX_COMPILER=/usr/bin/g++-12 \
+        -DCMAKE_CUDA_HOST_COMPILER=/usr/bin/g++-12 \
         -DCMAKE_BUILD_WITH_INSTALL_RPATH=ON \
         -DCMAKE_EXPORT_COMPILE_COMMANDS=TRUE \
         -DSEP_USE_CUDA=ON \
-        -DSEP_USE_GUI=OFF
+        -DSEP_USE_GUI=OFF \
+        -DCMAKE_CUDA_FLAGS="-Wno-deprecated-gpu-targets"
     
     ninja -k 0 2>&1 | tee /workspace/output/build_log.txt
     

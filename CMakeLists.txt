@@ -53,12 +53,12 @@ if(SEP_USE_CUDA)
     
     # Set CUDA paths before enabling language
     set(CMAKE_CUDA_COMPILER "$ENV{CUDA_HOME}/bin/nvcc")
-    set(CMAKE_CUDA_HOST_COMPILER "/usr/bin/g++")
+    set(CMAKE_CUDA_HOST_COMPILER "/usr/bin/g++-12")
     set(CMAKE_CUDA_ARCHITECTURES 61;75;86;89)
-set(CUDA_USE_STATIC_CUDA_RUNTIME OFF)
+    set(CUDA_USE_STATIC_CUDA_RUNTIME OFF)
     
     # Set CUDA flags BEFORE enabling language to ensure they're available during compiler identification
-    set(CMAKE_CUDA_FLAGS "--allow-unsupported-compiler --extended-lambda --display-error-number")
+    set(CMAKE_CUDA_FLAGS "--allow-unsupported-compiler --extended-lambda --display-error-number -Wno-deprecated-gpu-targets")
     
     # Now enable CUDA language
     enable_language(CUDA)
