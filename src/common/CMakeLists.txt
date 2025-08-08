@@ -3,7 +3,7 @@ add_sep_library(sep_common
         financial_data_types.cpp
     DEPENDENCIES
         sep_global_includes
-        tbb
+        TBB::tbb
 )
 
 target_include_directories(sep_common PUBLIC

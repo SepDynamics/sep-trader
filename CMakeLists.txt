@@ -89,16 +89,32 @@ enable_testing()
 # Find required packages
 find_package(Threads REQUIRED)
 # TBB built via FetchContent to avoid system dependencies
-find_package(benchmark REQUIRED)
-find_package(nlohmann_json REQUIRED)
+find_package(benchmark)
 include(cmake/gtest.cmake)
-find_package(glm REQUIRED)
 
 find_package(PostgreSQL REQUIRED)
 
 
 
 include(FetchContent)
+
+# Interface library for global include header
+add_library(sep_global_includes INTERFACE)
+target_include_directories(sep_global_includes INTERFACE ${CMAKE_SOURCE_DIR}/src)
+target_compile_options(sep_global_includes INTERFACE -include ${CMAKE_SOURCE_DIR}/cmake/global_includes.h)
+
+FetchContent_Declare(
+  glm
+  GIT_REPOSITORY https://github.com/g-truc/glm.git
+  GIT_TAG 1.0.1
+)
+FetchContent_MakeAvailable(glm)
+FetchContent_Declare(
+  nlohmann_json
+  GIT_REPOSITORY https://github.com/nlohmann/json.git
+  GIT_TAG v3.11.2
+)
+FetchContent_MakeAvailable(nlohmann_json)
 FetchContent_Declare(
   yaml-cpp
   GIT_REPOSITORY https://github.com/jbeder/yaml-cpp.git
@@ -125,21 +141,7 @@ if(SEP_USE_GUI)
 endif()
 
 
-FetchContent_Declare(
-  tbb
-  GIT_REPOSITORY https://github.com/oneapi-src/oneTBB.git
-  GIT_TAG v2021.10.0
-)
-# TBB Configuration - Build requirements only  
-set(TBB_BUILD_SHARED ON CACHE BOOL "" FORCE)
-set(BUILD_SHARED_LIBS ON CACHE BOOL "" FORCE)
-set(TBB_BUILD_STATIC OFF CACHE BOOL "" FORCE)
-set(TBB_TEST OFF CACHE BOOL "Build TBB tests" FORCE)
-set(TBB_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
-# Help find hwloc on Fedora systems (libraries in /usr/lib64)
-link_directories(/usr/lib64)
-set(CMAKE_BUILD_WITH_INSTALL_RPATH ON)
-FetchContent_MakeAvailable(tbb)
+find_package(TBB REQUIRED)
 
 
 if(SEP_USE_GUI)
@@ -184,20 +186,17 @@ if(SEP_USE_GUI)
 endif()
 
 # Add subdirectories
-find_package(fmt REQUIRED)
+FetchContent_Declare(
+  fmt
+  GIT_REPOSITORY https://github.com/fmtlib/fmt.git
+  GIT_TAG 11.0.2
+)
+FetchContent_MakeAvailable(fmt)
 
 # Ensure consistent spdlog header-only mode globally
 add_definitions(-DSPDLOG_HEADER_ONLY)
 
-FetchContent_Declare(
-  spdlog
-  GIT_REPOSITORY https://github.com/gabime/spdlog.git
-  GIT_TAG v1.11.0
-)
-FetchContent_MakeAvailable(spdlog)
-
-# Removed forced includes to prevent double inclusion errors
-# Manual includes in source files will handle array protection
+# Removed spdlog build; header-only mode is sufficient
 
 
 
@@ -220,7 +219,6 @@ add_custom_target(generate_docs
     COMMENT "Generating documentation from source headers"
 )
 
-add_subdirectory(extern/crow)
 add_subdirectory(src)
 
 if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/tests)
