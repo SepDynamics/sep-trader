@@ -3,15 +3,15 @@
 
 #include <array>
 #include <chrono>
-#include "engine/internal/standard_includes.h"
 #include <memory>
 #include <mutex>
-#include <nlohmann/json.hpp>
 #include <string>
 
+#include "../nlohmann_json_protected.h"
 #include "api/types.h"
 #include "curl/curl.h"
 #include "engine/internal/common.h"
+#include "engine/internal/standard_includes.h"
 
 namespace sep {
 namespace api {

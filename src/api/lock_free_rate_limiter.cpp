@@ -1,7 +1,7 @@
 #include "api/lock_free_rate_limiter.h"
-#include "api/background_cleanup.h"
 
-#include <nlohmann/json.hpp>
+#include "../nlohmann_json_protected.h"
+#include "api/background_cleanup.h"
 
 namespace sep::api {
 

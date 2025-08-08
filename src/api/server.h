@@ -13,10 +13,10 @@
 #include <atomic>
 #include <memory>
 #include <mutex>
-#include <nlohmann/json.hpp>
 #include <string>
 #include <thread>
 
+#include "../nlohmann_json_protected.h"
 #include "api/auth_middleware.h"
 #include "api/rate_limit_middleware.h"
 #include "api/thread_pool.h"

@@ -1,17 +1,17 @@
 #define BUILDING_SEP_BRIDGE
 #include "api/bridge.h"
-#include "api/bridge.hpp"
-#include "quantum/processor.h"
-#include "api/types.h"
 
-
+#include <exception>
+#include <memory>
 #include <mutex>
 #include <string>
-#include <memory>
-#include <exception>
 #include <unordered_map>
 #include <vector>
-#include <nlohmann/json.hpp>
+
+#include "../nlohmann_json_protected.h"
+#include "api/bridge.hpp"
+#include "api/types.h"
+#include "quantum/processor.h"
 
 #if defined(__cpp_exceptions) || defined(__EXCEPTIONS) || defined(_CPPUNWIND)
 #define SEP_HAS_EXCEPTIONS 1

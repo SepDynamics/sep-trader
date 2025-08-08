@@ -8,9 +8,9 @@
 #include <cstdlib>
 #include <cstring>
 #include <ctime>
-#include <nlohmann/json.hpp>
 #include <random>
 
+#include "../nlohmann_json_protected.h"
 #include "engine/internal/types.h"  // For PatternData/PatternConfig
 #include "engine/internal/types.h"
 #include "quantum/quantum_processor_qfh.h"

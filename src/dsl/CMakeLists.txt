@@ -41,7 +41,7 @@ target_include_directories(sep_dsl PUBLIC
 target_compile_features(sep_dsl PUBLIC cxx_std_17)
 
 # Link against engine for builtin functions and nlohmann_json for serialization
-target_link_libraries(sep_dsl PRIVATE sep_engine nlohmann_json::nlohmann_json sep_global_includes tbb)
+target_link_libraries(sep_dsl PRIVATE sep_engine nlohmann_json::nlohmann_json sep_global_includes TBB::tbb spdlog::spdlog fmt::fmt)
 
 # Add compiler flags
 target_compile_options(sep_dsl PRIVATE
@@ -59,10 +59,29 @@ endif()
 
 # Fixed by proper include order in standard_includes.h
 
-# Create the DSL interpreter executable
-add_executable(sep_dsl_interpreter
-    main.cpp
-)
+# DISABLED: DSL interpreter executable (not building)
+# add_executable(sep_dsl_interpreter
+#     main.cpp
+# )
 
 # Link the interpreter executable with the DSL library and engine
-target_link_libraries(sep_dsl_interpreter PRIVATE sep_global_includes sep_dsl sep_engine sep_trading curl hiredis tbb)
+# target_link_libraries(sep_dsl_interpreter PRIVATE 
+#     sep_global_includes 
+#     sep_dsl 
+#     sep_engine 
+#     sep_trading 
+#     sep_core
+#     sep_config
+#     sep_cache
+#     sep_quantum
+#     sep_connectors
+#     nlohmann_json::nlohmann_json
+#     curl 
+#     hiredis 
+#     TBB::tbb 
+#     spdlog::spdlog 
+#     fmt::fmt 
+#     Threads::Threads 
+#     pqxx 
+#     pq
+# )

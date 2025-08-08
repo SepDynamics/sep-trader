@@ -3,6 +3,11 @@
 // CRITICAL: Include comprehensive array protection FIRST
 #include "../../array_protection.h"
 
+// 1. Include <array> immediately after the protection header.
+// This ensures std::array is defined before any other standard headers
+// that might depend on it (like <functional>).
+#include <array>
+
 // 4. NOW include all other essential standard library and third-party headers.
 #include <vector>
 #include <string>
@@ -28,7 +33,7 @@
 #include <unordered_map>
 #include <set>
 #include <unordered_set>
-#include <nlohmann/json.hpp>
+#include "../../nlohmann_json_protected.h"
 
 // 5. AT THE VERY END, forcefully undefine any conflicting macro again.
 // This ensures that when the compiler proceeds to actual .cpp/.cu source files,

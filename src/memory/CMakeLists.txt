@@ -15,6 +15,7 @@ add_sep_library(sep_memory
         CUDA::cudart
         CUDA::cuda_driver
         sep_global_includes
+        spdlog::spdlog
 )
 
 target_include_directories(sep_memory PUBLIC

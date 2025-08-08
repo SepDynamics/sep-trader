@@ -1,13 +1,16 @@
 #include "cache_validator.hpp"
+
+#include <spdlog/spdlog.h>
+
+#include <algorithm>
 #include <filesystem>
 #include <fstream>
-#include <sstream>
-#include <algorithm>
 #include <numeric>
 #include <regex>
+#include <sstream>
 #include <thread>
-#include <nlohmann/json.hpp>
-#include <spdlog/spdlog.h>
+
+#include "../nlohmann_json_protected.h"
 
 namespace sep::cache {
 

@@ -1,13 +1,16 @@
-#include <sep_precompiled.h>
 #include "enhanced_market_model_cache.hpp"
-#include <iostream>
-#include <fstream>
-#include <filesystem>
+
+#include <sep_precompiled.h>
+
 #include <algorithm>
-#include <numeric>
 #include <cmath>
+#include <filesystem>
+#include <fstream>
+#include <iostream>
+#include <numeric>
 #include <thread>
-#include <nlohmann/json.hpp>
+
+#include "../nlohmann_json_protected.h"
 
 namespace sep::cache {
 

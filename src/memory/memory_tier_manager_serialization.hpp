@@ -2,8 +2,8 @@
 #define SEP_MEMORY_TIER_MANAGER_SERIALIZATION_HPP
 
 #include <array>
-#include <nlohmann/json.hpp>
 
+#include "../nlohmann_json_protected.h"
 #include "memory/memory_tier_manager.hpp"
 
 namespace sep {

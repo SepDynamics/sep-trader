@@ -1,12 +1,13 @@
 #pragma once
 
-#include "engine/internal/standard_includes.h"
+#include <chrono>
+#include <future>
+#include <memory>
 #include <string>
 #include <vector>
-#include <memory>
-#include <future>
-#include <chrono>
-#include <nlohmann/json.hpp>
+
+#include "../nlohmann_json_protected.h"
+#include "engine/internal/standard_includes.h"
 
 namespace sep::trading {
 

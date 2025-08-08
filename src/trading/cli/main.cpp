@@ -1,3 +1,4 @@
+#include "../../array_protection.h"
 #include <sep_precompiled.h>
 #include <fmt/format.h>
 #include <spdlog/spdlog.h>

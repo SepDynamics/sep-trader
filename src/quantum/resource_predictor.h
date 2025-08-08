@@ -3,9 +3,9 @@
 
 #include <array>
 #include <cstddef>
-#include <nlohmann/json.hpp>
 #include <vector>
 
+#include "../nlohmann_json_protected.h"
 #include "engine/internal/standard_includes.h"
 
 // Minimal context types for compilation

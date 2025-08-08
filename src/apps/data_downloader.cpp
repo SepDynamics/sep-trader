@@ -1,3 +1,4 @@
+#include "../array_protection.h"
 #include <sep_precompiled.h>
 #include <iostream>
 #include "connectors/oanda_connector.h"

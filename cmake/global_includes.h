@@ -1,15 +1,12 @@
 #pragma once
 
-// This file MUST be included first to prevent macro conflicts with std::array
+// This file MUST be included first to prevent macro conflicts
 
-// Step 1: Include array before anything else can pollute it
-#include <array>
+// Step 1: Include the array protection header to handle std::array conflicts.
+#include "engine/internal/array_protection.h"
 
-// Step 2: Immediately save std::array in case it gets corrupted later
-namespace __array_guard {
-    template<typename T, std::size_t N>
-    using safe_array = std::array<T, N>;
-}
+// Step 2: Include GLM configuration for consistent vector/matrix types.
+#include "engine/internal/glm_config.h"
 
 // Step 3: Include other essential headers that should be available globally
 #include <vector>
@@ -24,12 +21,7 @@ namespace __array_guard {
 #include <cstddef>
 #include <cstdint>
 
-// Step 4: Force undefine any array macros and restore
-#ifdef array
-#undef array
-#endif
-
-// Step 5: TBB headers (after array protection)
+// Step 4: TBB headers
 #ifdef __has_include
   #if __has_include(<oneapi/tbb.h>)
     #include <oneapi/tbb.h>
@@ -40,17 +32,4 @@ namespace __array_guard {
   #endif
 #else
   #include <tbb/task.h>
-#endif
-
-// Step 6: Final cleanup - aggressively undefine any conflicting macros
-#ifdef array
-#undef array
-#endif
-
-// Step 7: Restore std::array if it was corrupted (fallback mechanism)
-#ifndef std
-namespace std {
-    template<typename T, std::size_t N>
-    using array = ::__array_guard::safe_array<T, N>;
-}
 #endif

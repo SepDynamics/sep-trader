@@ -42,6 +42,8 @@ add_sep_library(sep_engine
         CUDA::cuda_driver
         sep_global_includes
         tbb
+        spdlog::spdlog
+        fmt::fmt
 )
 
 target_include_directories(sep_engine PUBLIC

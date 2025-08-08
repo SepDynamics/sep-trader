@@ -1,19 +1,21 @@
 #pragma once
 
-#include <array>
-#include <string>
-#include <vector>
-#include <atomic>
-#include "engine/internal/standard_includes.h"
+#include <curl/curl.h>
+
 #include <algorithm>
+#include <array>
+#include <atomic>
 #include <iterator>
+#include <mutex>
 #include <numeric>
+#include <string>
 #include <thread>
 #include <unordered_map>
-#include <mutex>
-#include <curl/curl.h>
-#include <nlohmann/json.hpp>
+#include <vector>
+
+#include "../nlohmann_json_protected.h"
 #include "common/financial_data_types.h"
+#include "engine/internal/standard_includes.h"
 
 namespace sep {
 namespace connectors {

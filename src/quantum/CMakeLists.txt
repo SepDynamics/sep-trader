@@ -31,6 +31,7 @@ add_sep_library(sep_quantum
     CUDA::cuda_driver
     tbb
     sep_global_includes
+    spdlog::spdlog
 )
 
 add_dependencies(sep_quantum sep_memory)

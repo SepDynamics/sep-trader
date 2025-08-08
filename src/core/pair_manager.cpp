@@ -1,11 +1,13 @@
 #include "pair_manager.hpp"
-#include <fstream>
-#include <sstream>
+
 #include <algorithm>
-#include <regex>
+#include <fstream>
 #include <iomanip>
 #include <iostream>
-#include <nlohmann/json.hpp>
+#include <regex>
+#include <sstream>
+
+#include "../nlohmann_json_protected.h"
 
 namespace sep::core {
 
@@ -495,7 +497,9 @@ bool PairManager::deserializeState(const std::string& json_data) {
         
         std::unordered_map<std::string, std::unique_ptr<PairInfo>> loaded_pairs;
         
-        for (auto& [symbol, pair_data] : json.items()) {
+        // Check if "pairs" key exists and iterate over it
+        if (json.contains("pairs") && json["pairs"].is_object()) {
+            for (auto& [symbol, pair_data] : json["pairs"].items()) {
             auto pair_info = std::make_unique<PairInfo>();
             pair_info->symbol = symbol;
             pair_info->status = stringToStatus(pair_data["status"].get<std::string>());
@@ -505,7 +509,8 @@ bool PairManager::deserializeState(const std::string& json_data) {
             pair_info->error_message = pair_data["error_message"].get<std::string>();
             pair_info->last_updated = std::chrono::system_clock::now();
             
-            loaded_pairs[symbol] = std::move(pair_info);
+                loaded_pairs[symbol] = std::move(pair_info);
+            }
         }
         
         // Only update if we successfully parsed at least some pairs

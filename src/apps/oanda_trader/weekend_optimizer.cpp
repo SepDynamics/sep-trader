@@ -1,12 +1,14 @@
 #include "weekend_optimizer.hpp"
-#include "market_utils.hpp"
-#include <fstream>
-#include <sstream>
+
 #include <filesystem>
-#include <regex>
-#include <iostream>
+#include <fstream>
 #include <iomanip>
-#include <nlohmann/json.hpp>
+#include <iostream>
+#include <regex>
+#include <sstream>
+
+#include "../nlohmann_json_protected.h"
+#include "market_utils.hpp"
 
 namespace SEP {
 

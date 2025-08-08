@@ -33,14 +33,12 @@ COPY . .
 
 # Apply comprehensive fixes to resolve std::array header conflicts  
 # COMPREHENSIVE FIX: GCC 11 functional header bug - uses unqualified 'array'
-# Fix the specific lines that use unqualified 'array' in functional header
+# The specific issue is line 1101 in functional header: tuple<std::array<_Tp, _Len>, _Pred> _M_bad_char;
 RUN cp /usr/include/c++/11/functional /tmp/functional_backup && \
-    printf '#ifdef array\n#undef array\n#endif\n#include <array>\n%s\n' "$(cat /usr/include/c++/11/functional)" > /tmp/functional_fixed && \
-    sed -i 's/tuple<array<_Tp, _Len>/tuple<std::array<_Tp, _Len>/g' /tmp/functional_fixed && \
-    sed -i 's/{ array<_Tp, _Len>/{ std::array<_Tp, _Len>/g' /tmp/functional_fixed && \
-    mv /tmp/functional_fixed /usr/include/c++/11/functional && \
-    echo "FIXED FUNCTIONAL HEADER - unqualified array usage:" && \
-    grep -n "std::array<_Tp" /usr/include/c++/11/functional | head -3
+    sed -i '1s/^/#include <array>\n/' /usr/include/c++/11/functional && \
+    sed -i 's/tuple<array<_Tp, _Len>/tuple<std::array<_Tp, _Len>/g' /usr/include/c++/11/functional && \
+    sed -i 's/{ array<_Tp, _Len>/{ std::array<_Tp, _Len>/g' /usr/include/c++/11/functional && \
+    echo "FIXED FUNCTIONAL HEADER - Added array include and fixed unqualified array usage"
 
 # Fix ALL nlohmann JSON headers with same protection  
 RUN find /usr/include/nlohmann -name "*.hpp" -exec sh -c 'printf "#ifdef array\n#undef array\n#endif\n#include <array>\n%s\n" "$(cat "$1")" > "/tmp/$(basename "$1")" && mv "/tmp/$(basename "$1")" "$1"' _ {} \;

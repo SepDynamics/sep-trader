@@ -1,14 +1,15 @@
 #pragma once
 
 #include <array>
-#include "connectors/oanda_connector.h"
 #include <chrono>
-#include <memory>
-#include <vector>
-#include <string>
-#include <mutex>
 #include <fstream>
-#include <nlohmann/json.hpp>
+#include <memory>
+#include <mutex>
+#include <string>
+#include <vector>
+
+#include "../nlohmann_json_protected.h"
+#include "connectors/oanda_connector.h"
 
 namespace sep::apps {
 

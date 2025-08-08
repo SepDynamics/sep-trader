@@ -4,6 +4,9 @@
  * Implementation of CUDA functions in the sep::cuda namespace
  */
 
+// CRITICAL: For CUDA compilation, apply comprehensive std::array protection
+#include "../../array_protection.h"
+
 #ifdef SEP_USE_CUDA
 #include <cuda_runtime.h>
 #endif

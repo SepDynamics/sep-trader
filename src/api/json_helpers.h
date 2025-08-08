@@ -1,8 +1,9 @@
 #pragma once
 
 #include <array>
-#include <nlohmann/json.hpp>
 #include <string>
+
+#include "../nlohmann_json_protected.h"
 
 namespace sep {
 namespace api {

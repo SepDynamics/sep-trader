@@ -1,12 +1,15 @@
 #include "weekly_cache_manager.hpp"
+
+#include <spdlog/spdlog.h>
+
+#include <algorithm>
 #include <filesystem>
 #include <fstream>
-#include <sstream>
-#include <algorithm>
-#include <queue>
 #include <iomanip>
-#include <nlohmann/json.hpp>
-#include <spdlog/spdlog.h>
+#include <queue>
+#include <sstream>
+
+#include "../nlohmann_json_protected.h"
 
 namespace sep::cache {
 

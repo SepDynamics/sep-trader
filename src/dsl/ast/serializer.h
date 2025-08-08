@@ -1,8 +1,9 @@
 #pragma once
 #include <array>
-#include "nodes.h"
-#include <nlohmann/json.hpp>
 #include <memory>
+
+#include "../nlohmann_json_protected.h"
+#include "nodes.h"
 
 namespace dsl::ast {
 

@@ -2,8 +2,8 @@
 
 #include <cmath>
 #include <ctime>
-#include <nlohmann/json.hpp>
 
+#include "../nlohmann_json_protected.h"
 #include "common/financial_data_types.h"
 #include "engine/internal/standard_includes.h"
 #include "quantum/types.h"

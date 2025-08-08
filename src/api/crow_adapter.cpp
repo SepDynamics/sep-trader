@@ -17,7 +17,8 @@
 // Include standard headers
 #include <memory>
 #include <string>
-#include <nlohmann/json.hpp>
+
+#include "../nlohmann_json_protected.h"
 
 // Include our API headers
 #include "api/crow_adapter.h"

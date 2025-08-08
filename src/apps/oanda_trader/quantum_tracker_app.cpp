@@ -14,12 +14,13 @@
 #endif
 
 #include <chrono>
+#include <condition_variable>
 #include <cstdlib>
 #include <iostream>
 #include <mutex>
 #include <thread>
-#include <condition_variable>
-#include <nlohmann/json.hpp>
+
+#include "../nlohmann_json_protected.h"
 
 namespace sep::apps {
 

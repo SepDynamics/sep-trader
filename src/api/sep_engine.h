@@ -11,9 +11,9 @@
 #include <array>
 #include <atomic>
 #include <memory>
-#include <nlohmann/json.hpp>
 #include <string>
 
+#include "../nlohmann_json_protected.h"
 #include "api/types.h"
 #include "engine/internal/types.h"
 #include "pattern/pattern_processor.hpp"

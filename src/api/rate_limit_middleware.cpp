@@ -1,9 +1,9 @@
 // Always use the isolation header to avoid dependency on external crow.h
 #include "api/rate_limit_middleware.h"
+
+#include "../nlohmann_json_protected.h"
 #include "api/crow_request.h"
 #include "api/rate_limiter.h"
-
-#include <nlohmann/json.hpp>
 
 namespace sep::api {
 RateLimitMiddleware::RateLimitMiddleware()

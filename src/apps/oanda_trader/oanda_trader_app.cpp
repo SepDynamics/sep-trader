@@ -11,9 +11,9 @@
 #include <cstdlib>
 #include <iomanip>
 #include <iostream>
-#include <nlohmann/json.hpp>
 #include <thread>
 
+#include "../nlohmann_json_protected.h"
 #include "connectors/market_data_converter.h"
 #include "engine/internal/engine.h"
 #ifdef SEP_USE_GUI

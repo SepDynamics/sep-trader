@@ -1,3 +1,6 @@
+// CRITICAL: For CUDA compilation, apply comprehensive std::array protection
+#include "../array_protection.h"
+
 // Include compatibility header first to handle math function conflicts
 #ifdef SEP_USE_CUDA
 #include <cuda_runtime.h>

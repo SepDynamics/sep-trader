@@ -13,6 +13,8 @@
 #else
 #  define SEP_ENGINE_HAS_CUDA 0
 #endif
+#include <sys/socket.h>
+
 #include <algorithm>
 #include <cstdint>
 #include <cstdio>
@@ -22,13 +24,12 @@
 #include <filesystem>
 #include <future>
 #include <iostream>
-#include <nlohmann/json.hpp>
 #include <numeric>
 #include <sstream>
-#include <sys/socket.h>
 #include <thread>
 #include <vector>
 
+#include "../nlohmann_json_protected.h"
 #include "common.h"  // defines sep::SEPResult
 #include "config.h"
 #include "core.h"

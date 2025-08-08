@@ -1,22 +1,22 @@
-#include <array>
 #include "quantum_signal_bridge.hpp"
-#include "realtime_aggregator.hpp"
-#include "candle_types.h"
 
 #include <algorithm>
+#include <array>
 #include <chrono>
 #include <cmath>
 #include <fstream>
+#include <iomanip>
 #include <iostream>
 #include <sstream>
-#include <iomanip>
-#include <nlohmann/json.hpp>
 
+#include "../nlohmann_json_protected.h"
+#include "candle_types.h"
+#include "forward_window_kernels.hpp"
 #include "quantum/bitspace/pattern_processor.h"
-#include "quantum/types_serialization.h"
 #include "quantum/quantum_manifold_optimizer.h"
 #include "quantum/signal.h"
-#include "forward_window_kernels.hpp"
+#include "quantum/types_serialization.h"
+#include "realtime_aggregator.hpp"
 
 using json = nlohmann::json;
 

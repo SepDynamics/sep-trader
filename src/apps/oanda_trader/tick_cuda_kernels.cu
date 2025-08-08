@@ -1,3 +1,6 @@
+// CRITICAL: For CUDA compilation, apply comprehensive std::array protection
+#include "../../array_protection.h"
+
 #include "tick_cuda_kernels.cuh"
 #ifdef SEP_USE_CUDA
 #include <cuda_runtime.h>

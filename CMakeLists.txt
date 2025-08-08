@@ -21,7 +21,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 add_compile_options(
     -Wall -Wextra -Wpedantic -O3
-    -D_GLIBCXX_NO_ASSERT    # Fix functional header std::array issues
+
     -DPSTL_USE_TBB          # Enable proper TBB integration with PSTL
     -D_GLIBCXX_DEBUG_PEDANTIC=0  # Disable pedantic debug checks
     -D_GLIBCXX_CONCEPT_CHECKS=0  # Disable concept checks that might interfere
@@ -93,7 +93,7 @@ find_package(benchmark REQUIRED)
 find_package(nlohmann_json REQUIRED)
 include(cmake/gtest.cmake)
 find_package(glm REQUIRED)
-find_package(OpenGL REQUIRED)
+
 find_package(PostgreSQL REQUIRED)
 
 
@@ -185,6 +185,10 @@ endif()
 
 # Add subdirectories
 find_package(fmt REQUIRED)
+
+# Ensure consistent spdlog header-only mode globally
+add_definitions(-DSPDLOG_HEADER_ONLY)
+
 FetchContent_Declare(
   spdlog
   GIT_REPOSITORY https://github.com/gabime/spdlog.git
@@ -192,15 +196,8 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(spdlog)
 
-# Interface library for global includes
-add_library(sep_global_includes INTERFACE)
-
-# Temporarily disable global includes to isolate remaining errors
-# target_compile_options(sep_global_includes INTERFACE 
-#     "$<$<COMPILE_LANGUAGE:CXX>:-include;${CMAKE_CURRENT_SOURCE_DIR}/cmake/global_includes.h>"
-#     "$<$<COMPILE_LANGUAGE:CUDA>:-include;${CMAKE_CURRENT_SOURCE_DIR}/cmake/global_includes.h>"
-# )
-target_link_libraries(sep_global_includes INTERFACE spdlog::spdlog nlohmann_json::nlohmann_json TBB::tbb)
+# Removed forced includes to prevent double inclusion errors
+# Manual includes in source files will handle array protection
 
 
 

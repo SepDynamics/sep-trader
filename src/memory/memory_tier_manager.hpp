@@ -25,14 +25,14 @@
 // Standard library includes
 #include <cstddef>
 #include <cstdint>
+#include <glm/vec3.hpp>
 #include <memory>
 #include <mutex>
-#include <nlohmann/json.hpp>
 #include <system_error>
 #include <unordered_map>
 #include <vector>
 
-#include <glm/vec3.hpp>
+#include "../nlohmann_json_protected.h"
 
 namespace sep {
 

@@ -1,12 +1,15 @@
 #include "cache_health_monitor.hpp"
+
+#include <spdlog/spdlog.h>
+
+#include <algorithm>
 #include <filesystem>
 #include <fstream>
-#include <sstream>
-#include <algorithm>
-#include <numeric>
 #include <iomanip>
-#include <nlohmann/json.hpp>
-#include <spdlog/spdlog.h>
+#include <numeric>
+#include <sstream>
+
+#include "../nlohmann_json_protected.h"
 
 namespace sep::cache {
 

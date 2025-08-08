@@ -2,15 +2,15 @@
 #define SEP_API_BRIDGE_HPP
 
 #include <array>
-#include "api/types.h"
-#include "quantum/processor.h"
-#include "quantum/types.h"
-#include "quantum/resource_predictor.h" // Provides context types
-#include <nlohmann/json.hpp>
 #include <string>
 #include <vector>
 
+#include "../nlohmann_json_protected.h"
 #include "api/bridge.h"
+#include "api/types.h"
+#include "quantum/processor.h"
+#include "quantum/resource_predictor.h"  // Provides context types
+#include "quantum/types.h"
 
 namespace sep::api::bridge {
 
