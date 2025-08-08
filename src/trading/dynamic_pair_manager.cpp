@@ -1,5 +1,4 @@
 #include "../array_protection.h"
-#include "../array_protection.h"
 #include <sep_precompiled.h>
 #include "dynamic_pair_manager.hpp"
 

@@ -18,6 +18,10 @@ if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/cache/CMakeLists.txt)
     add_subdirectory(cache)
 endif()
 
+if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/ui/CMakeLists.txt)
+    add_subdirectory(ui)
+endif()
+
 # Core libraries always built
 
 # Optional modules that require full environment (CUDA, external deps)

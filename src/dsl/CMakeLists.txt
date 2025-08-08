@@ -59,29 +59,29 @@ endif()
 
 # Fixed by proper include order in standard_includes.h
 
-# DISABLED: DSL interpreter executable (not building)
-# add_executable(sep_dsl_interpreter
-#     main.cpp
-# )
+# ENABLED: DSL interpreter executable
+add_executable(sep_dsl_interpreter
+    main.cpp
+)
 
 # Link the interpreter executable with the DSL library and engine
-# target_link_libraries(sep_dsl_interpreter PRIVATE 
-#     sep_global_includes 
-#     sep_dsl 
-#     sep_engine 
-#     sep_trading 
-#     sep_core
-#     sep_config
-#     sep_cache
-#     sep_quantum
-#     sep_connectors
-#     nlohmann_json::nlohmann_json
-#     curl 
-#     hiredis 
-#     TBB::tbb 
-#     spdlog::spdlog 
-#     fmt::fmt 
-#     Threads::Threads 
-#     pqxx 
-#     pq
-# )
+target_link_libraries(sep_dsl_interpreter PRIVATE 
+    sep_global_includes 
+    sep_dsl 
+    sep_engine 
+    sep_trading 
+    sep_core
+    sep_config
+    sep_cache
+    sep_quantum
+    sep_connectors
+    nlohmann_json::nlohmann_json
+    curl 
+    hiredis 
+    TBB::tbb 
+    spdlog::spdlog 
+    fmt::fmt 
+    Threads::Threads 
+    pqxx 
+    pq
+)

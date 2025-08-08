@@ -830,10 +830,7 @@ void QuantumTrackerApp::runSimulation() {
 #endif
         
         std::cout << "[SIMULATION] ✅ Fallback to test data successful!" << std::endl;
-        std::cout << "[SIMULATION] Now running simulation with existing test data signals..." << std::endl;
-        
-        // Run simulation using the loaded test data
-        runTestDataSimulation();
+        std::cout << "[SIMULATION] System ready for backtesting as part of training model." << std::endl;
         return;
     }
     

@@ -145,7 +145,7 @@ endif()
 
 
 # Fetch TBB (Thread Building Blocks) only when explicitly enabled
-option(SEP_USE_TBB "Enable TBB support" OFF)
+option(SEP_USE_TBB "Enable TBB support" ON)
 if(SEP_USE_TBB)
     set(TBB_TEST OFF CACHE BOOL "Disable TBB tests")
     FetchContent_Declare(

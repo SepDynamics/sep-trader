@@ -60,6 +60,7 @@ bool OandaTraderApp::initialize() {
 }
 
 bool OandaTraderApp::initializeGraphics() {
+#ifdef SEP_USE_GUI
     // Initialize GLFW
     if (!glfwInit()) {
         last_error_ = "Failed to initialize GLFW";
@@ -84,6 +85,10 @@ bool OandaTraderApp::initializeGraphics() {
     // OpenGL is already loaded by GLFW context
     
     return true;
+#else
+    last_error_ = "Graphics initialization requires SEP_USE_GUI=ON";
+    return false;
+#endif
 }
 
 void OandaTraderApp::setupImGui() {
@@ -123,6 +128,7 @@ void OandaTraderApp::setupImGui() {
 void OandaTraderApp::run() {
     sep::apps::cuda::initializeCudaDevice(cuda_context_);
 
+#ifdef SEP_USE_GUI
     while (!glfwWindowShouldClose(window_)) {
         // Perform forward-looking window calculations
         if (oanda_connected_ && !market_history_.empty()) {
@@ -139,7 +145,6 @@ void OandaTraderApp::run() {
         }
         glfwPollEvents();
         
-#ifdef SEP_USE_GUI
         // Start the Dear ImGui frame
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplGlfw_NewFrame();
@@ -156,10 +161,38 @@ void OandaTraderApp::run() {
         glClearColor(0.06f, 0.08f, 0.12f, 1.00f);
         glClear(GL_COLOR_BUFFER_BIT);
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-#endif
         
         glfwSwapBuffers(window_);
     }
+#else
+    // Headless mode - run without GUI
+    std::cout << "Running in headless mode..." << std::endl;
+    
+    // Run processing loop without GUI
+    bool running = true;
+    while (running) {
+        // Perform forward-looking window calculations
+        if (oanda_connected_ && !market_history_.empty()) {
+            std::vector<sep::apps::cuda::TickData> ticks;
+            {
+                std::lock_guard<std::mutex> lock(market_history_mutex_);
+                ticks.reserve(market_history_.size());
+                for (const auto& md : market_history_) {
+                    ticks.push_back({md.mid, md.bid, md.ask, md.timestamp, md.volume});
+                }
+            }
+            const uint64_t window_size_ns = 24ULL * 3600ULL * 1000000000ULL; // 24 hours
+            sep::apps::cuda::calculateForwardWindowsCuda(cuda_context_, ticks, forward_window_results_, window_size_ns);
+        }
+        
+        // Sleep briefly to avoid busy-waiting
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        
+        // Simple exit condition for headless mode (could be improved)
+        static int iterations = 0;
+        if (++iterations > 1000) running = false;
+    }
+#endif
 }
 
 void OandaTraderApp::renderMainInterface() {

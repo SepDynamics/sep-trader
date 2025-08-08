@@ -57,11 +57,7 @@ if [ "$SKIP_DOCKER" = true ] || ! "$DOCKER_BIN" info >/dev/null 2>&1; then
         CUDA_FLAGS="-DSEP_USE_CUDA=OFF"
     fi
     
-    cmake .. -G Ninja -DCMAKE_BUILD_TYPE=Release $CUDA_FLAGS \
-        -DCMAKE_CXX_COMPILER=g++ -DCMAKE_C_COMPILER=gcc \
-        -DCMAKE_BUILD_WITH_INSTALL_RPATH=ON \
-        -DCMAKE_EXPORT_COMPILE_COMMANDS=TRUE \
-        -DSEP_USE_GUI=OFF
+    cmake .. -G Ninja -DCMAKE_BUILD_TYPE=Release $CUDA_FLAGS         -DCMAKE_CXX_COMPILER=g++ -DCMAKE_C_COMPILER=gcc         -DCMAKE_BUILD_WITH_INSTALL_RPATH=ON         -DCMAKE_EXPORT_COMPILE_COMMANDS=TRUE         -DSEP_USE_GUI=OFF         -DCMAKE_CXX_FLAGS="-Wno-error=pedantic"         -DCMAKE_CUDA_FLAGS="-Wno-deprecated-gpu-targets"
     ninja -k 0 2>&1 | tee ../output/build_log.txt
     
     # Copy compile_commands.json for IDE integration

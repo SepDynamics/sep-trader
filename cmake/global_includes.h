@@ -9,6 +9,7 @@
 #include "engine/internal/glm_config.h"
 
 // Step 3: Include other essential headers that should be available globally
+#include <array>
 #include <vector>
 #include <string>
 #include <memory>
