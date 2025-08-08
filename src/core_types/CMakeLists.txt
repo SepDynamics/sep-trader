@@ -8,6 +8,6 @@ target_include_directories(sep_core_types PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}
 )
 
-target_link_libraries(sep_core_types PUBLIC sep_global_includes tbb)
+target_link_libraries(sep_core_types PUBLIC sep_global_includes TBB::tbb)
 
 target_compile_features(sep_core_types PUBLIC cxx_std_17)
