@@ -1,7 +1,5 @@
 #include "enhanced_market_model_cache.hpp"
 
-#include <sep_precompiled.h>
-
 #include <algorithm>
 #include <cmath>
 #include <filesystem>
@@ -11,6 +9,7 @@
 #include <thread>
 
 #include "../nlohmann_json_protected.h"
+#include "sep_precompiled.h"
 
 namespace sep::cache {
 

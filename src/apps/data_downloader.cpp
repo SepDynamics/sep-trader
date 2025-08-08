@@ -1,5 +1,5 @@
-#include <sep_precompiled.h>
 #include "connectors/oanda_connector.h"
+#include "sep_precompiled.h"
 
 int main() {
     // Replace with your actual API key and account ID for testing

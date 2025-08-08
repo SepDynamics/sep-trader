@@ -1,8 +1,10 @@
-#include <sep_precompiled.h>
-#include "oanda_trader_app.hpp"
-#include <iostream>
-#include <exception>
 #include <signal.h>
+
+#include <exception>
+#include <iostream>
+
+#include "oanda_trader_app.hpp"
+#include "sep_precompiled.h"
 
 // Declare signal handling functions and constants
 extern "C" {

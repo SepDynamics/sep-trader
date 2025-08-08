@@ -129,37 +129,37 @@ struct PatternAnalysisConfig {
  */
 class TickerPatternAnalyzer {
 public:
-    explicit TickerPatternAnalyzer(const PatternAnalysisConfig& config = {});
+    explicit TickerPatternAnalyzer(const sep::trading::PatternAnalysisConfig& config = {});
     ~TickerPatternAnalyzer();
 
     // Core analysis interface
-    TickerPatternAnalysis analyzeTicker(const std::string& ticker_symbol);
-    std::future<TickerPatternAnalysis> analyzeTickerAsync(const std::string& ticker_symbol);
+    sep::trading::TickerPatternAnalysis analyzeTicker(const std::string& ticker_symbol);
+    std::future<sep::trading::TickerPatternAnalysis> analyzeTickerAsync(const std::string& ticker_symbol);
     
     // Batch analysis
-    std::vector<TickerPatternAnalysis> analyzeMultipleTickers(
+    std::vector<sep::trading::TickerPatternAnalysis> analyzeMultipleTickers(
         const std::vector<std::string>& ticker_symbols);
-    std::future<std::vector<TickerPatternAnalysis>> analyzeMultipleTickersAsync(
+    std::future<std::vector<sep::trading::TickerPatternAnalysis>> analyzeMultipleTickersAsync(
         const std::vector<std::string>& ticker_symbols);
     
     // Real-time analysis
     void startRealTimeAnalysis(const std::string& ticker_symbol);
     void stopRealTimeAnalysis(const std::string& ticker_symbol);
-    TickerPatternAnalysis getLatestAnalysis(const std::string& ticker_symbol) const;
+    sep::trading::TickerPatternAnalysis getLatestAnalysis(const std::string& ticker_symbol) const;
     
     // Historical analysis
-    std::vector<TickerPatternAnalysis> getHistoricalAnalysis(
+    std::vector<sep::trading::TickerPatternAnalysis> getHistoricalAnalysis(
         const std::string& ticker_symbol,
         std::chrono::system_clock::time_point start_time,
         std::chrono::system_clock::time_point end_time) const;
     
     // Configuration management
-    void updateConfig(const PatternAnalysisConfig& config);
-    PatternAnalysisConfig getCurrentConfig() const;
+    void updateConfig(const sep::trading::PatternAnalysisConfig& config);
+    sep::trading::PatternAnalysisConfig getCurrentConfig() const;
     
     // Pattern comparison and correlation
-    double calculatePatternSimilarity(const TickerPatternAnalysis& analysis1,
-                                     const TickerPatternAnalysis& analysis2);
+    double calculatePatternSimilarity(const sep::trading::TickerPatternAnalysis& analysis1,
+                                     const sep::trading::TickerPatternAnalysis& analysis2);
     std::vector<std::string> findSimilarPatterns(const std::string& ticker_symbol,
                                                 double similarity_threshold = 0.8);
     
@@ -216,7 +216,7 @@ public:
     
 private:
     // Core analysis implementation
-    TickerPatternAnalysis performQuantumAnalysis(const std::string& ticker_symbol);
+    sep::trading::TickerPatternAnalysis performQuantumAnalysis(const std::string& ticker_symbol);
     
     // Data acquisition
     std::vector<sep::connectors::MarketData> fetchMarketData(
@@ -229,35 +229,35 @@ private:
         const std::vector<sep::connectors::MarketData>& market_data);
     
     // Multi-timeframe analysis
-    std::vector<TickerPatternAnalysis::TimeframeAnalysis> analyzeTimeframes(
+    std::vector<sep::trading::TickerPatternAnalysis::TimeframeAnalysis> analyzeTimeframes(
         const std::string& ticker_symbol);
     bool validateCrossTimeframeSignals(
-        const std::vector<TickerPatternAnalysis::TimeframeAnalysis>& timeframe_analyses);
+        const std::vector<sep::trading::TickerPatternAnalysis::TimeframeAnalysis>& timeframe_analyses);
     
     // Pattern classification
-    TickerPatternAnalysis::PatternType classifyPattern(
+    sep::trading::TickerPatternAnalysis::PatternType classifyPattern(
         const std::vector<sep::connectors::MarketData>& market_data,
         const sep::quantum::QFHResult& qfh_result);
     
     // Signal generation
-    void generateTradingSignals(TickerPatternAnalysis& analysis);
-    double calculateSignalConfidence(const TickerPatternAnalysis& analysis);
+    void generateTradingSignals(sep::trading::TickerPatternAnalysis& analysis);
+    double calculateSignalConfidence(const sep::trading::TickerPatternAnalysis& analysis);
     
     // Risk assessment
-    void performRiskAssessment(TickerPatternAnalysis& analysis);
+    void performRiskAssessment(sep::trading::TickerPatternAnalysis& analysis);
     double calculateDrawdownRisk(const std::vector<sep::connectors::MarketData>& market_data);
     
     // Pattern evolution prediction
-    void predictPatternEvolution(TickerPatternAnalysis& analysis);
+    void predictPatternEvolution(sep::trading::TickerPatternAnalysis& analysis);
     std::string getNextPatternPrediction(const std::vector<std::string>& evolution_path);
     
     // Caching and persistence
     std::string getCacheKey(const std::string& ticker_symbol) const;
-    void cacheAnalysisResult(const TickerPatternAnalysis& analysis);
-    std::optional<TickerPatternAnalysis> getCachedAnalysis(const std::string& cache_key) const;
+    void cacheAnalysisResult(const sep::trading::TickerPatternAnalysis& analysis);
+    std::optional<sep::trading::TickerPatternAnalysis> getCachedAnalysis(const std::string& cache_key) const;
     
     // Configuration and state
-    PatternAnalysisConfig config_;
+    sep::trading::PatternAnalysisConfig config_;
     mutable std::mutex config_mutex_;
     
     // Component instances
@@ -268,11 +268,11 @@ private:
     // Real-time analysis state
     std::map<std::string, std::atomic<bool>> real_time_active_;
     std::map<std::string, std::thread> real_time_threads_;
-    std::map<std::string, TickerPatternAnalysis> latest_analyses_;
+    std::map<std::string, sep::trading::TickerPatternAnalysis> latest_analyses_;
     mutable std::mutex real_time_mutex_;
     
     // Analysis cache
-    mutable std::map<std::string, TickerPatternAnalysis> analysis_cache_;
+    mutable std::map<std::string, sep::trading::TickerPatternAnalysis> analysis_cache_;
     mutable std::mutex cache_mutex_;
     
     // Performance tracking

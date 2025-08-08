@@ -1,4 +1,3 @@
-#include <sep_precompiled.h>
 #include "ticker_pattern_analyzer.hpp"
 
 #include <iomanip>
@@ -6,10 +5,11 @@
 #include <thread>
 
 #include "quantum/types.h"
+#include "sep_precompiled.h"
 
 namespace sep::trading {
 
-TickerPatternAnalyzer::TickerPatternAnalyzer(const PatternAnalysisConfig& config) 
+TickerPatternAnalyzer::TickerPatternAnalyzer(const sep::trading::PatternAnalysisConfig& config) 
     : config_(config) {
     
     // Initialize quantum components
@@ -170,7 +170,7 @@ TickerPatternAnalysis TickerPatternAnalyzer::getLatestAnalysis(const std::string
     return empty;
 }
 
-void TickerPatternAnalyzer::updateConfig(const PatternAnalysisConfig& config) {
+void TickerPatternAnalyzer::updateConfig(const sep::trading::PatternAnalysisConfig& config) {
     std::lock_guard<std::mutex> lock(config_mutex_);
     config_ = config;
 }

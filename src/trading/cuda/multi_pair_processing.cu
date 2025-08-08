@@ -1,5 +1,8 @@
-// CRITICAL: For CUDA compilation, apply comprehensive std::array protection
-#include "../../array_protection.h"
+// CRITICAL: For CUDA compilation, include ALL necessary headers early
+#include <cstddef>
+#include <array>
+#include <functional>
+#include <vector>
 
 #ifdef SEP_USE_CUDA
 #include <cuda_runtime.h>

@@ -1,11 +1,11 @@
-#include <sep_precompiled.h>
-#include <cuda_runtime.h>
 #include "memory/quantum_coherence_manager.h"
-#include "engine/internal/cuda_types.hpp"
+
+#include <cuda_runtime.h>
 
 #include "engine/internal/core.h"
 #include "engine/internal/cuda_helpers.h"
 #include "engine/internal/cuda_sep.h"
+#include "engine/internal/cuda_types.hpp"
 #include "engine/internal/memory.h"
 #include "engine/internal/types.h"
 #include "memory/memory_tier_manager.hpp"
@@ -13,6 +13,7 @@
 #include "quantum/pattern_evolution_bridge.h"
 #include "quantum/quantum_manifold_optimizer.h"
 #include "quantum/quantum_processor_qfh.h"
+#include "sep_precompiled.h"
 
 using sep::config::CudaConfig;
 using sep::memory::MemoryTierEnum;

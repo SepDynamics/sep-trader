@@ -1,0 +1,43 @@
+{
+    "name": "SEP Trading System Development",
+    "image": "sep_build_env:latest",
+    "workspaceFolder": "/workspace",
+    "workspaceMount": "source=${localWorkspaceFolder},target=/workspace,type=bind",
+    
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "ms-vscode.cpptools-extension-pack",
+                "ms-vscode.cmake-tools",
+                "nvidia.nsight-vscode-edition"
+            ],
+            "settings": {
+                "C_Cpp.default.compilerPath": "/usr/bin/g++-11",
+                "C_Cpp.default.cStandard": "c17",
+                "C_Cpp.default.cppStandard": "c++17",
+                "C_Cpp.default.includePath": [
+                    "/workspace/src/**",
+                    "/usr/include/**",
+                    "/usr/local/cuda/include",
+                    "/workspace/build/_deps/*/include"
+                ],
+                "cmake.configureSettings": {
+                    "CMAKE_BUILD_TYPE": "Debug",
+                    "CMAKE_CXX_COMPILER": "/usr/bin/g++-11",
+                    "CMAKE_C_COMPILER": "/usr/bin/gcc-11"
+                }
+            }
+        }
+    },
+    
+    "runArgs": [
+        "--gpus=all",
+        "--privileged"
+    ],
+    
+    "postCreateCommand": "cd /workspace && cmake -B build -G Ninja",
+    
+    "forwardPorts": [8080, 5432],
+    
+    "remoteUser": "root"
+}

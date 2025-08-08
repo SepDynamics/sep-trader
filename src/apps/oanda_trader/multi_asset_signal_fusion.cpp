@@ -1,10 +1,13 @@
-#include <sep_precompiled.h>
 #include "multi_asset_signal_fusion.hpp"
-#include <algorithm>
-#include <numeric>
-#include <cmath>
-#include <spdlog/spdlog.h>
+
 #include <fmt/format.h>
+#include <spdlog/spdlog.h>
+
+#include <algorithm>
+#include <cmath>
+#include <numeric>
+
+#include "sep_precompiled.h"
 
 namespace sep {
 

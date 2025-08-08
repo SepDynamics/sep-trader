@@ -1,14 +1,12 @@
 #pragma once
 
-// CRITICAL: Include comprehensive array protection FIRST
-#include "../../array_protection.h"
+// CRITICAL: Include nlohmann_json_protected.h FIRST to ensure proper array setup
+#include "../../nlohmann_json_protected.h"
 
-// 1. Include <array> immediately after the protection header.
-// This ensures std::array is defined before any other standard headers
-// that might depend on it (like <functional>).
+// Include array early and often to prevent conflicts
 #include <array>
 
-// 4. NOW include all other essential standard library and third-party headers.
+// Now include standard library headers in safe order
 #include <vector>
 #include <string>
 #include <memory>
@@ -33,7 +31,6 @@
 #include <unordered_map>
 #include <set>
 #include <unordered_set>
-#include "../../nlohmann_json_protected.h"
 
 // 5. AT THE VERY END, forcefully undefine any conflicting macro again.
 // This ensures that when the compiler proceeds to actual .cpp/.cu source files,

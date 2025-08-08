@@ -1,5 +1,5 @@
 // CRITICAL: For CUDA compilation, use precompiled header for array protection
-#include <sep_precompiled.h>
+#include "sep_precompiled.h"
 
 // Include compatibility header first to handle math function conflicts
 #ifdef SEP_USE_CUDA

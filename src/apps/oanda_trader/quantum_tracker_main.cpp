@@ -1,8 +1,9 @@
-#include <sep_precompiled.h>
-#include "quantum_tracker_app.hpp"
+#include <chrono>
 #include <iostream>
 #include <thread>
-#include <chrono>
+
+#include "quantum_tracker_app.hpp"
+#include "sep_precompiled.h"
 
 void runHeadlessService() {
     std::cout << "🔮 SEP Quantum Tracker - HEADLESS SERVICE MODE" << std::endl;

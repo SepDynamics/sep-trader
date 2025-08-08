@@ -9,10 +9,10 @@
 #include <string>
 #include <vector>
 
+#include "engine/internal/standard_includes.h"
 #include "connectors/oanda_connector.h"
 #include "core_types/result.h"
 #include "engine/facade/facade.h"
-#include "engine/internal/standard_includes.h"
 #include "quantum/bitspace/qfh.h"
 #include "quantum/pattern_evolution_bridge.h"
 #include "quantum/quantum_manifold_optimizer.h"
@@ -64,7 +64,7 @@ struct PairTrainingResult {
     double profitability_score = 0.0;  // (High-Conf Accuracy - 50) × Signal Rate
     
     // Optimized parameters
-    QuantumTrainingConfig optimized_config;
+    sep::trading::QuantumTrainingConfig optimized_config;
     
     // Training metadata
     std::chrono::system_clock::time_point training_start;
@@ -87,17 +87,17 @@ struct PairTrainingResult {
  */
 class QuantumPairTrainer {
 public:
-    explicit QuantumPairTrainer(const QuantumTrainingConfig& config = {});
+    explicit QuantumPairTrainer(const sep::trading::QuantumTrainingConfig& config = {});
     ~QuantumPairTrainer();
 
     // Core training interface
-    std::future<PairTrainingResult> trainPairAsync(const std::string& pair_symbol);
-    PairTrainingResult trainPair(const std::string& pair_symbol);
+    std::future<sep::trading::PairTrainingResult> trainPairAsync(const std::string& pair_symbol);
+    sep::trading::PairTrainingResult trainPair(const std::string& pair_symbol);
     
     // Batch training operations
-    std::future<std::vector<PairTrainingResult>> trainMultiplePairsAsync(
+    std::future<std::vector<sep::trading::PairTrainingResult>> trainMultiplePairsAsync(
         const std::vector<std::string>& pair_symbols);
-    std::vector<PairTrainingResult> trainMultiplePairs(
+    std::vector<sep::trading::PairTrainingResult> trainMultiplePairs(
         const std::vector<std::string>& pair_symbols);
     
     // Training management
@@ -107,12 +107,12 @@ public:
     void resumeTraining();
     
     // Configuration management
-    void updateConfig(const QuantumTrainingConfig& config);
-    QuantumTrainingConfig getCurrentConfig() const;
+    void updateConfig(const sep::trading::QuantumTrainingConfig& config);
+    sep::trading::QuantumTrainingConfig getCurrentConfig() const;
     
     // Performance analysis
-    std::vector<PairTrainingResult> getTrainingHistory() const;
-    PairTrainingResult getLastTrainingResult(const std::string& pair_symbol) const;
+    std::vector<sep::trading::PairTrainingResult> getTrainingHistory() const;
+    sep::trading::PairTrainingResult getLastTrainingResult(const std::string& pair_symbol) const;
     
     // Pattern management
     void saveTrainedPatterns(const std::string& pair_symbol, 
@@ -126,7 +126,7 @@ public:
     
 private:
     // Core training implementation
-    PairTrainingResult performQuantumTraining(const std::string& pair_symbol);
+    sep::trading::PairTrainingResult performQuantumTraining(const std::string& pair_symbol);
     
     // Data preparation
     std::vector<sep::connectors::MarketData> fetchTrainingData(
@@ -140,11 +140,11 @@ private:
         const std::vector<sep::connectors::MarketData>& market_data);
     
     // Parameter optimization
-    QuantumTrainingConfig optimizeParameters(
+    sep::trading::QuantumTrainingConfig optimizeParameters(
         const std::string& pair_symbol,
         const std::vector<sep::connectors::MarketData>& training_data);
     double evaluateParameterSet(
-        const QuantumTrainingConfig& config,
+        const sep::trading::QuantumTrainingConfig& config,
         const std::vector<sep::connectors::MarketData>& data);
     
     // Multi-timeframe analysis
@@ -155,15 +155,15 @@ private:
     
     // Performance calculation
     double calculateAccuracy(const std::vector<sep::connectors::MarketData>& data,
-                           const QuantumTrainingConfig& config);
+                           const sep::trading::QuantumTrainingConfig& config);
     double calculateProfitabilityScore(double accuracy, double signal_rate);
     
     // Persistence
-    void saveTrainingResult(const PairTrainingResult& result);
-    PairTrainingResult loadTrainingResult(const std::string& pair_symbol);
+    void saveTrainingResult(const sep::trading::PairTrainingResult& result);
+    sep::trading::PairTrainingResult loadTrainingResult(const std::string& pair_symbol);
     
     // Training state
-    QuantumTrainingConfig config_;
+    sep::trading::QuantumTrainingConfig config_;
     std::atomic<bool> training_active_{false};
     std::atomic<bool> training_paused_{false};
     std::atomic<bool> cancellation_requested_{false};
@@ -181,7 +181,7 @@ private:
     std::unique_ptr<sep::connectors::OandaConnector> oanda_connector_;
     
     // Training results storage
-    std::map<std::string, std::vector<PairTrainingResult>> training_history_;
+    std::map<std::string, std::vector<sep::trading::PairTrainingResult>> training_history_;
     std::map<std::string, std::vector<sep::quantum::Pattern>> trained_patterns_;
     
     // Training statistics
@@ -192,7 +192,7 @@ private:
     // Cache management
     std::string getCacheKey(const std::string& pair_symbol) const;
     bool isCacheValid(const std::string& cache_key) const;
-    void updateCache(const std::string& cache_key, const PairTrainingResult& result);
+    void updateCache(const std::string& cache_key, const sep::trading::PairTrainingResult& result);
 };
 
 } // namespace sep::trading

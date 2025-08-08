@@ -1,17 +1,11 @@
+#include "sep_precompiled.h"
+
 #include <fmt/format.h>
-#include <sep_precompiled.h>
 #include <spdlog/spdlog.h>
 
-#include <algorithm>
-#include <array>
-#include <chrono>
 #include <iomanip>
-#include <iostream>
-#include <map>
-#include <sstream>
-#include <string>
-#include <thread>
-#include <vector>
+#include <algorithm>
+#include <ctime>
 
 #include "core_types/result.h"
 #include "dynamic_pair_manager.hpp"
@@ -446,7 +440,12 @@ For more information, see: https://sep.trading/docs/quantum-training
                 
                 // Format time separately to avoid formatter issues
                 std::stringstream time_ss;
-                time_ss << std::put_time(std::localtime(&time_t), "%H:%M:%S");
+                auto local_time = std::localtime(&time_t);
+                if (local_time) {
+                    time_ss << ::std::put_time(local_time, "%H:%M:%S");
+                } else {
+                    time_ss << "00:00:00";
+                }
                 
                 std::cout << fmt::format("[{}] {} - Signal: {} ({:.1f}%) Coherence: {:.3f}\n",
                     time_ss.str(),
@@ -601,8 +600,11 @@ For more information, see: https://sep.trading/docs/quantum-training
             if (result.training_successful) {
                 auto time_t = std::chrono::system_clock::to_time_t(result.training_end);
                 std::stringstream ss;
-                ss << std::put_time(std::localtime(&time_t), "%m/%d %H:%M");
-                last_trained = ss.str();
+                auto local_time = std::localtime(&time_t);
+                if (local_time) {
+                    ss << ::std::put_time(local_time, "%m/%d %H:%M");
+                    last_trained = ss.str();
+                }
             }
             
             std::cout << fmt::format("{:<12} {:<10} {:<11} {:<10} {:<12}\n",
@@ -815,7 +817,6 @@ int main(int argc, char* argv[]) {
         
     } catch (const std::exception& e) {
         spdlog::error("Fatal error: " + std::string(e.what()));
-        std::cerr << "❌ Fatal error: " << e.what() << std::endl;
         return 1;
     }
 }

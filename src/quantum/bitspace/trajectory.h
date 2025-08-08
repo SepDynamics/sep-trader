@@ -31,12 +31,12 @@ struct DampedValue {
 // Manages a trajectory and calculates its damped value
 class Trajectory {
 public:
-    explicit Trajectory(std::vector<TrajectoryPoint> points, DecayModel model = DecayModel::EXPONENTIAL)
+    explicit Trajectory(std::vector<sep::quantum::bitspace::TrajectoryPoint> points, sep::quantum::bitspace::DecayModel model = sep::quantum::bitspace::DecayModel::EXPONENTIAL)
         : points_(std::move(points)), decay_model_(model) {}
 
     // Calculates the damped value by integrating future points
-    DampedValue calculateDampedValue(double decay_rate = 0.1, double convergence_threshold = 1e-5, int max_iterations = 100) {
-        DampedValue result;
+    sep::quantum::bitspace::DampedValue calculateDampedValue(double decay_rate = 0.1, double convergence_threshold = 1e-5, int max_iterations = 100) {
+        sep::quantum::bitspace::DampedValue result;
         if (points_.empty()) {
             return result;
         }
@@ -83,8 +83,8 @@ private:
         }
     }
 
-    std::vector<TrajectoryPoint> points_;
-    DecayModel decay_model_;
+    std::vector<sep::quantum::bitspace::TrajectoryPoint> points_;
+    sep::quantum::bitspace::DecayModel decay_model_;
 };
 
 } // namespace sep::quantum::bitspace

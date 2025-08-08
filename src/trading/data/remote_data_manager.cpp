@@ -1,11 +1,10 @@
-#include "../../array_protection.h"
 #include "remote_data_manager.hpp"
 
 #include <curl/curl.h>
 #include <hiredis/hiredis.h>
-#include <sep_precompiled.h>
 #include <spdlog/spdlog.h>
 
+#include <array>
 #include <filesystem>
 #include <fstream>
 #include <mutex>
@@ -15,6 +14,7 @@
 
 #include "../nlohmann_json_protected.h"
 #include "common/pqxx_time_point_traits.h"  // Must come after pqxx include
+#include "sep_precompiled.h"
 // #include <compression/gzip.hpp> // Optional compression - not available
 
 namespace sep::trading {

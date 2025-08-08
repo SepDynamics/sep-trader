@@ -27,7 +27,7 @@ add_compile_definitions(
 
 add_compile_options(
     -Wall -Wextra -Wpedantic -O3
-    "-include" "${CMAKE_SOURCE_DIR}/src/array_fix.h"  # Force include array fix header
+    "-include" "${CMAKE_SOURCE_DIR}/src/simple_array_fix.h"
 )
 
 if(SEP_USE_TBB)
@@ -62,9 +62,15 @@ set(CUDA_USE_STATIC_CUDA_RUNTIME OFF)
     
     # Now enable CUDA language
     enable_language(CUDA)
-    find_package(CUDAToolkit REQUIRED COMPONENTS cudart nvml)
+    find_package(CUDAToolkit REQUIRED)
     message(STATUS "Found CUDAToolkit")
-    message(STATUS "CUDA Libraries: ${CUDAToolkit_LIBRARIES}")
+    message(STATUS "CUDA Libraries: ${CUDAToolkit_LIBRARY_DIR}")
+    
+    # Explicitly set CUDA libraries
+    set(CUDA_LIBRARIES 
+        CUDA::cudart
+        CUDA::cuda_driver
+    )
     
     # Print CUDA configuration for debugging
     message(STATUS "CUDA Home: $ENV{CUDA_HOME}")

@@ -1,5 +1,6 @@
-#include <sep_precompiled.h>
 #include "oanda_trader_app.hpp"
+
+#include "sep_precompiled.h"
 
 #ifdef SEP_USE_GUI
 #include <GL/gl.h>

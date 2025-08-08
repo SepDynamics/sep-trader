@@ -1,7 +1,9 @@
-#include <sep_precompiled.h>
-#include <cuda_runtime.h>
 #include "quantum/coherence_manager.h"
+
+#include <cuda_runtime.h>
+
 #include "engine/internal/cuda_types.hpp"
+#include "sep_precompiled.h"
 
 #ifdef __CUDACC__
 #ifdef SEP_USE_CUDA
