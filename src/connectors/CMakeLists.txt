@@ -23,7 +23,6 @@ target_link_libraries(sep_connectors PUBLIC
     sep_engine
     ${CURL_LIBRARIES}
     nlohmann_json::nlohmann_json
-    sep_global_includes
     TBB::tbb
 )
 

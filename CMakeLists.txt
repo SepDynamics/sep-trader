@@ -19,11 +19,15 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
+# GLOBAL FIX: Force include array header using precompiled header approach
+add_compile_definitions(
+    _GLIBCXX_DEBUG_PEDANTIC=0  # Disable pedantic debug checks
+    _GLIBCXX_CONCEPT_CHECKS=0  # Disable concept checks that might interfere
+)
+
 add_compile_options(
     -Wall -Wextra -Wpedantic -O3
-
-    -D_GLIBCXX_DEBUG_PEDANTIC=0  # Disable pedantic debug checks
-    -D_GLIBCXX_CONCEPT_CHECKS=0  # Disable concept checks that might interfere
+    "-include" "${CMAKE_SOURCE_DIR}/src/array_fix.h"  # Force include array fix header
 )
 
 if(SEP_USE_TBB)
@@ -32,7 +36,7 @@ endif()
 
 
 # Set up CUDA support
-option(SEP_USE_CUDA "Enable CUDA support" OFF)
+option(SEP_USE_CUDA "Enable CUDA support" ON)
 option(SEP_USE_GUI "Enable GUI support (ImGui)" OFF)
 # Force GUI to be completely disabled for professional CLI system
 set(SEP_USE_GUI OFF CACHE BOOL "GUI disabled for professional CLI trading system" FORCE)
@@ -97,14 +101,7 @@ include(cmake/gtest.cmake)
 
 find_package(PostgreSQL REQUIRED)
 
-
-
 include(FetchContent)
-
-# Interface library for global include header
-add_library(sep_global_includes INTERFACE)
-target_include_directories(sep_global_includes INTERFACE ${CMAKE_SOURCE_DIR}/src)
-target_compile_options(sep_global_includes INTERFACE -include ${CMAKE_SOURCE_DIR}/cmake/global_includes.h)
 
 FetchContent_Declare(
   glm

@@ -13,7 +13,6 @@ add_sep_library(sep_memory
         TBB::tbb
         CUDA::cudart
         CUDA::cuda_driver
-        sep_global_includes
         spdlog::spdlog
         hiredis
 )

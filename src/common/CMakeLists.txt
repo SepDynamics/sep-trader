@@ -2,7 +2,6 @@ add_sep_library(sep_common
     SOURCES
         financial_data_types.cpp
     DEPENDENCIES
-        sep_global_includes
 )
 
 target_include_directories(sep_common PUBLIC

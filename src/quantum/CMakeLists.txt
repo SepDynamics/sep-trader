@@ -30,7 +30,6 @@ add_sep_library(sep_quantum
     CUDA::cudart
     CUDA::cuda_driver
     TBB::tbb
-    sep_global_includes
     spdlog::spdlog
 )
 

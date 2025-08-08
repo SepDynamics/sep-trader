@@ -2,8 +2,10 @@
 
 # ENABLED: data_downloader
 add_executable(data_downloader data_downloader.cpp)
+
+# REMOVED: Problematic forced include
+
 target_link_libraries(data_downloader PRIVATE
-    sep_global_includes
     sep_trading
     sep_connectors
     sep_common

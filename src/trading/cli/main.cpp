@@ -1,10 +1,11 @@
-#include "../../array_protection.h"
-#include <sep_precompiled.h>
+#include <array>  // CRITICAL: Force array include first
+#include <algorithm>  // CRITICAL: For std::begin/std::end
+#include <iomanip>  // CRITICAL: Force iomanip include for std::put_time
+#include "../../common/sep_precompiled.h"
 #include <fmt/format.h>
 #include <spdlog/spdlog.h>
 
 #include <chrono>
-#include <iomanip>
 #include <iostream>
 #include <map>
 #include <sstream>
@@ -637,7 +638,7 @@ For more information, see: https://sep.trading/docs/quantum-training
         }
         
         try {
-            pair_manager_->enablePair(pair);
+            pair_manager_->enablePairAsync(pair);
             std::cout << fmt::format("✅ {} enabled for trading\n", pair);
             return 0;
         } catch (const std::exception& e) {
@@ -655,7 +656,7 @@ For more information, see: https://sep.trading/docs/quantum-training
         std::string pair = args[0];
         
         try {
-            pair_manager_->disablePair(pair);
+            pair_manager_->disablePairAsync(pair);
             std::cout << fmt::format("⏸️  {} disabled from trading\n", pair);
             return 0;
         } catch (const std::exception& e) {
@@ -806,7 +807,7 @@ For more information, see: https://sep.trading/docs/quantum-training
 
 int main(int argc, char* argv[]) {
     try {
-        spdlog::set_level(spdlog::level::info);
+        spdlog::default_logger()->set_level(spdlog::level::info);
         spdlog::info("SEP Quantum Trading Training CLI starting...");
         
         QuantumTrainingCLI cli;

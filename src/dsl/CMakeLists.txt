@@ -41,7 +41,8 @@ target_include_directories(sep_dsl PUBLIC
 target_compile_features(sep_dsl PUBLIC cxx_std_17)
 
 # Link against engine for builtin functions and nlohmann_json for serialization
-target_link_libraries(sep_dsl PRIVATE sep_engine nlohmann_json::nlohmann_json sep_global_includes TBB::tbb spdlog::spdlog fmt::fmt)
+
+# REMOVED: Problematic forced include
 
 # Add compiler flags
 target_compile_options(sep_dsl PRIVATE
@@ -64,9 +65,10 @@ add_executable(sep_dsl_interpreter
     main.cpp
 )
 
+# REMOVED: Problematic forced include
+
 # Link the interpreter executable with the DSL library and engine
 target_link_libraries(sep_dsl_interpreter PRIVATE 
-    sep_global_includes 
     sep_dsl 
     sep_engine 
     sep_trading 

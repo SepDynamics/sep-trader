@@ -17,7 +17,6 @@ target_link_libraries(sep_api PUBLIC
     sep_core
     sep_config
     Threads::Threads
-    sep_global_includes
     TBB::tbb
 )
 

@@ -2,8 +2,8 @@
 
 #include <curl/curl.h>
 
-#include <algorithm>
 #include <array>
+#include <algorithm>
 #include <atomic>
 #include <iterator>
 #include <mutex>

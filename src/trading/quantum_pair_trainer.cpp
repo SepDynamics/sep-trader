@@ -1,4 +1,3 @@
-#include "../array_protection.h"
 #include "quantum_pair_trainer.hpp"
 #include <stdexcept>
 #include <thread>
