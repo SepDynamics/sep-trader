@@ -1,5 +1,5 @@
+#include <sep_precompiled.h>
 #include <cuda_runtime.h>
-#include "../array_protection.h"
 #include "quantum/coherence_manager.h"
 #include "engine/internal/cuda_types.hpp"
 

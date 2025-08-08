@@ -1,9 +1,9 @@
 #pragma once
-#include "engine/internal/standard_includes.h"
 #include <any>
 #include <string>
 #include <unordered_map>
 #include <vector>
+#include <memory>
 
 #include "dsl/ast/nodes.h"
 

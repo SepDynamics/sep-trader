@@ -1,11 +1,11 @@
-#include <array>  // CRITICAL: Force array include first
-#include <algorithm>  // CRITICAL: For std::begin/std::end
-#include <iomanip>  // CRITICAL: Force iomanip include for std::put_time
-#include "../../common/sep_precompiled.h"
 #include <fmt/format.h>
+#include <sep_precompiled.h>
 #include <spdlog/spdlog.h>
 
+#include <algorithm>
+#include <array>
 #include <chrono>
+#include <iomanip>
 #include <iostream>
 #include <map>
 #include <sstream>

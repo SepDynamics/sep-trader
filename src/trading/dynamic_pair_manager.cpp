@@ -1,9 +1,10 @@
-#include "../array_protection.h"
-#include <sep_precompiled.h>
 #include "dynamic_pair_manager.hpp"
-
 #include <algorithm>
 #include <regex>
+#include <iostream>
+#include <string>
+#include <vector>
+#include <memory>
 
 namespace sep::trading {
 

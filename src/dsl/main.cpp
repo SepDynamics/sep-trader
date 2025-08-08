@@ -1,15 +1,14 @@
-#include "../array_protection.h"
-#include <sep_precompiled.h>
+#include <iostream>
+#include <fstream>
+#include <sstream>
+#include <string>
+#include <memory>
 #include "lexer/lexer.h"
 #include "parser/parser.h"
 #include "runtime/interpreter.h"
 #include "engine/facade/facade.h"
 #include "core_types/result.h"
 #include "ast/serializer.h"
-#include <iostream>
-#include <fstream>
-#include <sstream>
-#include <string>
 
 void print_usage(const char* program_name) {
     std::cerr << "Usage: " << program_name << " [options] <script.sep>" << std::endl;

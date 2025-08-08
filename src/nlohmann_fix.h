@@ -14,9 +14,6 @@
 #undef array
 #endif
 
-// Ensure std namespace is fully available
-using std::array;
-
 // Workaround for certain compiler issues
 #ifndef _GLIBCXX_ARRAY
 #define _GLIBCXX_ARRAY 1

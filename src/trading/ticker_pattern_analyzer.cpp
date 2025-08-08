@@ -1,4 +1,3 @@
-#include "../array_protection.h"
 #include <sep_precompiled.h>
 #include "ticker_pattern_analyzer.hpp"
 

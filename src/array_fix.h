@@ -5,6 +5,11 @@
 #ifndef SEP_ARRAY_FIX_H
 #define SEP_ARRAY_FIX_H
 
+// Clean up any existing array macro pollution FIRST
+#ifdef array
+#undef array
+#endif
+
 // Force include array header to prevent "array is not a member of std" errors
 #include <array>
 
