@@ -24,7 +24,7 @@ target_link_libraries(sep_connectors PUBLIC
     ${CURL_LIBRARIES}
     nlohmann_json::nlohmann_json
     sep_global_includes
-    tbb
+    TBB::tbb
 )
 
 target_compile_options(sep_connectors PRIVATE ${CURL_CFLAGS_OTHER})

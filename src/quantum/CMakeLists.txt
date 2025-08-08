@@ -29,7 +29,7 @@ add_sep_library(sep_quantum
     nlohmann_json::nlohmann_json
     CUDA::cudart
     CUDA::cuda_driver
-    tbb
+    TBB::tbb
     sep_global_includes
     spdlog::spdlog
 )

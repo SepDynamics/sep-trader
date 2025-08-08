@@ -6,7 +6,7 @@ add_sep_library(sep_quantum_bitspace
     DEPENDENCIES
         sep_common
         fmt::fmt
-        tbb
+        TBB::tbb
 )
 
 target_include_directories(sep_quantum_bitspace PUBLIC
