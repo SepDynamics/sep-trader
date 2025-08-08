@@ -200,10 +200,12 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(fmt)
 
-# Ensure consistent spdlog header-only mode globally
-add_definitions(-DSPDLOG_HEADER_ONLY)
+# Find spdlog
+set(spdlog_DIR "/usr/lib64/cmake/spdlog")
+find_package(spdlog REQUIRED)
 
-# Removed spdlog build; header-only mode is sufficient
+# Ensure consistent spdlog header-only mode globally  
+add_definitions(-DSPDLOG_HEADER_ONLY)
 
 
 
