@@ -22,10 +22,13 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 add_compile_options(
     -Wall -Wextra -Wpedantic -O3
 
-    -DPSTL_USE_TBB          # Enable proper TBB integration with PSTL
     -D_GLIBCXX_DEBUG_PEDANTIC=0  # Disable pedantic debug checks
     -D_GLIBCXX_CONCEPT_CHECKS=0  # Disable concept checks that might interfere
 )
+
+if(SEP_USE_TBB)
+    add_compile_definitions(PSTL_USE_TBB)
+endif()
 
 
 # Set up CUDA support
@@ -141,14 +144,17 @@ if(SEP_USE_GUI)
 endif()
 
 
-# Fetch TBB (Thread Building Blocks)
-set(TBB_TEST OFF CACHE BOOL "Disable TBB tests")
-FetchContent_Declare(
-    tbb
-    GIT_REPOSITORY https://github.com/oneapi-src/oneTBB.git
-    GIT_TAG v2021.12.0
-)
-FetchContent_MakeAvailable(tbb)
+# Fetch TBB (Thread Building Blocks) only when explicitly enabled
+option(SEP_USE_TBB "Enable TBB support" OFF)
+if(SEP_USE_TBB)
+    set(TBB_TEST OFF CACHE BOOL "Disable TBB tests")
+    FetchContent_Declare(
+        tbb
+        GIT_REPOSITORY https://github.com/oneapi-src/oneTBB.git
+        GIT_TAG v2021.12.0
+    )
+    FetchContent_MakeAvailable(tbb)
+endif()
 
 
 if(SEP_USE_GUI)
