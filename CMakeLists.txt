@@ -142,6 +142,7 @@ endif()
 
 
 # Fetch TBB (Thread Building Blocks)
+set(TBB_TEST OFF CACHE BOOL "Disable TBB tests")
 FetchContent_Declare(
     tbb
     GIT_REPOSITORY https://github.com/oneapi-src/oneTBB.git
