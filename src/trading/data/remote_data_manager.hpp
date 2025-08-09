@@ -1,3 +1,4 @@
+#include "nlohmann_json_safe.h"
 #pragma once
 
 #include <chrono>
@@ -6,7 +7,6 @@
 #include <string>
 #include <vector>
 
-#include "../nlohmann_json_protected.h"
 #include "engine/internal/standard_includes.h"
 
 namespace sep::trading {
@@ -20,7 +20,7 @@ struct DataSyncConfig {
     std::string data_path = "/opt/sep-data";
     
     // Local cache settings
-    std::string local_cache_path = "/sep/.cache/remote_data";
+    std::string local_cache_path = ".cache/remote_data";
     int cache_ttl_hours = 24;
     bool enable_compression = true;
 };

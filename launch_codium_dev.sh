@@ -1,26 +1,27 @@
 #!/bin/bash
-
-# Launch VSCodium with the DevPod development container
+# Launch VSCodium with direct container integration
 set -e
 
 PROJECT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$PROJECT_DIR"
 
-# Build the Docker image first
-echo "Building Docker image: sep_build_env..."
-docker build -t sep_build_env -f "cache/devcontainer.bak/Dockerfile" "."
+# Source environment configuration if available
+if [ -f .sep-config.env ]; then
+    source .sep-config.env
+fi
 
-# Configure DevPod to use the Docker provider
-echo "Configuring DevPod provider..."
-devpod provider add docker || true # Fails silently if provider already exists
-devpod provider use docker
+# Set default workspace path if not defined
+SEP_WORKSPACE_PATH=${SEP_WORKSPACE_PATH:-/workspace}
+export SEP_WORKSPACE_PATH
 
+echo "🔌 Installing remote development extension for Codium..."
+codium --install-extension ms-vscode-remote.remote-containers --force
 
-echo "🚀 Starting SEP Trading System Development Environment with DevPod..."
+echo "🚀 Building development container image..."
+docker build -t sep-engine-builder -f .devcontainer/Dockerfile .
 
-# Start the DevPod environment
-devpod up .
+echo "🚀 Starting SEP Trading System Development Environment..."
 
-# Launch Codium
-echo "🎯 Launching Codium..."
-codium "$PROJECT_DIR"
+# Launch Codium with dev container
+echo "🎯 Launching Codium with container (workspace path: ${SEP_WORKSPACE_PATH})..."
+codium --folder-uri "vscode-remote://dev-container+${PROJECT_DIR}"

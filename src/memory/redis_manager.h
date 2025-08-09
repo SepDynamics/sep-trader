@@ -17,35 +17,35 @@ namespace sep::persistence {
 class IRedisManager {
 public:
     virtual ~IRedisManager() = default;
-    virtual void storePattern(std::uint64_t id, const persistence::PersistentPatternData& data,
+    virtual void storePattern(std::uint64_t id, const ::sep::persistence::PersistentPatternData& data,
                               const std::string& tier) = 0;
-    virtual std::optional<persistence::PersistentPatternData> loadPattern(
+    virtual std::optional<::sep::persistence::PersistentPatternData> loadPattern(
         std::uint64_t id, const std::string& tier) = 0;
     virtual std::vector<std::uint64_t> getPatternIds(const std::string& tier) = 0;
     virtual void removePattern(std::uint64_t id, const std::string& tier) = 0;
     virtual void bulkStore(
-        const std::vector<std::pair<std::uint64_t, persistence::PersistentPatternData>>& patterns,
+        const std::vector<std::pair<std::uint64_t, ::sep::persistence::PersistentPatternData>>& patterns,
         const std::string& tier) = 0;
-    virtual std::vector<persistence::PersistentPatternData> bulkLoad(
+    virtual std::vector<::sep::persistence::PersistentPatternData> bulkLoad(
         const std::vector<std::uint64_t>& ids, const std::string& tier) = 0;
     virtual bool isConnected() const = 0;
 };
 
-class RedisManager : public IRedisManager {
+class RedisManager : public ::sep::persistence::IRedisManager {
 public:
     RedisManager(const std::string& host, int port);
     ~RedisManager() override;
 
-    void storePattern(std::uint64_t id, const persistence::PersistentPatternData& data,
+    void storePattern(std::uint64_t id, const ::sep::persistence::PersistentPatternData& data,
                       const std::string& tier) override;
-    std::optional<persistence::PersistentPatternData> loadPattern(std::uint64_t id,
+    std::optional<::sep::persistence::PersistentPatternData> loadPattern(std::uint64_t id,
                                                                   const std::string& tier) override;
     std::vector<std::uint64_t> getPatternIds(const std::string& tier) override;
     void removePattern(std::uint64_t id, const std::string& tier) override;
     void bulkStore(
-        const std::vector<std::pair<std::uint64_t, persistence::PersistentPatternData>>& patterns,
+        const std::vector<std::pair<std::uint64_t, ::sep::persistence::PersistentPatternData>>& patterns,
         const std::string& tier) override;
-    std::vector<persistence::PersistentPatternData> bulkLoad(const std::vector<std::uint64_t>& ids,
+    std::vector<::sep::persistence::PersistentPatternData> bulkLoad(const std::vector<std::uint64_t>& ids,
                                                              const std::string& tier) override;
     bool isConnected() const override;
 
@@ -56,16 +56,16 @@ private:
         ~Impl();
         
         bool isConnected() const;
-        void storePattern(std::uint64_t id, const persistence::PersistentPatternData& data,
+        void storePattern(std::uint64_t id, const ::sep::persistence::PersistentPatternData& data,
                           const std::string& tier);
-        std::optional<persistence::PersistentPatternData> loadPattern(std::uint64_t id,
+        std::optional<::sep::persistence::PersistentPatternData> loadPattern(std::uint64_t id,
                                                                       const std::string& tier);
         std::vector<std::uint64_t> getPatternIds(const std::string& tier);
         void removePattern(std::uint64_t id, const std::string& tier);
         void bulkStore(const std::vector<
-                           std::pair<std::uint64_t, persistence::PersistentPatternData>>& patterns,
+                           std::pair<std::uint64_t, ::sep::persistence::PersistentPatternData>>& patterns,
                        const std::string& tier);
-        std::vector<persistence::PersistentPatternData> bulkLoad(
+        std::vector<::sep::persistence::PersistentPatternData> bulkLoad(
             const std::vector<std::uint64_t>& ids, const std::string& tier);
 
     private:
@@ -82,7 +82,7 @@ private:
 };
 
 // Factory function to create RedisManager instances
-std::shared_ptr<IRedisManager> createRedisManager(const std::string& host = "localhost",
+std::shared_ptr<::sep::persistence::IRedisManager> createRedisManager(const std::string& host = "localhost",
                                                   int port = 6379);
 
 } // namespace sep::persistence

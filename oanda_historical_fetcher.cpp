@@ -30,7 +30,7 @@ struct FetchConfig {
     std::string granularity = "M1";
     int hours = 168;  // 1 week
     std::string output_file = "";
-    std::string cache_dir = "/sep/cache/oanda_historical/";
+    std::string cache_dir = "cache/oanda_historical/";
     bool verbose = false;
 };
 

@@ -1,3 +1,4 @@
+#include "nlohmann_json_safe.h"
 #pragma once
 
 // Disable nlohmann::json's internal assertions to avoid conflicts.

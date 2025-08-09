@@ -1,3 +1,4 @@
+#include "nlohmann_json_safe.h"
 #include "api/client.h"
 #include "api/types.h"
 

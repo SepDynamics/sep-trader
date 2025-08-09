@@ -1,3 +1,4 @@
+#include "nlohmann_json_safe.h"
 #pragma once
 
 #include <GLFW/glfw3.h>

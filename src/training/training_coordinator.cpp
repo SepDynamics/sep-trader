@@ -214,7 +214,7 @@ std::string TrainingCoordinator::generateModelHash(const TrainingResult& result)
 
 bool TrainingCoordinator::saveTrainingResult(const TrainingResult& result) {
     // Save to JSON file (simplified implementation)
-    std::string filename = "/sep/cache/training_result_" + result.pair + ".json";
+    std::string filename = "cache/training_result_" + result.pair + ".json";
     std::ofstream file(filename);
     if (file.is_open()) {
         file << "{\n";

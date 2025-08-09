@@ -13,9 +13,9 @@
 #include <unordered_map>
 #include <vector>
 
-#include "../nlohmann_json_protected.h"
 #include "common/financial_data_types.h"
 #include "engine/internal/standard_includes.h"
+#include "nlohmann_json_safe.h"
 
 namespace sep {
 namespace connectors {
@@ -66,7 +66,7 @@ public:
     void shutdown();
 
     // Historical data
-    std::vector<OandaCandle> getHistoricalData(
+    std::vector<::sep::connectors::OandaCandle> getHistoricalData(
         const std::string& instrument,
         const std::string& granularity,
         const std::string& from,
@@ -77,7 +77,7 @@ public:
     bool startPriceStream(const std::vector<std::string>& instruments);
     bool stopPriceStream();
     void setPriceCallback(std::function<void(const MarketData&)> callback);
-    void setCandleCallback(std::function<void(const common::CandleData&)> cb);
+    void setCandleCallback(std::function<void(const sep::common::CandleData&)> cb);
 
     // Account information
     nlohmann::json getAccountInfo();
@@ -103,10 +103,10 @@ public:
 
     // Order tracking
     void refreshOrders();
-    const std::vector<common::OrderInfo>& pendingOrders() const { return pending_orders_; }
-    const std::vector<common::OrderInfo>& filledOrders() const { return filled_orders_; }
-    const std::vector<common::OrderInfo>& canceledOrders() const { return canceled_orders_; }
-    void setOrderCallback(std::function<void(const common::OrderInfo&)> cb) { order_callback_ = std::move(cb); }
+    const std::vector<sep::common::OrderInfo>& pendingOrders() const { return pending_orders_; }
+    const std::vector<sep::common::OrderInfo>& filledOrders() const { return filled_orders_; }
+    const std::vector<sep::common::OrderInfo>& canceledOrders() const { return canceled_orders_; }
+    void setOrderCallback(std::function<void(const sep::common::OrderInfo&)> cb) { order_callback_ = std::move(cb); }
 
 private:
     std::string api_key_;
@@ -119,10 +119,10 @@ private:
     CURL* curl_handle_;
     std::string last_error_;
     std::function<void(const MarketData&)> price_callback_;
-    std::function<void(const common::CandleData&)> candle_callback_;
+    std::function<void(const sep::common::CandleData&)> candle_callback_;
 
     struct CandleBuilder {
-        common::CandleData candle;
+        sep::common::CandleData candle;
         std::chrono::system_clock::time_point start;
         bool active{false};
     };
@@ -143,17 +143,17 @@ private:
 
     // Cache helpers
     std::string getCacheFilename(const std::string& instrument, const std::string& granularity, const std::string& from, const std::string& to);
-    std::vector<OandaCandle> loadFromCache(const std::string& filename);
-    void saveToCache(const std::string& filename, const std::vector<OandaCandle>& candles);
+    std::vector<::sep::connectors::OandaCandle> loadFromCache(const std::string& filename);
+    void saveToCache(const std::string& filename, const std::vector<::sep::connectors::OandaCandle>& candles);
 
     // Data conversion and validation
     MarketData parseMarketData(const nlohmann::json& price_data);
-    OandaCandle parseCandle(const nlohmann::json& candle_data);
+    ::sep::connectors::OandaCandle parseCandle(const nlohmann::json& candle_data);
     int64_t parseTimestamp(const std::string& time_str);
-    DataValidationResult validateCandle(const OandaCandle& candle);
-    DataValidationResult validateCandleSequence(const std::vector<OandaCandle>& candles,
+    DataValidationResult validateCandle(const ::sep::connectors::OandaCandle& candle);
+    DataValidationResult validateCandleSequence(const std::vector<::sep::connectors::OandaCandle>& candles,
                                                 const std::string& granularity);
-    std::vector<double> calculateHistoricalATRs(const std::vector<OandaCandle>& candles);
+    std::vector<double> calculateHistoricalATRs(const std::vector<::sep::connectors::OandaCandle>& candles);
 
     // Rate limiting
     void enforceRateLimit(const std::string& endpoint);
@@ -173,10 +173,10 @@ private:
     void streamPriceData(const std::string& instruments);
 
     // Order caches
-    std::vector<common::OrderInfo> pending_orders_;
-    std::vector<common::OrderInfo> filled_orders_;
-    std::vector<common::OrderInfo> canceled_orders_;
-    std::function<void(const common::OrderInfo&)> order_callback_;
+    std::vector<sep::common::OrderInfo> pending_orders_;
+    std::vector<sep::common::OrderInfo> filled_orders_;
+    std::vector<sep::common::OrderInfo> canceled_orders_;
+    std::function<void(const sep::common::OrderInfo&)> order_callback_;
 };
 
 } // namespace connectors

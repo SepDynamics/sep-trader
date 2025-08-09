@@ -1,5 +1,5 @@
 # Enforce header-only spdlog for all targets
-add_definitions(-DSPDLOG_HEADER_ONLY)
+
 
 # Add component subdirectories - core components needed for quant processing
 add_subdirectory(core_types)

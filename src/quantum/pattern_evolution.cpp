@@ -1,3 +1,4 @@
+#include "nlohmann_json_safe.h"
 #include "quantum/pattern_evolution.h"
 
 #include <string.h>
@@ -10,7 +11,6 @@
 #include <ctime>
 #include <random>
 
-#include "../nlohmann_json_protected.h"
 #include "engine/internal/types.h"  // For PatternData/PatternConfig
 #include "engine/internal/types.h"
 #include "quantum/quantum_processor_qfh.h"

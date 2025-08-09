@@ -57,7 +57,7 @@ class Engine {
                        std::vector<std::uint32_t> &expectations, std::uint64_t tick);
 
   void process_batch(const std::vector<::sep::PinState> &inputs, std::uint64_t tick,
-                     quantum::QBSAResult &qbsa_result, cuda::QSHResult &qsh_result);
+                     sep::quantum::bitspace::QBSAResult &qbsa_result, cuda::QSHResult &qsh_result);
 
   // Process quantitative data (market data, etc.)
   std::string processQuantData(const std::string &dataPath, bool useGPU = true);

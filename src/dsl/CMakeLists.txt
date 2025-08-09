@@ -77,13 +77,5 @@ target_link_libraries(sep_dsl_interpreter PRIVATE
     sep_cache
     sep_quantum
     sep_connectors
-    nlohmann_json::nlohmann_json
-    curl 
-    hiredis 
-    TBB::tbb 
-    spdlog::spdlog 
-    fmt::fmt 
-    Threads::Threads 
-    pqxx 
-    pq
+    sep_core_deps
 )

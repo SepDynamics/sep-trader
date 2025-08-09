@@ -36,7 +36,7 @@ public:
 
         // Use QFH to analyze the probe bits for collapse detection
         std::vector<uint8_t> probe_bits = convertToBits(probe_indices);
-        QFHResult qfh_result = qfh_processor_.analyze(probe_bits);
+        sep::quantum::QFHResult qfh_result = qfh_processor_.analyze(probe_bits);
 
         // Detect collapse based on rupture ratio from QFH
         result.collapse_detected = qfh_result.collapse_detected;
@@ -45,7 +45,7 @@ public:
     }
 
     bool detectCollapse(const QBSAResult& result, std::size_t total_bits) const override {
-        // If we already detected collapse in the result, return that
+        // If we already detected collapse in the result, return that 
         if (result.collapse_detected) {
             return true;
         }
@@ -61,11 +61,11 @@ public:
     }
 
 private:
-    QFHBasedProcessor qfh_processor_;
+    sep::quantum::QFHBasedProcessor qfh_processor_;
 
     // Convert QBSA options to QFH options
-    static QFHOptions createQFHOptions(const QBSAOptions& qbsa_options) {
-        QFHOptions qfh_options;
+    static sep::quantum::QFHOptions createQFHOptions(const QBSAOptions& qbsa_options) {
+        sep::quantum::QFHOptions qfh_options;
         qfh_options.collapse_threshold = qbsa_options.collapse_threshold;
         return qfh_options;
     }
@@ -78,7 +78,7 @@ private:
         for (uint32_t v : values) {
             shim_values.push_back(v);
         }
-        return QFHBasedProcessor::convertToBits(shim_values);
+        return sep::quantum::QFHBasedProcessor::convertToBits(shim_values);
     }
 };
 

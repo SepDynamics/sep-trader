@@ -1,3 +1,4 @@
+#include "nlohmann_json_safe.h"
 #include "remote_data_manager.hpp"
 
 #include <curl/curl.h>
@@ -12,7 +13,6 @@
 #include <pqxx/pqxx>
 #include <thread>
 
-#include "../nlohmann_json_protected.h"
 #include "common/pqxx_time_point_traits.h"  // Must come after pqxx include
 #include "sep_precompiled.h"
 // #include <compression/gzip.hpp> // Optional compression - not available

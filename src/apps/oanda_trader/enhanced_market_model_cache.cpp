@@ -1,3 +1,4 @@
+#include "nlohmann_json_safe.h"
 #include "enhanced_market_model_cache.hpp"
 
 #include <algorithm>
@@ -8,7 +9,6 @@
 #include <numeric>
 #include <thread>
 
-#include "../nlohmann_json_protected.h"
 #include "sep_precompiled.h"
 
 namespace sep::cache {

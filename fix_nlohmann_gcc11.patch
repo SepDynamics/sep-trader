@@ -1,0 +1,11 @@
+--- a/include/nlohmann/detail/output/serializer.hpp
++++ b/include/nlohmann/detail/output/serializer.hpp
+@@ -1,6 +1,8 @@
+ #pragma once
+ 
++#include <array>
+ #include <algorithm> // reverse
++#include <string>
+ #include <array> // array
+ #include <clocale> // localeconv
+ #include <cmath> // isfinite

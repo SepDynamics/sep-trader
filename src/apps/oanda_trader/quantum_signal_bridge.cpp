@@ -1,3 +1,4 @@
+#include "nlohmann_json_safe.h"
 #include "quantum_signal_bridge.hpp"
 
 #include <algorithm>
@@ -9,7 +10,6 @@
 #include <iostream>
 #include <sstream>
 
-#include "../nlohmann_json_protected.h"
 #include "candle_types.h"
 #include "forward_window_kernels.hpp"
 #include "quantum/bitspace/pattern_processor.h"
@@ -157,7 +157,8 @@ QuantumIdentifiers QuantumSignalBridge::calculateIdentifiersWithConvergence(
     // Iterative convergence calculation
     for (int iteration = 0; iteration < max_iterations; ++iteration) {
         // Run QFH analysis on current bit window
-        sep::quantum::QFHResult qfh_result;  // Dummy result
+        sep::quantum::QFHBasedProcessor qfh_processor;
+        sep::quantum::QFHResult qfh_result = qfh_processor.analyze(forward_bits);
 
         // Generate probe/expectation for QBSA (using proper indices, not values)
         std::vector<uint32_t> probe_indices;
@@ -193,7 +194,8 @@ QuantumIdentifiers QuantumSignalBridge::calculateIdentifiersWithConvergence(
         }
         
         // Run QBSA analysis with proper indices
-        sep::quantum::QBSAResult qbsa_result;  // Dummy result
+        sep::quantum::bitspace::QBSAProcessor qbsa_processor;
+        sep::quantum::bitspace::QBSAResult qbsa_result = qbsa_processor.analyze(probe_indices, expectations);
 
         // Calculate new identifier values using convergence damping
         float damping_factor = 0.1f;  // Control convergence speed
@@ -513,7 +515,7 @@ std::vector<uint8_t> sep::trading::QuantumSignalBridge::convertPriceToBits(
 
 sep::trading::QuantumTradingSignal::Action sep::trading::QuantumSignalBridge::determineDirection(
     const sep::quantum::QFHResult& qfh,
-    const sep::quantum::QBSAResult& qbsa) {
+    const sep::quantum::bitspace::QBSAResult& qbsa) {
     
     // Direction determination based on test data analysis
     // Stability is the primary indicator: positive = BUY, negative = SELL

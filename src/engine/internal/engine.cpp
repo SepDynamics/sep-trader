@@ -1,3 +1,4 @@
+#include "nlohmann_json_safe.h"
 #include "engine/internal/standard_includes.h"
 #include "macros.h"
 #include "sep_precompiled.h"
@@ -29,7 +30,6 @@
 #include <thread>
 #include <vector>
 
-#include "../nlohmann_json_protected.h"
 #include "common.h"  // defines sep::SEPResult
 #include "config.h"
 #include "core.h"
@@ -213,9 +213,9 @@ void Engine::generate_probes(const std::vector<PinState> &inputs,
     std::fill(impl_->d_chunks_.begin(), impl_->d_chunks_.end(), 0);
 }
 
-void Engine::process_batch(const std::vector<PinState> &inputs, std::uint64_t tick,
-                           ::sep::quantum::QBSAResult &qbsa_result,
-                           ::sep::cuda::QSHResult &qsh_result)
+void Engine::process_batch(const std::vector<::sep::PinState> &inputs, std::uint64_t tick,
+                           sep::quantum::bitspace::QBSAResult &qbsa_result,
+                           cuda::QSHResult &qsh_result)
 {
     // Input validation
     if (inputs.empty())
@@ -250,7 +250,7 @@ void Engine::process_batch(const std::vector<PinState> &inputs, std::uint64_t ti
         generate_probes(inputs, probe_indices, expectations, tick);
 
         // CPU fallback when CUDA is unavailable
-        quantum::QBSAProcessor cpu_proc;
+        quantum::bitspace::QBSAProcessor cpu_proc;
         qbsa_result = cpu_proc.analyze(probe_indices, expectations);
         qbsa_result.collapse_detected = cpu_proc.detectCollapse(qbsa_result, inputs.size());
 

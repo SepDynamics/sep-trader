@@ -1,3 +1,4 @@
+#include "nlohmann_json_safe.h"
 /**
  * @file crow_adapter.cpp
  * @brief Adapter for integrating the SEP Engine API with the Crow web framework
@@ -18,7 +19,6 @@
 #include <memory>
 #include <string>
 
-#include "../nlohmann_json_protected.h"
 
 // Include our API headers
 #include "api/crow_adapter.h"

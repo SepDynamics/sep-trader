@@ -76,7 +76,7 @@ struct Pattern {
     Vec4 velocity{};                                   // 4D velocity  
     Vec4 attributes{};                                 // Custom attributes
     QuantumState quantum_state{};                      // Quantum properties
-    std::vector<PatternRelationship> relationships{};  // Connections to other patterns
+    std::vector<::sep::core::PatternRelationship> relationships{};  // Connections to other patterns
     std::vector<std::string> parent_ids{};            // Lineage tracking
     std::complex<float> amplitude{1.0f, 0.0f};        // Quantum amplitude
     uint64_t timestamp{0};                             // Creation time
@@ -187,10 +187,10 @@ void convertToPOD(const QuantumState& src, QuantumStatePOD& dst);
 void convertFromPOD(const QuantumStatePOD& src, QuantumState& dst);
 
 /// Convert canonical PatternRelationship to POD for CUDA
-void convertToPOD(const PatternRelationship& src, PatternRelationshipPOD& dst);
+void convertToPOD(const ::sep::core::PatternRelationship& src, PatternRelationshipPOD& dst);
 
 /// Convert POD PatternRelationship back to canonical
-void convertFromPOD(const PatternRelationshipPOD& src, PatternRelationship& dst);
+void convertFromPOD(const PatternRelationshipPOD& src, ::sep::core::PatternRelationship& dst);
 
 /// Convert canonical Pattern to POD for CUDA
 void convertToPOD(const Pattern& src, PatternPOD& dst);

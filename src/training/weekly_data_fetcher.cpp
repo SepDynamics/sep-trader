@@ -100,7 +100,7 @@ bool WeeklyDataFetcher::validateCachedData(const std::string& instrument) const 
 
 std::string WeeklyDataFetcher::getCachePath(const std::string& instrument, 
                                           const std::string& granularity) const {
-    return "/sep/cache/weekly_data/" + instrument + "_" + granularity + ".json";
+    return "cache/weekly_data/" + instrument + "_" + granularity + ".json";
 }
 
 std::chrono::system_clock::time_point WeeklyDataFetcher::getStartTime() const {

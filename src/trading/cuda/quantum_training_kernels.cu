@@ -1,7 +1,7 @@
 // CRITICAL: For CUDA compilation, include ALL necessary headers early
 #include <cstddef>
 #include <array>
-#include <functional>
+// #include <functional>  // Removed due to GCC 11 compatibility issues with CUDA
 #include <vector>
 
 #ifdef SEP_USE_CUDA

@@ -1,3 +1,4 @@
+#include "nlohmann_json_safe.h"
 #include "oanda_trader_app.hpp"
 
 #include "sep_precompiled.h"
@@ -14,7 +15,6 @@
 #include <iostream>
 #include <thread>
 
-#include "../nlohmann_json_protected.h"
 #include "connectors/market_data_converter.h"
 #include "engine/internal/engine.h"
 #ifdef SEP_USE_GUI

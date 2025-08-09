@@ -3,7 +3,7 @@
 #pragma once
 #include <cstdint>
 
-namespace sep::quantum {
+namespace sep::quantum::bitspace {
 
 struct QBSAParams {
     const uint32_t* probe_indices;
@@ -14,4 +14,4 @@ struct QBSAParams {
 
 bool launch_qbsa_kernel(const QBSAParams& params);
 
-} // namespace sep::quantum
+} // namespace sep::quantum::bitspace

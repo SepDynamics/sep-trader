@@ -65,7 +65,7 @@ QuantumProcessor::~QuantumProcessor() = default;
 QuantumProcessor::QuantumProcessor(const Config& config)
     : Processor(static_cast<ProcessingConfig>(config)), config_(config) {
     impl_ = std::make_unique<QuantumProcessorImpl>();
-    qbsa_processor_ = createQFHBasedQBSAProcessor({});
+    qbsa_processor_ = sep::quantum::createQFHBasedQBSAProcessor({});
 }
 
 float QuantumProcessor::calculateCoherence(const glm::vec3& pattern_a, const glm::vec3& pattern_b) {

@@ -43,20 +43,20 @@ struct SystemHealth {
 };
 
 // Global state change callback type
-using SystemStateCallback = std::function<void(SystemStatus old_status, SystemStatus new_status)>;
+using SystemStateCallback = std::function<void(::sep::core::SystemStatus old_status, ::sep::core::SystemStatus new_status)>;
 
 class TradingState {
 public:
     static TradingState& getInstance();
     
     // System status management
-    bool setSystemStatus(SystemStatus status);
-    SystemStatus getSystemStatus() const;
+    bool setSystemStatus(::sep::core::SystemStatus status);
+    ::sep::core::SystemStatus getSystemStatus() const;
     std::string getSystemStatusString() const;
     
     // Market condition management
-    bool setMarketCondition(MarketCondition condition);
-    MarketCondition getMarketCondition() const;
+    bool setMarketCondition(::sep::core::MarketCondition condition);
+    ::sep::core::MarketCondition getMarketCondition() const;
     std::string getMarketConditionString() const;
     
     // Emergency controls
@@ -118,8 +118,8 @@ private:
     TradingState& operator=(const TradingState&) = delete;
     
     // Core state variables
-    std::atomic<SystemStatus> system_status_{SystemStatus::INITIALIZING};
-    std::atomic<MarketCondition> market_condition_{MarketCondition::UNKNOWN};
+    std::atomic<::sep::core::SystemStatus> system_status_{::sep::core::SystemStatus::INITIALIZING};
+    std::atomic<::sep::core::MarketCondition> market_condition_{::sep::core::MarketCondition::UNKNOWN};
     std::atomic<bool> emergency_stop_{false};
     std::atomic<bool> trading_paused_{false};
     std::atomic<bool> global_trading_enabled_{false};
@@ -145,20 +145,20 @@ private:
     SystemHealth current_health_;
     
     // Event callbacks
-    std::vector<SystemStateCallback> state_callbacks_;
+    std::vector<sep::core::SystemStateCallback> state_callbacks_;
     std::mutex callbacks_mutex_;
     
     // Helper methods
-    void notifySystemStateChange(SystemStatus old_status, SystemStatus new_status);
+    void notifySystemStateChange(::sep::core::SystemStatus old_status, ::sep::core::SystemStatus new_status);
     std::string serializeState() const;
     bool deserializeState(const std::string& json_data);
 };
 
 // Utility functions
-std::string systemStatusToString(SystemStatus status);
-SystemStatus stringToSystemStatus(const std::string& status_str);
-std::string marketConditionToString(MarketCondition condition);
-MarketCondition stringToMarketCondition(const std::string& condition_str);
+std::string systemStatusToString(::sep::core::SystemStatus status);
+::sep::core::SystemStatus stringToSystemStatus(const std::string& status_str);
+std::string marketConditionToString(::sep::core::MarketCondition condition);
+::sep::core::MarketCondition stringToMarketCondition(const std::string& condition_str);
 
 // Global access functions
 TradingState& getGlobalTradingState();

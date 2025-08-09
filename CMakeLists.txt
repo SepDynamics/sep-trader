@@ -1,12 +1,21 @@
 cmake_minimum_required(VERSION 3.15)
 
 # CRITICAL: Set compilers BEFORE project() to avoid CMake loops
-# set(CMAKE_CXX_COMPILER "/usr/bin/g++")
-# set(CMAKE_CUDA_HOST_COMPILER "/usr/bin/g++")
+set(CMAKE_C_COMPILER "/usr/bin/gcc-11")
+set(CMAKE_CXX_COMPILER "/usr/bin/g++-11")
+set(CMAKE_CUDA_HOST_COMPILER "/usr/bin/g++-11")
+
+# Set workspace path from environment or use current directory
+if(DEFINED ENV{SEP_WORKSPACE_PATH})
+    set(SEP_WORKSPACE_PATH $ENV{SEP_WORKSPACE_PATH})
+else()
+    set(SEP_WORKSPACE_PATH ${CMAKE_CURRENT_SOURCE_DIR})
+endif()
 
 # Set the module path to include our custom cmake modules
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 message(STATUS "CMAKE_MODULE_PATH: ${CMAKE_MODULE_PATH}")
+message(STATUS "SEP_WORKSPACE_PATH: ${SEP_WORKSPACE_PATH}")
 
 # Enable compile commands database generation for IDE support and static analysis
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON CACHE INTERNAL "")
@@ -27,7 +36,6 @@ add_compile_definitions(
 
 add_compile_options(
     -Wall -Wextra -Wpedantic -O3
-    "-include" "${CMAKE_SOURCE_DIR}/src/simple_array_fix.h"
 )
 
 if(SEP_USE_TBB)
@@ -53,12 +61,12 @@ if(SEP_USE_CUDA)
     
     # Set CUDA paths before enabling language
     set(CMAKE_CUDA_COMPILER "$ENV{CUDA_HOME}/bin/nvcc")
-    set(CMAKE_CUDA_HOST_COMPILER "/usr/bin/g++-12")
-    set(CMAKE_CUDA_ARCHITECTURES 61;75;86;89)
+    set(CMAKE_CUDA_HOST_COMPILER "/usr/bin/g++-11")
     set(CUDA_USE_STATIC_CUDA_RUNTIME OFF)
     
     # Set CUDA flags BEFORE enabling language to ensure they're available during compiler identification
-    set(CMAKE_CUDA_FLAGS "--allow-unsupported-compiler --extended-lambda --display-error-number -Wno-deprecated-gpu-targets")
+    # Add flag to suppress math function conflicts with newer glibc
+    set(CMAKE_CUDA_FLAGS "-Wno-deprecated-gpu-targets -Xcompiler=-D__GLIBC_MINOR__=30")
     
     # Now enable CUDA language
     enable_language(CUDA)
@@ -81,8 +89,14 @@ if(SEP_USE_CUDA)
     # Add CUDA paths to include and link directories
     include_directories("$ENV{CUDA_HOME}/include")
     link_directories("$ENV{CUDA_HOME}/lib64")
+    
+    # CUDA specific flags for compatibility
+    set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -Wno-deprecated-gpu-targets")
 
 endif()
+
+# Fix fmt/spdlog conflicts - use external fmt
+set(SPDLOG_FMT_EXTERNAL ON CACHE BOOL "Use external fmt library")
 
 # Include the template
 include(cmake/template.cmake)
@@ -90,6 +104,15 @@ include(cmake/template.cmake)
 # Set C++ standard
 set(CMAKE_CXX_STANDARD 17 CACHE STRING "C++ standard")
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+# C++ compilation flags with forced std headers for nlohmann compatibility
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -include array -include string -include vector")
+
+# Global include directory for our safe headers
+include_directories(${CMAKE_SOURCE_DIR}/src)
+
+# Disable nlohmann global UDLs to prevent conflicts
+add_compile_definitions(NLOHMANN_JSON_USE_GLOBAL_UDLS=0)
 
 # Force compiler selection before project() call - move this to top
 # This must be set before project() declaration to avoid CMake loops
@@ -105,30 +128,42 @@ find_package(Threads REQUIRED)
 find_package(benchmark)
 include(cmake/gtest.cmake)
 
-find_package(PostgreSQL REQUIRED)
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(PQXX REQUIRED libpqxx)
+pkg_check_modules(PQ REQUIRED libpq)
+
+if(PQXX_FOUND AND PQ_FOUND)
+    message(STATUS "Found PostgreSQL libraries using pkg-config")
+    add_library(PostgreSQL::pqxx INTERFACE IMPORTED)
+    set_property(TARGET PostgreSQL::pqxx PROPERTY INTERFACE_INCLUDE_DIRECTORIES "${PQXX_INCLUDE_DIRS}")
+    set_property(TARGET PostgreSQL::pqxx PROPERTY INTERFACE_LINK_LIBRARIES "${PQXX_LIBRARIES}")
+    add_library(PostgreSQL::pq INTERFACE IMPORTED)
+    set_property(TARGET PostgreSQL::pq PROPERTY INTERFACE_INCLUDE_DIRECTORIES "${PQ_INCLUDE_DIRS}")
+    set_property(TARGET PostgreSQL::pq PROPERTY INTERFACE_LINK_LIBRARIES "${PQ_LIBRARIES}")
+else()
+    message(FATAL_ERROR "Could not find PostgreSQL libraries using pkg-config")
+endif()
 
 include(FetchContent)
 
-FetchContent_Declare(
-  glm
-  GIT_REPOSITORY https://github.com/g-truc/glm.git
-  GIT_TAG 1.0.1
-)
-FetchContent_MakeAvailable(glm)
+# Use system GLM instead of downloading
+find_package(glm REQUIRED)
+# Use FetchContent for nlohmann_json with GCC 11 fix
 FetchContent_Declare(
   nlohmann_json
   GIT_REPOSITORY https://github.com/nlohmann/json.git
   GIT_TAG v3.11.2
+  GIT_SHALLOW TRUE
 )
 FetchContent_MakeAvailable(nlohmann_json)
-FetchContent_Declare(
-  yaml-cpp
-  GIT_REPOSITORY https://github.com/jbeder/yaml-cpp.git
-  GIT_TAG 0.8.0
-)
-FetchContent_MakeAvailable(yaml-cpp)
 
-set_target_properties(yaml-cpp PROPERTIES CXX_STANDARD 17)
+# Patch nlohmann headers for GCC 11 compatibility
+file(READ "${nlohmann_json_SOURCE_DIR}/include/nlohmann/detail/output/serializer.hpp" SERIALIZER_CONTENT)
+string(REPLACE "#include <algorithm> // reverse" "#include <algorithm> // reverse\n#include <array>\n#include <string>" SERIALIZER_CONTENT "${SERIALIZER_CONTENT}")
+file(WRITE "${nlohmann_json_SOURCE_DIR}/include/nlohmann/detail/output/serializer.hpp" "${SERIALIZER_CONTENT}")
+# Use system yaml-cpp instead of downloading
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(YAML_CPP REQUIRED yaml-cpp)
 
 if(SEP_USE_GUI)
     FetchContent_Declare(
@@ -147,16 +182,11 @@ if(SEP_USE_GUI)
 endif()
 
 
-# Fetch TBB (Thread Building Blocks) only when explicitly enabled
+# Use system TBB (Thread Building Blocks) instead of downloading
 option(SEP_USE_TBB "Enable TBB support" ON)
 if(SEP_USE_TBB)
-    set(TBB_TEST OFF CACHE BOOL "Disable TBB tests")
-    FetchContent_Declare(
-        tbb
-        GIT_REPOSITORY https://github.com/oneapi-src/oneTBB.git
-        GIT_TAG v2021.12.0
-    )
-    FetchContent_MakeAvailable(tbb)
+    set(TBB_DIR "/usr/lib64/cmake/TBB")
+    find_package(TBB REQUIRED)
 endif()
 
 
@@ -202,23 +232,30 @@ if(SEP_USE_GUI)
 endif()
 
 # Add subdirectories
-FetchContent_Declare(
-  fmt
-  GIT_REPOSITORY https://github.com/fmtlib/fmt.git
-  GIT_TAG 11.0.2
-)
-FetchContent_MakeAvailable(fmt)
+# Use system fmt instead of downloading
+find_package(fmt REQUIRED)
 
-# Fetch spdlog for header-only usage
-FetchContent_Declare(
-  spdlog
-  GIT_REPOSITORY https://github.com/gabime/spdlog.git
-  GIT_TAG v1.12.0
-)
-FetchContent_MakeAvailable(spdlog)
+# Use system spdlog instead of downloading
+find_package(spdlog REQUIRED)
 
 # Ensure consistent spdlog header-only mode globally  
 add_definitions(-DSPDLOG_HEADER_ONLY)
+
+add_library(sep_core_deps INTERFACE)
+target_link_libraries(sep_core_deps INTERFACE
+    Threads::Threads
+#    benchmark::benchmark
+#    GTest::gtest
+#    GTest::gmock
+    PostgreSQL::pqxx
+    PostgreSQL::pq
+    glm::glm
+    nlohmann_json::nlohmann_json
+    yaml-cpp
+    TBB::tbb
+    fmt::fmt
+    spdlog::spdlog
+)
 
 
 

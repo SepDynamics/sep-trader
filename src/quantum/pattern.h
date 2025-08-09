@@ -20,7 +20,7 @@ struct QuantumPattern {
     double coherence;
     double stability;
     int generation;
-    ManifoldQuantumState state;
+    ::sep::quantum::manifold::ManifoldQuantumState state;
     double phase;
     std::complex<double> amplitude;
 };

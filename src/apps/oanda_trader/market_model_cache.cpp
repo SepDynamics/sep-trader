@@ -1,5 +1,6 @@
 #include "market_model_cache.hpp"
 
+#include <array>
 #include <cstdlib>
 #include <filesystem>
 #include <fstream>
@@ -7,8 +8,8 @@
 #include <iostream>
 #include <thread>
 
-#include "../nlohmann_json_protected.h"
 #include "sep_precompiled.h"
+#include "nlohmann_json_safe.h"
 
 namespace sep::apps {
 

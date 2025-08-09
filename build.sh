@@ -1,6 +1,14 @@
 #!/bin/bash
 # Simplified build script for running inside a container
 
+# Source environment configuration if available
+if [ -f .sep-config.env ]; then
+    source .sep-config.env
+fi
+
+# Set default workspace path if not defined
+SEP_WORKSPACE_PATH=${SEP_WORKSPACE_PATH:-/workspace}
+
 # Allow overriding the container runtime via DOCKER_BIN.
 DOCKER_BIN=${DOCKER_BIN:-docker}
 
@@ -8,6 +16,8 @@ set -uo pipefail
 
 REBUILD=false
 SKIP_DOCKER=false
+NATIVE_BUILD=false
+
 for arg in "$@"; do
     case "$arg" in
         --rebuild)
@@ -16,8 +26,16 @@ for arg in "$@"; do
         --no-docker)
             SKIP_DOCKER=true
             ;;
+        --native)
+            NATIVE_BUILD=true
+            ;;
     esac
 done
+
+# Check if we're already in a container
+if [ -f /.dockerenv ] || [ -f /run/.containerenv ]; then
+    NATIVE_BUILD=true
+fi
 
 echo "Building SEP Engine..."
 
@@ -27,7 +45,8 @@ if [ "$REBUILD" = true ]; then
     sudo rm -rf CMakeCache.txt CMakeFiles output Makefile build .cache .codechecker
     sleep 2
     clear
-    sudo rm -rf /sep/.Trash-1000
+    # Clean up any temporary trash directories
+    find . -name ".Trash-*" -type d -exec sudo rm -rf {} +
     sleep 1
 fi
 
@@ -38,42 +57,75 @@ mkdir -p build
 USER_ID=$(id -u)
 GROUP_ID=$(id -g)
 
-# Use native build if --no-docker or container runtime unavailable
-if [ "$SKIP_DOCKER" = true ] || ! "$DOCKER_BIN" info >/dev/null 2>&1; then
-    if [ "$SKIP_DOCKER" = true ]; then
+# Use native build if in container, --no-docker specified, or container runtime unavailable
+if [ "$NATIVE_BUILD" = true ] || [ "$SKIP_DOCKER" = true ] || ! "$DOCKER_BIN" info >/dev/null 2>&1; then
+    if [ "$NATIVE_BUILD" = true ]; then
+        echo "Building natively (container environment detected)..."
+    elif [ "$SKIP_DOCKER" = true ]; then
         echo "Building natively (--no-docker)..."
     else
         echo "Container runtime $DOCKER_BIN not available. Building natively..."
     fi
     cd build
-    
-    # Detect CUDA availability for native builds
+
+    # Configure CUDA for native builds
     CUDA_FLAGS=""
     if command -v nvcc >/dev/null 2>&1; then
         echo "CUDA detected, enabling CUDA support..."
+        
+        # Auto-detect CUDA_HOME if not set
+        if [ -z "$CUDA_HOME" ]; then
+            NVCC_PATH=$(which nvcc)
+            CUDA_HOME=$(dirname $(dirname "$NVCC_PATH"))
+            export CUDA_HOME
+            echo "Auto-detected CUDA_HOME: $CUDA_HOME"
+        else
+            echo "Using existing CUDA_HOME: $CUDA_HOME"
+        fi
+        
         CUDA_FLAGS="-DSEP_USE_CUDA=ON"
     else
         echo "CUDA not detected, building without CUDA support..."
         CUDA_FLAGS="-DSEP_USE_CUDA=OFF"
     fi
     
-    cmake .. -G Ninja -DCMAKE_BUILD_TYPE=Release $CUDA_FLAGS \
-        -DCMAKE_CXX_COMPILER=g++ -DCMAKE_C_COMPILER=gcc \
+    # CXXFLAGS to force-include the array fix. This resolves the widespread
+    # 'array is not a member of std' compilation errors.
+    # The -include flag works for gcc/clang. For nvcc, we use -Xcompiler.
+    ARRAY_FIX_FLAGS=""
+    CUDA_ARRAY_FIX=""
+
+    # Temporarily use system libraries for cmake/ninja to avoid GCC-11 library conflicts
+    export LD_LIBRARY_PATH="/usr/lib64:/lib64:$LD_LIBRARY_PATH"
+
+    # Configure with cmake, using system's default compilers and a global header fix.
+    # This avoids brittle LD_PRELOAD hacks and hardcoded compiler paths.
+    cmake .. -G Ninja \
+        -DCMAKE_BUILD_TYPE=Release \
+        -DCMAKE_CXX_COMPILER=g++ \
+        -DCMAKE_C_COMPILER=gcc \
         -DCMAKE_BUILD_WITH_INSTALL_RPATH=ON \
         -DCMAKE_EXPORT_COMPILE_COMMANDS=TRUE \
         -DSEP_USE_GUI=OFF \
-        -DCMAKE_CXX_FLAGS="-Wno-error=pedantic" \
-        -DCMAKE_CUDA_FLAGS="-Wno-deprecated-gpu-targets"
+        -DCMAKE_CXX_STANDARD=17 \
+        -DCMAKE_CXX_FLAGS="-Wno-error=pedantic -D__CORRECT_ISO_CPP11_MATH_H_PROTO" \
+        -DCMAKE_CUDA_FLAGS="-Wno-deprecated-gpu-targets" \
+        $CUDA_FLAGS
+
+    # Build with ninja using system libraries
     ninja -k 0 2>&1 | tee ../output/build_log.txt
-    
+
     # Copy compile_commands.json for IDE integration
     cp compile_commands.json ../ && cd ..
     exit 0
 fi
 
+echo "Mounting local directory $(pwd) to ${SEP_WORKSPACE_PATH} in the container."
+
 # Build and setup development environment using Docker
 "${DOCKER_BIN}" run --gpus all --rm \
-    -v $(pwd):/workspace \
+    -v $(pwd):${SEP_WORKSPACE_PATH} \
+    -e SEP_WORKSPACE_PATH=${SEP_WORKSPACE_PATH} \
     sep-engine-builder bash -c '
     # Add exception for dubious ownership
     git config --global --add safe.directory "*"
@@ -88,16 +140,18 @@ fi
     # Configure and build with Docker container paths
     cmake .. -G Ninja \
         -DCMAKE_BUILD_TYPE=Release \
-        -DCMAKE_C_COMPILER=/usr/bin/gcc-12 \
-        -DCMAKE_CXX_COMPILER=/usr/bin/g++-12 \
-        -DCMAKE_CUDA_HOST_COMPILER=/usr/bin/g++-12 \
+        -DCMAKE_C_COMPILER=/usr/bin/gcc-11 \
+        -DCMAKE_CXX_COMPILER=/usr/bin/g++-11 \
+        -DCMAKE_CUDA_HOST_COMPILER=/usr/bin/g++-11 \
         -DCMAKE_BUILD_WITH_INSTALL_RPATH=ON \
         -DCMAKE_EXPORT_COMPILE_COMMANDS=TRUE \
         -DSEP_USE_CUDA=ON \
         -DSEP_USE_GUI=OFF \
+        -DCMAKE_CXX_FLAGS="-D__CORRECT_ISO_CPP11_MATH_H_PROTO" \
+        -DCMAKE_CXX_STANDARD=17 \
         -DCMAKE_CUDA_FLAGS="-Wno-deprecated-gpu-targets"
     
-    ninja -k 0 2>&1 | tee /workspace/output/build_log.txt
+    ninja -k 0 2>&1 | tee ${SEP_WORKSPACE_PATH}/output/build_log.txt
     
     # Copy compile_commands.json for IDE
     cp compile_commands.json ..
@@ -107,7 +161,7 @@ fi
 sudo chown -R $USER_ID:$GROUP_ID .cache .codechecker build output 2>/dev/null || true
 fix_compile_commands() {
     # Replace container paths with host paths for IDE integration
-    sed -i "s|/workspace/|$(pwd)/|g" compile_commands.json
+    sed -i -e "s|${SEP_WORKSPACE_PATH}/|$(pwd)/|g" compile_commands.json
 }
 
 # Extract errors from build log
@@ -118,4 +172,3 @@ fi
 
 
 echo "Build complete!"
-

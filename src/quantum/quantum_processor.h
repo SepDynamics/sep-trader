@@ -1,5 +1,7 @@
 #pragma once
 
+#include "quantum/bitspace/qbsa.h"
+
 // Compatibility header - redirects to new unified processor
 #include <glm/vec3.hpp>
 #include <memory>
@@ -14,7 +16,6 @@ public:
     explicit QuantumProcessorError(const std::string& message);
 };
 
-class QBSAProcessor;
 class QuantumProcessorImpl;
 
 // Forward compatibility - QuantumProcessor is now just Processor
@@ -51,7 +52,7 @@ public:
 
 private:
     Config config_{};
-    std::unique_ptr<QBSAProcessor> qbsa_processor_;
+    std::unique_ptr<sep::quantum::bitspace::QBSAProcessor> qbsa_processor_;
     std::unique_ptr<QuantumProcessorImpl> impl_;
 };
 

@@ -3,6 +3,7 @@
 
 #include <cstdint>
 #include <glm/glm.hpp>
+#include <glm/vec3.hpp>
 #include <memory>
 #include <mutex>
 #include <vector>
@@ -28,7 +29,7 @@ public:
     float calculateMutationRate(float base_rate, int successful_mutations, int stabilization_count);
     float processPattern(const glm::vec3& pattern);
 
-    const QFHResult& getLastQFHResult() const;
+    const ::sep::quantum::QFHResult& getLastQFHResult() const;
 
     float calculateStability(const glm::vec3& pattern, float historical_stability, int generation_count,
                              float access_frequency);
@@ -47,10 +48,10 @@ public:
 protected:
     std::vector<glm::vec3> m_patterns;
     std::vector<uint32_t> m_pattern_bits;
-    std::unique_ptr<QBSAProcessor> qbsa_processor_;
-    QFHResult m_last_qfh_result;
+    std::unique_ptr<sep::quantum::bitspace::QBSAProcessor> qbsa_processor_;
+    ::sep::quantum::QFHResult m_last_qfh_result;
 
-    const QFHResult& lastQFHResult() const;
+    const ::sep::quantum::QFHResult& lastQFHResult() const;
 
 private:
     void analyzePatternBits();
@@ -63,7 +64,7 @@ private:
 class QuantumProcessorQFH : public QuantumProcessorQFHCommon {
 public:
 
-    const QFHResult& getLastQFHResult() const;
+    const ::sep::quantum::QFHResult& getLastQFHResult() const;
 
     ::sep::memory::MemoryTierEnum determineMemoryTier(float coherence, float stability, uint32_t generation_count) const;
 };

@@ -1,3 +1,4 @@
+#include "nlohmann_json_safe.h"
 #include "data_cache_manager.hpp"
 #include "common/financial_data_types.h"
 #include <filesystem>

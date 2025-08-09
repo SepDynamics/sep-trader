@@ -7,6 +7,8 @@
 
 namespace sep::quantum {
 
+using namespace sep::quantum::bitspace;
+
 // Factory function to create a QFH-based QBSA processor
 std::unique_ptr<QBSAProcessor> createQFHBasedQBSAProcessor(
     const QBSAOptions& options);

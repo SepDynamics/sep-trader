@@ -8,7 +8,6 @@
 #include <string>
 #include <vector>
 
-#include "../nlohmann_json_protected.h"
 #include "connectors/oanda_connector.h"
 
 namespace sep::apps {

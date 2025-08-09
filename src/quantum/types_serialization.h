@@ -1,8 +1,8 @@
+#include "nlohmann_json_safe.h"
 #pragma once
 
 #include <array>
 
-#include "../nlohmann_json_protected.h"
 #include "quantum/types.h"
 
 namespace sep::compat {

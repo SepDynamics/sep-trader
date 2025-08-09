@@ -1,3 +1,4 @@
+#include "nlohmann_json_safe.h"
 #include "dynamic_config_manager.hpp"
 #include <fstream>
 #include <sstream>
@@ -6,7 +7,6 @@
 #include <iomanip>
 #include <chrono>
 #include "engine/internal/standard_includes.h"
-#include "../nlohmann_json_protected.h"
 
 namespace sep::config {
 

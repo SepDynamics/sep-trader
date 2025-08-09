@@ -1,3 +1,4 @@
+#include "nlohmann_json_safe.h"
 #include "cache_validator.hpp"
 
 #include <spdlog/spdlog.h>
@@ -10,7 +11,6 @@
 #include <sstream>
 #include <thread>
 
-#include "../nlohmann_json_protected.h"
 
 namespace sep::cache {
 

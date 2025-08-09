@@ -1,3 +1,4 @@
+#include "nlohmann_json_safe.h"
 /**
  * @file sep_engine.h
  * @brief Main API interface for the SEP Engine
@@ -13,7 +14,6 @@
 #include <memory>
 #include <string>
 
-#include "../nlohmann_json_protected.h"
 #include "api/types.h"
 #include "engine/internal/types.h"
 #include "pattern/pattern_processor.hpp"

@@ -1,3 +1,4 @@
+#include "nlohmann_json_safe.h"
 #define BUILDING_SEP_BRIDGE
 #include <cstdio>
 #include <cstring>
@@ -7,7 +8,6 @@
 #include <unordered_map>
 #include <vector>
 
-#include "../nlohmann_json_protected.h"
 #include "api/bridge.h"
 #include "api/bridge_internal.hpp"
 #include "crow/socket_adaptors.h"

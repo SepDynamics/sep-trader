@@ -1,6 +1,6 @@
+#include "nlohmann_json_safe.h"
 #include "manager.h"
 
-#include "../nlohmann_json_protected.h"
 #include "config.h"
 #include "engine/internal/standard_includes.h"
 #include "env_keys.h"

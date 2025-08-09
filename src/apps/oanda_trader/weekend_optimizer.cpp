@@ -1,3 +1,4 @@
+#include "nlohmann_json_safe.h"
 #include "weekend_optimizer.hpp"
 
 #include <filesystem>
@@ -7,7 +8,6 @@
 #include <regex>
 #include <sstream>
 
-#include "../nlohmann_json_protected.h"
 #include "market_utils.hpp"
 
 namespace SEP {

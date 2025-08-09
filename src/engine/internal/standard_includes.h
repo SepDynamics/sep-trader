@@ -1,7 +1,6 @@
 #pragma once
 
 // CRITICAL: Include nlohmann_json_protected.h FIRST to ensure proper array setup
-#include "../../nlohmann_json_protected.h"
 
 // Include array early and often to prevent conflicts
 #include <array>

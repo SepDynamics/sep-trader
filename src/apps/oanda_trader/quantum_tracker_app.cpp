@@ -1,3 +1,4 @@
+#include "nlohmann_json_safe.h"
 #include "quantum_tracker_app.hpp"
 #include "data_cache_manager.hpp"
 #include "tick_data_manager.hpp"
@@ -20,7 +21,6 @@
 #include <mutex>
 #include <thread>
 
-#include "../nlohmann_json_protected.h"
 
 namespace sep::apps {
 

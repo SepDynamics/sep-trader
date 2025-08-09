@@ -1,5 +1,5 @@
 {
-  "image": "sep_build_env:latest",
+  "dockerfile": "Dockerfile",
   "workspace": "/workspace",
   "ports": [
     "8080:8080",

@@ -15,7 +15,7 @@ enum class PairStatus {
 
 struct PairInfo {
     std::string symbol;
-    PairStatus status;
+    ::sep::core::PairStatus status;
     std::chrono::system_clock::time_point last_trained;
     std::chrono::system_clock::time_point last_updated;
     double accuracy;
@@ -24,11 +24,11 @@ struct PairInfo {
     bool enabled;
     std::atomic<bool> trading_active{false};
     
-    PairInfo() : status(PairStatus::UNTRAINED), accuracy(0.0), enabled(false) {}
+    PairInfo() : status(::sep::core::PairStatus::UNTRAINED), accuracy(0.0), enabled(false) {}
 };
 
 // State change event callback type
-using StateChangeCallback = std::function<void(const std::string& symbol, PairStatus old_status, PairStatus new_status)>;
+using StateChangeCallback = std::function<void(const std::string& symbol, ::sep::core::PairStatus old_status, ::sep::core::PairStatus new_status)>;
 
 class PairManager {
 public:
@@ -42,11 +42,11 @@ public:
     bool disablePair(const std::string& symbol);
     
     // Status management
-    bool setPairStatus(const std::string& symbol, PairStatus status);
-    PairStatus getPairStatus(const std::string& symbol) const;
-    const PairInfo& getPairInfo(const std::string& symbol) const;
+    bool setPairStatus(const std::string& symbol, ::sep::core::PairStatus status);
+    ::sep::core::PairStatus getPairStatus(const std::string& symbol) const;
+    const ::sep::core::PairInfo& getPairInfo(const std::string& symbol) const;
     std::vector<std::string> getAllPairs() const;
-    std::vector<std::string> getPairsByStatus(PairStatus status) const;
+    std::vector<std::string> getPairsByStatus(::sep::core::PairStatus status) const;
     
     // Trading lifecycle
     bool startTrading(const std::string& symbol);
@@ -81,13 +81,13 @@ public:
     
 private:
     mutable std::shared_mutex pairs_mutex_;
-    std::unordered_map<std::string, std::unique_ptr<PairInfo>> pairs_;
-    std::vector<StateChangeCallback> state_callbacks_;
+    std::unordered_map<std::string, std::unique_ptr<::sep::core::PairInfo>> pairs_;
+    std::vector<sep::core::StateChangeCallback> state_callbacks_;
     std::mutex callbacks_mutex_;
     std::string state_file_path_;
     
     // Internal helpers
-    void notifyStateChange(const std::string& symbol, PairStatus old_status, PairStatus new_status);
+    void notifyStateChange(const std::string& symbol, ::sep::core::PairStatus old_status, ::sep::core::PairStatus new_status);
     bool validatePairSymbol(const std::string& symbol) const;
     void initializeDefaultPairs();
     
@@ -97,8 +97,8 @@ private:
 };
 
 // Utility functions
-std::string statusToString(PairStatus status);
-PairStatus stringToStatus(const std::string& status_str);
+std::string statusToString(::sep::core::PairStatus status);
+::sep::core::PairStatus stringToStatus(const std::string& status_str);
 bool isValidPairSymbol(const std::string& symbol);
 
 } // namespace sep::core

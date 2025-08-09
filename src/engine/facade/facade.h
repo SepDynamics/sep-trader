@@ -21,7 +21,7 @@ namespace memory {
 
 /// Request types for the facade (pure data, no logic)
 struct PatternProcessRequest {
-    std::vector<core::Pattern> patterns;
+    std::vector<::sep::core::Pattern> patterns;
     std::string context_id;
     float coherence_threshold{0.5f};
     bool async_processing{false};
@@ -65,7 +65,7 @@ struct ManifoldOptimizationResponse {
 };
 
 struct StorePatternRequest {
-    core::Pattern pattern;
+    ::sep::core::Pattern pattern;
     float coherence{0.0f};
     float stability{0.0f};
     uint32_t generation_count{0};
@@ -78,7 +78,7 @@ struct StorePatternResponse {
 };
 
 struct BatchProcessRequest {
-    std::vector<core::CandleData> market_data;
+    std::vector<::sep::core::CandleData> market_data;
     std::string symbol;
     uint64_t timestamp_start{0};
     uint64_t timestamp_end{0};
@@ -104,7 +104,7 @@ struct BatchPatternResult {
 };
 
 struct AdvancedBatchResponse {
-    std::vector<BatchPatternResult> results;
+    std::vector<::sep::engine::BatchPatternResult> results;
     size_t patterns_processed{0};
     size_t patterns_succeeded{0};
     size_t patterns_failed{0};
@@ -166,15 +166,15 @@ struct StreamQueryRequest {
 
 /// Response types for the facade (pure data, no logic)
 struct PatternProcessResponse {
-    std::vector<core::Pattern> processed_patterns;
+    std::vector<::sep::core::Pattern> processed_patterns;
     std::string correlation_id;
     float coherence_score{0.0f};
     bool processing_complete{false};
 };
 
 struct PatternAnalysisResponse {
-    core::Pattern pattern;
-    std::vector<core::PatternRelationship> relationships;
+    ::sep::core::Pattern pattern;
+    std::vector<::sep::core::PatternRelationship> relationships;
     float confidence_score{0.0f};
     float entropy{0.0f};
     std::string analysis_summary;
@@ -260,7 +260,7 @@ struct StreamResponse {
 
 struct StreamDataResponse {
     std::vector<uint8_t> recent_data;
-    std::vector<core::Pattern> recent_patterns;
+    std::vector<::sep::core::Pattern> recent_patterns;
     uint64_t total_data_points{0};
     uint64_t processed_patterns{0};
     float average_coherence{0.0f};
@@ -273,76 +273,76 @@ class EngineFacade {
 public:
     // Lifecycle management
     static EngineFacade& getInstance();
-    core::Result initialize();
-    core::Result shutdown();
+    ::sep::core::Result initialize();
+    ::sep::core::Result shutdown();
     
     // Core pattern operations
-    core::Result processPatterns(const PatternProcessRequest& request, 
+    ::sep::core::Result processPatterns(const PatternProcessRequest& request, 
                                 PatternProcessResponse& response);
     
-    core::Result analyzePattern(const PatternAnalysisRequest& request,
+    ::sep::core::Result analyzePattern(const PatternAnalysisRequest& request,
                                PatternAnalysisResponse& response);
 
-    core::Result qfhAnalyze(const QFHAnalysisRequest& request,
+    ::sep::core::Result qfhAnalyze(const QFHAnalysisRequest& request,
                             QFHAnalysisResponse& response);
 
-    core::Result manifoldOptimize(const ManifoldOptimizationRequest& request,
+    ::sep::core::Result manifoldOptimize(const ManifoldOptimizationRequest& request,
     ManifoldOptimizationResponse& response);
 
-    core::Result extractBits(const BitExtractionRequest& request,
+    ::sep::core::Result extractBits(const BitExtractionRequest& request,
     BitExtractionResponse& response);
 
-    core::Result storePattern(const StorePatternRequest& request,
+    ::sep::core::Result storePattern(const StorePatternRequest& request,
                             StorePatternResponse& response);
     
-    core::Result processBatch(const BatchProcessRequest& request,
+    ::sep::core::Result processBatch(const BatchProcessRequest& request,
                              PatternProcessResponse& response);
     
     // Advanced batch processing
-    core::Result processAdvancedBatch(const AdvancedBatchRequest& request,
+    ::sep::core::Result processAdvancedBatch(const AdvancedBatchRequest& request,
                                      AdvancedBatchResponse& response);
     
     // Streaming data operations
-    core::Result createStream(const StreamCreateRequest& request,
+    ::sep::core::Result createStream(const StreamCreateRequest& request,
                              StreamResponse& response);
-    core::Result startStream(const std::string& stream_id,
+    ::sep::core::Result startStream(const std::string& stream_id,
                             StreamResponse& response);
-    core::Result stopStream(const std::string& stream_id,
+    ::sep::core::Result stopStream(const std::string& stream_id,
                            StreamResponse& response);
-    core::Result deleteStream(const std::string& stream_id,
+    ::sep::core::Result deleteStream(const std::string& stream_id,
                              StreamResponse& response);
-    core::Result ingestStreamData(const StreamDataRequest& request,
+    ::sep::core::Result ingestStreamData(const StreamDataRequest& request,
                                  StreamResponse& response);
-    core::Result queryStream(const StreamQueryRequest& request,
+    ::sep::core::Result queryStream(const StreamQueryRequest& request,
                             StreamDataResponse& response);
     
     // Memory operations  
-    core::Result queryMemory(const MemoryQueryRequest& request,
-                            std::vector<core::Pattern>& results);
+    ::sep::core::Result queryMemory(const MemoryQueryRequest& request,
+                            std::vector<::sep::core::Pattern>& results);
     
     // System status
-    core::Result getHealthStatus(HealthStatusResponse& response);
-    core::Result getMemoryMetrics(MemoryMetricsResponse& response);
+    ::sep::core::Result getHealthStatus(HealthStatusResponse& response);
+    ::sep::core::Result getMemoryMetrics(MemoryMetricsResponse& response);
     
     // Pattern cache operations
-    core::Result clearPatternCache();
-    core::Result configurePatternCache(size_t max_size, int ttl_minutes, float coherence_threshold);
+    ::sep::core::Result clearPatternCache();
+    ::sep::core::Result configurePatternCache(size_t max_size, int ttl_minutes, float coherence_threshold);
     
     // GPU memory operations
-    core::Result allocateGPUMemory(const GPUMemoryAllocRequest& request,
+    ::sep::core::Result allocateGPUMemory(const GPUMemoryAllocRequest& request,
                                   GPUMemoryAllocResponse& response);
-    core::Result deallocateGPUMemory(const GPUMemoryDeallocRequest& request);
-    core::Result configureGPUMemory(const GPUMemoryConfigRequest& request);
-    core::Result defragmentGPUMemory();
-    core::Result resetGPUMemoryStats();
+    ::sep::core::Result deallocateGPUMemory(const GPUMemoryDeallocRequest& request);
+    ::sep::core::Result configureGPUMemory(const GPUMemoryConfigRequest& request);
+    ::sep::core::Result defragmentGPUMemory();
+    ::sep::core::Result resetGPUMemoryStats();
     
     // Engine configuration operations
-    core::Result setEngineConfig(const ConfigSetRequest& request,
+    ::sep::core::Result setEngineConfig(const ConfigSetRequest& request,
                                 ConfigResponse& response);
-    core::Result getEngineConfig(const ConfigGetRequest& request,
+    ::sep::core::Result getEngineConfig(const ConfigGetRequest& request,
                                 ConfigResponse& response);
-    core::Result listEngineConfig(ConfigListResponse& response);
-    core::Result resetEngineConfig(const std::string& category = "");  // Empty = reset all
+    ::sep::core::Result listEngineConfig(ConfigListResponse& response);
+    ::sep::core::Result resetEngineConfig(const std::string& category = "");  // Empty = reset all
     
     // Prevent copying/moving
     EngineFacade(const EngineFacade&) = delete;

@@ -6,9 +6,9 @@
 
 #include "engine/internal/standard_includes.h"
 #include "quantum/gpu_context.h"
-#include "quantum/qbsa.cuh"
+#include "/workspace/src/quantum/qbsa.cuh"
 
-namespace sep::quantum {
+namespace sep::quantum::bitspace {
 
     // CUDA kernel functions are declared in qbsa.cuh
 
@@ -26,29 +26,29 @@ struct QBSAOptions {
 
 class QBSAProcessor {
 public:
-    explicit QBSAProcessor(const QBSAOptions& options = {});
+    explicit QBSAProcessor(const ::sep::quantum::bitspace::QBSAOptions& options = {});
     
     // Virtual destructor for proper cleanup of derived classes
     virtual ~QBSAProcessor() = default;
 
     // Analyze probe indices against expected values
-    virtual QBSAResult analyze(const std::vector<uint32_t>& probe_indices,
+    virtual ::sep::quantum::bitspace::QBSAResult analyze(const std::vector<uint32_t>& probe_indices,
                                const std::vector<uint32_t>& expectations);
 
     // Detect collapse based on correction ratio
-    virtual bool detectCollapse(const QBSAResult& result,
+    virtual bool detectCollapse(const ::sep::quantum::bitspace::QBSAResult& result,
                         std::size_t total_bits) const;
 
     // Get options
-    const QBSAOptions& getOptions() const;
+    const ::sep::quantum::bitspace::QBSAOptions& getOptions() const;
 
     // Duplication logic for flux analysis
-    virtual QBSAResult duplicateForPackage(const std::vector<uint8_t>& bitstream);
+    virtual ::sep::quantum::bitspace::QBSAResult duplicateForPackage(const std::vector<uint8_t>& bitstream);
 
 private:
-    QBSAOptions options_;
+    ::sep::quantum::bitspace::QBSAOptions options_;
 };
 
-} // namespace sep::quantum
+} // namespace sep::quantum::bitspace
 
 #endif // SEP_QUANTUM_QBSA_H

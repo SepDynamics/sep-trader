@@ -8,6 +8,9 @@
  * promotion and demotion of MemoryBlock instances.
  */
 
+// JSON library needs to be included before project headers
+#include "nlohmann_json_safe.h"
+
 // Project includes
 #include "engine/internal/common.h"
 #include "engine/internal/dag_graph.h"
@@ -32,7 +35,6 @@
 #include <unordered_map>
 #include <vector>
 
-#include "../nlohmann_json_protected.h"
 
 namespace sep {
 
@@ -57,12 +59,12 @@ namespace memory {
         void shutdown();
 
         // Memory block allocation and management
-        MemoryBlock *allocate(std::size_t size, MemoryTierEnum tier);
-        void deallocate(MemoryBlock *block);
-        MemoryBlock *findBlockByPtr(void *ptr);
+        ::sep::memory::MemoryBlock *allocate(std::size_t size, MemoryTierEnum tier);
+        void deallocate(::sep::memory::MemoryBlock *block);
+        ::sep::memory::MemoryBlock *findBlockByPtr(void *ptr);
 
         // Tier management
-        MemoryTier *getTier(MemoryTierEnum tier);
+        ::sep::memory::MemoryTier *getTier(MemoryTierEnum tier);
         float getTierUtilization(MemoryTierEnum tier) const;
         float getTierFragmentation(MemoryTierEnum tier) const;
         float getTotalUtilization() const;
@@ -75,18 +77,18 @@ namespace memory {
         std::size_t getTotalAllocated() const;
 
         // Access tier objects
-        MemoryTier &getSTM();
-        MemoryTier &getMTM();
-        MemoryTier &getLTM();
+        ::sep::memory::MemoryTier &getSTM();
+        ::sep::memory::MemoryTier &getMTM();
+        ::sep::memory::MemoryTier &getLTM();
 
         // Block promotion/demotion
-        sep::SEPResult promoteBlock(MemoryBlock *block, MemoryBlock *&out_block);
-        sep::SEPResult demoteBlock(MemoryBlock *block, MemoryBlock *&out_block);
-        MemoryTier *determineTier(float coherence, float stability, int generation_count);
-        MemoryBlock *updateBlockProperties(MemoryBlock *block, float promotion_score,
+        sep::SEPResult promoteBlock(::sep::memory::MemoryBlock *block, ::sep::memory::MemoryBlock *&out_block);
+        sep::SEPResult demoteBlock(::sep::memory::MemoryBlock *block, ::sep::memory::MemoryBlock *&out_block);
+        ::sep::memory::MemoryTier *determineTier(float coherence, float stability, int generation_count);
+        ::sep::memory::MemoryBlock *updateBlockProperties(::sep::memory::MemoryBlock *block, float promotion_score,
                                            float priority_score, std::uint32_t age = 0,
                                            float weight = 0.0f);
-        MemoryBlock *updateBlockMetrics(MemoryBlock *block, float coherence, float stability,
+        ::sep::memory::MemoryBlock *updateBlockMetrics(::sep::memory::MemoryBlock *block, float coherence, float stability,
                                         uint32_t generation, float context_score);
         void rebuildLookup();
 
@@ -129,17 +131,17 @@ namespace memory {
         static std::once_flag once_flag_;
 
         MemoryTier::Config config_;
-        std::unique_ptr<MemoryTier> stm_;
-        std::unique_ptr<MemoryTier> mtm_;
-        std::unique_ptr<MemoryTier> ltm_;
-        std::unordered_map<void *, MemoryBlock *> lookup_map_;
+        std::unique_ptr<::sep::memory::MemoryTier> stm_;
+        std::unique_ptr<::sep::memory::MemoryTier> mtm_;
+        std::unique_ptr<::sep::memory::MemoryTier> ltm_;
+        std::unordered_map<void *, ::sep::memory::MemoryBlock *> lookup_map_;
         // Legacy pointer lookup table used during tier transitions. When blocks
         // move between tiers the old pointer remains valid for a short period so
         // tests can resolve both the new and previous addresses. This map stores
         // those temporary associations until the next rebuild. The entries are
         // cleared whenever rebuildLookup() is invoked to keep stale pointers from
         // accumulating across multiple promotions or defragmentation cycles.
-        std::unordered_map<void *, MemoryBlock *> legacy_lookup_map_;
+        std::unordered_map<void *, ::sep::memory::MemoryBlock *> legacy_lookup_map_;
 
     private:
         dag::DagGraph dag_graph_;
@@ -157,12 +159,12 @@ namespace memory {
         std::unordered_map<std::size_t, std::unordered_map<std::size_t, float>>
             pattern_relationships_;
 
-        sep::SEPResult promoteToTier(MemoryBlock *block, MemoryTierEnum tier,
-                                     MemoryBlock *&out_block);
-        sep::SEPResult compressBlock(MemoryBlock *block);
+        sep::SEPResult promoteToTier(::sep::memory::MemoryBlock *block, MemoryTierEnum tier,
+                                     ::sep::memory::MemoryBlock *&out_block);
+        sep::SEPResult compressBlock(::sep::memory::MemoryBlock *block);
 
         // Generic data scoring methods for tier transition
-        bool checkScoreForPromotion(float score, MemoryTier *target_tier) const;
+        bool checkScoreForPromotion(float score, ::sep::memory::MemoryTier *target_tier) const;
         bool checkScoreForDemotion(float score) const;
     };
 
@@ -205,4 +207,3 @@ struct adl_serializer<sep::memory::MemoryThresholdConfig> {
     }
 };
 } // namespace nlohmann
-

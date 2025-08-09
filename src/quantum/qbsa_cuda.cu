@@ -8,7 +8,7 @@
 
 namespace sep::quantum {
 
-__global__ void qbsa_kernel(QBSAParams params) {
+__global__ void qbsa_kernel(sep::quantum::bitspace::QBSAParams params) {
     const uint32_t tid = blockIdx.x * blockDim.x + threadIdx.x;
     if (tid < params.num_probes) {
         if (params.probe_indices[tid] != params.expectations[tid]) {
@@ -17,7 +17,7 @@ __global__ void qbsa_kernel(QBSAParams params) {
     }
 }
 
-bool launch_qbsa_kernel(const QBSAParams& params) {
+bool launch_qbsa_kernel(const sep::quantum::bitspace::QBSAParams& params) {
 const dim3 block(256);
 const dim3 grid((params.num_probes + block.x - 1) / block.x);
 

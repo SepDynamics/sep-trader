@@ -5,7 +5,7 @@
 #include <string>
 #include <vector>
 
-#include "../nlohmann_json_protected.h"
+#include "nlohmann_json_safe.h"
 #include "api/bridge.h"
 #include "api/types.h"
 #include "quantum/processor.h"

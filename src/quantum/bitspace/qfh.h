@@ -17,25 +17,25 @@ enum class QFHState : uint8_t {
 // Event representation capturing index and bit context.
 struct QFHEvent {
     std::size_t index;   // index of previous bit in the pair
-    QFHState state;      // transition type
+    ::sep::quantum::QFHState state;      // transition type
     uint8_t bit_prev;    // previous bit value
     uint8_t bit_curr;    // current bit value
 
-    bool operator==(const QFHEvent& other) const;
+    bool operator==(const ::sep::quantum::QFHEvent& other) const;
 };
 
 // Aggregated event including run length.
 struct QFHAggregateEvent {
     std::size_t index;
-    QFHState state;
+    ::sep::quantum::QFHState state;
     int count;
 };
 
 // Transform an entire bit vector into transition events.
-std::vector<QFHEvent> transform_rich(const std::vector<uint8_t>& bits);
+std::vector<::sep::quantum::QFHEvent> transform_rich(const std::vector<uint8_t>& bits);
 
 // Aggregate events by state
-std::vector<QFHAggregateEvent> aggregate(const std::vector<QFHEvent>& events);
+std::vector<::sep::quantum::QFHAggregateEvent> aggregate(const std::vector<::sep::quantum::QFHEvent>& events);
 
 // Streaming processor for online transformation.
 class QFHProcessor {
@@ -44,14 +44,14 @@ private:
 public:
     QFHProcessor() = default;
 
-    std::optional<QFHState> process(uint8_t current_bit);
+    std::optional<::sep::quantum::QFHState> process(uint8_t current_bit);
     void reset();
 };
 
 // QFH analysis result
 struct QFHResult {
-    std::vector<QFHEvent> events;
-    std::vector<QFHAggregateEvent> aggregated_events;
+    std::vector<::sep::quantum::QFHEvent> events;
+    std::vector<::sep::quantum::QFHAggregateEvent> aggregated_events;
     int null_state_count{0};
     int flip_count{0};
     int rupture_count{0};

@@ -262,7 +262,7 @@ FusedSignal MultiAssetSignalFusion::fuseSignals(const std::vector<AssetSignal>& 
     return result;
 }
 
-double MultiAssetSignalFusion::calculateCrossAssetCoherence(const std::vector<AssetSignal>& signals) {
+double MultiAssetSignalFusion::calculateCrossAssetCoherence(const std::vector<sep::AssetSignal>& signals) {
     if (signals.size() < 2) {
         return 1.0;  // Perfect coherence with only one signal
     }

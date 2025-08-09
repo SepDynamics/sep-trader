@@ -74,7 +74,7 @@ public:
     uint32_t getGeneration(uint64_t id) const;
 
     // Get most recently added node, or nullptr if empty
-    const DagNode* getMostRecentNode() const;
+    const ::sep::dag::DagNode* getMostRecentNode() const;
     
     // JSON serialization for metrics output
     std::string exportAsJson() const;
@@ -96,7 +96,7 @@ public:
 
 private:
     uint64_t                              next_id_{1};
-    std::unordered_map<uint64_t, DagNode> nodes_;
+    std::unordered_map<uint64_t, ::sep::dag::DagNode> nodes_;
 };
 
 }  // namespace dag

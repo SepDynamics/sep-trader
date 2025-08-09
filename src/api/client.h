@@ -1,3 +1,4 @@
+#include "nlohmann_json_safe.h"
 #ifndef SEP_API_CLIENT_H
 #define SEP_API_CLIENT_H
 
@@ -7,7 +8,6 @@
 #include <mutex>
 #include <string>
 
-#include "../nlohmann_json_protected.h"
 #include "api/types.h"
 #include "curl/curl.h"
 #include "engine/internal/common.h"

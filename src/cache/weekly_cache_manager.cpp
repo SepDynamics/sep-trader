@@ -1,3 +1,4 @@
+#include "nlohmann_json_safe.h"
 #include "weekly_cache_manager.hpp"
 
 #include <spdlog/spdlog.h>
@@ -9,7 +10,6 @@
 #include <queue>
 #include <sstream>
 
-#include "../nlohmann_json_protected.h"
 
 namespace sep::cache {
 

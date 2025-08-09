@@ -49,7 +49,7 @@ struct ValidationPolicy {
 };
 
 // Cache validation callback types
-using ValidationCallback = std::function<void(const std::string& cache_path, ValidationResult result, const CacheQuality& quality)>;
+using ValidationCallback = std::function<void(const std::string& cache_path, ::sep::cache::ValidationResult result, const CacheQuality& quality)>;
 using RepairCallback = std::function<bool(const std::string& cache_path, const std::vector<std::string>& issues)>;
 
 class CacheValidator {
@@ -58,18 +58,18 @@ public:
     ~CacheValidator() = default;
 
     // Primary validation methods
-    ValidationResult validateCache(const std::string& cache_path) const;
-    ValidationResult validateCacheForPair(const std::string& pair_symbol) const;
+    ::sep::cache::ValidationResult validateCache(const std::string& cache_path) const;
+    ::sep::cache::ValidationResult validateCacheForPair(const std::string& pair_symbol) const;
     CacheQuality analyzeCacheQuality(const std::string& cache_path) const;
     
     // Batch validation
-    std::unordered_map<std::string, ValidationResult> validateAllCaches() const;
-    std::unordered_map<std::string, ValidationResult> validatePairCaches(const std::vector<std::string>& pairs) const;
+    std::unordered_map<std::string, ::sep::cache::ValidationResult> validateAllCaches() const;
+    std::unordered_map<std::string, ::sep::cache::ValidationResult> validatePairCaches(const std::vector<std::string>& pairs) const;
     
     // Policy management
-    void setValidationPolicy(const ValidationPolicy& policy);
-    ValidationPolicy getValidationPolicy() const;
-    void setCustomPolicyForPair(const std::string& pair, const ValidationPolicy& policy);
+    void setValidationPolicy(const ::sep::cache::ValidationPolicy& policy);
+    ::sep::cache::ValidationPolicy getValidationPolicy() const;
+    void setCustomPolicyForPair(const std::string& pair, const ::sep::cache::ValidationPolicy& policy);
     bool hasCustomPolicy(const std::string& pair) const;
     
     // Cache requirements validation
@@ -118,8 +118,8 @@ public:
 
 private:
     mutable std::mutex validation_mutex_;
-    ValidationPolicy default_policy_;
-    std::unordered_map<std::string, ValidationPolicy> pair_policies_;
+    ::sep::cache::ValidationPolicy default_policy_;
+    std::unordered_map<std::string, ::sep::cache::ValidationPolicy> pair_policies_;
     std::string cache_base_path_;
     
     // Monitoring
@@ -129,8 +129,8 @@ private:
     std::atomic<bool> stop_monitoring_{false};
     
     // Event callbacks
-    std::vector<ValidationCallback> validation_callbacks_;
-    std::vector<RepairCallback> repair_callbacks_;
+    std::vector<sep::cache::ValidationCallback> validation_callbacks_;
+    std::vector<sep::cache::RepairCallback> repair_callbacks_;
     mutable std::mutex callbacks_mutex_;
     
     // Statistics
@@ -140,18 +140,18 @@ private:
     mutable std::atomic<std::chrono::duration<double>> total_validation_time_{std::chrono::duration<double>::zero()};
     
     // Internal validation methods
-    ValidationResult performValidation(const std::string& cache_path, const ValidationPolicy& policy) const;
-    CacheQuality analyzeQuality(const std::string& cache_path, const ValidationPolicy& policy) const;
+    ::sep::cache::ValidationResult performValidation(const std::string& cache_path, const ::sep::cache::ValidationPolicy& policy) const;
+    CacheQuality analyzeQuality(const std::string& cache_path, const ::sep::cache::ValidationPolicy& policy) const;
     bool checkFileAccessibility(const std::string& cache_path) const;
-    bool checkDataAge(const std::string& cache_path, const ValidationPolicy& policy) const;
-    bool checkDataCompleteness(const std::string& cache_path, const ValidationPolicy& policy) const;
-    bool checkDataContinuity(const std::string& cache_path, const ValidationPolicy& policy) const;
+    bool checkDataAge(const std::string& cache_path, const ::sep::cache::ValidationPolicy& policy) const;
+    bool checkDataCompleteness(const std::string& cache_path, const ::sep::cache::ValidationPolicy& policy) const;
+    bool checkDataContinuity(const std::string& cache_path, const ::sep::cache::ValidationPolicy& policy) const;
     
     // Data analysis helpers
     std::vector<std::chrono::system_clock::time_point> extractTimestamps(const std::string& cache_path) const;
     size_t countRecords(const std::string& cache_path) const;
     std::vector<std::chrono::minutes> findDataGaps(const std::vector<std::chrono::system_clock::time_point>& timestamps) const;
-    double calculateCompletenessScore(const std::string& cache_path, const ValidationPolicy& policy) const;
+    double calculateCompletenessScore(const std::string& cache_path, const ::sep::cache::ValidationPolicy& policy) const;
     double calculateFreshnessScore(const std::vector<std::chrono::system_clock::time_point>& timestamps) const;
     double calculateConsistencyScore(const std::string& cache_path) const;
     
@@ -162,7 +162,7 @@ private:
     bool isFileReadable(const std::string& cache_path) const;
     
     // Event notification
-    void notifyValidationResult(const std::string& cache_path, ValidationResult result, const CacheQuality& quality) const;
+    void notifyValidationResult(const std::string& cache_path, ::sep::cache::ValidationResult result, const CacheQuality& quality) const;
     bool requestRepair(const std::string& cache_path, const std::vector<std::string>& issues) const;
     
     // Monitoring thread
@@ -175,9 +175,9 @@ private:
 };
 
 // Utility functions
-std::string validationResultToString(ValidationResult result);
-ValidationResult stringToValidationResult(const std::string& result_str);
-bool isValidationResultSuccess(ValidationResult result);
+std::string validationResultToString(::sep::cache::ValidationResult result);
+::sep::cache::ValidationResult stringToValidationResult(const std::string& result_str);
+bool isValidationResultSuccess(::sep::cache::ValidationResult result);
 double calculateOverallCacheScore(const CacheQuality& quality);
 
 // Global cache validator instance

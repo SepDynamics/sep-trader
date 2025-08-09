@@ -1,3 +1,4 @@
+#include "nlohmann_json_safe.h"
 #pragma once
 
 #include <array>
@@ -16,7 +17,6 @@
 #include <string>
 #include <thread>
 
-#include "../nlohmann_json_protected.h"
 #include "api/auth_middleware.h"
 #include "api/rate_limit_middleware.h"
 #include "api/thread_pool.h"

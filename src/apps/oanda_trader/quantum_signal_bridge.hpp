@@ -188,7 +188,7 @@ public:
     // Diagnostics
     const std::vector<uint8_t>& getLastBitPattern() const { return last_bits_; }
     const sep::quantum::QFHResult& getLastQFHResult() const { return last_qfh_result_; }
-    const sep::quantum::QBSAResult& getLastQBSAResult() const { return last_qbsa_result_; }
+    const sep::quantum::bitspace::QBSAResult& getLastQBSAResult() const { return last_qbsa_result_; }
 
 private:
     // Quantum processors (patent-backed)
@@ -208,12 +208,12 @@ private:
     
     // Data processing (legacy - will be replaced with convergence)
     std::vector<uint8_t> convertPriceToBits(const std::vector<sep::connectors::MarketData>& history);
-    float calculateConfidence(const sep::quantum::QFHResult& qfh_result, const sep::quantum::QBSAResult& qbsa_result);
+    float calculateConfidence(const sep::quantum::QFHResult& qfh_result, const sep::quantum::bitspace::QBSAResult& qbsa_result);
     float calculateCoherence(const sep::quantum::QFHResult& qfh_result);
     float calculateStability(const std::vector<sep::connectors::MarketData>& history);
     QuantumTradingSignal::Action determineDirection(
         const sep::quantum::QFHResult& qfh,
-        const sep::quantum::QBSAResult& qbsa
+        const sep::quantum::bitspace::QBSAResult& qbsa
     );
     
     // Risk management
@@ -229,7 +229,7 @@ private:
     void debugDataFormat(const std::vector<sep::connectors::MarketData>& history);
     std::vector<uint8_t> last_bits_;
     sep::quantum::QFHResult last_qfh_result_;
-    sep::quantum::QBSAResult last_qbsa_result_;
+    sep::quantum::bitspace::QBSAResult last_qbsa_result_;
     
     // Thread safety
     mutable std::mutex analysis_mutex_;

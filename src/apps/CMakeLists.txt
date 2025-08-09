@@ -14,15 +14,7 @@ target_link_libraries(data_downloader PRIVATE
     sep_cache
     sep_quantum
     sep_engine
-    nlohmann_json::nlohmann_json
-    pqxx
-    pq
-    curl
-    TBB::tbb
-    spdlog::spdlog
-    fmt::fmt
-    hiredis
-    Threads::Threads
+    sep_core_deps
 )
 
 # ENABLED: oanda_trader subdirectory

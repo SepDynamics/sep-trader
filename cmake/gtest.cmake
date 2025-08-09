@@ -3,19 +3,8 @@
 
 # Only set up GTest if testing is enabled
 if(BUILD_TESTING)
-    # Fetch GTest
-    include(FetchContent)
-    
-    FetchContent_Declare(
-        googletest
-        GIT_REPOSITORY https://github.com/google/googletest.git
-        GIT_TAG release-1.12.1
-    )
-    
-    # For Windows: Prevent overriding the parent project's compiler/linker settings
-    set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
-    
-    FetchContent_MakeAvailable(googletest)
+    # Use system GTest instead of downloading
+    find_package(GTest REQUIRED)
     
     # Include Google Test utilities
     include(GoogleTest)
@@ -33,8 +22,8 @@ if(BUILD_TESTING)
         
         # Link with GTest
         target_link_libraries(${name} PRIVATE
-            gtest_main
-            gtest
+            GTest::gtest_main
+            GTest::gtest
             ${ARG_DEPENDENCIES}
         )
         

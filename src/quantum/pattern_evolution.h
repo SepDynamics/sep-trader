@@ -1,8 +1,8 @@
+#include "nlohmann_json_safe.h"
 #pragma once
 
 #include <array>
 
-#include "../nlohmann_json_protected.h"
 #include "engine/internal/types.h"
 
 // Forward declaration of PatternConfig

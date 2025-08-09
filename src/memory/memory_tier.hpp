@@ -117,17 +117,17 @@ public:
   ~MemoryTier();
 
   // Memory block management methods
-  MemoryBlock *allocate(std::size_t size);
-  void deallocate(MemoryBlock *block);
+  ::sep::memory::MemoryBlock *allocate(std::size_t size);
+  void deallocate(::sep::memory::MemoryBlock *block);
   sep::SEPResult defragment();
 
   float calculateFragmentation() const;
   float calculateUtilization() const;
   std::size_t getFreeSpace() const;
   std::size_t getLargestFreeBlock() const;
-  const std::deque<MemoryBlock> &getBlocks() const;
-  std::deque<MemoryBlock> &getBlocksForModification();
-  bool moveData(MemoryBlock *dst, const MemoryBlock *src);
+  const std::deque<::sep::memory::MemoryBlock> &getBlocks() const;
+  std::deque<::sep::memory::MemoryBlock> &getBlocksForModification();
+  bool moveData(::sep::memory::MemoryBlock *dst, const ::sep::memory::MemoryBlock *src);
   // Expose used space for deterministic unit tests. This allows callers like
   // MemoryTierManager to clamp tiny residual values without relying on
   // floating-point comparisons.
@@ -159,13 +159,13 @@ public:
   }
 
 private:
-  MemoryBlock *findFreeBlock(std::size_t size);
-  void splitBlock(MemoryBlock *block, std::size_t size);
+  ::sep::memory::MemoryBlock *findFreeBlock(std::size_t size);
+  void splitBlock(::sep::memory::MemoryBlock *block, std::size_t size);
   void mergeAdjacentBlocks();
 
   Config config_;
   void *memory_pool_{nullptr};
-  std::deque<MemoryBlock> blocks_;
+  std::deque<::sep::memory::MemoryBlock> blocks_;
   std::size_t used_space_{0};
 
   // Pattern management members

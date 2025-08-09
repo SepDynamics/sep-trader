@@ -1,3 +1,4 @@
+#include "nlohmann_json_safe.h"
 #include "pair_manager.hpp"
 
 #include <algorithm>
@@ -7,11 +8,10 @@
 #include <regex>
 #include <sstream>
 
-#include "../nlohmann_json_protected.h"
 
 namespace sep::core {
 
-PairManager::PairManager() : state_file_path_("/sep/config/pair_states.json") {
+PairManager::PairManager() : state_file_path_("config/pair_states.json") {
     initializeDefaultPairs();
     loadState();
 }

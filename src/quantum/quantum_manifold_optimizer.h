@@ -34,6 +34,8 @@ namespace sep::cuda {
 #include <execution>
 #include <future>
 #include <glm/glm.hpp>
+#include <glm/vec3.hpp>
+#include <glm/mat4x4.hpp>
 #include <memory>
 #include <mutex>
 #include <numeric>
@@ -66,10 +68,10 @@ using ::sep::quantum::QuantumProcessorQFH;
 class QuantumManifoldOptimizer {
 public:
     struct Config {
-        MemoryTierEnum tier{MemoryTierEnum::STM};
-        config::CudaConfig cuda;
-        config::LogConfig log;
-        config::AnalyticsConfig analytics;
+        ::sep::memory::MemoryTierEnum tier{::sep::memory::MemoryTierEnum::STM};
+        ::sep::config::CudaConfig cuda;
+        ::sep::config::LogConfig log;
+        ::sep::config::AnalyticsConfig analytics;
         float base_resonance_frequency{0.42f};
         float convergence_threshold{0.001f};
         float step_size{0.05f};
@@ -81,7 +83,7 @@ public:
 
     struct OptimizationResult {
         bool success{false};
-        QuantumState optimized_state{};
+        ::sep::quantum::QuantumState optimized_state{};
         std::vector<float> optimized_values;
         std::string error_message;
     };
@@ -96,12 +98,12 @@ public:
     QuantumManifoldOptimizer();
     explicit QuantumManifoldOptimizer(const Config& config);
 
-    static Config createManifoldConfig(const PatternEvolutionBridge::Config &cfg);
+    static Config createManifoldConfig(const ::sep::quantum::PatternEvolutionBridge::Config &cfg);
 
-    OptimizationResult optimize(const QuantumState& initial_state,
+    OptimizationResult optimize(const ::sep::quantum::QuantumState& initial_state,
                                 const OptimizationTarget& target);
-    std::vector<Pattern> optimize(const std::vector<Pattern> &patterns);
-    void updateManifoldGeometry(const std::vector<QuantumState> &quantum_states);
+    std::vector<::sep::quantum::Pattern> optimize(const std::vector<::sep::quantum::Pattern> &patterns);
+    void updateManifoldGeometry(const std::vector<::sep::quantum::QuantumState> &quantum_states);
     float computeManifoldCoherence(const glm::vec3& position) const;
     std::vector<glm::vec3> sampleTangentSpace(const glm::vec3 &position,
                                               uint32_t num_samples) const;
@@ -122,7 +124,7 @@ private:
     Config config_{};
     std::vector<ManifoldPoint> manifold_points_{};
     glm::mat4 riemannian_metric_{1.0f};
-    std::unique_ptr<QuantumProcessorQFH> qfh_processor_{};
+    std::unique_ptr<::sep::quantum::QuantumProcessorQFH> qfh_processor_{};
     std::unique_ptr<EvolutionState> evolution_state_{};
     std::vector<std::thread> worker_threads_{};
     std::atomic<bool> running_{false};
@@ -143,25 +145,25 @@ class PerformanceAnalyzer;
 
 struct SemanticConfig {
   int embedding_dimensions = 512;
-  MemoryTierEnum tier = MemoryTierEnum::STM;
+  ::sep::memory::MemoryTierEnum tier = ::sep::memory::MemoryTierEnum::STM;
   int hierarchy_levels = 4;
   double interference_threshold = 0.1;
   bool enable_multimodal_fusion = true;
 };
 
 struct ManifoldConfig {
-    SemanticConfig semantic;
-    config::CudaConfig cuda;
-    config::LogConfig log;
-    config::AnalyticsConfig analytics;
+    ::sep::quantum::manifold::SemanticConfig semantic;
+    ::sep::config::CudaConfig cuda;
+    ::sep::config::LogConfig log;
+    ::sep::config::AnalyticsConfig analytics;
 };
 
 
 
 // 2. ENHANCED QUANTUM PROCESSING WITH MANIFOLD ANALYSIS
-class QuantumManifoldProcessor : public QuantumProcessorQFH {
+class QuantumManifoldProcessor : public ::sep::quantum::QuantumProcessorQFH {
 public:
-  explicit QuantumManifoldProcessor(const sep::quantum::manifold::ManifoldConfig &config);
+  explicit QuantumManifoldProcessor(const ::sep::quantum::manifold::ManifoldConfig &config);
 
   // Multi-dimensional coherence manifold analysis
   struct ManifoldAnalysis {
@@ -172,17 +174,17 @@ public:
       bool topological_defect_detected;
   };
 
-  ManifoldAnalysis analyzeCoherenceManifold(const std::vector<sep::quantum::manifold::QuantumPattern> &patterns);
+  ManifoldAnalysis analyzeCoherenceManifold(const std::vector<::sep::quantum::manifold::QuantumPattern> &patterns);
 
   // Enhanced QFH with cross-scale rupture detection
-  QFHResult processWithCrossScaleAnalysis(const std::vector<uint32_t> &pattern_bits);
+  ::sep::quantum::QFHResult processWithCrossScaleAnalysis(const std::vector<uint32_t> &pattern_bits);
 
   // Wavelet-based frequency domain processing
   std::vector<std::complex<double>> waveletQFH(const std::vector<uint8_t> &bits, int levels = 4);
 
   private:
-  sep::quantum::manifold::ManifoldConfig config_;
-  std::unique_ptr<CUDAQuantumKernel> cuda_kernel_;
+  ::sep::quantum::manifold::ManifoldConfig config_;
+  std::unique_ptr<::sep::quantum::manifold::CUDAQuantumKernel> cuda_kernel_;
 
   void computeManifoldCurvature(ManifoldAnalysis &analysis) const;
   bool detectTopologicalDefects(const ManifoldAnalysis &analysis) const;
@@ -191,7 +193,7 @@ public:
 // 3. CUDA ACCELERATION WITH HIERARCHICAL PARALLELIZATION
 class CUDAQuantumKernel {
 public:
-    explicit CUDAQuantumKernel(const config::CudaConfig &config);
+    explicit CUDAQuantumKernel(const ::sep::config::CudaConfig &config);
     ~CUDAQuantumKernel();
 
   // Warp-level primitive operations
@@ -218,7 +220,7 @@ private:
 #else
     void* fft_plan_;
 #endif
-    config::CudaConfig config_;
+    ::sep::config::CudaConfig config_;
 
     void* d_workspace_;
     size_t workspace_size_;
@@ -227,7 +229,7 @@ private:
 // 4. API COHERENCE MODULATION
 class APICoherenceModulator {
 public:
-    explicit APICoherenceModulator(const config::LogConfig &config);
+    explicit APICoherenceModulator(const ::sep::config::LogConfig &config);
 
     // Dynamic response coherence synthesis
     struct CoherenceResponse
@@ -246,7 +248,7 @@ public:
                                            const std::vector<double> &weights);
 
 private:
-    config::LogConfig config_;
+    ::sep::config::LogConfig config_;
     std::unordered_map<std::string, double> context_coherence_map_;
 
     std::vector<double> extractCoherenceFactors(
@@ -256,7 +258,7 @@ private:
 // 5. HIERARCHICAL SEMANTIC PROCESSING
 class SemanticProcessor {
 public:
-  explicit SemanticProcessor(const SemanticConfig &config);
+  explicit SemanticProcessor(const ::sep::quantum::manifold::SemanticConfig &config);
 
   // Code embedding with structural awareness
   struct CodeEmbedding {
@@ -276,15 +278,15 @@ public:
   };
 
   std::vector<SearchResult> quantumSearch(const CodeEmbedding &query,
-                                          const std::vector<sep::quantum::manifold::QuantumPattern> &patterns);
+                                          const std::vector<::sep::quantum::manifold::QuantumPattern> &patterns);
 
   // Multi-modal result fusion
   std::vector<SearchResult> fuseMultiModalResults(
       const std::vector<std::vector<SearchResult>> &modal_results);
 
   private:
-  SemanticConfig config_;
-  std::unique_ptr<CUDAQuantumKernel> cuda_kernel_;
+  ::sep::quantum::manifold::SemanticConfig config_;
+  std::unique_ptr<::sep::quantum::manifold::CUDAQuantumKernel> cuda_kernel_;
 
   double calculateQuantumInterference(const CodeEmbedding &a,
                                       const CodeEmbedding &b);
@@ -294,7 +296,7 @@ public:
 // 6. REAL-TIME PERFORMANCE ANALYTICS
 class PerformanceAnalyzer {
 public:
-    explicit PerformanceAnalyzer(const config::AnalyticsConfig &config);
+    explicit PerformanceAnalyzer(const ::sep::config::AnalyticsConfig &config);
 
     // Quantum state space analysis
     struct StateSpaceAnalysis
@@ -305,7 +307,7 @@ public:
         std::vector<int> anomaly_indices;
     };
 
-    StateSpaceAnalysis analyzeStateSpace(const std::vector<sep::quantum::manifold::QuantumPattern> &pattern_history);
+    StateSpaceAnalysis analyzeStateSpace(const std::vector<::sep::quantum::manifold::QuantumPattern> &pattern_history);
 
     // Anomaly detection with predictive modeling
     struct AnomalyPrediction
@@ -329,12 +331,12 @@ public:
                                              const std::vector<double> &performance_metrics);
 
   private:
-  config::AnalyticsConfig config_;
+  ::sep::config::AnalyticsConfig config_;
   std::vector<double> performance_history_;
   std::mutex history_mutex_;
 
   double calculateLyapunovExponent(const std::vector<std::vector<double>> &trajectory);
-  double calculateEntropyRate(const std::vector<sep::quantum::manifold::QuantumPattern> &patterns);
+  double calculateEntropyRate(const std::vector<::sep::quantum::manifold::QuantumPattern> &patterns);
 };
 
 
@@ -342,15 +344,15 @@ public:
 // Integration with existing SEP architecture
 class QuantumManifoldOptimizationEngine {
 public:
-  explicit QuantumManifoldOptimizationEngine(const sep::quantum::manifold::ManifoldConfig &config = {});
+  explicit QuantumManifoldOptimizationEngine(const ::sep::quantum::manifold::ManifoldConfig &config = {});
 
   // Initialize all subsystems
   void initialize();
 
   // Process patterns through complete optimization pipeline
-  void processPatterns(const std::vector<sep::quantum::manifold::QuantumPattern> &patterns);
+  void processPatterns(const std::vector<::sep::quantum::manifold::QuantumPattern> &patterns);
 
-std::vector<sep::quantum::manifold::QuantumPattern> getMetrics() const;
+std::vector<::sep::quantum::manifold::QuantumPattern> getMetrics() const;
 
   // Get optimization metrics
   struct OptimizationMetrics {
@@ -368,14 +370,14 @@ std::vector<sep::quantum::manifold::QuantumPattern> getMetrics() const;
 
 
 private:
-  sep::quantum::manifold::ManifoldConfig config_;
+  ::sep::quantum::manifold::ManifoldConfig config_;
 
-  std::unique_ptr<sep::quantum::manifold::QuantumManifoldProcessor> quantum_processor_;
-  std::unique_ptr<sep::quantum::manifold::APICoherenceModulator> api_modulator_;
-  std::unique_ptr<sep::quantum::manifold::SemanticProcessor> semantic_processor_;
-  std::unique_ptr<sep::quantum::manifold::PerformanceAnalyzer> performance_analyzer_;
+  std::unique_ptr<::sep::quantum::manifold::QuantumManifoldProcessor> quantum_processor_;
+  std::unique_ptr<::sep::quantum::manifold::APICoherenceModulator> api_modulator_;
+  std::unique_ptr<::sep::quantum::manifold::SemanticProcessor> semantic_processor_;
+  std::unique_ptr<::sep::quantum::manifold::PerformanceAnalyzer> performance_analyzer_;
 
-  std::vector<sep::quantum::manifold::QuantumPattern> last_run_metrics_;
+  std::vector<::sep::quantum::manifold::QuantumPattern> last_run_metrics_;
 
   std::atomic<bool> running_{false};
   std::thread processing_thread_;

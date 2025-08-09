@@ -1,3 +1,4 @@
+#include "nlohmann_json_safe.h"
 #include "api/server.h"
 
 #include <spdlog/spdlog.h>
@@ -8,7 +9,6 @@
 #include <memory>
 #include <thread>
 
-#include "../nlohmann_json_protected.h"
 #include "api/client.h"
 #include "api/crow_request.h"
 #include "api/json_helpers.h"

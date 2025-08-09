@@ -240,7 +240,7 @@ std::chrono::system_clock::time_point TradingState::getLastConfigUpdate() const 
 bool TradingState::saveState() {
     try {
         std::string json_data = serializeState();
-        std::ofstream file("/sep/config/trading_state.json");
+        std::ofstream file("config/trading_state.json");
         if (!file.is_open()) {
             return false;
         }
@@ -254,7 +254,7 @@ bool TradingState::saveState() {
 
 bool TradingState::loadState() {
     try {
-        std::ifstream file("/sep/config/trading_state.json");
+        std::ifstream file("config/trading_state.json");
         if (!file.is_open()) {
             return false; // File doesn't exist yet, use defaults
         }

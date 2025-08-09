@@ -1,9 +1,9 @@
+#include <iomanip>
 #include "sep_precompiled.h"
 
 #include <fmt/format.h>
 #include <spdlog/spdlog.h>
 
-#include <iomanip>
 #include <algorithm>
 #include <ctime>
 
@@ -750,7 +750,7 @@ For more information, see: https://sep.trading/docs/quantum-training
     }
 
     int optimizeConfigForPair(const std::string& pair) {
-        std::cout << fmt::format("🔬 Auto-optimizing configuration for {}...\n", pair);
+        std::cout << fmt::format("🔬 Auto-optimizing configuration for {}\n", pair);
         
         // This would run parameter optimization for the specific pair
         // Implementation would call trainer optimization methods
@@ -777,7 +777,7 @@ For more information, see: https://sep.trading/docs/quantum-training
     }
 
     int startPairMonitor(const std::string& pair) {
-        std::cout << fmt::format("📊 Starting real-time monitor for {}...\n", pair);
+        std::cout << fmt::format("📊 Starting real-time monitor for {}\n", pair);
         std::cout << "Press Ctrl+C to stop monitoring.\n\n";
         
         // Implementation would start pair-specific monitoring

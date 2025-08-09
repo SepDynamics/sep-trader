@@ -4,7 +4,7 @@
 #include <vector>
 #include "quantum/bitspace/trajectory.h"
 
-namespace sep::quantum {
+namespace sep::quantum::bitspace {
 
 QBSAProcessor::QBSAProcessor(const QBSAOptions& options) : options_(options) {}
 
@@ -70,4 +70,4 @@ QBSAResult QBSAProcessor::duplicateForPackage(const std::vector<uint8_t>& bitstr
     return result;
 }
 
-}  // namespace sep::quantum
+}  // namespace sep::quantum::bitspace

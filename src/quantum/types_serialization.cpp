@@ -1,10 +1,10 @@
+#include "nlohmann_json_safe.h"
 #include <algorithm>
 #include <cstring>
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <vector>
 
-#include "../nlohmann_json_protected.h"
 #include "engine/internal/pattern_types.h"
 #include "engine/internal/standard_includes.h"
 #include "quantum/types.h"

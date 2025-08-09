@@ -44,8 +44,8 @@ private:
     std::string live_results_dir_;
 
 public:
-    explicit WeekendOptimizer(const std::string& config_path = "/sep/optimal_config.json",
-                             const std::string& results_dir = "/sep/live_results/")
+    explicit WeekendOptimizer(const std::string& config_path = "optimal_config.json",
+                             const std::string& results_dir = "live_results/")
         : config_file_path_(config_path), live_results_dir_(results_dir) {}
     
     /**
