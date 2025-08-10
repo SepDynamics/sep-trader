@@ -89,11 +89,7 @@ if [ "$NATIVE_BUILD" = true ] || [ "$SKIP_DOCKER" = true ] || ! "$DOCKER_BIN" in
         CUDA_FLAGS="-DSEP_USE_CUDA=OFF"
     fi
     
-    # CXXFLAGS to force-include the array fix. This resolves the widespread
-    # 'array is not a member of std' compilation errors.
-    # The -include flag works for gcc/clang. For nvcc, we use -Xcompiler.
-    ARRAY_FIX_FLAGS=""
-    CUDA_ARRAY_FIX=""
+    
 
     # Temporarily use system libraries for cmake/ninja to avoid GCC-11 library conflicts
     export LD_LIBRARY_PATH="/usr/lib64:/lib64:$LD_LIBRARY_PATH"
@@ -107,9 +103,7 @@ if [ "$NATIVE_BUILD" = true ] || [ "$SKIP_DOCKER" = true ] || ! "$DOCKER_BIN" in
         -DCMAKE_BUILD_WITH_INSTALL_RPATH=ON \
         -DCMAKE_EXPORT_COMPILE_COMMANDS=TRUE \
         -DSEP_USE_GUI=OFF \
-        -DCMAKE_CXX_STANDARD=17 \
-        -DCMAKE_CXX_FLAGS="-Wno-error=pedantic -D__CORRECT_ISO_CPP11_MATH_H_PROTO" \
-        -DCMAKE_CUDA_FLAGS="-Wno-deprecated-gpu-targets" \
+        -DCMAKE_CXX_STANDARD=20         -DCMAKE_CXX_FLAGS="-Wno-error=pedantic -D__CORRECT_ISO_CPP11_MATH_H_PROTO"         -DCMAKE_CUDA_FLAGS="-Wno-deprecated-gpu-targets"
         $CUDA_FLAGS
 
     # Build with ninja using system libraries
@@ -126,7 +120,7 @@ echo "Mounting local directory $(pwd) to ${SEP_WORKSPACE_PATH} in the container.
 "${DOCKER_BIN}" run --gpus all --rm \
     -v $(pwd):${SEP_WORKSPACE_PATH} \
     -e SEP_WORKSPACE_PATH=${SEP_WORKSPACE_PATH} \
-    sep-engine-builder bash -c '
+    sep_build_env bash -c '
     # Add exception for dubious ownership
     git config --global --add safe.directory "*"
     
@@ -147,9 +141,7 @@ echo "Mounting local directory $(pwd) to ${SEP_WORKSPACE_PATH} in the container.
         -DCMAKE_EXPORT_COMPILE_COMMANDS=TRUE \
         -DSEP_USE_CUDA=ON \
         -DSEP_USE_GUI=OFF \
-        -DCMAKE_CXX_FLAGS="-D__CORRECT_ISO_CPP11_MATH_H_PROTO" \
-        -DCMAKE_CXX_STANDARD=17 \
-        -DCMAKE_CUDA_FLAGS="-Wno-deprecated-gpu-targets"
+        -DCMAKE_CXX_FLAGS="-D__CORRECT_ISO_CPP11_MATH_H_PROTO"         -DCMAKE_CXX_STANDARD=20         -DCMAKE_CUDA_FLAGS="-Wno-deprecated-gpu-targets"
     
     ninja -k 0 2>&1 | tee ${SEP_WORKSPACE_PATH}/output/build_log.txt
     

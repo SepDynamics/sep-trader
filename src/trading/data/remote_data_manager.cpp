@@ -1,11 +1,5 @@
+
 #include "nlohmann_json_safe.h"
-#include "remote_data_manager.hpp"
-
-#include <curl/curl.h>
-#include <hiredis/hiredis.h>
-#include <spdlog/spdlog.h>
-
-#include <array>
 #include <filesystem>
 #include <fstream>
 #include <mutex>

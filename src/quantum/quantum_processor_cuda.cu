@@ -7,7 +7,7 @@
 #endif
 
 // GLM CUDA compatibility
-#define GLM_COMPILER 0
+
 #define CUDA_VERSION 12090
 #define __CUDA_VER_MAJOR__ 12
 #define __CUDA_VER_MINOR__ 9

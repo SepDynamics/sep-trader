@@ -445,7 +445,7 @@ cudaError_t calculateForwardWindowsCuda(
     CudaContext& context,
     const std::vector<TickData>& ticks,
     std::vector<ForwardWindowResult>& results,
-    uint64_t window_size_ns) {
+    [[maybe_unused]] uint64_t window_size_ns) {
     
     if (!context.initialized) {
         return cudaErrorNotReady;

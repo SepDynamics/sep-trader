@@ -33,6 +33,8 @@ add_sep_library(sep_quantum
     spdlog::spdlog
 )
 
+target_precompile_headers(sep_quantum PRIVATE ${CMAKE_SOURCE_DIR}/src/nlohmann_json_safe.h)
+
 add_dependencies(sep_quantum sep_memory)
 
 target_include_directories(sep_quantum PUBLIC

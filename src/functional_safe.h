@@ -7,7 +7,7 @@
 #include <tuple>
 
 // Define array as std::array for GCC 11 functional header compatibility
-#define array std::array
+
 
 #include <functional>
 

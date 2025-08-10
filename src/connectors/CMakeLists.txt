@@ -20,10 +20,11 @@ PRIVATE
 )
 
 target_link_libraries(sep_connectors PUBLIC
-    sep_engine
     ${CURL_LIBRARIES}
-    nlohmann_json::nlohmann_json
     TBB::tbb
+PRIVATE
+    sep_engine
+    nlohmann_json::nlohmann_json
 )
 
 target_compile_options(sep_connectors PRIVATE ${CURL_CFLAGS_OTHER})

@@ -1,14 +1,16 @@
-#include <iostream>
 #include <fstream>
+#include <iostream>
+#include <memory>
 #include <sstream>
 #include <string>
-#include <memory>
+
+
+#include "ast/serializer.h"
+#include "core_types/result.h"
+#include "engine/facade/facade.h"
 #include "lexer/lexer.h"
 #include "parser/parser.h"
 #include "runtime/interpreter.h"
-#include "engine/facade/facade.h"
-#include "core_types/result.h"
-#include "ast/serializer.h"
 
 void print_usage(const char* program_name) {
     std::cerr << "Usage: " << program_name << " [options] <script.sep>" << std::endl;

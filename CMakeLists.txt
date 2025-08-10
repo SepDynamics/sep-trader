@@ -32,11 +32,16 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 add_compile_definitions(
     _GLIBCXX_DEBUG_PEDANTIC=0  # Disable pedantic debug checks
     _GLIBCXX_CONCEPT_CHECKS=0  # Disable concept checks that might interfere
+    
 )
 
 add_compile_options(
     -Wall -Wextra -Wpedantic -O3
 )
+
+# Force include array_protection.h for all compilation units
+include_directories(BEFORE ${CMAKE_SOURCE_DIR}/src)
+
 
 if(SEP_USE_TBB)
     add_compile_definitions(PSTL_USE_TBB)
@@ -91,7 +96,7 @@ if(SEP_USE_CUDA)
     link_directories("$ENV{CUDA_HOME}/lib64")
     
     # CUDA specific flags for compatibility
-    set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -Wno-deprecated-gpu-targets")
+        
 
 endif()
 
@@ -106,7 +111,7 @@ set(CMAKE_CXX_STANDARD 17 CACHE STRING "C++ standard")
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # C++ compilation flags with forced std headers for nlohmann compatibility
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -include array -include string -include vector")
+
 
 # Global include directory for our safe headers
 include_directories(${CMAKE_SOURCE_DIR}/src)
@@ -157,13 +162,10 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(nlohmann_json)
 
-# Patch nlohmann headers for GCC 11 compatibility
-file(READ "${nlohmann_json_SOURCE_DIR}/include/nlohmann/detail/output/serializer.hpp" SERIALIZER_CONTENT)
-string(REPLACE "#include <algorithm> // reverse" "#include <algorithm> // reverse\n#include <array>\n#include <string>" SERIALIZER_CONTENT "${SERIALIZER_CONTENT}")
-file(WRITE "${nlohmann_json_SOURCE_DIR}/include/nlohmann/detail/output/serializer.hpp" "${SERIALIZER_CONTENT}")
+
 # Use system yaml-cpp instead of downloading
 find_package(PkgConfig REQUIRED)
-pkg_check_modules(YAML_CPP REQUIRED yaml-cpp)
+pkg_check_modules(YAML_CPP REQUIRED libyaml-cpp)
 
 if(SEP_USE_GUI)
     FetchContent_Declare(
@@ -232,11 +234,23 @@ if(SEP_USE_GUI)
 endif()
 
 # Add subdirectories
-# Use system fmt instead of downloading
-find_package(fmt REQUIRED)
+# Use FetchContent for fmt
+FetchContent_Declare(
+  fmt
+  GIT_REPOSITORY https://github.com/fmtlib/fmt.git
+  GIT_TAG 11.2.0
+  GIT_SHALLOW TRUE
+)
+FetchContent_MakeAvailable(fmt)
 
-# Use system spdlog instead of downloading
-find_package(spdlog REQUIRED)
+# Use FetchContent for spdlog
+FetchContent_Declare(
+  spdlog
+  GIT_REPOSITORY https://github.com/gabime/spdlog.git
+  GIT_TAG v1.15.3
+  GIT_SHALLOW TRUE
+)
+FetchContent_MakeAvailable(spdlog)
 
 # Ensure consistent spdlog header-only mode globally  
 add_definitions(-DSPDLOG_HEADER_ONLY)
@@ -251,7 +265,7 @@ target_link_libraries(sep_core_deps INTERFACE
     PostgreSQL::pq
     glm::glm
     nlohmann_json::nlohmann_json
-    yaml-cpp
+    libyaml-cpp
     TBB::tbb
     fmt::fmt
     spdlog::spdlog

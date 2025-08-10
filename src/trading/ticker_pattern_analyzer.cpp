@@ -1,3 +1,4 @@
+
 #include "ticker_pattern_analyzer.hpp"
 
 #include <iomanip>

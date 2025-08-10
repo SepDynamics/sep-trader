@@ -34,11 +34,15 @@ set_target_properties(sep_dsl PROPERTIES POSITION_INDEPENDENT_CODE ON)
 # Set include directories
 target_include_directories(sep_dsl PUBLIC 
     ${CMAKE_CURRENT_SOURCE_DIR}
-    ${CMAKE_CURRENT_SOURCE_DIR}/..
 )
 
 # Set C++ standard
 target_compile_features(sep_dsl PUBLIC cxx_std_17)
+
+target_link_libraries(sep_dsl PUBLIC
+    sep_engine
+    nlohmann_json::nlohmann_json
+)
 
 # Link against engine for builtin functions and nlohmann_json for serialization
 
