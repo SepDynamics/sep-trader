@@ -1,4 +1,4 @@
-#include "nlohmann_json_safe.h"
+#include <nlohmann/json.hpp>
 #include <algorithm>
 #include <cstring>
 #include <glm/glm.hpp>

@@ -1,4 +1,4 @@
-#include "nlohmann_json_safe.h"
+#include <nlohmann/json.hpp>
 #ifndef SEP_MEMORY_TIER_MANAGER_SERIALIZATION_HPP
 #define SEP_MEMORY_TIER_MANAGER_SERIALIZATION_HPP
 

@@ -5,8 +5,8 @@
 #include <sstream>
 #include <thread>
 
+#include "common/sep_precompiled.h"
 #include "quantum/types.h"
-#include "sep_precompiled.h"
 
 namespace sep::trading {
 

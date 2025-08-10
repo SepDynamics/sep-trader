@@ -1,4 +1,4 @@
-#include "nlohmann_json_safe.h"
+#include <nlohmann/json.hpp>
 #include "dynamic_config_manager.hpp"
 #include <fstream>
 #include <sstream>

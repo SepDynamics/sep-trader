@@ -13,7 +13,8 @@ namespace sep::quantum::manifold {
                                                 .fragmentation_threshold = 0.3f,
                                                 .use_unified_memory = true,
                                                 .enable_compression = true,
-                                                .stm_to_mtm_min_gen = 5};
+                                                .stm_to_mtm_min_gen = 5,
+                                                .mtm_to_ltm_min_gen = 10};
 
     ::sep::QuantumThresholdConfig quantum{.ltm_coherence_threshold = 0.9f,
                                           .mtm_coherence_threshold = 0.6f,

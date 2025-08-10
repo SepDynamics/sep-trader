@@ -1,4 +1,4 @@
-#include "nlohmann_json_safe.h"
+#include <nlohmann/json.hpp>
 #include "api/lock_free_rate_limiter.h"
 
 #include "api/background_cleanup.h"

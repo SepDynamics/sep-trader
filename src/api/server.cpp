@@ -1,4 +1,4 @@
-#include "nlohmann_json_safe.h"
+#include <nlohmann/json.hpp>
 #include "api/server.h"
 
 #include <spdlog/spdlog.h>

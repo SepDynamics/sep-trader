@@ -40,7 +40,7 @@ public:
     virtual std::string method() const = 0;
     virtual std::string body() const = 0;
 
-    virtual std::string getHeader(const std::string& name) const {
+    virtual std::string getHeader(const std::string& /*name*/) const {
         return "";
     }
 };

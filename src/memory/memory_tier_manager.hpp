@@ -9,7 +9,7 @@
  */
 
 // JSON library needs to be included before project headers
-#include "nlohmann_json_safe.h"
+#include <nlohmann/json.hpp>
 
 // Project includes
 #include "engine/internal/common.h"

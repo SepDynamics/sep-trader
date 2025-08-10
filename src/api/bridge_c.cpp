@@ -1,4 +1,4 @@
-#include "nlohmann_json_safe.h"
+#include <nlohmann/json.hpp>
 #define BUILDING_SEP_BRIDGE
 #include <cstdio>
 #include <cstring>

@@ -1,7 +1,8 @@
-#include "nlohmann_json_safe.h"
+#include <nlohmann/json.hpp>
+
+#include "common/sep_precompiled.h"
 #include "engine/internal/standard_includes.h"
 #include "macros.h"
-#include "sep_precompiled.h"
 #if defined(__CUDACC__)
 #  include <cuda_runtime.h> // real CUDA header when available
 #endif

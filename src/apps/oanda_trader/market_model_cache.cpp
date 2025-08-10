@@ -6,10 +6,10 @@
 #include <fstream>
 #include <iomanip>
 #include <iostream>
+#include <nlohmann/json.hpp>
 #include <thread>
 
-#include "sep_precompiled.h"
-#include "nlohmann_json_safe.h"
+#include "common/sep_precompiled.h"
 
 namespace sep::apps {
 

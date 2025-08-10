@@ -1,4 +1,4 @@
-#include "nlohmann_json_safe.h"
+#include <nlohmann/json.hpp>
 #include "cache_validator.hpp"
 
 #include <spdlog/spdlog.h>
@@ -216,7 +216,7 @@ bool CacheValidator::attemptCacheRepair(const std::string& cache_path) {
     return requestRepair(cache_path, suggestions);
 }
 
-bool CacheValidator::rebuildCacheFromSource(const std::string& cache_path, const std::string& pair_symbol) {
+bool CacheValidator::rebuildCacheFromSource(const std::string& /*cache_path*/, const std::string& pair_symbol) {
     spdlog::info("Rebuilding cache from source for pair: {}", pair_symbol);
     
     // This would integrate with data source providers
@@ -431,7 +431,7 @@ std::vector<std::chrono::minutes> CacheValidator::findDataGaps(const std::vector
     return gaps;
 }
 
-double CacheValidator::calculateCompletenessScore(const std::string& cache_path, const ValidationPolicy& policy) const {
+double CacheValidator::calculateCompletenessScore(const std::string& cache_path, const ValidationPolicy& /*policy*/) const {
     auto timestamps = extractTimestamps(cache_path);
     if (timestamps.empty()) return 0.0;
     

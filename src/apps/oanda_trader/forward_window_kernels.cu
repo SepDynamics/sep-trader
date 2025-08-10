@@ -1,12 +1,11 @@
 // CRITICAL: For CUDA compilation, apply comprehensive std::array protection
+#include <cuda_runtime.h>
+#include <device_launch_parameters.h>
+
 #include <array>
+#include <cmath>
 
 #include "forward_window_kernels.cuh"
-#ifdef SEP_USE_CUDA
-#include <cuda_runtime.h>
-#endif
-#include <device_launch_parameters.h>
-#include <cmath>
 
 namespace sep::apps::cuda {
 

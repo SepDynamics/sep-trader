@@ -1,4 +1,4 @@
-#include "nlohmann_json_safe.h"
+#include <nlohmann/json.hpp>
 // Always use the isolation header to avoid dependency on external crow.h
 #include "api/rate_limit_middleware.h"
 

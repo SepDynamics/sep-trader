@@ -1,13 +1,11 @@
-
 // CRITICAL: For CUDA compilation, include ALL necessary headers early
-#include <cstddef>
 // #include <functional>  // Removed due to GCC 11 compatibility issues with CUDA
-#include <vector>
-
-#ifdef SEP_USE_CUDA
 #include <cuda_runtime.h>
 
+#include <array>
+#include <cstddef>
 #include <cstdint>
+#include <vector>
 
 extern "C" {
 
@@ -39,5 +37,3 @@ void launch_ticker_optimization(
 }
 
 } // extern "C"
-
-#endif // SEP_USE_CUDA

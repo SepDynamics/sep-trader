@@ -3,6 +3,7 @@
 
 #include <cuda_runtime.h>
 
+#include "common/sep_precompiled.h"
 #include "engine/internal/core.h"
 #include "engine/internal/cuda_helpers.h"
 #include "engine/internal/cuda_sep.h"
@@ -14,7 +15,6 @@
 #include "quantum/pattern_evolution_bridge.h"
 #include "quantum/quantum_manifold_optimizer.h"
 #include "quantum/quantum_processor_qfh.h"
-#include "sep_precompiled.h"
 
 using sep::config::CudaConfig;
 using sep::memory::MemoryTierEnum;

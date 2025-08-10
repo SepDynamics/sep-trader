@@ -5,12 +5,9 @@
  */
 
 // CRITICAL: For CUDA compilation, apply comprehensive std::array protection
-#include <array>
-
-#ifdef SEP_USE_CUDA
 #include <cuda_runtime.h>
-#endif
 
+#include <array>
 #include <string>
 #include <vector>
 

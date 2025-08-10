@@ -1,4 +1,4 @@
-#include "nlohmann_json_safe.h"
+#include <nlohmann/json.hpp>
 /**
  * @file sep_engine.h
  * @brief Main API interface for the SEP Engine

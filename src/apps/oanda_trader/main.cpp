@@ -3,8 +3,8 @@
 #include <exception>
 #include <iostream>
 
+#include "common/sep_precompiled.h"
 #include "oanda_trader_app.hpp"
-#include "sep_precompiled.h"
 
 // Declare signal handling functions and constants
 extern "C" {

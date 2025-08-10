@@ -1,4 +1,4 @@
-#include "nlohmann_json_safe.h"
+#include <nlohmann/json.hpp>
 #include "connectors/oanda_connector.h"
 
 #include <chrono>

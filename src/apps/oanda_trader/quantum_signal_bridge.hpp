@@ -217,8 +217,8 @@ private:
     );
     
     // Risk management
-    double calculateStopLoss(float coherence, double current_price);
-    double calculateTakeProfit(float confidence, double current_price);
+    double calculateStopLoss(float coherence);
+    double calculateTakeProfit(float confidence);
     
     // Pattern management
     void loadPatterns();

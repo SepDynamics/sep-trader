@@ -1,20 +1,6 @@
 #pragma once
 
-// Include array before functional to prevent GCC 11 STL issues
-#include <array>
-// Temporarily disable functional to check for other build issues
-// #include <functional>
-// Continue with other includes
-#include <atomic>
-#include <chrono>
-#include <condition_variable>
-#include <memory>
-#include <mutex>
-#include <queue>
-#include <string>
-#include <thread>
-#include <unordered_map>
-#include <vector>
+#include "common/sep_precompiled.h"
 #include "core/pair_manager.hpp"
 #include "trading_state.hpp"
 #include "weekly_cache_manager.hpp"
@@ -108,9 +94,13 @@ struct ResourceAllocation {
 
 // Dynamic pair management callbacks
 // Temporarily comment out function types to test build
-// using PairLifecycleCallback = std::function<void(const std::string& pair_symbol, ::sep::trading::PairLifecycleStage old_stage, ::sep::trading::PairLifecycleStage new_stage)>;
-// using PairOperationCallback = std::function<void(const ::sep::trading::PairOperation& operation)>;
-// using ResourceAllocationCallback = std::function<bool(const ::sep::trading::ResourceAllocation& current, const ::sep::trading::ResourceAllocation& requested)>;
+using PairLifecycleCallback =
+    std::function<void(const std::string& pair_symbol, ::sep::trading::PairLifecycleStage old_stage,
+                       ::sep::trading::PairLifecycleStage new_stage)>;
+using PairOperationCallback = std::function<void(const ::sep::trading::PairOperation& operation)>;
+using ResourceAllocationCallback =
+    std::function<bool(const ::sep::trading::ResourceAllocation& current,
+                       const ::sep::trading::ResourceAllocation& requested)>;
 
 class DynamicPairManager {
 public:
@@ -232,7 +222,7 @@ private:
     std::unique_ptr<std::thread> operation_processor_thread_;
     std::atomic<bool> stop_processing_{false};
     std::condition_variable operation_cv_;
-    // std::queue<std::function<void()>> operation_queue_;
+    std::queue<std::function<void()>> operation_queue_;
     mutable std::mutex queue_mutex_;
     
     // External integrations

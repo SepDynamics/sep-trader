@@ -1,10 +1,10 @@
 #pragma once
 
-#ifdef SEP_USE_CUDA
 #include <cuda_runtime.h>
-#endif
-#include <vector>
+
 #include <cstdint>
+#include <vector>
+
 #include "cuda_types.cuh"
 
 namespace sep::apps::cuda {

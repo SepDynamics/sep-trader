@@ -1,4 +1,4 @@
-#include "nlohmann_json_safe.h"
+#include <nlohmann/json.hpp>
 #include "cache_health_monitor.hpp"
 
 #include <spdlog/spdlog.h>
@@ -699,7 +699,6 @@ CacheHealthReport CacheHealthMonitor::generateHealthReport(const std::string& pa
     report.metric_scores = getAllMetricScores(pair_symbol);
     
     // Calculate metric statuses
-    auto thresholds = getThresholdsForPair(pair_symbol);
     for (const auto& [metric, score] : report.metric_scores) {
         report.metric_statuses[metric] = scoreToStatus(score);
     }

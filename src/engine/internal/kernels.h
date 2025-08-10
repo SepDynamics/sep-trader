@@ -1,9 +1,8 @@
 #ifndef SEP_CUDA_KERNELS_H
 #define SEP_CUDA_KERNELS_H
 
-#ifdef SEP_USE_CUDA
 #include <cuda_runtime.h>
-#endif
+
 
 #include <cstdint>
 

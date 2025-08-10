@@ -1,8 +1,13 @@
-// SEP Professional Pre-compiled Header
-// This MUST be included first in ALL source files to prevent header conflicts
+/**
+ * @file sep_precompiled.h
+ * @brief Primary pre-compiled header for SEP project
+ *
+ * This header includes all common dependencies and provides
+ * critical fixes for std::array issues that affect nlohmann_json
+ * and other third-party libraries under CUDA compilation.
+ */
 
-#ifndef SEP_PRECOMPILED_H
-#define SEP_PRECOMPILED_H
+#pragma once
 
 // CRITICAL COMPILER WORKAROUND:
 // GCC 11 functional header has a bug where it uses unqualified 'array' 
@@ -11,54 +16,67 @@
 
 #include <array>
 
-// Force the array header guard to be set (following pattern from array_fix.h)
+// Force the array header guard to be set
 #ifndef _GLIBCXX_ARRAY
 #define _GLIBCXX_ARRAY 1
 #endif
 
 // CRITICAL: Clean up any macro pollution that might corrupt std::array
 // This must be done AFTER array is included but BEFORE other headers
-#undef array
 
-// Standard C++ headers that are commonly used
-#include <string>
-#include <vector>
-#include <memory>
-#include <chrono>
+using std::array; // Explicitly bring std::array into scope
+
+// Standard library includes
 #include <iostream>
+#include <vector>
+#include <string>
+#include <memory>
+#include <mutex>
+#include <shared_mutex>
+#include <atomic>
+#include <thread>
+#include <condition_variable>
+
+#include <chrono>
+#include <algorithm>
+#include <cmath>
+#include <complex>
+#include <cstdint>
+#include <execution>
+#include <future>
+#include <numeric>
+#include <optional>
+#include <stdexcept>
+#include <unordered_map>
+#include <iomanip>
 #include <fstream>
 #include <sstream>
-#include <algorithm>
-#include <functional>
-#include <thread>
-#include <mutex>
-#include <atomic>
-#include <future>
 #include <map>
-#include <unordered_map>
-#include <set>
-#include <unordered_set>
-#include <queue>
 #include <stack>
 #include <deque>
 #include <list>
-#include <optional>
 #include <variant>
-#include <type_traits>
-#include <utility>
 #include <tuple>
 #include <regex>
 #include <random>
-#include <cstdint>
-#include <cstddef>
 #include <cstring>
-#include <cmath>
 #include <cassert>
 #include <limits>
-#include <numeric>
+
+// Third-party library includes
+#include <glm/glm.hpp>
+#include <glm/vec3.hpp>
+#include <glm/mat4x4.hpp>
+
+#include <fmt/format.h>
+#include <spdlog/spdlog.h>
 
 // System headers
 #include <unistd.h>
 #include <sys/types.h>
 
-#endif // SEP_PRECOMPILED_H
+
+#ifdef __CUDACC__
+#include <cuda_runtime.h>
+#include <cufft.h>
+#endif

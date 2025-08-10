@@ -2,14 +2,12 @@
 
 #include <cuda_runtime.h>
 
-
+#include "common/sep_precompiled.h"
 #include "engine/internal/cuda_types.hpp"
-#include "sep_precompiled.h"
 
 #ifdef __CUDACC__
-#ifdef SEP_USE_CUDA
 #include <cuda_runtime.h>
-#endif
+
 #endif
 #include <tbb/concurrent_hash_map.h>
 #include <tbb/parallel_for.h>

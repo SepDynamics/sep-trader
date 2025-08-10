@@ -1,18 +1,9 @@
 #pragma once
-#include "engine/internal/standard_includes.h"
-
-#include <string>
-#include <vector>
-#include <array>
-#include <map>
-#include <memory>
-#include <chrono>
-#include <atomic>
-
-#include "quantum/bitspace/qfh.h"
-#include "quantum/quantum_manifold_optimizer.h"
+#include "common/sep_precompiled.h"
 #include "connectors/oanda_connector.h"
 #include "core_types/result.h"
+#include "quantum/bitspace/qfh.h"
+#include "quantum/quantum_manifold_optimizer.h"
 
 namespace sep::trading {
 

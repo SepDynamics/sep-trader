@@ -1,4 +1,4 @@
-#include "nlohmann_json_safe.h"
+#include <nlohmann/json.hpp>
 #include "weekly_cache_manager.hpp"
 
 #include <spdlog/spdlog.h>

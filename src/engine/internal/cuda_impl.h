@@ -1,8 +1,7 @@
 #pragma once
 
-#ifdef SEP_USE_CUDA
 #include <cuda_runtime.h>
-#endif
+
 #include <cstddef>  // For size_t
 #include <cstdio>   // For fprintf
 #include <cstdlib>  // For malloc/free

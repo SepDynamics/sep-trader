@@ -1,4 +1,4 @@
-#include "nlohmann_json_safe.h"
+#include <nlohmann/json.hpp>
 #ifndef SEP_API_CLIENT_H
 #define SEP_API_CLIENT_H
 

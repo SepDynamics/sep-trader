@@ -1,15 +1,5 @@
 #pragma once
-#include <array>
-#include <atomic>
-#include <chrono>
-#include <future>
-#include <map>
-#include <memory>
-#include <mutex>
-#include <string>
-#include <vector>
-
-#include "engine/internal/standard_includes.h"
+#include "common/sep_precompiled.h"
 #include "connectors/oanda_connector.h"
 #include "core_types/result.h"
 #include "engine/facade/facade.h"

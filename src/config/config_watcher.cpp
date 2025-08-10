@@ -433,13 +433,13 @@ void ConfigWatcher::cleanupNativeWatching() {
     // Nothing to do for polling mode
 }
 
-bool ConfigWatcher::addNativeWatch(const std::string& path, bool recursive) {
+bool ConfigWatcher::addNativeWatch(const std::string& /*path*/, bool /*recursive*/) {
     // Platform-specific watch addition
     // Not implemented for polling mode
     return false;
 }
 
-bool ConfigWatcher::removeNativeWatch(const std::string& path) {
+bool ConfigWatcher::removeNativeWatch(const std::string& /*path*/) {
     // Platform-specific watch removal
     // Not implemented for polling mode
     return false;

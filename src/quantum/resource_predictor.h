@@ -1,4 +1,4 @@
-#include "nlohmann_json_safe.h"
+#include <nlohmann/json.hpp>
 #ifndef SEP_CONTEXT_RESOURCE_PREDICTOR_H
 #define SEP_CONTEXT_RESOURCE_PREDICTOR_H
 

@@ -4,7 +4,7 @@
 # Function to create a standard SEP library
 function(add_sep_library name)
     set(options STATIC SHARED)
-    set(oneValueArgs "")
+    set(oneValueArgs PCH_HEADER)
     set(multiValueArgs SOURCES HEADERS DEPENDENCIES CUDA_SOURCES)
     
     cmake_parse_arguments(ARG "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
@@ -63,6 +63,10 @@ function(add_sep_library name)
     
     # Set C++17 standard
     target_compile_features(${name} PUBLIC cxx_std_17)
+
+    if(ARG_PCH_HEADER)
+        target_precompile_headers(${name} PUBLIC ${ARG_PCH_HEADER})
+    endif()
     
     # Set position independent code for all libraries (needed for shared libraries)
     set_target_properties(${name} PROPERTIES POSITION_INDEPENDENT_CODE ON)

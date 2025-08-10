@@ -89,8 +89,7 @@ fi
         -DCMAKE_CXX_COMPILER=/usr/bin/g++-11 \
         -DCMAKE_CUDA_HOST_COMPILER=/usr/bin/g++-11 \
         -DCMAKE_BUILD_WITH_INSTALL_RPATH=ON \
-        -DCMAKE_EXPORT_COMPILE_COMMANDS=TRUE \
-        -DSEP_USE_CUDA=ON
+        -DCMAKE_EXPORT_COMPILE_COMMANDS=TRUE 
     
     ninja -k 0 2>&1 | tee /workspace/output/build_log.txt
     

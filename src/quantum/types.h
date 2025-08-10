@@ -11,11 +11,11 @@
 // Forward declarations to avoid circular dependency
 namespace sep {
     struct PinState {
-        uint64_t pin_id;
-        double value;
-        float coherence;
-        uint64_t tick;
-        std::vector<uint32_t> bits;
+        uint64_t pin_id{0};
+        double value{0.0};
+        float coherence{0.0f};
+        uint64_t tick{0};
+        std::vector<uint32_t> bits{};
     };
 }
 
@@ -52,9 +52,9 @@ enum class RelationshipType {
 };
 
 struct PatternRelationship {
-    std::string targetId;
-    float strength;
-    RelationshipType type;
+    std::string targetId{};
+    float strength{0.0f};
+    RelationshipType type{RelationshipType::Generic};
 };
 
 struct Pattern {
@@ -73,7 +73,7 @@ struct Pattern {
     glm::vec4 velocity{0.0f};
     glm::vec4 attributes{0.0f};
     std::complex<float> amplitude{1.0f, 0.0f};
-    QuantumState state;
+    QuantumState state{};
     uint64_t last_updated{0};
 };
 

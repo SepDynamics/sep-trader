@@ -35,9 +35,7 @@ add_compile_definitions(
     
 )
 
-add_compile_options(
-    -Wall -Wextra -Wpedantic -O3
-)
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wpedantic -O3")
 
 # Force include array_protection.h for all compilation units
 include_directories(BEFORE ${CMAKE_SOURCE_DIR}/src)
@@ -69,6 +67,12 @@ if(SEP_USE_CUDA)
     set(CMAKE_CUDA_HOST_COMPILER "/usr/bin/g++-11")
     set(CUDA_USE_STATIC_CUDA_RUNTIME OFF)
     
+    # Set CUDA standard and architecture
+    set(CMAKE_CUDA_ARCHITECTURES 75)
+    set(CMAKE_CUDA_STANDARD 17)
+    set(CMAKE_CUDA_STANDARD_REQUIRED ON)
+    set(CMAKE_CUDA_EXTENSIONS OFF)
+
     # Set CUDA flags BEFORE enabling language to ensure they're available during compiler identification
     # Add flag to suppress math function conflicts with newer glibc
     set(CMAKE_CUDA_FLAGS "-Wno-deprecated-gpu-targets -Xcompiler=-D__GLIBC_MINOR__=30")
@@ -113,8 +117,9 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 # C++ compilation flags with forced std headers for nlohmann compatibility
 
 
-# Global include directory for our safe headers
-include_directories(${CMAKE_SOURCE_DIR}/src)
+# The following global include is problematic and has been removed.
+# Include directories should be added on a per-target basis.
+# include_directories(${CMAKE_SOURCE_DIR}/src)
 
 # Disable nlohmann global UDLs to prevent conflicts
 add_compile_definitions(NLOHMANN_JSON_USE_GLOBAL_UDLS=0)
@@ -157,7 +162,7 @@ find_package(glm REQUIRED)
 FetchContent_Declare(
   nlohmann_json
   GIT_REPOSITORY https://github.com/nlohmann/json.git
-  GIT_TAG v3.11.2
+  GIT_TAG v3.11.3
   GIT_SHALLOW TRUE
 )
 FetchContent_MakeAvailable(nlohmann_json)
@@ -165,7 +170,15 @@ FetchContent_MakeAvailable(nlohmann_json)
 
 # Use system yaml-cpp instead of downloading
 find_package(PkgConfig REQUIRED)
-pkg_check_modules(YAML_CPP REQUIRED libyaml-cpp)
+pkg_check_modules(YAML_CPP REQUIRED yaml-cpp)
+
+if(YAML_CPP_FOUND)
+    add_library(YAML::yaml-cpp INTERFACE IMPORTED)
+    set_property(TARGET YAML::yaml-cpp PROPERTY INTERFACE_INCLUDE_DIRECTORIES "${YAML_CPP_INCLUDE_DIRS}")
+    set_property(TARGET YAML::yaml-cpp PROPERTY INTERFACE_LINK_LIBRARIES "${YAML_CPP_LIBRARIES}")
+else()
+    message(FATAL_ERROR "Could not find yaml-cpp library using pkg-config")
+endif()
 
 if(SEP_USE_GUI)
     FetchContent_Declare(
@@ -184,11 +197,17 @@ if(SEP_USE_GUI)
 endif()
 
 
-# Use system TBB (Thread Building Blocks) instead of downloading
+# Use FetchContent to build TBB and avoid system dependencies
 option(SEP_USE_TBB "Enable TBB support" ON)
 if(SEP_USE_TBB)
-    set(TBB_DIR "/usr/lib64/cmake/TBB")
-    find_package(TBB REQUIRED)
+    set(TBB_TEST OFF CACHE BOOL "Disable TBB tests" FORCE)
+    FetchContent_Declare(
+        oneTBB
+        GIT_REPOSITORY https://github.com/oneapi-src/oneTBB.git
+        GIT_TAG v2021.11.0
+        GIT_SHALLOW TRUE
+    )
+    FetchContent_MakeAvailable(oneTBB)
 endif()
 
 
@@ -252,9 +271,6 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(spdlog)
 
-# Ensure consistent spdlog header-only mode globally  
-add_definitions(-DSPDLOG_HEADER_ONLY)
-
 add_library(sep_core_deps INTERFACE)
 target_link_libraries(sep_core_deps INTERFACE
     Threads::Threads
@@ -265,7 +281,7 @@ target_link_libraries(sep_core_deps INTERFACE
     PostgreSQL::pq
     glm::glm
     nlohmann_json::nlohmann_json
-    libyaml-cpp
+    YAML::yaml-cpp
     TBB::tbb
     fmt::fmt
     spdlog::spdlog

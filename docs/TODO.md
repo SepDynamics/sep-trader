@@ -13,12 +13,10 @@
 ### 1.1: Fix Complete Build System
 **Priority: CRITICAL** - Nothing works until this is complete
 
-- [x] **Fix std::array Header Issues Permanently** ✅ **COMPLETED**
-  - **Problem:** Docker container loses header fixes on rebuild
-  - **Solution:** Applied global array fix via CMake forced include 
-  - **Files:** `/sep/CMakeLists.txt`, `/sep/src/array_fix.h`
-  - **Action:** ✅ Added `-include array_fix.h` globally to fix std::array issues
-  - **Verification:** ✅ Build now progresses to [230/235] vs complete failure
+- [ ] **Investigate and Fix Root Cause of Build Failures**
+  - **Problem:** The build is failing with linker and API errors. The previous `std::array` header fix was incorrect.
+  - **Action:** Analyze the final build errors from `output/build_log.txt` to identify the specific linker issues, library conflicts (e.g., `spdlog`, `fmt`), and API usage errors. Fix them individually at the source.
+  - **Verification:** All 6 executables build successfully.
 
 - [x] **Fix CMakeLists.txt Build Dependencies** ✅ **MOSTLY COMPLETED**
   - **Problem:** Missing library links causing executable build failures

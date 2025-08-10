@@ -10,7 +10,7 @@ RUN apt-get update && apt-get install -y \
     lcov gcovr cmake build-essential gcc-11 g++-11 \
     ninja-build pkg-config curl git python3 python3-pip postgresql-client \
     libpq-dev libpqxx-dev libhiredis-dev libhwloc-dev libbenchmark-dev \
-    nlohmann-json3-dev libglm-dev libglfw3-dev libgl1-mesa-dev libfmt-dev libcurl4-openssl-dev \
+    nlohmann-json3-dev libglm-dev libglfw3-dev libgl1-mesa-dev libfmt-dev libcurl4-openssl-dev libyaml-cpp-dev \
     && rm -rf /var/lib/apt/lists/* \
     && update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-11 100 \
     && update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-11 100 \

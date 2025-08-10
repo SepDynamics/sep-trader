@@ -1,4 +1,4 @@
-#include "nlohmann_json_safe.h"
+#include <nlohmann/json.hpp>
 #include "quantum_signal_bridge.hpp"
 
 #include <algorithm>
@@ -374,8 +374,8 @@ QuantumTradingSignal QuantumSignalBridge::analyzeMarketData(
                 
                 // Calculate risk management parameters
                 signal.suggested_position_size = calculatePositionSize(signal.identifiers.confidence, 10000.0);
-                signal.stop_loss_distance = calculateStopLoss(signal.identifiers.coherence, current_data.mid);
-                signal.take_profit_distance = calculateTakeProfit(signal.identifiers.confidence, current_data.mid);
+                signal.stop_loss_distance = calculateStopLoss(signal.identifiers.coherence);
+                signal.take_profit_distance = calculateTakeProfit(signal.identifiers.confidence);
                 
                 signal.should_execute = true; // Enable live trade execution for triple-confirmed signals
                 
@@ -582,7 +582,7 @@ double sep::trading::QuantumSignalBridge::calculatePositionSize(float confidence
     return conservative_position;
 }
 
-double sep::trading::QuantumSignalBridge::calculateStopLoss(float coherence, double current_price) {
+double sep::trading::QuantumSignalBridge::calculateStopLoss(float coherence) {
     // Stop loss based on coherence (higher coherence = tighter stop)
     double base_stop_pips = 20.0; // 20 pip base stop
     double coherence_factor = 1.0 - static_cast<double>(coherence);
@@ -591,7 +591,7 @@ double sep::trading::QuantumSignalBridge::calculateStopLoss(float coherence, dou
     return stop_pips / 10000.0; // Convert pips to price distance
 }
 
-double sep::trading::QuantumSignalBridge::calculateTakeProfit(float confidence, double current_price) {
+double sep::trading::QuantumSignalBridge::calculateTakeProfit(float confidence) {
     // Take profit based on confidence (higher confidence = larger target)
     double base_target_pips = 30.0; // 30 pip base target
     double confidence_multiplier = static_cast<double>(confidence) * 2.0;

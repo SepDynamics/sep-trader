@@ -139,8 +139,8 @@ sep::SEPResult PatternProcessor::init(quantum::GPUContext* ctx) {
 }
 
 void PatternProcessor::evolvePatterns() {
-    for (auto& p : patterns_) {
-        // ++p.generation;
+    for (auto& pattern : patterns_) {
+        pattern = mutatePattern(pattern);
     }
 }
 

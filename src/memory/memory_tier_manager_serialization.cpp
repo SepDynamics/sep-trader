@@ -1,4 +1,4 @@
-#include "nlohmann_json_safe.h"
+#include <nlohmann/json.hpp>
 #include "memory/memory_tier_manager.hpp"
 #include "memory/persistent_pattern_data.hpp"
 

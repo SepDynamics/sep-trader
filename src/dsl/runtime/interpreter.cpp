@@ -78,6 +78,7 @@ void Interpreter::register_builtins() {
     
     // REAL Trading Functions - Your actual working engine
     builtins_["run_pme_testbed"] = [](const std::vector<Value>& args) -> Value {
+        (void)args; // Suppress unused parameter warning
         std::cout << "DSL: Running REAL PME testbed analysis..." << std::endl;
         
         // Call your actual working pme_testbed_phase2 system
@@ -95,16 +96,19 @@ void Interpreter::register_builtins() {
     };
     
     builtins_["get_trading_accuracy"] = [](const std::vector<Value>& args) -> Value {
-        // Return your REAL achieved accuracy
-        return 41.56;  // Your actual overall accuracy
-    };
+            (void)args; // Suppress unused parameter warning
+            // Return your REAL achieved accuracy
+            return 41.56;  // Your actual overall accuracy
+        };
     
     builtins_["get_high_confidence_accuracy"] = [](const std::vector<Value>& args) -> Value {
-        // Return your REAL high-confidence accuracy  
-        return 56.97;  // Your actual high-confidence accuracy
-    };
+            (void)args; // Suppress unused parameter warning
+            // Return your REAL high-confidence accuracy  
+            return 56.97;  // Your actual high-confidence accuracy
+        };
     
     builtins_["fetch_live_oanda_data"] = [](const std::vector<Value>& args) -> Value {
+        (void)args; // Suppress unused parameter warning
         std::cout << "DSL: Fetching LIVE data from your OANDA account..." << std::endl;
         
         // Use your actual OANDA historical fetcher with your real API key
@@ -1400,18 +1404,21 @@ void Interpreter::register_builtins() {
     
     // Account management functions
     builtins_["get_account_balance"] = [](const std::vector<Value>& args) -> Value {
+        (void)args; // Suppress unused parameter warning
         std::cout << "DSL: Getting account balance from OANDA..." << std::endl;
         // In production, this would query real OANDA account
         return 10000.0; // Demo account balance
     };
     
     builtins_["get_current_drawdown"] = [](const std::vector<Value>& args) -> Value {
+        (void)args; // Suppress unused parameter warning
         std::cout << "DSL: Calculating current drawdown..." << std::endl;
         // In production, this would calculate real drawdown
         return 0.02; // 2% current drawdown (demo)
     };
     
     builtins_["get_position_count"] = [](const std::vector<Value>& args) -> Value {
+        (void)args; // Suppress unused parameter warning
         std::cout << "DSL: Getting open position count..." << std::endl;
         // In production, this would query real OANDA positions
         return 2.0; // 2 open positions (demo)
@@ -1565,6 +1572,7 @@ void Interpreter::register_builtins() {
     
     // Advanced trading functions
     builtins_["check_market_hours"] = [](const std::vector<Value>& args) -> Value {
+        (void)args; // Suppress unused parameter warning
         std::cout << "DSL: Checking market hours..." << std::endl;
         // In production, check actual market sessions
         return 1.0; // Market open (demo)
@@ -1643,6 +1651,7 @@ void Interpreter::register_builtins() {
     };
     
     builtins_["get_strategy_stats"] = [](const std::vector<Value>& args) -> Value {
+        (void)args; // Suppress unused parameter warning
         std::cout << "DSL: Retrieving strategy performance statistics..." << std::endl;
         
         // In production, return real strategy statistics

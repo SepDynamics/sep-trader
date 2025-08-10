@@ -8,7 +8,7 @@
 #include <unordered_map>
 #include <vector>
 
-#include "nlohmann_json_safe.h"
+#include <nlohmann/json.hpp>
 #include "api/bridge.hpp"
 #include "api/types.h"
 #include "quantum/processor.h"

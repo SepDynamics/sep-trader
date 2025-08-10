@@ -7,7 +7,7 @@
 #include <cmath>
 #include <numeric>
 
-#include "sep_precompiled.h"
+#include "common/sep_precompiled.h"
 
 namespace sep {
 

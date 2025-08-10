@@ -2,9 +2,8 @@
 
 #include "engine/internal/cuda_api.hpp"
 #ifdef __CUDACC__
-#ifdef SEP_USE_CUDA
 #include <cuda_runtime.h>
-#endif
+
 #endif
 
 namespace sep::quantum {

@@ -14,43 +14,7 @@ This plan focuses on integrating existing components to bring the system fully o
 
 ---
 
-### Phase 0: Critical Build Fixes (Priority: BLOCKER)
-
-**The system is failing to compile due to a header order issue with `std::array`. This must be fixed before any other progress can bemade.**
-
-*   [ ] **Standardize and Apply the `std::array` Protection Header**
-    *   **Problem:** The `build_log.txt` shows `nvcc` and `g++` failing with `error: 'array' is not a member of 'std'`. This happens when libraries like `<functional>` or `nlohmann/json` are included before `<array>`.
-    *   **Action:** You have a file designed for this: `src/array_protection.h`. This header must be the **very first line** in every C++ (`.cpp`) and CUDA (`.cu`) file that is failing to compile. This ensures `<array>` is defined before any other standard library headers can cause a conflict.
-    *   **Files to Modify (Add `#include "path/to/array_protection.h"` at the top):**
-        *   `src/trading/cuda/pattern_analysis_kernels.cu`
-        *   `src/trading/cuda/quantum_training_kernels.cu`
-        *   `src/trading/cuda/ticker_optimization_kernels.cu`
-        *   `src/trading/cuda/multi_pair_processing.cu`
-        *   `src/trading/dynamic_pair_manager.cpp`
-        *   `src/trading/data/remote_data_manager.cpp`
-        *   `src/trading/quantum_pair_trainer.cpp`
-        *   `src/trading/ticker_pattern_analyzer.cpp`
-        *   `src/trading/cli/main.cpp`
-        *   `src/apps/data_downloader.cpp`
-        *   `src/dsl/main.cpp`
-        *   `src/memory/quantum_coherence_manager.cpp`
-        *   `src/quantum/coherence_manager.cpp`
-
-*   [ ] **Perform a Clean, Full Build**
-    *   **Action:** After applying the header fix, run your primary build script to compile the entire system.
-    *   **Command:** `./build.sh` (as per `QUICKSTART.md`)
-    *   **Verification:** The build completes with no errors. Check that all necessary executables exist in the `/sep/build/` directory:
-        *   `./build/src/trading/quantum_pair_trainer`
-        *   `./build/src/apps/oanda_trader/quantum_tracker`
-        *   `./build/src/apps/oanda_trader/oanda_trader`
-        *   `./build/src/apps/data_downloader`
-        *   `./build/src/dsl/sep_dsl_interpreter`
-        *   `./build/src/cli/trader-cli`
-
-*   [ ] **Verify CUDA Runtime and GPU Detection**
-    *   **Action:** Use the `quantum_tracker`'s built-in test mode to confirm the local machine's GPU is recognized and the CUDA kernels can be loaded.
-    *   **Command:** `export LD_LIBRARY_PATH=./build/src/core:./build/src/config:./build/src/c_api && ./build/src/apps/oanda_trader/quantum_tracker --test`
-    *   **Expected Outcome:** The application runs, prints CUDA device info (e.g., "Device: NVIDIA..."), and exits successfully.
+[This section has been removed as the proposed solution was ineffective.]
 
 ---
 
