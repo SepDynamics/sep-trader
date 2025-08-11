@@ -52,10 +52,7 @@ namespace io {
 template<typename T, typename... Args>
 using unique_ptr = ::std::unique_ptr<T, Args...>;
 
-template<typename T, typename... Args>
-inline auto make_unique(Args&&... args) {
-    return ::std::make_unique<T>(::std::forward<Args>(args)...);
-}
+
 
 // Container compatibility
 template<typename T>
@@ -77,4 +74,4 @@ namespace io = cuda::ts::io;
 using io::cout;
 using io::cerr;
 using io::endl;
-using cuda::ts::make_unique;
+

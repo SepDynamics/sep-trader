@@ -1,8 +1,6 @@
-
 #include "trader_cli.hpp"
 
-#include <signal.h>
-
+#include <csignal>
 #include <chrono>
 #include <filesystem>
 #include <fstream>
@@ -14,15 +12,16 @@
 #include <ctime>
 #include <future>
 
-#include "cache/cache_health_monitor.hpp"
-#include "cache/cache_validator.hpp"
-#include "cache/weekly_cache_manager.hpp"
-#include "config/dynamic_config_manager.hpp"
-#include "core/pair_manager.hpp"
-#include "core/trading_state.hpp"
+#include "core_integrated/cache_health_monitor.hpp"
+#include "core_integrated/cache_validator.hpp"
+#include "core_integrated/weekly_cache_manager.hpp"
+#include "core_integrated/dynamic_config_manager.hpp"
+#include "core_integrated/pair_manager.hpp"
+#include "core_integrated/trading_state.hpp"
 #include "common/sep_precompiled.h"
 #include "core_types/result.h"
 #include "memory/redis_manager.h"
+#include "util/sys_utils.h"
 
 namespace sep {
 namespace memory {
@@ -38,7 +37,7 @@ namespace sep {
 namespace cli {
 
 namespace {
-    volatile sig_atomic_t g_shutdown_requested = 0;
+    volatile std::sig_atomic_t g_shutdown_requested = 0;
     
     void signal_handler(int signal) {
         g_shutdown_requested = 1;
@@ -51,8 +50,8 @@ TraderCLI::TraderCLI() : verbose_(false), config_path_("config/"),
     analyzer_(std::make_unique<sep::trading::TickerPatternAnalyzer>()),
     dynamic_pair_manager_(std::make_unique<sep::trading::DynamicPairManager>()) {
     register_commands();
-    signal(SIGINT, signal_handler);
-    signal(SIGTERM, signal_handler);
+    std::signal(SIGINT, signal_handler);
+    std::signal(SIGTERM, signal_handler);
 }
 
 TraderCLI::~TraderCLI() = default;
@@ -190,15 +189,15 @@ int TraderCLI::handle_start(const std::vector<std::string>& args) {
 
     try {
         // Initialize state management
-        auto& state = core::TradingState::getInstance();
-        core::PairManager pair_manager;
+        auto& state = sep::core_integrated::TradingState::getInstance();
+        sep::core_integrated::PairManager pair_manager;
         
         // Initialize configuration
-        config::DynamicConfigManager config_manager;
+        sep::core_integrated::DynamicConfigManager config_manager;
         
         // Initialize cache system
-        cache::WeeklyCacheManager cache_manager;
-        cache::CacheHealthMonitor health_monitor;
+        sep::core_integrated::WeeklyCacheManager cache_manager;
+        sep::core_integrated::CacheHealthMonitor health_monitor;
         
         // Load and validate configuration
         std::cout << "📋 Loading configuration...\n";
@@ -213,13 +212,13 @@ int TraderCLI::handle_start(const std::vector<std::string>& args) {
         
         // Validate cache
         std::cout << "🗂️  Validating cache system...\n";
-        cache::CacheValidator validator;
+        sep::core_integrated::CacheValidator validator;
         if (!validator.validateDataIntegrity(config_path_ + "cache/")) {
             std::cout << "⚠️  Cache validation issues detected\n";
         }
         
         // Set system state to running
-        state.setSystemStatus(core::SystemStatus::TRADING);
+        state.setSystemStatus(sep::core_integrated::SystemStatus::TRADING);
         std::cout << "✅ System state: TRADING\n";
         
         if (daemon_mode) {
@@ -228,7 +227,7 @@ int TraderCLI::handle_start(const std::vector<std::string>& args) {
                 std::this_thread::sleep_for(std::chrono::seconds(1));
                 
                 // Update health metrics
-                core::SystemHealth health;
+                sep::core_integrated::SystemHealth health;
                 health.cpu_usage = sep::util::get_cpu_usage();
                 health.memory_usage = 62.5;
                 health.network_latency = 12.3;
@@ -242,7 +241,7 @@ int TraderCLI::handle_start(const std::vector<std::string>& args) {
         
         // Graceful shutdown
         std::cout << "🛑 Shutting down gracefully...\n";
-        state.setSystemStatus(core::SystemStatus::STOPPING);
+        state.setSystemStatus(sep::core_integrated::SystemStatus::STOPPING);
         std::cout << "✅ System stopped\n";
         
         return 0;
@@ -257,14 +256,14 @@ int TraderCLI::handle_stop(const std::vector<std::string>& args) {
     std::cout << "🛑 Stopping SEP Professional Trader-Bot...\n";
     
     try {
-        auto& state = core::TradingState::getInstance();
-        state.setSystemStatus(core::SystemStatus::STOPPING);
+        auto& state = sep::core_integrated::TradingState::getInstance();
+        state.setSystemStatus(sep::core_integrated::SystemStatus::STOPPING);
         
         // Send shutdown signal to running processes
         g_shutdown_requested = 1;
         
         std::this_thread::sleep_for(std::chrono::milliseconds(500));
-        state.setSystemStatus(core::SystemStatus::IDLE);
+        state.setSystemStatus(sep::core_integrated::SystemStatus::IDLE);
         
         std::cout << "✅ System stopped successfully\n";
         return 0;
@@ -285,8 +284,8 @@ int TraderCLI::handle_status(const std::vector<std::string>& args) {
     }
     
     try {
-        auto& state = core::TradingState::getInstance();
-        core::PairManager pair_manager;
+        auto& state = sep::core_integrated::TradingState::getInstance();
+        sep::core_integrated::PairManager pair_manager;
         
         if (json_output) {
             // For now, just output a simple status without JSON library
@@ -321,7 +320,7 @@ int TraderCLI::handle_pairs(const std::vector<std::string>& args) {
     std::string action = args[0];
     
     try {
-        core::PairManager pair_manager;
+        sep::core_integrated::PairManager pair_manager;
         
         if (action == "list") {
             print_pairs_table();
@@ -379,8 +378,8 @@ int TraderCLI::handle_cache(const std::vector<std::string>& args) {
     std::string action = args[0];
     
     try {
-        cache::WeeklyCacheManager cache_manager;
-        cache::CacheValidator validator;
+        sep::core_integrated::WeeklyCacheManager cache_manager;
+        sep::core_integrated::CacheValidator validator;
         
         if (action == "status") {
             print_cache_status();
@@ -416,7 +415,7 @@ int TraderCLI::handle_config(const std::vector<std::string>& args) {
     std::string action = args[0];
     
     try {
-        config::DynamicConfigManager config_manager;
+        sep::core_integrated::DynamicConfigManager config_manager;
         
         if (action == "show") {
             std::cout << "📋 Configuration Status:\n";
@@ -572,7 +571,7 @@ std::string signalStrengthToString(sep::trading::TickerPatternAnalysis::SignalSt
         case sep::trading::TickerPatternAnalysis::SignalStrength::STRONG: return "STRONG";
         case sep::trading::TickerPatternAnalysis::SignalStrength::MODERATE: return "MODERATE";
         case sep::trading::TickerPatternAnalysis::SignalStrength::WEAK: return "WEAK";
-        case sep::trading::TickerPatternAnalysis::SignalStrength::NONE: return "NONE";
+        case sep::TickerPatternAnalysis::SignalStrength::NONE: return "NONE";
         default: return "UNKNOWN";
     }
 }
@@ -586,13 +585,14 @@ int TraderCLI::handle_training(const std::vector<std::string>& args) {
     }
 
     if (args[0] == "--all") {
-        return trainer_->trainAllPairs();
+        trainer_->trainAllPairs();
     } else if (args[0] == "--batch") {
         std::vector<std::string> pairs(args.begin() + 1, args.end());
-        return trainer_->trainMultiplePairs(pairs);
+        trainer_->trainMultiplePairs(pairs);
     } else {
-        return trainer_->trainSinglePair(args[0]);
+        trainer_->trainPair(args[0]);
     }
+    return 0;
 }
 
 int TraderCLI::handle_analysis(const std::vector<std::string>& args) {
@@ -605,12 +605,13 @@ int TraderCLI::handle_analysis(const std::vector<std::string>& args) {
     std::string pair = args[0];
     
     if (pair == "--all") {
-        return analyzer_->analyzeAllPairs();
+        analyzer_->analyzeAllPairs();
     } else if (pair == "--real-time" && args.size() > 1) {
-        return analyzer_->startRealTimeAnalysis(args[1]);
+        analyzer_->startRealTimeAnalysis(args[1]);
     } else {
-        return analyzer_->analyzeSinglePair(pair);
+        analyzer_->analyzeSinglePair(pair);
     }
+    return 0;
 }
 
 int TraderCLI::handle_quantum_status(const std::vector<std::string>& args) {

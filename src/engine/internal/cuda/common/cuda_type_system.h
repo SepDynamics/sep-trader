@@ -18,17 +18,11 @@ using string = std::string;
 namespace io {
     using ostream = ::std::ostream;
     using istream = ::std::istream;
-    using cout = ::std::cout;
-    using cerr = ::std::cerr;
-    using endl = ::std::endl;
 } // namespace io
 #else
 namespace io {
     using std::ostream;
     using std::istream;
-    using std::cout;
-    using std::cerr;
-    using std::endl;
 } // namespace io
 #endif
 

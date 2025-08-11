@@ -64,22 +64,4 @@ endif()
 
 # Fixed by proper include order in standard_includes.h
 
-# ENABLED: DSL interpreter executable
-add_executable(sep_dsl_interpreter
-    main.cpp
-)
 
-# REMOVED: Problematic forced include
-
-# Link the interpreter executable with the DSL library and engine
-target_link_libraries(sep_dsl_interpreter PRIVATE 
-    sep_dsl 
-    sep_engine 
-    # sep_trading  # Temporarily disabled
-    sep_core
-    sep_config
-    sep_cache
-    sep_quantum
-    sep_connectors
-    sep_core_deps
-)

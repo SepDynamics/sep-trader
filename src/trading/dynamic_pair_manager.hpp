@@ -1,7 +1,7 @@
 #pragma once
 
 #include "common/sep_precompiled.h"
-#include "core/pair_manager.hpp"
+#include "core_integrated/pair_manager.hpp"
 #include "trading_state.hpp"
 #include "weekly_cache_manager.hpp"
 #include <queue>

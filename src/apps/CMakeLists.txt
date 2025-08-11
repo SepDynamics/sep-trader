@@ -12,9 +12,7 @@ target_link_libraries(data_downloader PRIVATE
     # sep_trading  # Temporarily disabled
     sep_connectors
     sep_common
-    sep_core
-    sep_config
-    sep_cache
+    sep_core_integrated
     sep_quantum
     sep_engine
     sep_core_deps

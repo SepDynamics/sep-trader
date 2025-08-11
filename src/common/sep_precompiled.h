@@ -79,7 +79,4 @@
 
 // Import CUDA-compatible types into global namespace
 using cuda::ts::string;
-using cuda::ts::io::cout;
-using cuda::ts::io::cerr;
-using cuda::ts::io::endl;
 using cuda::ts::make_unique;

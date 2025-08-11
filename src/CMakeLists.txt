@@ -5,18 +5,7 @@
 add_subdirectory(core_types)
 add_subdirectory(common)
 
-# Only add subdirectories if their CMakeLists exist
-if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/core/CMakeLists.txt)
-    add_subdirectory(core)
-endif()
-
-if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/config/CMakeLists.txt)
-    add_subdirectory(config)
-endif()
-
-if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/cache/CMakeLists.txt)
-    add_subdirectory(cache)
-endif()
+add_subdirectory(core_integrated)
 
 if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/ui/CMakeLists.txt)
     add_subdirectory(ui)

@@ -53,6 +53,10 @@ private:
     int handle_analysis(const std::vector<std::string>& args);
     int handle_quantum_config(const std::vector<std::string>& args);
     int handle_quantum_monitor(const std::vector<std::string>& args);
+    int handle_quantum_status(const std::vector<std::string>& args);
+    int handle_quantum_list_pairs(const std::vector<std::string>& args);
+    int handle_quantum_enable(const std::vector<std::string>& args);
+    int handle_quantum_disable(const std::vector<std::string>& args);
 
     // Helper methods
     void print_status_table() const;
