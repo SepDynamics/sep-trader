@@ -126,6 +126,11 @@ public:
     // Core analysis interface
     sep::trading::TickerPatternAnalysis analyzeTicker(const std::string& ticker_symbol);
     std::future<sep::trading::TickerPatternAnalysis> analyzeTickerAsync(const std::string& ticker_symbol);
+
+    // Direct analysis of supplied market data (testbed/tracing)
+    sep::trading::TickerPatternAnalysis analyzeFromMarketData(
+        const std::string& ticker_symbol,
+        const std::vector<sep::connectors::MarketData>& market_data);
     
     // Batch analysis
     std::vector<sep::trading::TickerPatternAnalysis> analyzeMultipleTickers(

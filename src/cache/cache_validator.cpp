@@ -337,7 +337,11 @@ ValidationResult CacheValidator::performValidation(const std::string& cache_path
     if (!checkDataContinuity(cache_path, policy)) {
         return ValidationResult::INSUFFICIENT_DATA;
     }
-    
+
+    if (!validateEntrySources(cache_path)) {
+        return ValidationResult::MISSING_SOURCE;
+    }
+
     return ValidationResult::VALID;
 }
 
@@ -555,15 +559,20 @@ bool CacheValidator::parseJsonCache(const std::string& cache_path, std::vector<s
         // Assuming the JSON structure has a "data" array with timestamp fields
         if (root.contains("data") && root["data"].is_array()) {
             for (const auto& entry : root["data"]) {
+                if (!entry.contains("source")) {
+                    spdlog::warn("Cache entry missing source metadata in {}", cache_path);
+                    continue;
+                }
+                auto src = stringToDataSource(entry["source"].get<std::string>());
+                if (src == DataSource::UNKNOWN) {
+                    spdlog::warn("Unrecognized source metadata in {}", cache_path);
+                    continue;
+                }
                 if (entry.contains("timestamp")) {
                     if (entry["timestamp"].is_string()) {
-                        // Parse timestamp string to time_point
-                        // This is a simplified implementation - real timestamp parsing would be more robust
                         std::string timestamp_str = entry["timestamp"].get<std::string>();
-                        // For now, use current time as placeholder
                         timestamps.push_back(std::chrono::system_clock::now());
                     } else if (entry["timestamp"].is_number()) {
-                        // Unix timestamp
                         auto timestamp = std::chrono::system_clock::from_time_t(entry["timestamp"].get<time_t>());
                         timestamps.push_back(timestamp);
                     }
@@ -592,6 +601,24 @@ bool CacheValidator::validateJsonStructure(const std::string& cache_path) const 
     }
 }
 
+bool CacheValidator::validateEntrySources(const std::string& cache_path) const {
+    try {
+        std::ifstream file(cache_path);
+        if (!file.is_open()) return false;
+        nlohmann::json root; 
+        file >> root;
+        if (!root.contains("data") || !root["data"].is_array()) return false;
+        for (const auto& entry : root["data"]) {
+            if (!entry.contains("source")) return false;
+            if (stringToDataSource(entry["source"].get<std::string>()) == DataSource::UNKNOWN) return false;
+        }
+        return true;
+    } catch (const std::exception& e) {
+        spdlog::error("Error validating entry sources in {}: {}", cache_path, e.what());
+        return false;
+    }
+}
+
 // Utility functions implementation
 
 std::string validationResultToString(ValidationResult result) {
@@ -602,6 +629,7 @@ std::string validationResultToString(ValidationResult result) {
         case ValidationResult::CORRUPTED: return "CORRUPTED";
         case ValidationResult::INSUFFICIENT_DATA: return "INSUFFICIENT_DATA";
         case ValidationResult::ACCESS_ERROR: return "ACCESS_ERROR";
+        case ValidationResult::MISSING_SOURCE: return "MISSING_SOURCE";
         default: return "UNKNOWN";
     }
 }
@@ -613,6 +641,7 @@ ValidationResult stringToValidationResult(const std::string& result_str) {
     if (result_str == "CORRUPTED") return ValidationResult::CORRUPTED;
     if (result_str == "INSUFFICIENT_DATA") return ValidationResult::INSUFFICIENT_DATA;
     if (result_str == "ACCESS_ERROR") return ValidationResult::ACCESS_ERROR;
+    if (result_str == "MISSING_SOURCE") return ValidationResult::MISSING_SOURCE;
     return ValidationResult::ACCESS_ERROR; // Default for unknown
 }
 
