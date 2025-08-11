@@ -1,26 +1,23 @@
-#include <signal.h>
-
-#include <signal.h>
-
-// Project headers - include precompiled first
-
-// Core system headers
-#include <signal.h>
 #include <cstdlib>
 #include <exception>
+#include <iostream>
+#include <memory>
+#include <string>
 
-// App headers
+#define SIGINT  2
+#define SIGTERM 15
+
+typedef void (*sighandler_t)(int);
+sighandler_t signal(int signum, sighandler_t handler);
+
 #include "apps/oanda_trader/oanda_trader_app.hpp"
 #include "apps/oanda_trader/quantum_tracker_app.hpp"
 
-// SEP types
-using sep::apps::OandaTraderApp;
-using sep::apps::QuantumTrackerApp;
-
-// Declare signal handling functions and constants
-extern "C" {
-    typedef void (*sighandler_t)(int);
-    sighandler_t signal(int signum, sighandler_t handler);
+namespace sep {
+    namespace apps {
+        class OandaTraderApp;
+        class QuantumTrackerApp;
+    }
 }
 
 // Global app instances for signal handling
@@ -37,20 +34,20 @@ void signalHandler(int sig) {
     if (g_tracker_app) {
         g_tracker_app->shutdown();
     }
-    ::std::exit(0);
+    exit(0);
 }
 
 int main(int argc, char* argv[]) {
     // Install signal handlers
-    (void)signal(SIGINT, signalHandler);
-    (void)signal(SIGTERM, signalHandler);
+    signal(SIGINT, signalHandler);
+    signal(SIGTERM, signalHandler);
 
-    string mode("trader");
+    std::string mode("trader");
     
     for (int i = 1; i < argc; ++i) {
-        string arg(argv[i]);
+        std::string arg(argv[i]);
         if (arg == "--mode" && i + 1 < argc) {
-            mode = string(argv[++i]);
+            mode = std::string(argv[++i]);
         }
     }
 

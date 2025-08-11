@@ -1,10 +1,11 @@
 #pragma once
 
+#include <queue>
+
 #include "common/sep_precompiled.h"
 #include "core_integrated/pair_manager.hpp"
-#include "trading_state.hpp"
-#include "weekly_cache_manager.hpp"
-#include <queue>
+#include "core_integrated/trading_state.hpp"
+#include "core_integrated/weekly_cache_manager.hpp"
 
 namespace sep::trading {
 

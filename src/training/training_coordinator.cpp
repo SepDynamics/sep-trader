@@ -8,9 +8,9 @@
 
 #include <algorithm>
 
-#include "cache/weekly_cache_manager.hpp"
 #include "common/sep_precompiled.h"
 #include "connectors/oanda_connector.h"
+#include "core_integrated/weekly_cache_manager.hpp"
 #include "trading/quantum_pair_trainer.hpp"
 
 // Restore array if corrupted

@@ -5,19 +5,19 @@
 #ifndef TRAINING_COORDINATOR_HPP
 #define TRAINING_COORDINATOR_HPP
 
-#include <vector>
-#include <string>
+#include <atomic>
+#include <chrono>
+#include <condition_variable>
 #include <map>
 #include <memory>
-#include <chrono>
-#include <atomic>
-#include <thread>
 #include <mutex>
-#include <condition_variable>
 #include <queue>
+#include <string>
+#include <thread>
+#include <vector>
 
-#include "config/dynamic_config_manager.hpp"
-#include "cache/weekly_cache_manager.hpp"
+#include "core_integrated/dynamic_config_manager.hpp"
+#include "core_integrated/weekly_cache_manager.hpp"
 #include "remote_synchronizer.hpp"
 #include "weekly_data_fetcher.hpp"
 

@@ -1,27 +1,32 @@
 #include "trader_cli.hpp"
 
-#include <csignal>
+#include <algorithm>
+#include <array>
 #include <chrono>
+#include <ctime>
 #include <filesystem>
 #include <fstream>
+#include <future>
 #include <iomanip>
 #include <iostream>
 #include <thread>
-#include <algorithm>
-#include <array>
-#include <ctime>
-#include <future>
 
+#define SIGINT 2
+#define SIGTERM 15
+
+typedef void (*sighandler_t)(int);
+sighandler_t signal(int signum, sighandler_t handler);
+typedef int sig_atomic_t;
+
+#include "common/sep_precompiled.h"
 #include "core_integrated/cache_health_monitor.hpp"
 #include "core_integrated/cache_validator.hpp"
-#include "core_integrated/weekly_cache_manager.hpp"
 #include "core_integrated/dynamic_config_manager.hpp"
 #include "core_integrated/pair_manager.hpp"
 #include "core_integrated/trading_state.hpp"
-#include "common/sep_precompiled.h"
+#include "core_integrated/weekly_cache_manager.hpp"
 #include "core_types/result.h"
 #include "memory/redis_manager.h"
-#include "util/sys_utils.h"
 
 namespace sep {
 namespace memory {
@@ -36,29 +41,33 @@ namespace memory {
 namespace sep {
 namespace cli {
 
-namespace {
-    volatile std::sig_atomic_t g_shutdown_requested = 0;
-    
-    void signal_handler(int signal) {
-        g_shutdown_requested = 1;
-        std::cout << "\nShutdown requested...\n";
+    using namespace sep::core_integrated;
+
+    namespace
+    {
+        volatile sig_atomic_t g_shutdown_requested = 0;
+
+        void signal_handler(int signal)
+        {
+            g_shutdown_requested = 1;
+            std::cout << "\nShutdown requested...\n";
+        }
     }
-}
 
 TraderCLI::TraderCLI() : verbose_(false), config_path_("config/"),
     trainer_(std::make_unique<sep::trading::QuantumPairTrainer>()),
     analyzer_(std::make_unique<sep::trading::TickerPatternAnalyzer>()),
     dynamic_pair_manager_(std::make_unique<sep::trading::DynamicPairManager>()) {
     register_commands();
-    std::signal(SIGINT, signal_handler);
-    std::signal(SIGTERM, signal_handler);
+    signal(SIGINT, signal_handler);
+    signal(SIGTERM, signal_handler);
 }
 
 TraderCLI::~TraderCLI() = default;
 
 int TraderCLI::run(int argc, char* argv[]) {
     if (argc < 2) {
-        print_help();
+        this->print_help();
         return 1;
     }
 
@@ -75,10 +84,10 @@ int TraderCLI::run(int argc, char* argv[]) {
                 config_path_ = argv[++i];
             }
         } else if (arg == "--help" || arg == "-h") {
-            print_help();
+            this->print_help();
             return 0;
         } else if (arg == "--version") {
-            print_version();
+            this->print_version();
             return 0;
         } else {
             args.push_back(arg);
@@ -165,7 +174,7 @@ int TraderCLI::execute_command(const std::string& command, const std::vector<std
     auto it = commands_.find(command);
     if (it == commands_.end()) {
         std::cerr << "Unknown command: " << command << std::endl;
-        print_help();
+        this->print_help();
         return 1;
     }
 
@@ -189,16 +198,16 @@ int TraderCLI::handle_start(const std::vector<std::string>& args) {
 
     try {
         // Initialize state management
-        auto& state = sep::core_integrated::TradingState::getInstance();
-        sep::core_integrated::PairManager pair_manager;
-        
+        auto& state = TradingState::getInstance();
+        PairManager pair_manager;
+
         // Initialize configuration
-        sep::core_integrated::DynamicConfigManager config_manager;
-        
+        DynamicConfigManager config_manager;
+
         // Initialize cache system
-        sep::core_integrated::WeeklyCacheManager cache_manager;
-        sep::core_integrated::CacheHealthMonitor health_monitor;
-        
+        WeeklyCacheManager cache_manager;
+        CacheHealthMonitor health_monitor;
+
         // Load and validate configuration
         std::cout << "📋 Loading configuration...\n";
         if (!state.loadState()) {
@@ -212,13 +221,13 @@ int TraderCLI::handle_start(const std::vector<std::string>& args) {
         
         // Validate cache
         std::cout << "🗂️  Validating cache system...\n";
-        sep::core_integrated::CacheValidator validator;
+        CacheValidator validator;
         if (!validator.validateDataIntegrity(config_path_ + "cache/")) {
             std::cout << "⚠️  Cache validation issues detected\n";
         }
         
         // Set system state to running
-        state.setSystemStatus(sep::core_integrated::SystemStatus::TRADING);
+        state.setSystemStatus(SystemStatus::TRADING);
         std::cout << "✅ System state: TRADING\n";
         
         if (daemon_mode) {
@@ -227,8 +236,8 @@ int TraderCLI::handle_start(const std::vector<std::string>& args) {
                 std::this_thread::sleep_for(std::chrono::seconds(1));
                 
                 // Update health metrics
-                sep::core_integrated::SystemHealth health;
-                health.cpu_usage = sep::util::get_cpu_usage();
+                SystemHealth health;
+                health.cpu_usage = 0.0;
                 health.memory_usage = 62.5;
                 health.network_latency = 12.3;
                 health.active_connections = 5;
@@ -241,7 +250,7 @@ int TraderCLI::handle_start(const std::vector<std::string>& args) {
         
         // Graceful shutdown
         std::cout << "🛑 Shutting down gracefully...\n";
-        state.setSystemStatus(sep::core_integrated::SystemStatus::STOPPING);
+        state.setSystemStatus(SystemStatus::STOPPING);
         std::cout << "✅ System stopped\n";
         
         return 0;
@@ -256,15 +265,15 @@ int TraderCLI::handle_stop(const std::vector<std::string>& args) {
     std::cout << "🛑 Stopping SEP Professional Trader-Bot...\n";
     
     try {
-        auto& state = sep::core_integrated::TradingState::getInstance();
-        state.setSystemStatus(sep::core_integrated::SystemStatus::STOPPING);
-        
+        auto& state = TradingState::getInstance();
+        state.setSystemStatus(SystemStatus::STOPPING);
+
         // Send shutdown signal to running processes
         g_shutdown_requested = 1;
         
         std::this_thread::sleep_for(std::chrono::milliseconds(500));
-        state.setSystemStatus(sep::core_integrated::SystemStatus::IDLE);
-        
+        state.setSystemStatus(SystemStatus::IDLE);
+
         std::cout << "✅ System stopped successfully\n";
         return 0;
         
@@ -284,9 +293,9 @@ int TraderCLI::handle_status(const std::vector<std::string>& args) {
     }
     
     try {
-        auto& state = sep::core_integrated::TradingState::getInstance();
-        sep::core_integrated::PairManager pair_manager;
-        
+        auto& state = TradingState::getInstance();
+        PairManager pair_manager;
+
         if (json_output) {
             // For now, just output a simple status without JSON library
             std::cout << "{\n";
@@ -320,8 +329,8 @@ int TraderCLI::handle_pairs(const std::vector<std::string>& args) {
     std::string action = args[0];
     
     try {
-        sep::core_integrated::PairManager pair_manager;
-        
+        PairManager pair_manager;
+
         if (action == "list") {
             print_pairs_table();
         } else if (action == "add" && args.size() > 1) {
@@ -378,9 +387,9 @@ int TraderCLI::handle_cache(const std::vector<std::string>& args) {
     std::string action = args[0];
     
     try {
-        sep::core_integrated::WeeklyCacheManager cache_manager;
-        sep::core_integrated::CacheValidator validator;
-        
+        WeeklyCacheManager cache_manager;
+        CacheValidator validator;
+
         if (action == "status") {
             print_cache_status();
         } else if (action == "validate") {
@@ -415,8 +424,8 @@ int TraderCLI::handle_config(const std::vector<std::string>& args) {
     std::string action = args[0];
     
     try {
-        sep::core_integrated::DynamicConfigManager config_manager;
-        
+        DynamicConfigManager config_manager;
+
         if (action == "show") {
             std::cout << "📋 Configuration Status:\n";
             std::cout << "✅ Configuration system ready\n";
@@ -571,7 +580,7 @@ std::string signalStrengthToString(sep::trading::TickerPatternAnalysis::SignalSt
         case sep::trading::TickerPatternAnalysis::SignalStrength::STRONG: return "STRONG";
         case sep::trading::TickerPatternAnalysis::SignalStrength::MODERATE: return "MODERATE";
         case sep::trading::TickerPatternAnalysis::SignalStrength::WEAK: return "WEAK";
-        case sep::TickerPatternAnalysis::SignalStrength::NONE: return "NONE";
+        case sep::trading::TickerPatternAnalysis::SignalStrength::NONE: return "NONE";
         default: return "UNKNOWN";
     }
 }
@@ -987,7 +996,7 @@ void TraderCLI::print_quantum_list_pairs(const std::vector<std::string>& args) c
             std::stringstream ss;
             auto local_time = std::localtime(&time_t);
             if (local_time) {
-                ss << ::std::put_time(local_time, "%m/%d %H:%M");
+                ss << std::put_time(local_time, "%m/%d %H:%M");
                 last_trained = ss.str();
             }
         }
@@ -1060,138 +1069,16 @@ void TraderCLI::print_quantum_config_details() const {
 } // namespace sep
 
 
-void TraderCLI::print_help() const {
-    std::cout << "SEP Professional Trader-Bot CLI\n";
-    std::cout << "Usage: trader-cli <command> [options] [args]\n\n";
-    std::cout << "Commands:\n";
-    
-    for (const auto& [name, cmd] : commands_) {
-        std::cout << "  " << std::setw(12) << std::left << name << cmd.description << "\n";
-        if (!cmd.subcommands.empty()) {
-            std::cout << "    Subcommands: ";
-            for (size_t i = 0; i < cmd.subcommands.size(); ++i) {
-                std::cout << cmd.subcommands[i];
-                if (i < cmd.subcommands.size() - 1) std::cout << ", ";
-            }
-            std::cout << "\n";
-        }
-        std::cout << "\n";
-    }
 
-    std::cout << "Example:\n";
-    std::cout << "  trader-cli data import <file>   Import metrics dump into Redis\n\n";
 
-    std::cout << "Global Options:\n";
-    std::cout << "  --verbose, -v     Enable verbose output\n";
-    std::cout << "  --config, -c      Specify config directory\n";
-    std::cout << "  --help, -h        Show this help message\n";
-    std::cout << "  --version         Show version information\n";
-}
 
-void TraderCLI::print_version() const {
-    std::cout << "SEP Professional Trader-Bot v1.0.0\n";
-    std::cout << "Build date: " << __DATE__ << " " << __TIME__ << "\n";
-}
 
-void TraderCLI::print_status_table() const {
-    auto& state = core::TradingState::getInstance();
-    
-    std::cout << "\n📊 System Status\n";
-    std::cout << "┌─────────────────┬──────────────────────┐\n";
-    std::cout << "│ Component       │ Status               │\n";
-    std::cout << "├─────────────────┼──────────────────────┤\n";
-    
-    std::string state_str;
-    switch (state.getSystemStatus()) {
-        case core::SystemStatus::INITIALIZING: state_str = "🟡 INITIALIZING"; break;
-        case core::SystemStatus::IDLE: state_str = "🔴 IDLE"; break;
-        case core::SystemStatus::TRADING: state_str = "🟢 TRADING"; break;
-        case core::SystemStatus::PAUSED: state_str = "🟡 PAUSED"; break;
-        case core::SystemStatus::STOPPING: state_str = "🟡 STOPPING"; break;
-        case core::SystemStatus::ERROR: state_str = "🔴 ERROR"; break;
-        case core::SystemStatus::MAINTENANCE: state_str = "🟡 MAINTENANCE"; break;
-    }
-    
-    std::cout << "│ System          │ " << std::setw(20) << std::left << state_str << " │\n";
-    std::cout << "│ Configuration   │ " << std::setw(20) << std::left << "🟢 LOADED" << " │\n";
-    std::cout << "│ Cache System    │ " << std::setw(20) << std::left << "🟢 HEALTHY" << " │\n";
-    std::cout << "└─────────────────┴──────────────────────┘\n";
-}
 
-void TraderCLI::print_pairs_table() const {
-    core::PairManager pair_manager;
-    auto pairs = pair_manager.getAllPairs();
-    
-    std::cout << "\n💱 Currency Pairs\n";
-    std::cout << "┌─────────────┬────────┬─────────────────────┐\n";
-    std::cout << "│ Symbol      │ Status │ Model Path          │\n";
-    std::cout << "├─────────────┼────────┼─────────────────────┤\n";
-    
-    for (const auto& symbol : pairs) {
-        const auto& info = pair_manager.getPairInfo(symbol);
-        std::string status;
-        switch (info.status) {
-            case core::PairStatus::UNTRAINED: status = "🔴 Untrained"; break;
-            case core::PairStatus::TRAINING: status = "🟡 Training"; break;
-            case core::PairStatus::READY: status = "🟢 Ready"; break;
-            case core::PairStatus::TRADING: status = "🟢 Trading"; break;
-            case core::PairStatus::DISABLED: status = "🔴 Disabled"; break;
-            case core::PairStatus::ERROR: status = "🔴 Error"; break;
-        }
-        
-        std::cout << "│ " << std::setw(11) << std::left << symbol 
-                  << " │ " << std::setw(6) << std::left << status 
-                  << " │ " << std::setw(19) << std::left << info.model_path << " │\n";
-    }
-    
-    std::cout << "└─────────────┴────────┴─────────────────────┘\n";
-}
 
-void TraderCLI::print_cache_status() const {
-    cache::CacheHealthMonitor monitor;
-    
-    std::cout << "\n🗂️  Cache System Status\n";
-    std::cout << "┌─────────────────┬──────────────────────┐\n";
-    std::cout << "│ Metric          │ Value                │\n";
-    std::cout << "├─────────────────┼──────────────────────┤\n";
-    
-    std::cout << "│ " << std::setw(15) << std::left << "Cache Status" 
-              << " │ " << std::setw(20) << std::left << "🟢 Healthy" << " │\n";
-    std::cout << "│ " << std::setw(15) << std::left << "Size" 
-              << " │ " << std::setw(20) << std::left << "245 MB" << " │\n";
-    std::cout << "│ " << std::setw(15) << std::left << "Entries" 
-              << " │ " << std::setw(20) << std::left << "1,247" << " │\n";
-    
-    std::cout << "└─────────────────┴──────────────────────┘\n";
-}
 
-void TraderCLI::print_recent_logs(int lines) const {
-    std::cout << "\n📋 Recent Logs (last " << lines << " lines)\n";
-    std::cout << "────────────────────────────────────────\n";
-    
-    // For now, simulate log output
-    auto now = std::chrono::system_clock::now();
-    auto time_t = std::chrono::system_clock::to_time_t(now);
-    
-    std::cout << "[" << std::put_time(std::localtime(&time_t), "%Y-%m-%d %H:%M:%S") 
-              << "] INFO: System status check completed\n";
-    std::cout << "[" << std::put_time(std::localtime(&time_t), "%Y-%m-%d %H:%M:%S") 
-              << "] INFO: Cache validation successful\n";
-    std::cout << "[" << std::put_time(std::localtime(&time_t), "%Y-%m-%d %H:%M:%S") 
-              << "] INFO: All currency pairs active\n";
-}
 
-void TraderCLI::print_performance_metrics() const {
-    std::cout << "\n📈 Performance Metrics\n";
-    std::cout << "┌─────────────────┬──────────────────────┐\n";
-    std::cout << "│ Metric          │ Value                │\n";
-    std::cout << "├─────────────────┼──────────────────────┤\n";
-    std::cout << "│ Uptime          │ " << std::setw(20) << std::left << "24h 15m 30s" << " │\n";
-    std::cout << "│ Trades Today    │ " << std::setw(20) << std::left << "142" << " │\n";
-    std::cout << "│ Success Rate    │ " << std::setw(20) << std::left << "68.3%" << " │\n";
-    std::cout << "│ P&L Today       │ " << std::setw(20) << std::left << "+$1,247.50" << " │\n";
-    std::cout << "└─────────────────┴──────────────────────┘\n";
-}
 
-} // namespace cli
-} // namespace sep
+
+
+
+
