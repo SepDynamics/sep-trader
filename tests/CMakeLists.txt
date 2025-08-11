@@ -9,3 +9,4 @@ add_sep_test(placeholder_detection_test SOURCES unit/placeholder_detection_test.
 add_sep_test(accuracy_benchmark SOURCES performance/accuracy_benchmark.cpp)
 target_compile_definitions(accuracy_benchmark PRIVATE TEST_DATA_DIR="${CMAKE_SOURCE_DIR}/tests/data")
 add_sep_test(realtime_signal_test SOURCES integration/realtime_signal_test.cpp)
+add_sep_test(oanda_connector_live_test SOURCES integration/oanda_connector_live_test.cpp DEPENDENCIES sep_connectors)
