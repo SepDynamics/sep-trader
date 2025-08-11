@@ -179,6 +179,7 @@ reports/
 data/large/
 datasets/
 *.csv
+!tests/data/*.csv
 *.json.gz
 
 # Jupyter notebooks
@@ -209,6 +210,10 @@ datasets/
 [._]s[a-rt-v][a-z]
 [._]ss[a-gi-z]
 [._]sw[a-p]
+
+# Allow internal testbed utilities
+!_sep/
+!_sep/testbed/
 
 # Emacs
 *~
