@@ -8,7 +8,10 @@
 
 #include "common/sep_precompiled.h"
 #include "quantum/types.h"
+
+#ifdef SEP_BACKTESTING
 #include "../../_sep/testbed/trace.hpp"
+#endif
 
 namespace sep::trading {
 
@@ -211,15 +214,19 @@ TickerPatternAnalysis TickerPatternAnalyzer::analyzeFromMarketData(
     analysis.analysis_timestamp = std::chrono::system_clock::now();
 
     analysis.data_points_analyzed = market_data.size();
+#ifdef SEP_BACKTESTING
     sep::testbed::trace("ingest", std::to_string(market_data.size()) + " points");
+#endif
 
     if (market_data.empty()) {
         throw std::runtime_error("No market data available");
     }
 
     auto qfh_result = performQFHAnalysis(market_data);
+#ifdef SEP_BACKTESTING
     sep::testbed::trace("feature extraction",
                         "coherence=" + std::to_string(qfh_result.coherence));
+#endif
 
     sep::quantum::QuantumState initial_state;
     initial_state.coherence = qfh_result.coherence;
@@ -248,7 +255,9 @@ TickerPatternAnalysis TickerPatternAnalyzer::analyzeFromMarketData(
         signal_dir = "BUY";
     else if (analysis.primary_signal == TickerPatternAnalysis::SignalDirection::SELL)
         signal_dir = "SELL";
+#ifdef SEP_BACKTESTING
     sep::testbed::trace("signal emission", signal_dir);
+#endif
 
     performRiskAssessment(analysis);
     analysis.timeframe_results = analyzeTimeframes(ticker_symbol);
@@ -257,9 +266,6 @@ TickerPatternAnalysis TickerPatternAnalyzer::analyzeFromMarketData(
     analysis.analysis_successful = true;
     return analysis;
 }
-
-#include <iomanip>
-#include <sstream>
 
 std::vector<sep::connectors::MarketData> TickerPatternAnalyzer::fetchMarketData(
     const std::string& ticker_symbol, size_t hours_back) {
@@ -323,8 +329,9 @@ sep::quantum::QFHResult TickerPatternAnalyzer::performQFHAnalysis(
 std::vector<TickerPatternAnalysis::TimeframeAnalysis> TickerPatternAnalyzer::analyzeTimeframes(
     const std::string& ticker_symbol) {
     
+#ifdef SEP_BACKTESTING
     std::vector<TickerPatternAnalysis::TimeframeAnalysis> results;
-    
+
     for (const auto& timeframe : config_.timeframes) {
         TickerPatternAnalysis::TimeframeAnalysis tf_analysis;
         tf_analysis.timeframe = timeframe;
@@ -338,8 +345,12 @@ std::vector<TickerPatternAnalysis::TimeframeAnalysis> TickerPatternAnalyzer::ana
 
         results.push_back(tf_analysis);
     }
-    
+
     return results;
+#else
+    (void)ticker_symbol;
+    return {};
+#endif
 }
 
 TickerPatternAnalysis::PatternType TickerPatternAnalyzer::classifyPattern(
