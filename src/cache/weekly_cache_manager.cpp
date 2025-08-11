@@ -10,6 +10,7 @@
 #include <iomanip>
 #include <queue>
 #include <sstream>
+#include <set>
 
 
 namespace sep::cache {
@@ -250,8 +251,16 @@ CacheOperationResult WeeklyCacheManager::buildWeeklyCache(const std::string& pai
             return result;
         }
         
-        // Write cache file
-        if (!writeCacheFile(cache_path, weekly_data)) {
+        // Write cache file with provenance
+        nlohmann::json provenance = {
+            {"pair", pair_symbol},
+            {"source", "WeeklyCacheManager"},
+            {"generated_at", std::chrono::duration_cast<std::chrono::seconds>(
+                                  std::chrono::system_clock::now().time_since_epoch())
+                                  .count()}
+        };
+
+        if (!writeCacheFile(cache_path, weekly_data, provenance)) {
             result.success = false;
             result.status = WeeklyCacheStatus::ERROR;
             result.message = "Failed to write cache file";
@@ -373,9 +382,23 @@ void WeeklyCacheManager::removeOldCacheFiles(std::chrono::hours max_age) {
 }
 
 void WeeklyCacheManager::compactCacheFiles() {
-    // Basic implementation - in a real system this might involve 
-    // compressing files or optimizing their structure
-    spdlog::debug("Cache file compaction completed (placeholder implementation)");
+    if (!fs::exists(cache_directory_)) return;
+
+    for (const auto& entry : fs::directory_iterator(cache_directory_)) {
+        if (entry.is_regular_file() && entry.path().extension() == ".json") {
+            std::lock_guard<std::mutex> lock(file_io_mutex_);
+            try {
+                std::ifstream in(entry.path());
+                nlohmann::json root; in >> root; in.close();
+                std::ofstream out(entry.path());
+                out << root.dump(); // compact JSON
+            } catch (const std::exception& e) {
+                spdlog::warn("Failed to compact {}: {}", entry.path().string(), e.what());
+            }
+        }
+    }
+
+    spdlog::debug("Cache file compaction completed");
 }
 
 void WeeklyCacheManager::validateAndRepairAllCaches() {
@@ -685,15 +708,71 @@ CacheOperationResult WeeklyCacheManager::performCacheBuild(const std::string& pa
 }
 
 CacheOperationResult WeeklyCacheManager::performIncrementalUpdate(const std::string& pair_symbol) {
-    // For incremental updates, we fetch only the latest data and merge
-    // This is a simplified implementation
-    return buildWeeklyCache(pair_symbol, false);
+    auto start_time = std::chrono::steady_clock::now();
+    CacheOperationResult result;
+    result.status = WeeklyCacheStatus::BUILDING;
+
+    try {
+        std::string cache_path = getWeeklyCachePath(pair_symbol);
+        auto week_start = getCurrentWeekStart();
+        std::vector<std::string> weekly_data = fetchDataForWeek(pair_symbol, week_start);
+
+        if (weekly_data.empty()) {
+            result.success = false;
+            result.status = WeeklyCacheStatus::ERROR;
+            result.message = "No new data available";
+            return result;
+        }
+
+        if (!mergeCacheData(cache_path, weekly_data)) {
+            result.success = false;
+            result.status = WeeklyCacheStatus::ERROR;
+            result.message = "Failed to merge cache data";
+            return result;
+        }
+
+        result.success = true;
+        result.status = WeeklyCacheStatus::CURRENT;
+        result.message = "Weekly cache incrementally updated";
+        result.records_processed = weekly_data.size();
+
+        auto end_time = std::chrono::steady_clock::now();
+        result.operation_time = std::chrono::duration<double>(end_time - start_time);
+
+        total_updates_performed_++;
+        successful_updates_++;
+        total_update_time_.store(total_update_time_.load() + result.operation_time);
+
+        notifyBuildResult(pair_symbol, result);
+    } catch (const std::exception& e) {
+        result.success = false;
+        result.status = WeeklyCacheStatus::ERROR;
+        result.message = std::string("Exception during incremental update: ") + e.what();
+        failed_updates_++;
+        notifyError(pair_symbol, result.message);
+        spdlog::error("Failed incremental update for {}: {}", pair_symbol, e.what());
+    }
+
+    return result;
 }
 
 bool WeeklyCacheManager::mergeCacheData(const std::string& existing_cache, const std::vector<std::string>& new_data) {
-    // Simplified merge implementation
-    // In a real system, this would intelligently merge new data with existing data
-    return true;
+    nlohmann::json provenance;
+    auto existing = readCacheFile(existing_cache, &provenance);
+
+    std::set<std::string> seen(existing.begin(), existing.end());
+    size_t added = 0;
+    for (const auto& rec : new_data) {
+        if (seen.insert(rec).second) {
+            existing.push_back(rec);
+            ++added;
+        }
+    }
+
+    provenance["updated_at"] = std::chrono::duration_cast<std::chrono::seconds>(
+        std::chrono::system_clock::now().time_since_epoch()).count();
+
+    return writeCacheFile(existing_cache, existing, provenance);
 }
 
 void WeeklyCacheManager::processQueueEntry(const QueueEntry& entry) {
@@ -780,17 +859,18 @@ std::vector<std::string> WeeklyCacheManager::fetchDataForWeek(const std::string&
     return data_source_provider_(pair_symbol, week_start, week_end);
 }
 
-bool WeeklyCacheManager::writeCacheFile(const std::string& cache_path, const std::vector<std::string>& data) const {
+bool WeeklyCacheManager::writeCacheFile(const std::string& cache_path, const std::vector<std::string>& data,
+                        const nlohmann::json& provenance) const {
+    std::lock_guard<std::mutex> lock(file_io_mutex_);
     try {
         std::ofstream file(cache_path);
         if (!file.is_open()) {
             return false;
         }
-        
-        // Write data as JSON
+
         nlohmann::json root;
         nlohmann::json data_array = nlohmann::json::array();
-        
+
         for (const auto& record : data) {
             try {
                 nlohmann::json item = nlohmann::json::parse(record);
@@ -805,13 +885,11 @@ bool WeeklyCacheManager::writeCacheFile(const std::string& cache_path, const std
                 data_array.push_back(item);
             }
         }
-        
+
         root["data"] = data_array;
-        root["timestamp"] = std::chrono::duration_cast<std::chrono::seconds>(
-            std::chrono::system_clock::now().time_since_epoch()).count();
-        
-        file << root.dump(2);  // Pretty print with 2-space indentation
-        
+        root["provenance"] = provenance;
+
+        file << root.dump(2);
         return true;
     } catch (const std::exception& e) {
         spdlog::error("Failed to write cache file {}: {}", cache_path, e.what());
@@ -819,19 +897,20 @@ bool WeeklyCacheManager::writeCacheFile(const std::string& cache_path, const std
     }
 }
 
-std::vector<std::string> WeeklyCacheManager::readCacheFile(const std::string& cache_path) const {
+std::vector<std::string> WeeklyCacheManager::readCacheFile(const std::string& cache_path,
+                                           nlohmann::json* provenance) const {
     std::vector<std::string> data;
-    
+    std::lock_guard<std::mutex> lock(file_io_mutex_);
+
     try {
         std::ifstream file(cache_path);
         if (!file.is_open()) {
             return data;
         }
-        
-        // Parse JSON and extract data
+
         nlohmann::json root;
         file >> root;
-        
+
         if (root.contains("data") && root["data"].is_array()) {
             for (const auto& item : root["data"]) {
                 if (!item.is_object()) {
@@ -849,11 +928,15 @@ std::vector<std::string> WeeklyCacheManager::readCacheFile(const std::string& ca
                 data.push_back(item.dump());
             }
         }
-        
+
+        if (provenance && root.contains("provenance")) {
+            *provenance = root["provenance"];
+        }
+
     } catch (const std::exception& e) {
         spdlog::error("Failed to read cache file {}: {}", cache_path, e.what());
     }
-    
+
     return data;
 }
 
