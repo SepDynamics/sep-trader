@@ -154,7 +154,7 @@ TrainingResult TrainingCoordinator::executeCudaTraining(const std::string& pair,
         sep::trading::QuantumPairTrainer trainer(config);
         
         // Fetch real OANDA market data for training
-        auto market_data = trainer.fetchTrainingData(pair, 24); // 24 hours of real data
+        auto market_data = trainer.fetchTrainingData(pair); // previous week of real data
         
         if (!market_data.empty()) {
             // Convert market data to training format
