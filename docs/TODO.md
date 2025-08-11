@@ -268,10 +268,10 @@ find /sep/build -type f -executable -name "*" | grep -E "(data_downloader|quantu
 ```
 
 ### 1.3: Fix JSON Parsing Issues in trader-cli
-- [ ] **Fix pair_states.json Parsing**
+- [x] **Fix pair_states.json Parsing**
   - **Problem:** "Error parsing JSON state: type must be string, but is null"
-  - **Files:** `/sep/config/pair_states.json`, `src/cli/trader_cli.cpp`
-  - **Action:** Fix JSON structure and parsing logic
+  - **Files:** `/sep/config/pair_states.json`, `src/core/pair_manager.cpp`
+  - **Action:** Handle missing or null fields during state deserialization
   - **Verification:** `trader-cli pairs add EUR_USD` succeeds
 
 ---
