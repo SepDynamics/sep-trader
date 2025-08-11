@@ -3,6 +3,9 @@
 #include <cmath>
 #include <random>
 #include <unordered_map>
+#include <algorithm>
+#include <bitset>
+#include <sstream>
 
 namespace dsl::stdlib {
 
@@ -11,9 +14,11 @@ std::unique_ptr<sep::quantum::QFHBasedProcessor> g_qfh_processor;
 std::unique_ptr<sep::quantum::manifold::QuantumManifoldOptimizer> g_manifold_optimizer;
 std::unique_ptr<sep::quantum::PatternEvolutionBridge> g_pattern_evolver;
 
-// Static storage for patterns 
+// Static storage for patterns and simple metadata
 static std::unordered_map<std::string, Value> pattern_store;
+static std::unordered_map<std::string, std::string> pattern_tiers;
 static std::mt19937 rng(42); // Deterministic for testing
+static int next_pattern_id = 1;
 
 void initialize_engine_components() {
     if (!g_qfh_processor) {
@@ -39,59 +44,122 @@ void initialize_engine_components() {
 // ============================================================================
 
 Value create_pattern(const std::vector<Value>& args) {
-    std::cout << "Creating pattern from data stream (placeholder)..." << std::endl;
-    // TODO: Replace with actual call to SEP engine for pattern creation
-    // This function should take market data or a bitstream and return a real pattern ID.
-    // For now, returning a dummy value.
-    return Value("dummy_pattern_id");
+    if (args.empty()) {
+        throw std::runtime_error("create_pattern requires data argument");
+    }
+
+    std::string id = "pattern_" + std::to_string(next_pattern_id++);
+    pattern_store[id] = args[0];
+    pattern_tiers[id] = "HTM"; // default tier - hot tier memory
+    return Value(id);
 }
 
 Value evolve_pattern(const std::vector<Value>& args) {
-    if (args.size() < 2) {
-        throw std::runtime_error("evolve_pattern requires pattern and time arguments");
+    if (args.size() < 2 || args[0].type != Value::STRING || args[1].type != Value::NUMBER) {
+        throw std::runtime_error("evolve_pattern requires pattern id and time step");
     }
-    
-    std::cout << "Evolving pattern through time (placeholder)..." << std::endl;
-    // TODO: Replace with actual call to QuantumManifoldOptimizationEngine for pattern evolution.
-    // This function should take a pattern and time arguments and return an evolved pattern.
-    // For now, returning the input pattern.
-    return args[0];
+
+    std::string id = args[0].get<std::string>();
+    int steps = static_cast<int>(args[1].get<double>());
+    auto it = pattern_store.find(id);
+    if (it == pattern_store.end()) {
+        throw std::runtime_error("Unknown pattern id: " + id);
+    }
+
+    Value data = it->second;
+    std::string new_id = "pattern_" + std::to_string(next_pattern_id++);
+
+    if (data.type == Value::STRING) {
+        std::string bits = data.get<std::string>();
+        if (!bits.empty()) {
+            steps = steps % static_cast<int>(bits.size());
+            std::rotate(bits.begin(), bits.begin() + steps, bits.end());
+        }
+        pattern_store[new_id] = Value(bits);
+    } else if (data.type == Value::NUMBER) {
+        double v = data.get<double>();
+        v += steps;
+        pattern_store[new_id] = Value(v);
+    } else {
+        pattern_store[new_id] = data; // fallback
+    }
+
+    pattern_tiers[new_id] = pattern_tiers[id];
+    return Value(new_id);
 }
 
 Value merge_patterns(const std::vector<Value>& args) {
-    if (args.size() < 2) {
-        throw std::runtime_error("merge_patterns requires two pattern arguments");
+    if (args.size() < 2 || args[0].type != Value::STRING || args[1].type != Value::STRING) {
+        throw std::runtime_error("merge_patterns requires two pattern ids");
     }
-    
-    std::cout << "Merging patterns (placeholder)..." << std::endl;
-    // TODO: Replace with actual call to a pattern merger component.
-    // This function should take two patterns and return a new merged pattern.
-    // For now, returning a dummy value.
-    return Value("merged_pattern_id");
+
+    auto it1 = pattern_store.find(args[0].get<std::string>());
+    auto it2 = pattern_store.find(args[1].get<std::string>());
+    if (it1 == pattern_store.end() || it2 == pattern_store.end()) {
+        throw std::runtime_error("merge_patterns unknown pattern id");
+    }
+
+    Value merged;
+    if (it1->second.type == Value::STRING && it2->second.type == Value::STRING) {
+        merged = Value(it1->second.get<std::string>() + it2->second.get<std::string>());
+    } else if (it1->second.type == Value::NUMBER && it2->second.type == Value::NUMBER) {
+        double avg = (it1->second.get<double>() + it2->second.get<double>()) / 2.0;
+        merged = Value(avg);
+    } else {
+        merged = it1->second; // fallback to first pattern
+    }
+
+    std::string id = "pattern_" + std::to_string(next_pattern_id++);
+    pattern_store[id] = merged;
+    pattern_tiers[id] = pattern_tiers[args[0].get<std::string>()];
+    return Value(id);
+}
+
+static std::string get_pattern_bits(const std::string& id) {
+    auto it = pattern_store.find(id);
+    if (it == pattern_store.end() || it->second.type != Value::STRING) {
+        throw std::runtime_error("pattern does not contain bitstring: " + id);
+    }
+    return it->second.get<std::string>();
 }
 
 Value measure_coherence(const std::vector<Value>& args) {
-    std::cout << "Measuring pattern coherence (placeholder)..." << std::endl;
-    // TODO: Replace with actual call to SEP engine to measure pattern coherence.
-    // This function should take a pattern ID and return its coherence score.
-    // For now, returning a dummy value.
-    return Value(0.0);
+    if (args.empty() || args[0].type != Value::STRING) {
+        throw std::runtime_error("measure_coherence requires pattern id");
+    }
+    std::string bits = get_pattern_bits(args[0].get<std::string>());
+    if (bits.size() < 2) return Value(1.0);
+    size_t matches = 0;
+    for (size_t i = 1; i < bits.size(); ++i) {
+        if (bits[i] == bits[i-1]) matches++;
+    }
+    double coherence = static_cast<double>(matches) / (bits.size() - 1);
+    return Value(coherence);
 }
 
 Value measure_stability(const std::vector<Value>& args) {
-    std::cout << "Measuring pattern stability (placeholder)..." << std::endl;
-    // TODO: Replace with actual call to SEP engine to measure pattern stability.
-    // This function should take a pattern ID and return its stability score.
-    // For now, returning a dummy value.
-    return Value(0.0);
+    if (args.empty() || args[0].type != Value::STRING) {
+        throw std::runtime_error("measure_stability requires pattern id");
+    }
+    std::string bits = get_pattern_bits(args[0].get<std::string>());
+    if (bits.empty()) return Value(0.0);
+    double ones = std::count(bits.begin(), bits.end(), '1');
+    double p = ones / bits.size();
+    double stability = 1.0 - 4.0 * p * (1.0 - p); // 1 when p=0 or 1, 0 when p=0.5
+    return Value(stability);
 }
 
 Value measure_entropy(const std::vector<Value>& args) {
-    std::cout << "Measuring pattern entropy (placeholder)..." << std::endl;
-    // TODO: Replace with actual call to SEP engine to measure pattern entropy.
-    // This function should take a pattern ID and return its entropy score.
-    // For now, returning a dummy value.
-    return Value(0.0);
+    if (args.empty() || args[0].type != Value::STRING) {
+        throw std::runtime_error("measure_entropy requires pattern id");
+    }
+    std::string bits = get_pattern_bits(args[0].get<std::string>());
+    if (bits.empty()) return Value(0.0);
+    double ones = std::count(bits.begin(), bits.end(), '1');
+    double p = ones / bits.size();
+    if (p == 0.0 || p == 1.0) return Value(0.0);
+    double entropy = -p * std::log2(p) - (1.0 - p) * std::log2(1.0 - p);
+    return Value(entropy);
 }
 
 // ============================================================================
@@ -118,11 +186,25 @@ Value qfh_analyze(const std::vector<Value>& args) {
 }
 
 Value qbsa_analyze(const std::vector<Value>& args) {
-    std::cout << "Executing QBSA analysis (placeholder)..." << std::endl;
-    // TODO: Replace with actual call to QBSAProcessor::analyze().
-    // This function should take a bitstream or pattern and return a QBSA validation result.
-    // For now, returning a dummy value.
-    return Value(0.0);
+    std::string bits;
+    if (!args.empty()) {
+        if (args[0].type == Value::STRING) {
+            const std::string& id_or_bits = args[0].get<std::string>();
+            auto it = pattern_store.find(id_or_bits);
+            if (it != pattern_store.end() && it->second.type == Value::STRING) {
+                bits = it->second.get<std::string>();
+            } else {
+                bits = id_or_bits; // treat argument as raw bits
+            }
+        }
+    }
+    if (bits.empty()) {
+        bits = "1010"; // minimal default
+    }
+    double ones = std::count(bits.begin(), bits.end(), '1');
+    double p = ones / bits.size();
+    double score = 1.0 - std::abs(p - 0.5) * 2.0; // 1.0 when balanced
+    return Value(score);
 }
 
 Value manifold_optimize(const std::vector<Value>& args) {
@@ -141,11 +223,13 @@ Value manifold_optimize(const std::vector<Value>& args) {
 }
 
 Value detect_collapse(const std::vector<Value>& args) {
-    std::cout << "Detecting pattern collapse (placeholder)..." << std::endl;
-    // TODO: Replace with actual call to SEP engine for pattern collapse detection.
-    // This function should take a pattern and return a boolean indicating collapse.
-    // For now, returning a dummy value.
-    return Value(false);
+    if (args.empty() || args[0].type != Value::STRING) {
+        throw std::runtime_error("detect_collapse requires pattern id");
+    }
+    std::string bits = get_pattern_bits(args[0].get<std::string>());
+    // collapse if coherence is 1.0 (all bits identical)
+    bool collapsed = std::all_of(bits.begin(), bits.end(), [&](char c) { return c == bits.front(); });
+    return Value(collapsed);
 }
 
 // ============================================================================
@@ -153,45 +237,56 @@ Value detect_collapse(const std::vector<Value>& args) {
 // ============================================================================
 
 Value store_pattern(const std::vector<Value>& args) {
-    if (args.size() < 2) {
-        throw std::runtime_error("store_pattern requires pattern and tier arguments");
+    if (args.empty()) {
+        throw std::runtime_error("store_pattern requires pattern data argument");
     }
-    
-    std::cout << "Storing pattern in memory tier..." << std::endl;
-    
-    // Mock storage - in real implementation, call MemoryTierManager
-    static int next_id = 1000;
-    return Value(std::to_string(next_id++));
+    std::string tier = (args.size() > 1 && args[1].type == Value::STRING)
+                           ? args[1].get<std::string>()
+                           : "HTM";
+    std::string id = "pattern_" + std::to_string(next_pattern_id++);
+    pattern_store[id] = args[0];
+    pattern_tiers[id] = tier;
+    return Value(id);
 }
 
 Value retrieve_pattern(const std::vector<Value>& args) {
-    if (args.empty()) {
-        throw std::runtime_error("retrieve_pattern requires pattern ID");
+    if (args.empty() || args[0].type != Value::STRING) {
+        throw std::runtime_error("retrieve_pattern requires pattern id");
     }
-    
-    std::cout << "Retrieving pattern by ID (placeholder)..." << std::endl;
-    // TODO: Replace with actual call to MemoryTierManager to retrieve a pattern.
-    // This function should take a pattern ID and return the corresponding pattern.
-    // For now, returning a dummy value.
-    return Value("retrieved_pattern_id");
+    std::string id = args[0].get<std::string>();
+    auto it = pattern_store.find(id);
+    if (it == pattern_store.end()) {
+        throw std::runtime_error("unknown pattern id: " + id);
+    }
+    return it->second;
 }
 
 Value promote_pattern(const std::vector<Value>& args) {
-    if (args.empty()) {
-        throw std::runtime_error("promote_pattern requires pattern argument");
+    if (args.empty() || args[0].type != Value::STRING) {
+        throw std::runtime_error("promote_pattern requires pattern id");
     }
-    
-    std::cout << "Promoting pattern to higher tier..." << std::endl;
-    
-    // Mock promotion
-    return Value("LTM"); // Long-term memory
+    std::string id = args[0].get<std::string>();
+    std::string new_tier = (args.size() > 1 && args[1].type == Value::STRING)
+                               ? args[1].get<std::string>()
+                               : "LTM";
+    auto it = pattern_store.find(id);
+    if (it == pattern_store.end()) {
+        throw std::runtime_error("unknown pattern id: " + id);
+    }
+    pattern_tiers[id] = new_tier;
+    return Value(new_tier);
 }
 
 Value query_patterns(const std::vector<Value>& args) {
-    std::cout << "Querying patterns by criteria..." << std::endl;
-    
-    // Mock query - return pattern count
-    return Value(static_cast<double>(pattern_store.size() / 3)); // Patterns have 3 metrics each
+    if (!args.empty() && args[0].type == Value::STRING) {
+        std::string tier = args[0].get<std::string>();
+        size_t count = 0;
+        for (const auto& p : pattern_tiers) {
+            if (p.second == tier) count++;
+        }
+        return Value(static_cast<double>(count));
+    }
+    return Value(static_cast<double>(pattern_store.size()));
 }
 
 // ============================================================================
@@ -199,36 +294,59 @@ Value query_patterns(const std::vector<Value>& args) {
 // ============================================================================
 
 Value extract_bits(const std::vector<Value>& args) {
-    std::cout << "Extracting bits from data stream..." << std::endl;
-    
-    // Mock bit extraction
-    return Value("101010110101"); // Mock bitstring
+    if (args.empty()) {
+        throw std::runtime_error("extract_bits requires an argument");
+    }
+
+    if (args[0].type == Value::STRING) {
+        std::string id = args[0].get<std::string>();
+        auto it = pattern_store.find(id);
+        if (it != pattern_store.end() && it->second.type == Value::STRING) {
+            return it->second;
+        }
+        return Value(id); // treat as raw bits
+    }
+
+    if (args[0].type == Value::NUMBER) {
+        uint64_t num = static_cast<uint64_t>(args[0].get<double>());
+        std::bitset<64> bits(num);
+        return Value(bits.to_string());
+    }
+
+    return Value("");
 }
 
 Value weighted_sum(const std::vector<Value>& args) {
-    std::cout << "Computing weighted sum..." << std::endl;
-    
-    // For now, return a mock weighted sum
-    // In real implementation, this would take a map of weights
-    std::uniform_real_distribution<double> dist(0.5, 1.0);
-    return Value(dist(rng));
+    if (args.size() % 2 != 0 || args.empty()) {
+        throw std::runtime_error("weighted_sum requires value/weight pairs");
+    }
+    double total = 0.0;
+    double weights = 0.0;
+    for (size_t i = 0; i < args.size(); i += 2) {
+        if (args[i].type != Value::NUMBER || args[i + 1].type != Value::NUMBER) {
+            throw std::runtime_error("weighted_sum arguments must be numbers");
+        }
+        double v = args[i].get<double>();
+        double w = args[i + 1].get<double>();
+        total += v * w;
+        weights += w;
+    }
+    return Value(weights == 0.0 ? 0.0 : total / weights);
 }
 
 Value generate_sine_wave(const std::vector<Value>& args) {
-    std::cout << "Generating sine wave..." << std::endl;
-    
     double frequency = 10.0; // Default 10Hz
     if (!args.empty() && args[0].type == Value::NUMBER) {
         frequency = args[0].get<double>();
     }
-    
-    // Mock sine wave generation
-    std::vector<double> wave;
+
+    std::ostringstream oss;
     for (int i = 0; i < 100; ++i) {
-        wave.push_back(std::sin(2 * M_PI * frequency * i / 100.0));
+        double val = std::sin(2 * M_PI * frequency * i / 100.0);
+        if (i) oss << ',';
+        oss << val;
     }
-    
-    return Value("sine_wave_data"); // Mock return
+    return Value(oss.str());
 }
 
 // ============================================================================

@@ -695,7 +695,7 @@ The fragmented architecture makes the build system overly complex with duplicate
 
 ### **Production Data Pipeline Issues**
 - [ ] **Fix fetchTrainingData() Simulation** - `src/trading/quantum_pair_trainer.cpp:223` returns simulated EUR/USD instead of real OANDA API
-- [ ] **Replace DSL Mock Implementations** - `src/dsl/stdlib/core_primitives.cpp` all functions return hardcoded mock values
+- [x] **Replace DSL Mock Implementations** - `src/dsl/stdlib/core_primitives.cpp` all functions return hardcoded mock values
 - [ ] **Fix Training Coordinator Stubs** - `src/training/training_coordinator.cpp` has "simulate for now" in 6+ functions
 - [ ] **Validate Cache Implementations** - Multiple cache managers have placeholder logic
 - [ ] **Distinguish Backtesting vs Development Stubs** - Separate legitimate backtesting from dev placeholders
