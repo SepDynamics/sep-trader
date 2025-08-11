@@ -718,4 +718,4 @@ The fragmented architecture makes the build system overly complex with duplicate
 
 ## Documentation TODOs
 
-- [ ] @docs/cuda_kernel_consolidation_analysis.md
+- [x] @docs/cuda_kernel_consolidation_analysis.md
