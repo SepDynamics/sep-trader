@@ -1,3 +1,8 @@
 add_sep_test(data_pipeline_tests SOURCES data_pipeline/test_data_integrity.cpp)
 add_sep_test(pipeline_full_cycle SOURCES pipeline/test_full_cycle.cpp)
 add_sep_test(trading_signal_trace SOURCES integration/test_signal_trace.cpp)
+add_sep_test(unit_data_pipeline SOURCES unit/data_pipeline_test.cpp)
+add_sep_test(mock_detection_test SOURCES unit/mock_detection_test.cpp)
+add_sep_test(accuracy_benchmark SOURCES performance/accuracy_benchmark.cpp)
+target_compile_definitions(accuracy_benchmark PRIVATE TEST_DATA_DIR="${CMAKE_SOURCE_DIR}/tests/data")
+add_sep_test(realtime_signal_test SOURCES integration/realtime_signal_test.cpp)
