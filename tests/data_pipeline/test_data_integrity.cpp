@@ -32,7 +32,7 @@ TEST_F(DataIntegrityTest, QuantumPairTrainerUsesRealOandaData) {
         // This should attempt to fetch real OANDA data and fail with auth error
         // (proving it's not using simulated data)
         EXPECT_THROW(
-            trainer.fetchTrainingData("EUR_USD", 1),
+            trainer.fetchTrainingData("EUR_USD"),
             std::runtime_error
         );
         
@@ -110,7 +110,7 @@ TEST_F(DataIntegrityTest, NoHardcodedSimulationValues) {
     
     // Without credentials, should throw, not return simulated data with 1.0850
     EXPECT_THROW(
-        trainer.fetchTrainingData("EUR_USD", 1),
+        trainer.fetchTrainingData("EUR_USD"),
         std::runtime_error
     );
 }

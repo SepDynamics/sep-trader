@@ -7,6 +7,7 @@
 #include "common/sep_precompiled.h"
 #include "connectors/oanda_connector.h"
 #include "trading/quantum_pair_trainer.hpp"
+#include <algorithm>
 
 // Restore array if corrupted
 #ifdef array
@@ -119,6 +120,44 @@ bool TrainingCoordinator::initializeComponents()
                     return {};
                 }
             });
+
+                // Convert candles to string format for cache storage
+                std::vector<std::string> result;
+                for (const auto& candle : candles) {
+                    nlohmann::json candle_json;
+                    candle_json["timestamp"] = candle.timestamp;
+                    candle_json["open"] = candle.open;
+                    candle_json["high"] = candle.high;
+                    candle_json["low"] = candle.low;
+                    candle_json["close"] = candle.close;
+                    candle_json["volume"] = candle.volume;
+                    result.push_back(candle_json.dump());
+                }
+
+                spdlog::info("Fetched {} candles for {} from OANDA", result.size(), pair_symbol);
+                return result;
+
+            } catch (const std::exception& e) {
+                spdlog::error("Error fetching OANDA data for cache: {}", e.what());
+                return {};
+            }
+        });
+
+        // Initialize weekly data fetcher
+        data_fetcher_ = std::make_unique<WeeklyDataFetcher>();
+        DataFetchConfig fetch_config;
+        fetch_config.oanda_api_key = std::getenv("OANDA_API_KEY") ? std::getenv("OANDA_API_KEY") : "";
+        fetch_config.oanda_account_id = std::getenv("OANDA_ACCOUNT_ID") ? std::getenv("OANDA_ACCOUNT_ID") : "";
+        fetch_config.oanda_environment = "practice";
+        fetch_config.instruments = getStandardForexPairs();
+        fetch_config.granularities = getStandardGranularities();
+        fetch_config.history_days = 7;
+        fetch_config.compress_data = false;
+        fetch_config.parallel_fetchers = 2;
+        data_fetcher_->configure(fetch_config);
+
+        // Initialize remote synchronizer
+        remote_synchronizer_ = std::make_unique<RemoteSynchronizer>();
 
         return true;
     }
@@ -406,6 +445,14 @@ bool TrainingCoordinator::startLiveTuning(const std::vector<std::string>& pairs)
 
     live_tuning_active_ = true;
     std::cout << "🎯 Starting live tuning for " << pairs.size() << " pairs..." << std::endl;
+
+    {
+        std::lock_guard<std::mutex> lock(tuning_mutex_);
+        for (const auto& p : pairs) {
+            tuning_queue_.push(p);
+        }
+    }
+    tuning_cv_.notify_all();
 
     // Start tuning thread
     tuning_thread_ = std::thread(&TrainingCoordinator::liveTuningThreadFunction, this);

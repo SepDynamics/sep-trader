@@ -18,6 +18,8 @@
 
 #include "config/dynamic_config_manager.hpp"
 #include "cache/weekly_cache_manager.hpp"
+#include "remote_synchronizer.hpp"
+#include "weekly_data_fetcher.hpp"
 
 namespace sep {
 namespace training {
@@ -101,6 +103,8 @@ private:
     // Core components
     std::unique_ptr<config::DynamicConfigManager> config_manager_;
     std::unique_ptr<cache::WeeklyCacheManager> cache_manager_;
+    std::unique_ptr<WeeklyDataFetcher> data_fetcher_;
+    std::unique_ptr<RemoteSynchronizer> remote_synchronizer_;
     
     // Training state
     std::map<std::string, TrainingResult> training_results_;
