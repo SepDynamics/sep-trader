@@ -7,6 +7,7 @@
 #include "engine/internal/standard_includes.h"
 #include <atomic>
 #include <thread>
+#include "cache_metadata.hpp"
 
 namespace sep::cache {
 
@@ -17,7 +18,8 @@ enum class ValidationResult {
     MISSING,            // Cache file does not exist
     CORRUPTED,          // Cache file exists but is corrupted
     INSUFFICIENT_DATA,  // Cache doesn't have enough data
-    ACCESS_ERROR        // Permission or I/O error
+    ACCESS_ERROR,       // Permission or I/O error
+    MISSING_SOURCE      // Entries missing provenance metadata
 };
 
 // Cache quality metrics
@@ -110,6 +112,7 @@ public:
     bool validateCacheStructure(const std::string& cache_path) const;
     bool validateDataIntegrity(const std::string& cache_path) const;
     bool checkForCorruption(const std::string& cache_path) const;
+    bool validateEntrySources(const std::string& cache_path) const;
     
     // Performance metrics
     std::chrono::duration<double> getLastValidationTime() const;
