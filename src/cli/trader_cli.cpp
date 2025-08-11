@@ -11,12 +11,7 @@
 #include <iostream>
 #include <thread>
 
-#define SIGINT 2
-#define SIGTERM 15
-
-typedef void (*sighandler_t)(int);
-sighandler_t signal(int signum, sighandler_t handler);
-typedef int sig_atomic_t;
+#include <csignal> // Use C++ signal header
 
 #include "common/sep_precompiled.h"
 #include "core_integrated/cache_health_monitor.hpp"
@@ -41,11 +36,14 @@ namespace memory {
 namespace sep {
 namespace cli {
 
-    using namespace sep::core_integrated;
+    using namespace sep::trading;
+    using namespace sep::core;
+    using namespace sep::config;
+    using namespace sep::cache;
 
     namespace
     {
-        volatile sig_atomic_t g_shutdown_requested = 0;
+        volatile std::sig_atomic_t g_shutdown_requested = 0;
 
         void signal_handler(int signal)
         {
@@ -59,8 +57,8 @@ TraderCLI::TraderCLI() : verbose_(false), config_path_("config/"),
     analyzer_(std::make_unique<sep::trading::TickerPatternAnalyzer>()),
     dynamic_pair_manager_(std::make_unique<sep::trading::DynamicPairManager>()) {
     register_commands();
-    signal(SIGINT, signal_handler);
-    signal(SIGTERM, signal_handler);
+    std::signal(SIGINT, signal_handler);
+    std::signal(SIGTERM, signal_handler);
 }
 
 TraderCLI::~TraderCLI() = default;
@@ -594,7 +592,7 @@ int TraderCLI::handle_training(const std::vector<std::string>& args) {
     }
 
     if (args[0] == "--all") {
-        trainer_->trainAllPairs();
+        trainer_->trainMultiplePairs(dynamic_pair_manager_->getAllPairs());
     } else if (args[0] == "--batch") {
         std::vector<std::string> pairs(args.begin() + 1, args.end());
         trainer_->trainMultiplePairs(pairs);
@@ -614,11 +612,11 @@ int TraderCLI::handle_analysis(const std::vector<std::string>& args) {
     std::string pair = args[0];
     
     if (pair == "--all") {
-        analyzer_->analyzeAllPairs();
+        analyzer_->analyzeMultipleTickers(dynamic_pair_manager_->getAllPairs());
     } else if (pair == "--real-time" && args.size() > 1) {
         analyzer_->startRealTimeAnalysis(args[1]);
     } else {
-        analyzer_->analyzeSinglePair(pair);
+        analyzer_->analyzeTicker(pair);
     }
     return 0;
 }
