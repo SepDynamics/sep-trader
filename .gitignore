@@ -206,6 +206,10 @@ datasets/
 [._]ss[a-gi-z]
 [._]sw[a-p]
 
+# Allow internal testbed utilities
+!_sep/
+!_sep/testbed/
+
 # Emacs
 *~
 \#*\#
