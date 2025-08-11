@@ -176,10 +176,10 @@ PairTrainingResult QuantumPairTrainer::performQuantumTraining(const std::string&
     PairTrainingResult result;
     result.pair_symbol = pair_symbol;
     result.training_start = std::chrono::system_clock::now();
-    
+
     try {
         // Step 1: Fetch training data
-        auto training_data = fetchTrainingData(pair_symbol, config_.training_window_hours);
+        auto training_data = fetchTrainingData(pair_symbol);
         result.training_samples_processed = training_data.size();
         
         if (training_data.size() < 100) {
@@ -228,16 +228,16 @@ PairTrainingResult QuantumPairTrainer::performQuantumTraining(const std::string&
 }
 
 std::vector<sep::connectors::MarketData> QuantumPairTrainer::fetchTrainingData(
-    const std::string& pair_symbol, size_t hours_back) {
-    
+    const std::string& pair_symbol) {
+
     if (!oanda_connector_) {
         throw std::runtime_error("OANDA connector not initialized. Check your OANDA_API_KEY and OANDA_ACCOUNT_ID environment variables.");
     }
-    
-    // Calculate timestamps for the requested time range
+
+    // Calculate timestamps for the previous week
     auto now = std::chrono::system_clock::now();
-    auto start_time = now - std::chrono::hours(hours_back);
-    
+    auto start_time = now - std::chrono::hours(24 * 7);
+
     // Format timestamps into ISO 8601 strings required by OANDA API
     auto formatTimestamp = [](const std::chrono::system_clock::time_point& tp) -> std::string {
         auto time_t = std::chrono::system_clock::to_time_t(tp);
@@ -245,21 +245,25 @@ std::vector<sep::connectors::MarketData> QuantumPairTrainer::fetchTrainingData(
         ss << std::put_time(std::gmtime(&time_t), "%Y-%m-%dT%H:%M:%SZ");
         return ss.str();
     };
-    
+
     std::string from_str = formatTimestamp(start_time);
     std::string to_str = formatTimestamp(now);
-    
+
     // Fetch real OANDA data
     auto oanda_candles = oanda_connector_->getHistoricalData(pair_symbol, "M1", from_str, to_str);
-    
-    if (oanda_candles.empty()) {
-        throw std::runtime_error("Failed to fetch OANDA data: " + oanda_connector_->getLastError());
+
+    if (oanda_candles.empty() || oanda_connector_->hasError()) {
+        std::string error = oanda_connector_->getLastError();
+        if (error.empty()) {
+            error = "No data returned";
+        }
+        throw std::runtime_error("Failed to fetch OANDA data: " + error);
     }
-    
+
     // Convert OandaCandle to MarketData format
     std::vector<sep::connectors::MarketData> market_data;
     market_data.reserve(oanda_candles.size());
-    
+
     for (const auto& candle : oanda_candles) {
         sep::connectors::MarketData md;
         md.instrument = pair_symbol;
@@ -270,10 +274,10 @@ std::vector<sep::connectors::MarketData> QuantumPairTrainer::fetchTrainingData(
         md.ask = candle.high;  // Approximation - could be improved with tick data
         md.volume = candle.volume;
         md.atr = 0.0050; // Will be calculated later from historical volatility
-        
+
         market_data.push_back(md);
     }
-    
+
     return market_data;
 }
 

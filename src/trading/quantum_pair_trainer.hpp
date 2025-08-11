@@ -120,7 +120,7 @@ private:
     
     // Data preparation
     std::vector<sep::connectors::MarketData> fetchTrainingData(
-        const std::string& pair_symbol, size_t hours_back);
+        const std::string& pair_symbol);
     std::vector<uint8_t> convertToBitstream(
         const std::vector<sep::connectors::MarketData>& market_data);
     
