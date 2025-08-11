@@ -7,9 +7,13 @@
 #include <stdexcept>
 #include <thread>
 
-#include "../../_sep/testbed/oanda_market_data_helper.hpp"
 #include "common/sep_precompiled.h"
 #include "memory/redis_manager.h"
+
+#ifdef SEP_BACKTESTING
+#include "../../_sep/testbed/oanda_market_data_helper.hpp"
+#include "../../_sep/testbed/quantum_accuracy_stub.hpp"
+#endif
 
 namespace sep
 {
@@ -298,7 +302,17 @@ namespace sep::trading
                 "environment variables.");
         }
 
+        
+#ifdef SEP_BACKTESTING
         return sep::testbed::fetchMarketData(*oanda_connector_, pair_symbol, hours_back);
+#else
+        std::vector<sep::connectors::MarketData> data;
+        for (size_t i = 0; i < hours_back; ++i)
+        {
+            data.push_back(oanda_connector_->getMarketData(pair_symbol));
+        }
+        return data;
+#endif
     }
 
     std::vector<uint8_t> QuantumPairTrainer::convertToBitstream(
@@ -368,20 +382,13 @@ namespace sep::trading
     double QuantumPairTrainer::calculateAccuracy(
         const std::vector<sep::connectors::MarketData>& data, const QuantumTrainingConfig& config)
     {
-        // Simulate accuracy calculation based on quantum analysis
-        // In real implementation, this would backtest the configuration
-
-        double base_accuracy = 0.58;  // Base accuracy
-
-        // Bonus for optimal configuration
-        if (std::abs(config.stability_weight - 0.4) < 0.1 &&
-            std::abs(config.coherence_weight - 0.1) < 0.05 &&
-            std::abs(config.entropy_weight - 0.5) < 0.1)
-        {
-            base_accuracy += 0.05;  // 5% bonus for optimal config
-        }
-
-        return base_accuracy;
+#ifdef SEP_BACKTESTING
+        return sep::testbed::simulate_accuracy(data, config);
+#else
+        (void)data;
+        (void)config;
+        throw std::runtime_error("calculateAccuracy is available only in backtesting mode");
+#endif
     }
 
     double QuantumPairTrainer::calculateProfitabilityScore(double accuracy, double signal_rate)
