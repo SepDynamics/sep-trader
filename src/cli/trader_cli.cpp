@@ -22,6 +22,13 @@
 #include "core/trading_state.hpp"
 #include "common/sep_precompiled.h"
 #include "core_types/result.h"
+#include "memory/redis_manager.h"
+
+namespace sep {
+namespace memory {
+    using ::sep::persistence::createRedisManager;
+}
+}
 
 // For fmt::format
 #include <fmt/format.h>
@@ -137,6 +144,13 @@ void TraderCLI::register_commands() {
         "View performance metrics",
         [this](const std::vector<std::string>& args) { return handle_metrics(args); },
         {"performance", "trading", "system"}
+    };
+
+    commands_["data"] = {
+        "data",
+        "Import metrics from file (data import <file>)",
+        [this](const std::vector<std::string>& args) { return handle_data_import(args); },
+        {"import"}
     };
 
     // New 'trading' command for quantum training and analysis
@@ -440,6 +454,68 @@ int TraderCLI::handle_logs(const std::vector<std::string>& args) {
 
 int TraderCLI::handle_metrics(const std::vector<std::string>& args) {
     print_performance_metrics();
+    return 0;
+}
+
+int TraderCLI::handle_data_import(const std::vector<std::string>& args) {
+    if (args.size() < 2 || args[0] != "import") {
+        std::cerr << "Usage: data import <file>\n";
+        return 1;
+    }
+
+    const std::filesystem::path file_path(args[1]);
+    if (!std::filesystem::exists(file_path)) {
+        std::cerr << "Metrics file not found: " << file_path << "\n";
+        return 1;
+    }
+
+    std::ifstream input(file_path);
+    if (!input) {
+        std::cerr << "Failed to open metrics file: " << file_path << "\n";
+        return 1;
+    }
+
+    std::vector<std::pair<std::string, std::string>> entries;
+    std::string line;
+    while (std::getline(input, line)) {
+        std::string key = line;
+        if (!std::getline(input, line)) {
+            std::cerr << "Invalid metrics file format\n";
+            return 1;
+        }
+        std::string value = line;
+        entries.emplace_back(key, value);
+    }
+
+    auto redis_manager = sep::memory::createRedisManager();
+    if (!redis_manager || !redis_manager->isConnected()) {
+        std::cerr << "Failed to connect to Redis\n";
+        return 1;
+    }
+
+    redisContext* ctx = redisConnect("127.0.0.1", 6379);
+    if (!ctx || ctx->err) {
+        if (ctx) {
+            std::cerr << "Redis connection error: " << ctx->errstr << "\n";
+            redisFree(ctx);
+        } else {
+            std::cerr << "Unable to allocate Redis context\n";
+        }
+        return 1;
+    }
+
+    const std::string hash_key = file_path.stem().string();
+    for (const auto& [field, value] : entries) {
+        redisReply* reply = static_cast<redisReply*>(
+            redisCommand(ctx, "HSET %s %s %s", hash_key.c_str(), field.c_str(), value.c_str()));
+        if (reply) {
+            freeReplyObject(reply);
+        }
+    }
+
+    redisFree(ctx);
+
+    std::cout << "Imported " << entries.size() << " entries into Redis key '" << hash_key << "'\n";
     return 0;
 }
 
@@ -1000,7 +1076,10 @@ void TraderCLI::print_help() const {
         }
         std::cout << "\n";
     }
-    
+
+    std::cout << "Example:\n";
+    std::cout << "  trader-cli data import <file>   Import metrics dump into Redis\n\n";
+
     std::cout << "Global Options:\n";
     std::cout << "  --verbose, -v     Enable verbose output\n";
     std::cout << "  --config, -c      Specify config directory\n";

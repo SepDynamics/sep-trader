@@ -45,6 +45,7 @@ private:
     int handle_config(const std::vector<std::string>& args);
     int handle_logs(const std::vector<std::string>& args);
     int handle_metrics(const std::vector<std::string>& args);
+    int handle_data_import(const std::vector<std::string>& args);
 
     // New command handlers for trading/quantum functionality
     int handle_trading(const std::vector<std::string>& args);
