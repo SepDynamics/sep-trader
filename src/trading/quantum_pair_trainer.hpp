@@ -7,6 +7,18 @@
 #include "quantum/pattern_evolution_bridge.h"
 #include "quantum/quantum_manifold_optimizer.h"
 
+namespace sep
+{
+    namespace persistence
+    {
+        class IRedisManager;
+    }
+    namespace memory
+    {
+        using IRedisManager = sep::persistence::IRedisManager;
+    }
+} // namespace sep
+
 namespace sep::trading
 {
 
@@ -173,6 +185,7 @@ namespace sep::trading
         std::unique_ptr<sep::quantum::PatternEvolutionBridge> pattern_evolver_;
         sep::engine::EngineFacade* engine_facade_;  // Singleton - use raw pointer
         std::unique_ptr<sep::connectors::OandaConnector> oanda_connector_;
+        std::shared_ptr<sep::memory::IRedisManager> redis_manager_;
 
         // Training results storage
         std::map<std::string, std::vector<sep::trading::PairTrainingResult>> training_history_;

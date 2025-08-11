@@ -2,11 +2,21 @@
 #include "quantum_pair_trainer.hpp"
 
 #include <iomanip>
+#include <functional>
 #include <sstream>
 #include <stdexcept>
 #include <thread>
 
 #include "common/sep_precompiled.h"
+#include "memory/redis_manager.h"
+
+namespace sep
+{
+    namespace memory
+    {
+        using sep::persistence::createRedisManager;
+    }
+}
 
 namespace sep::trading
 {
@@ -55,6 +65,9 @@ namespace sep::trading
                          "OANDA_ACCOUNT_ID environment variables for real data."
                       << std::endl;
         }
+
+        // Initialize Redis manager
+        redis_manager_ = sep::memory::createRedisManager();
     }
 
     QuantumPairTrainer::~QuantumPairTrainer()
@@ -109,6 +122,20 @@ namespace sep::trading
         }
 
         result.training_end = std::chrono::system_clock::now();
+
+        if (result.training_successful && redis_manager_ && redis_manager_->isConnected())
+        {
+            sep::persistence::PersistentPatternData data{};
+            data.coherence = static_cast<float>(result.optimized_config.coherence_threshold);
+            data.stability = static_cast<float>(result.optimized_config.stability_weight);
+            data.generation_count = static_cast<std::uint32_t>(result.convergence_iterations);
+            data.weight = static_cast<float>(result.profitability_score);
+
+            std::uint64_t model_id = std::hash<std::string>{}(pair_symbol +
+                std::to_string(std::chrono::system_clock::to_time_t(result.training_end)));
+            redis_manager_->storePattern(model_id, data, result.pair_symbol);
+        }
+
         training_active_.store(false);
 
         return result;
