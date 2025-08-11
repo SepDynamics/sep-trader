@@ -162,6 +162,10 @@ local/
 dev/
 scratch/
 
+# Allow committed testbed scenarios
+!_sep/
+!_sep/**
+
 # CI/CD artifacts
 artifacts/
 reports/
@@ -272,4 +276,7 @@ cmake-build-*/
 *_generated.*
 !*_template.*
 config/OANDA.env
+
+# Allow committed testbed scenarios
 !_sep/
+!_sep/**
