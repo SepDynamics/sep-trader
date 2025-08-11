@@ -130,6 +130,7 @@ docker-compose logs -f sep-trader
 - **[docs/SYSTEM_OVERVIEW.md](docs/SYSTEM_OVERVIEW.md)** - Complete architecture overview
 - **[docs/PROJECT_STATUS.md](docs/PROJECT_STATUS.md)** - Current implementation status
 - **[docs/CLOUD_DEPLOYMENT.md](docs/CLOUD_DEPLOYMENT.md)** - Cloud deployment guide
+- **[docs/cuda_kernel_consolidation_analysis.md](docs/cuda_kernel_consolidation_analysis.md)** - CUDA kernel locations and consolidation plan
 
 ## 🔒 Intellectual Property
 
