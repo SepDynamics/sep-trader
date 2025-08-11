@@ -112,7 +112,6 @@ temp/
 tmp/
 *.tmp
 *.temp
-
 # Configuration files (may contain secrets)
 *.env
 OANDA.env
@@ -267,3 +266,7 @@ cmake-build-*/
 *_generated.*
 !*_template.*
 config/OANDA.env
+# Allow internal testbed prototypes
+!_sep/
+!_sep/testbed/
+!_sep/testbed/**
