@@ -4,10 +4,10 @@
 #include <cstdlib>
 #include <cstring>
 
-// CRITICAL: This guard checks if the code is NOT being compiled by the NVIDIA CUDA Compiler.
-// Mock types will only be defined for standard g++ compilation (e.g., for CPU-only tests).
-// When compiling with nvcc (__CUDACC__ is defined), this entire block is skipped.
-#if !defined(__CUDACC__) && !defined(__CUDA_RUNTIME_H__)
+// Backtesting support: provide mock CUDA types when running without the CUDA
+// toolkit. Production builds should link against real CUDA headers and thus do
+// not enable these fallbacks.
+#if defined(SEP_BACKTESTING) && !defined(__CUDACC__) && !defined(__CUDA_RUNTIME_H__)
 
 // Mock CUDA types for CPU-only compilation
 typedef void* cudaStream_t;

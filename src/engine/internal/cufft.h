@@ -16,7 +16,8 @@
 #endif
 
 #if !SEP_HAS_CUFFT
-// Define stub types and functions if cuFFT is not available
+#  ifdef SEP_BACKTESTING
+// Define stub types and functions for backtesting builds when cuFFT is absent
 namespace sep {
 namespace cuda {
 
@@ -27,6 +28,9 @@ typedef int cufftType;
 
 } // namespace cuda
 } // namespace sep
+#  else
+#    error "cuFFT required for production builds. Enable SEP_BACKTESTING for stubs."
+#  endif
 #endif
 
 #endif // SEP_COMPAT_CUFFT_H

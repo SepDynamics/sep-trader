@@ -1,4 +1,11 @@
+// SPDX-License-Identifier: MIT
+// This header provides a CUDA-compatible isolation layer for spdlog. In
+// production builds we rely on the real spdlog library, while backtesting
+// builds use lightweight stubs that avoid pulling in the full dependency.
+
 #pragma once
+
+#ifdef SEP_BACKTESTING
 
 #include <mutex>
 #include <sstream>
@@ -374,3 +381,13 @@ public:
 } // namespace spdlog
 } // namespace sep
 #endif // SEP_SPDLOG_FALLBACK
+
+#else  // SEP_BACKTESTING
+
+#include <spdlog/spdlog.h>
+
+namespace sep {
+namespace spdlog = ::spdlog;  // NOLINT(misc-unused-using-decls)
+}  // namespace sep
+
+#endif // SEP_BACKTESTING
