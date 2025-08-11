@@ -7,6 +7,7 @@ set -e
 DROPLET_IP="165.227.109.187"
 DEPLOY_USER="root"
 APP_DIR="/opt/sep-trader"
+REMOTE_PATH="$APP_DIR"
 
 echo "🔄 SEP Data Sync to Droplet"
 echo "=========================="
@@ -38,6 +39,23 @@ echo "🧠 Syncing trained models..."
 if [ -d "models/" ]; then
     rsync -avz --progress models/ $DEPLOY_USER@$DROPLET_IP:$APP_DIR/data/models/
     echo "✅ Models synced"
+fi
+
+# Export latest metrics from Redis
+PAIR="${1:-${PAIR}}"
+if [ -n "$PAIR" ]; then
+    echo "📡 Exporting latest metrics for $PAIR..."
+    LATEST_KEY=$(redis-cli --scan --pattern "pattern:${PAIR}:*" | sort | tail -n 1)
+    if [ -n "$LATEST_KEY" ]; then
+        mkdir -p output
+        redis-cli --raw DUMP "$LATEST_KEY" > "output/latest_metrics_${PAIR}.rdb"
+        rsync -avz --progress "output/latest_metrics_${PAIR}.rdb" $DEPLOY_USER@$DROPLET_IP:$REMOTE_PATH/data/
+        echo "✅ Latest metrics synced"
+    else
+        echo "⚠️ No matching Redis keys found for pattern:${PAIR}:*"
+    fi
+else
+    echo "⚠️ PAIR not specified; skipping metrics export"
 fi
 
 # Check if market is open for trading
