@@ -67,23 +67,26 @@ if(SEP_USE_CUDA)
         message(FATAL_ERROR "NVCC not found at $ENV{CUDA_HOME}/bin/nvcc")
     endif()
     
-    # Set CUDA paths before enabling language
+    # Set CUDA paths and flags before enabling language
     set(CMAKE_CUDA_COMPILER "$ENV{CUDA_HOME}/bin/nvcc")
     set(CMAKE_CUDA_HOST_COMPILER "/usr/bin/g++-11")
-    set(CMAKE_CUDA_ARCHITECTURES 61;75;86;89)
-
-    # Set CUDA flags BEFORE enabling language to ensure they're available during compiler identification
-    # Fix math function conflicts by including GCC compatibility header
-    set(CMAKE_CUDA_FLAGS "-Wno-deprecated-gpu-targets --expt-relaxed-constexpr -include ${CMAKE_SOURCE_DIR}/src/cuda_gcc_compat.h")
+    set(CMAKE_CUDA_ARCHITECTURES "75;80;86" CACHE STRING "CUDA architectures")
     
-    # Now enable CUDA language
+    # CUDA flags are now set per-target in template.cmake
+    
+    # Configure CUDA standard
+    set(CMAKE_CUDA_STANDARD 17)
+    set(CMAKE_CUDA_STANDARD_REQUIRED ON)
+    
+    # Enable CUDA language and find toolkit
     enable_language(CUDA)
     find_package(CUDAToolkit REQUIRED)
+    
     message(STATUS "Found CUDAToolkit")
     message(STATUS "CUDA Libraries: ${CUDAToolkit_LIBRARY_DIR}")
     
     # Explicitly set CUDA libraries
-    set(CUDA_LIBRARIES 
+    set(CUDA_LIBRARIES
         CUDA::cudart
         CUDA::cuda_driver
     )
@@ -97,9 +100,6 @@ if(SEP_USE_CUDA)
     # Add CUDA paths to include and link directories
     include_directories("$ENV{CUDA_HOME}/include")
     link_directories("$ENV{CUDA_HOME}/lib64")
-    
-    # CUDA specific flags for compatibility
-        
 
 endif()
 

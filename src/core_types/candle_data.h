@@ -25,9 +25,6 @@ namespace sep::core
         /// Time period in seconds (e.g., 60 for 1-minute candles)
         uint32_t period{0};
 
-        /// Runtime flag indicating whether this candle represents mock data
-        bool is_mock{false};
-
         /// Currency pair or symbol (e.g., "EUR_USD")
         char symbol[16]{0};
     };

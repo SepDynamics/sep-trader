@@ -24,6 +24,8 @@ inline cudaError_t cudaFree(void* ptr) { std::free(ptr); return cudaSuccess; }
 inline cudaError_t cudaMemcpy(void* dst, const void* src, std::size_t count, int kind) { (void)kind; std::memcpy(dst, src, count); return cudaSuccess; }
 inline cudaError_t cudaMemcpyAsync(void* dst, const void* src, std::size_t count, int kind, cudaStream_t stream) { (void)kind; (void)stream; std::memcpy(dst, src, count); return cudaSuccess; }
 
+#else
+#include <cuda_runtime.h>
 #endif // End of the guard for mock types
 #include <memory>
 #include <vector>

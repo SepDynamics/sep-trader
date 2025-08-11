@@ -1,6 +1,6 @@
 #include <nlohmann/json.hpp>
 #include "quantum_tracker_app.hpp"
-#include "data_cache_manager.hpp"
+#include "trading/data/unified_data_manager.hpp"
 #include "tick_data_manager.hpp"
 #include "candle_types.h"
 #include "market_utils.hpp"
@@ -139,8 +139,9 @@ bool QuantumTrackerApp::initialize() {
     return false;
 #endif
     
-    // Initialize cache manager
-    cache_manager_ = std::make_unique<DataCacheManager>();
+    // Initialize data manager
+    sep::trading::UnifiedDataConfig data_config;
+    data_manager_ = std::make_unique<sep::trading::UnifiedDataManager>(data_config);
     
     // Initialize tick data manager
     tick_manager_ = std::make_unique<TickDataManager>();
@@ -170,8 +171,8 @@ bool QuantumTrackerApp::initialize() {
               << market_model_cache_->getSignalMap().size() 
               << " processed signals." << std::endl;
     
-    // Initialize cache manager with OANDA connector
-    if (!cache_manager_->initialize(oanda_connector_.get())) {
+    // Initialize data manager with OANDA connector
+    if (!data_manager_->initialize(oanda_connector_.get())) {
         last_error_ = "Failed to initialize data cache manager";
         return false;
     }
@@ -258,7 +259,7 @@ bool QuantumTrackerApp::initialize() {
 #ifdef SEP_USE_GUI
         quantum_tracker_->getQuantumBridge()->bootstrap(historical_m1_candles);
 #else
-        std::cout << "[Bootstrap] CLI mode - skipping quantum tracker bootstrap" << std::endl;
+        quantum_bridge_->bootstrap(historical_m1_candles);
 #endif
 
         std::cout << "[Bootstrap] Dynamic bootstrap completed successfully! System ready for live trading." << std::endl;
@@ -625,7 +626,7 @@ void QuantumTrackerApp::executeQuantumTrade(const sep::trading::QuantumTradingSi
                    << " Size=" << std::fixed << std::setprecision(0) << signal.suggested_position_size
                    << " Status=EXECUTED"
                    << " StopLoss=" << std::setprecision(5) << signal.stop_loss_distance
-                   << " TakeProfit=" << signal.take_profit_distance
+                   << " TakeProfit=" << std::setprecision(5) << signal.take_profit_distance
                    << " OrderType=MARKET_FOK";
         std::cout << success_log.str() << std::endl;
         
@@ -849,7 +850,7 @@ void QuantumTrackerApp::runSimulation() {
     std::cout << "[SIMULATION] Bootstrap complete with " << bootstrap_size << " candles" << std::endl;
     std::cout << "[SIMULATION] Processing " << (simulation_candles.size() - bootstrap_size) << " live candles..." << std::endl;
     
-    // 6. Process remaining data as "live" stream
+    // 6. Process remaining data as \"live\" stream
     for (size_t i = bootstrap_size; i < simulation_candles.size(); ++i) {
         const auto& candle = simulation_candles[i];
         
@@ -964,7 +965,7 @@ void QuantumTrackerApp::runTestDataSimulation() {
                 Candle candle;
                 candle.timestamp = md.timestamp;
                 candle.close = md.mid;
-                candle.time = "2025-08-01T" + std::to_string(10 + i/60) + ":" + 
+                candle.time = "2025-08-01T" + std::to_string(10 + i/60) + ":" +
                              std::to_string(i%60) + ":00.000000Z";
                 
                 logSimulatedTrade(signal, candle);
@@ -1271,8 +1272,8 @@ void QuantumTrackerApp::logFileSimulatedTrade(const sep::trading::QuantumTrading
              << " Price=" << std::fixed << std::setprecision(5) << candle.close
              << " Size=" << std::setprecision(0) << signal.suggested_position_size
              << " Confidence=" << std::setprecision(3) << signal.identifiers.confidence
-             << " Coherence=" << std::setprecision(3) << signal.identifiers.coherence
-             << " Stability=" << std::setprecision(3) << signal.identifiers.stability
+             << " Coherence=" << signal.identifiers.coherence
+             << " Stability=" << signal.identifiers.stability
              << " Entropy=" << std::setprecision(3) << signal.identifiers.entropy
              << " StopLoss=" << std::setprecision(5) << signal.stop_loss_distance
              << " TakeProfit=" << std::setprecision(5) << signal.take_profit_distance

@@ -11,7 +11,6 @@ namespace sep::common
         double low;
         double close;
         long long volume;
-        bool is_mock = false;  // Runtime flag to identify mock data
     };
 
 }  // namespace sep::common

@@ -6,6 +6,7 @@
 
 #include "stdlib/stdlib.h"
 #include "../../../_sep/testbed/placeholder_detection.h"
+#include "core_primitives.h"
 
 namespace dsl::compiler {
 
@@ -367,49 +368,7 @@ std::function<Value(Context&)> Compiler::compile_expression(const ast::Expressio
 void Compiler::register_builtin_functions(Context& context) {
     // Register all standard library modules
     stdlib::register_all(context);
-    
-    // Legacy functions for backwards compatibility
-    context.set_function("qfh", [this](const std::vector<Value>& args) { return builtin_qfh(args); });
-    context.set_function("qbsa", [this](const std::vector<Value>& args) { return builtin_qbsa(args); });
-    context.set_function("coherence", [this](const std::vector<Value>& args) { return builtin_coherence(args); });
-    context.set_function("stability", [this](const std::vector<Value>& args) { return builtin_stability(args); });
-    context.set_function("entropy", [this](const std::vector<Value>& args) { return builtin_entropy(args); });
-}
-
-Value Compiler::builtin_qfh(const std::vector<Value>& args) {
-    std::cout << "Executing QFH analysis..." << std::endl;
-    // Mock QFH computation
-    return Value(0.75); // Mock coherence result
-}
-
-Value Compiler::builtin_qbsa(const std::vector<Value>& args) {
-    std::cout << "Executing QBSA analysis..." << std::endl;
-    // Mock QBSA computation
-    return Value(0.68); // Mock stability result
-}
-
-Value Compiler::builtin_coherence(const std::vector<Value>& args) {
-    std::cout << "Computing coherence..." << std::endl;
-    // Mock coherence computation
-    return Value(0.82);
-}
-
-Value Compiler::builtin_stability(const std::vector<Value>& args) {
-    std::cout << "Computing stability..." << std::endl;
-    // Mock stability computation
-    return Value(0.73);
-}
-
-Value Compiler::builtin_entropy(const std::vector<Value>& args) {
-    std::cout << "Computing entropy..." << std::endl;
-    // Mock entropy computation
-    return Value(0.45);
-}
-
-Value Compiler::builtin_weighted_sum(const std::vector<Value>& args) {
-    std::cout << "Computing weighted sum..." << std::endl;
-    // Mock weighted sum - in real implementation, this would take weight parameters
-    return Value(0.77);
+    dsl::stdlib::register_core_primitives(context);
 }
 
 } // namespace dsl::compiler

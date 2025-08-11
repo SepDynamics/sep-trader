@@ -13,7 +13,7 @@
 #include <mutex>
 
 #include "connectors/oanda_connector.h"
-#include "data_cache_manager.hpp"
+#include "trading/data/unified_data_manager.hpp"
 #include "tick_data_manager.hpp"
 #include "candle_types.h"
 #include "market_model_cache.hpp"
@@ -75,7 +75,7 @@ private:
     // Essential quantum functionality (always available)
     std::unique_ptr<sep::trading::QuantumSignalBridge> quantum_bridge_;
     std::unique_ptr<sep::connectors::OandaConnector> oanda_connector_;
-    std::unique_ptr<DataCacheManager> cache_manager_;
+    std::unique_ptr<sep::trading::UnifiedDataManager> data_manager_;
     std::unique_ptr<TickDataManager> tick_manager_;
     std::unique_ptr<MarketModelCache> market_model_cache_;
     

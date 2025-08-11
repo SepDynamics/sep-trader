@@ -16,8 +16,10 @@
 
 #include <array>
 
-// CRITICAL: Clean up any macro pollution that might corrupt std::array
-// This must be done AFTER array is included but BEFORE other headers
+// CUDA compatibility layer (must come after array but before other includes)
+#include "engine/internal/cuda/common/cuda_prerequisites.h"
+#include "engine/internal/cuda/common/cuda_type_system.h"
+#include "engine/internal/cuda/common/cuda_compatibility.h"
 
 // Standard library includes
 #include <iostream>
@@ -69,8 +71,15 @@
 #include <unistd.h>
 #include <sys/types.h>
 
-
+// CUDA runtime headers
 #ifdef __CUDACC__
 #include <cuda_runtime.h>
 #include <cufft.h>
 #endif
+
+// Import CUDA-compatible types into global namespace
+using cuda::ts::string;
+using cuda::ts::io::cout;
+using cuda::ts::io::cerr;
+using cuda::ts::io::endl;
+using cuda::ts::make_unique;

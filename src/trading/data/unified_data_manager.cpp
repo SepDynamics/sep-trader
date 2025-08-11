@@ -5,9 +5,11 @@
 #include <filesystem>
 #include <fstream>
 #include <thread>
+#include <condition_variable>
 
 #include "common/sep_precompiled.h"
 #include "../../../_sep/testbed/placeholder_detection.h"
+#include "common/financial_data_types.h"
 
 namespace sep::trading {
 
@@ -32,30 +34,27 @@ bool UnifiedDataManager::initializeLiveTrading(sep::connectors::OandaConnector* 
 bool UnifiedDataManager::ensureLiveCacheReady(const std::string& instrument) {
     std::lock_guard<std::mutex> lock(cache_mutex_);
     
-    if (!oanda_connector_) {
-        return false;
+    if (needsRefresh(instrument)) {
+        return refreshLiveCache(instrument);
     }
     
-    std::string cache_file = getLiveCacheFile(instrument);
-    
-    // Check if cache exists and is valid
-    if (validateCacheFile(cache_file, config_.live_cache_ttl_hours)) {
-        return true;
+    auto cache_info = getLiveCacheInfo(instrument);
+    if (!cache_info.valid || cache_info.data_points < EXPECTED_48H_POINTS * 0.95) {
+        return refreshLiveCache(instrument);
     }
     
-    // Fetch fresh data from OANDA
-    return refreshLiveCache(instrument);
+    return true;
 }
 
 std::vector<sep::connectors::MarketData> UnifiedDataManager::getLiveCachedData(const std::string& instrument) {
     std::lock_guard<std::mutex> lock(cache_mutex_);
     
-    std::string cache_file = getLiveCacheFile(instrument);
-    if (!validateCacheFile(cache_file, config_.live_cache_ttl_hours)) {
+    std::vector<sep::connectors::MarketData> data;
+    if (!loadCacheFile(getLiveCacheFile(instrument), data)) {
         return {};
     }
     
-    return loadCacheFile(cache_file);
+    return data;
 }
 
 bool UnifiedDataManager::refreshLiveCache(const std::string& instrument) {
@@ -63,41 +62,88 @@ bool UnifiedDataManager::refreshLiveCache(const std::string& instrument) {
         return false;
     }
     
-    // Fetch 48H of data from OANDA
-    auto end_time = std::chrono::system_clock::now();
-    auto start_time = end_time - std::chrono::hours(48);
+    std::vector<sep::connectors::OandaCandle> candles;
+    std::mutex data_mutex;
+    std::condition_variable data_ready;
+    bool data_received = false;
+
+    try {
+        candles = oanda_connector_->getHistoricalData(instrument, "M1", "", "");
+        data_received = true;
+        data_ready.notify_one();
+
+        std::unique_lock<std::mutex> lock(data_mutex);
+        if (!data_ready.wait_for(lock, std::chrono::seconds(60), [&]{ return data_received; })) {
+            return false;
+        }
+        
+    } catch (const std::exception& e) {
+        return false;
+    }
     
-    // TODO: Implement OANDA data fetching
-    // For now, return true to avoid compilation issues
-    // std::vector<sep::connectors::MarketData> data = oanda_connector_->fetchHistoricalData(instrument, start_time, end_time);
+    if (candles.empty()) {
+        return false;
+    }
     
-    std::string cache_file = getLiveCacheFile(instrument);
-    // return saveCacheFile(cache_file, data);
+    auto market_data = convertOandaCandlesToMarketData(candles, instrument);
     
-    return true; // Placeholder
+    if (!saveCacheFile(getLiveCacheFile(instrument), market_data)) {
+        return false;
+    }
+    
+    return true;
 }
 
 CacheInfo UnifiedDataManager::getLiveCacheInfo(const std::string& instrument) {
-    std::lock_guard<std::mutex> lock(cache_mutex_);
-    
     CacheInfo info{};
-    std::string cache_file = getLiveCacheFile(instrument);
+    info.cache_file = getLiveCacheFile(instrument);
+    info.valid = false;
+    info.data_points = 0;
     
-    if (std::filesystem::exists(cache_file)) {
-        auto file_time = std::filesystem::last_write_time(cache_file);
-        auto system_time = std::chrono::file_clock::to_sys(file_time);
-        info.last_update = system_time;
-        info.cache_file = cache_file;
-        info.valid = validateCacheFile(cache_file, config_.live_cache_ttl_hours);
-        
-        // Count data points if file is valid
-        if (info.valid) {
-            auto data = loadCacheFile(cache_file);
-            info.data_points = data.size();
+    try {
+        if (!std::filesystem::exists(info.cache_file)) {
+            return info;
         }
+        
+        auto file_time = std::filesystem::last_write_time(info.cache_file);
+        auto sctp = std::chrono::time_point_cast<std::chrono::system_clock::duration>(
+            file_time - std::filesystem::file_time_type::clock::now() + std::chrono::system_clock::now());
+        info.last_update = sctp;
+        
+        std::ifstream file(info.cache_file);
+        if (file.is_open()) {
+            nlohmann::json cache_json;
+            file >> cache_json;
+            
+            if (cache_json.contains("data") && cache_json["data"].is_array()) {
+                info.data_points = cache_json["data"].size();
+                info.valid = true;
+            }
+        }
+        
+    } catch (const std::exception& e) {
     }
     
     return info;
+}
+
+bool UnifiedDataManager::needsRefresh(const std::string& instrument) const {
+    auto cache_info = getLiveCacheInfo(instrument);
+    
+    if (!cache_info.valid) {
+        return true;
+    }
+    
+    auto age = std::chrono::system_clock::now() - cache_info.last_update;
+    if (age > CACHE_REFRESH_INTERVAL) {
+        return true;
+    }
+    
+    if (cache_info.data_points < EXPECTED_48H_POINTS * 0.95) {
+        return true;
+    }
+    
+    return false;
 }
 
 // ============ TRAINING DATA SYNC API ============
@@ -111,7 +157,6 @@ std::future<std::vector<TrainingData>> UnifiedDataManager::fetchTrainingDataAsyn
         std::vector<TrainingData> result;
         
         // TODO: Implement training data fetching from remote
-        // This would involve PostgreSQL/Redis connection
         
         return result;
     });
@@ -151,10 +196,8 @@ bool UnifiedDataManager::isRemoteAvailable() {
 UnifiedDataManager::UnifiedCacheStatus UnifiedDataManager::getUnifiedStatus() {
     UnifiedCacheStatus status{};
     
-    // Get live cache status
-    status.live_cache = getLiveCacheInfo("EUR_USD"); // Default instrument
+    status.live_cache = getLiveCacheInfo("EUR_USD");
     
-    // Get remote status
     status.remote_available = isRemoteAvailable();
     
     // TODO: Count training data and models
@@ -165,7 +208,6 @@ UnifiedDataManager::UnifiedCacheStatus UnifiedDataManager::getUnifiedStatus() {
 }
 
 void UnifiedDataManager::cleanupCache() {
-    // Clean up old live cache files
     try {
         for (const auto& entry : std::filesystem::directory_iterator(config_.live_cache_path)) {
             if (entry.is_regular_file()) {
@@ -179,7 +221,6 @@ void UnifiedDataManager::cleanupCache() {
             }
         }
         
-        // Clean up old training cache files
         for (const auto& entry : std::filesystem::directory_iterator(config_.local_cache_path)) {
             if (entry.is_regular_file()) {
                 auto file_time = std::filesystem::last_write_time(entry);
@@ -192,21 +233,20 @@ void UnifiedDataManager::cleanupCache() {
             }
         }
     } catch (const std::exception& e) {
-        // Log error but don't fail
     }
 }
 
 // ============ PRIVATE HELPERS ============
 
-std::string UnifiedDataManager::getLiveCacheFile(const std::string& instrument) {
-    return config_.live_cache_path + "/live_" + instrument + ".cache";
+std::string UnifiedDataManager::getLiveCacheFile(const std::string& instrument) const {
+    return config_.live_cache_path + "/" + instrument + "_48h_cache.json";
 }
 
-std::string UnifiedDataManager::getTrainingCacheFile(const std::string& pair) {
-    return config_.local_cache_path + "/training_" + pair + ".cache";
+std::string UnifiedDataManager::getTrainingCacheFile(const std::string& pair) const {
+    return config_.local_cache_path + "/" + pair + ".cache";
 }
 
-bool UnifiedDataManager::validateCacheFile(const std::string& filepath, int ttl_hours) {
+bool UnifiedDataManager::validateCacheFile(const std::string& filepath, int ttl_hours) const {
     if (!std::filesystem::exists(filepath)) {
         return false;
     }
@@ -220,22 +260,34 @@ bool UnifiedDataManager::validateCacheFile(const std::string& filepath, int ttl_
 
 bool UnifiedDataManager::saveCacheFile(const std::string& filepath, const std::vector<sep::connectors::MarketData>& data) {
     try {
-        std::ofstream file(filepath, std::ios::binary);
-        if (!file) {
+        nlohmann::json cache_json;
+        cache_json["timestamp"] = std::chrono::duration_cast<std::chrono::seconds>(
+            std::chrono::system_clock::now().time_since_epoch()).count();
+        cache_json["data_points"] = data.size();
+        
+        nlohmann::json data_array = nlohmann::json::array();
+        for (const auto& md : data) {
+            nlohmann::json item;
+            item["instrument"] = md.instrument;
+            item["mid"] = md.mid;
+            item["bid"] = md.bid;
+            item["ask"] = md.ask;
+            item["volume"] = md.volume;
+            item["atr"] = md.atr;
+            item["timestamp"] = md.timestamp;
+            
+            data_array.push_back(item);
+        }
+        cache_json["data"] = data_array;
+        
+        std::ofstream file(filepath);
+        if (!file.is_open()) {
             return false;
         }
         
-        // Simple binary serialization
-        size_t count = data.size();
-        file.write(reinterpret_cast<const char*>(&count), sizeof(count));
-        
-        for (const auto& item : data) {
-            // TODO: Implement proper MarketData serialization
-            // For now, just write placeholder
-            sep::testbed::ensure_not_placeholder("MarketData serialization placeholder");
-        }
-        
+        file << cache_json.dump(2);
         return true;
+        
     } catch (const std::exception& e) {
         return false;
     }
@@ -245,23 +297,69 @@ std::vector<sep::connectors::MarketData> UnifiedDataManager::loadCacheFile(const
     std::vector<sep::connectors::MarketData> result;
     
     try {
-        std::ifstream file(filepath, std::ios::binary);
-        if (!file) {
+        if (!std::filesystem::exists(filepath)) {
             return result;
         }
         
-        size_t count;
-        file.read(reinterpret_cast<char*>(&count), sizeof(count));
+        std::ifstream file(filepath);
+        if (!file.is_open()) {
+            return result;
+        }
         
-        // TODO: Implement proper MarketData deserialization
-        // For now, return empty vector
-        sep::testbed::ensure_not_placeholder("MarketData deserialization placeholder");
+        nlohmann::json cache_json;
+        file >> cache_json;
+        
+        if (!cache_json.contains("data") || !cache_json["data"].is_array()) {
+            return result;
+        }
+        
+        for (const auto& item : cache_json["data"]) {
+            sep::connectors::MarketData md;
+            md.instrument = item.value("instrument", "");
+            md.mid = item.value("mid", 0.0);
+            md.bid = item.value("bid", 0.0);
+            md.ask = item.value("ask", 0.0);
+            md.volume = item.value("volume", 0);
+            md.atr = item.value("atr", 0.0001);
+            md.timestamp = item.value("timestamp", 0ULL);
+            
+            result.push_back(md);
+        }
         
     } catch (const std::exception& e) {
-        // Return empty vector on error
     }
     
     return result;
+}
+
+std::vector<sep::connectors::MarketData> UnifiedDataManager::convertOandaCandlesToMarketData(
+    const std::vector<sep::connectors::OandaCandle>& candles, 
+    const std::string& instrument) {
+    
+    std::vector<sep::connectors::MarketData> market_data;
+    market_data.reserve(candles.size());
+    
+    for (const auto& candle : candles) {
+        sep::connectors::MarketData md;
+        md.instrument = instrument;
+        md.mid = candle.close;
+        md.bid = candle.close - 0.00001;
+        md.ask = candle.close + 0.00001;
+        md.volume = candle.volume;
+        md.atr = 0.0001;
+        
+        try {
+            auto time_point = sep::common::parseTimestamp(candle.time);
+            md.timestamp = std::chrono::duration_cast<std::chrono::microseconds>(
+                time_point.time_since_epoch()).count();
+        } catch (const std::exception& e) {
+            md.timestamp = 0;
+        }
+        
+        market_data.push_back(md);
+    }
+    
+    return market_data;
 }
 
 } // namespace sep::trading

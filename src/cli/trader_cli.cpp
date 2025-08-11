@@ -229,7 +229,7 @@ int TraderCLI::handle_start(const std::vector<std::string>& args) {
                 
                 // Update health metrics
                 core::SystemHealth health;
-                health.cpu_usage = 45.0;  // Mock data
+                health.cpu_usage = sep::util::get_cpu_usage();
                 health.memory_usage = 62.5;
                 health.network_latency = 12.3;
                 health.active_connections = 5;

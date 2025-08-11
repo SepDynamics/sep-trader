@@ -1,8 +1,15 @@
 # SEP Template CMake Functions
 # Provides standardized library and executable creation
 
+# CUDA settings are configured globally in root CMakeLists.txt
+
 # Function to create a standard SEP library
 function(add_sep_library name)
+    # Enable CUDA language first if needed
+    if(SEP_USE_CUDA)
+        enable_language(CUDA)
+    endif()
+
     set(options STATIC SHARED)
     set(oneValueArgs PCH_HEADER)
     set(multiValueArgs SOURCES HEADERS DEPENDENCIES CUDA_SOURCES)
@@ -15,29 +22,52 @@ function(add_sep_library name)
     endif()
     
     # Combine regular sources and CUDA sources
-    set(ALL_SOURCES ${ARG_SOURCES} ${ARG_CUDA_SOURCES} ${ARG_HEADERS})
+    set(ALL_SOURCES ${ARG_SOURCES} ${ARG_CUDA_SOURCES})
     
     # Create library
     if(ARG_STATIC)
-        add_library(${name} STATIC ${ALL_SOURCES})
+        add_library(${name} STATIC ${ALL_SOURCES} ${ARG_HEADERS})
     else()
-        add_library(${name} SHARED ${ALL_SOURCES})
+        add_library(${name} SHARED ${ALL_SOURCES} ${ARG_HEADERS})
     endif()
     
-    # Set CUDA properties if CUDA sources are present and CUDA is enabled
+    # Set CUDA properties and flags if CUDA sources are present
     if(ARG_CUDA_SOURCES AND SEP_USE_CUDA)
-        # Set default CUDA architectures if not specified
-        if(NOT DEFINED CMAKE_CUDA_ARCHITECTURES)
-            set(CMAKE_CUDA_ARCHITECTURES "75;80;86")
-        endif()
-        
         set_target_properties(${name} PROPERTIES
             CUDA_SEPARABLE_COMPILATION ON
             CUDA_RESOLVE_DEVICE_SYMBOLS ON
+            CUDA_STANDARD 17
+            CUDA_STANDARD_REQUIRED ON
         )
         
-        # Enable CUDA language
-        enable_language(CUDA)
+        # Group CUDA headers separately
+        source_group("CUDA Headers" FILES ${ARG_HEADERS})
+        foreach(header ${ARG_HEADERS})
+            get_filename_component(ext ${header} EXT)
+            if(ext STREQUAL ".cuh")
+                set_source_files_properties(${header} PROPERTIES
+                    HEADER_FILE_ONLY ON
+                )
+            endif()
+        endforeach()
+        
+        # Apply CUDA compilation flags only to .cu source files
+        foreach(cuda_source ${ARG_CUDA_SOURCES})
+            get_filename_component(ext ${cuda_source} EXT)
+            if(ext STREQUAL ".cu")
+                set(CUDA_FLAGS "-forward-unknown-to-host-compiler -Xcompiler=-fPIC --expt-relaxed-constexpr --extended-lambda --display-error-number --allow-unsupported-compiler -Wno-deprecated-gpu-targets")
+                
+                # Add architecture-specific flags
+                foreach(arch ${CMAKE_CUDA_ARCHITECTURES})
+                    string(APPEND CUDA_FLAGS " --generate-code=arch=compute_${arch},code=[compute_${arch},sm_${arch}]")
+                endforeach()
+                
+                set_source_files_properties(${cuda_source} PROPERTIES
+                    LANGUAGE CUDA
+                    COMPILE_FLAGS "${CUDA_FLAGS}"
+                )
+            endif()
+        endforeach()
     endif()
     
     # Set include directories

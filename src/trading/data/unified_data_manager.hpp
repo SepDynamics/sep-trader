@@ -63,11 +63,6 @@ struct CacheInfo {
     bool valid;
 };
 
-/**
- * Unified Trading Data Manager
- * Consolidates RemoteDataManager + DataCacheManager functionality
- * Supports both training data sync and live trading cache
- */
 class UnifiedDataManager {
 public:
     explicit UnifiedDataManager(const UnifiedDataConfig& config);
@@ -75,74 +70,49 @@ public:
 
     // ============ LIVE TRADING CACHE API (from DataCacheManager) ============
     
-    /**
-     * Initialize with OANDA connector for live trading
-     */
     bool initializeLiveTrading(sep::connectors::OandaConnector* connector);
     
-    /**
-     * Legacy API compatibility - same as initializeLiveTrading
-     */
     bool initialize(sep::connectors::OandaConnector* connector) {
         return initializeLiveTrading(connector);
     }
     
-    /**
-     * Ensure 48H cache is available and fresh for live trading
-     */
     bool ensureLiveCacheReady(const std::string& instrument = "EUR_USD");
     
-    /**
-     * Get cached live trading data (48H window)
-     */
     std::vector<sep::connectors::MarketData> getLiveCachedData(const std::string& instrument = "EUR_USD");
     
-    /**
-     * Force refresh of live cache
-     */
     bool refreshLiveCache(const std::string& instrument = "EUR_USD");
     
-    /**
-     * Get cache status for live trading
-     */
     CacheInfo getLiveCacheInfo(const std::string& instrument = "EUR_USD");
+
+    bool needsRefresh(const std::string& instrument = "EUR_USD") const;
 
     // ============ TRAINING DATA SYNC API (from RemoteDataManager) ============
     
-    /**
-     * Fetch training data from remote
-     */
-    std::future<std::vector<TrainingData>> fetchTrainingDataAsync(
+    std::future<std::vector<TrainingData>> fetch_training_data(
         const std::string& pair, 
         const std::chrono::system_clock::time_point& start,
         const std::chrono::system_clock::time_point& end
     );
     
-    /**
-     * Push trained model to remote
-     */
-    std::future<bool> pushModelAsync(const ModelState& model);
+    std::future<bool> upload_training_batch(const std::vector<TrainingData>& batch);
     
-    /**
-     * Pull latest model from remote
-     */
-    std::future<std::optional<ModelState>> pullLatestModelAsync(const std::string& pair);
+    std::future<bool> upload_model(const ModelState& model);
+    std::future<ModelState> download_latest_model(const std::string& pair);
+    std::future<std::vector<ModelState>> list_available_models();
     
-    /**
-     * Sync local cache with remote
-     */
-    std::future<bool> syncToRemoteAsync();
+    void start_streaming(const std::vector<std::string>& pairs);
+    void stop_streaming();
+    bool register_data_callback(std::function<void(const TrainingData&)> callback);
     
-    /**
-     * Check if remote is available
-     */
-    bool isRemoteAvailable();
+    void clear_local_cache();
+    size_t get_cache_size();
+    bool is_cache_valid(const std::string& key);
+    
+    bool test_connection();
+    nlohmann::json get_remote_status();
 
     // ============ UNIFIED API ============
     
-    /**
-     * Get unified cache status across both systems
-     */
     struct UnifiedCacheStatus {
         CacheInfo live_cache;
         bool remote_available;
@@ -152,28 +122,11 @@ public:
     
     UnifiedCacheStatus getUnifiedStatus();
     
-    /**
-     * Cleanup old cache files
-     */
     void cleanupCache();
 
 private:
-    UnifiedDataConfig config_;
-    sep::connectors::OandaConnector* oanda_connector_ = nullptr;
-    
-    // Cache management
-    std::mutex cache_mutex_;
-    std::string getLiveCacheFile(const std::string& instrument);
-    std::string getTrainingCacheFile(const std::string& pair);
-    
-    // Remote connection management
-    std::mutex remote_mutex_;
-    bool remote_available_ = false;
-    
-    // Internal helpers
-    bool validateCacheFile(const std::string& filepath, int ttl_hours);
-    bool saveCacheFile(const std::string& filepath, const std::vector<sep::connectors::MarketData>& data);
-    std::vector<sep::connectors::MarketData> loadCacheFile(const std::string& filepath);
+    class Impl;
+    std::unique_ptr<Impl> pImpl;
 };
 
 } // namespace sep::trading
