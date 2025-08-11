@@ -28,16 +28,6 @@
         "resolve-library-id",
         "get-library-docs"
       ]
-    },
-    "robust_build_analyzer": {
-      "command": "python3",
-      "args": [
-        "/sep/.kilocode/mcp/tools/robust_build_analyzer/main.py"
-      ],
-      "alwaysAllow": [
-        "analyze_build"
-      ],
-      "disabled": true
     }
   }
 }

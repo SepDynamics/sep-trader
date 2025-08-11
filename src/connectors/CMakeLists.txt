@@ -6,6 +6,7 @@ pkg_check_modules(CURL REQUIRED libcurl)
 add_library(sep_connectors STATIC
     oanda_connector.cpp
     market_data_converter.cpp
+    qdrant_connector.cpp
 )
 
 # Enable Position Independent Code for shared library compatibility
@@ -26,7 +27,16 @@ PRIVATE
     sep_engine
     nlohmann_json::nlohmann_json
 )
-
 target_compile_options(sep_connectors PRIVATE ${CURL_CFLAGS_OTHER})
+
+# Build the Qdrant test executable
+add_executable(test_qdrant test_qdrant.cpp)
+target_link_libraries(test_qdrant PRIVATE
+    sep_connectors
+    sep_core_types
+    ${CURL_LIBRARIES}
+    nlohmann_json::nlohmann_json
+)
+
 
 

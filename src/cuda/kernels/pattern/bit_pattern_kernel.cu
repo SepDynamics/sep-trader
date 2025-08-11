@@ -1,0 +1,158 @@
+#include <cuda_runtime.h>
+#include <device_launch_parameters.h>
+#include <algorithm> // For std::min, std::max
+#include <cmath>     // For log2, fabs
+
+#include "bit_pattern_kernel.cuh"
+#include "pattern_types.cuh"
+#include "../../../cuda/common/error/cuda_error.h"
+#include "../../../cuda/common/memory/device_buffer.h"
+#include "../../../cuda/common/stream/stream.h"
+
+namespace sep {
+namespace cuda {
+namespace pattern {
+
+// Helper device functions
+__device__ bool detectTrendAcceleration(const uint8_t* window, size_t window_size) {
+    // Placeholder implementation - to be expanded
+    return window[0] < window[window_size - 1];
+}
+
+__device__ bool detectMeanReversion(const uint8_t* window, size_t window_size) {
+    // Placeholder implementation - to be expanded
+    return window[0] > window[window_size - 1];
+}
+
+__device__ bool detectVolatilityBreakout(const uint8_t* window, size_t window_size) {
+    // Placeholder implementation - to be expanded
+    size_t changes = 0;
+    for (size_t i = 1; i < window_size; ++i) {
+        if (window[i] != window[i-1]) changes++;
+    }
+    return changes > window_size / 2;
+}
+
+// CUDA kernel to analyze bit patterns
+__global__ void analyzeBitPatternsKernel(
+    const uint8_t* d_bits,
+    size_t total_bits_size,
+    size_t index_start,
+    size_t window_size,
+    ForwardWindowResult* d_results)
+{
+    // Each thread processes one window, but for simplicity, we'll assume one window for now
+    // This kernel needs to be adapted for batch processing if multiple windows are to be processed in parallel.
+    if (threadIdx.x == 0 && blockIdx.x == 0) {
+        ForwardWindowResult result;
+        result.flip_count = 0;
+        result.rupture_count = 0;
+        result.entropy = 0.0f;
+        result.coherence = 0.0f;
+        result.stability = 0.0f;
+        result.confidence = 0.0f;
+
+        if (total_bits_size <= index_start + 1) {
+            d_results[0] = result;
+            return;
+        }
+
+        // Create a local window for processing
+        // This is a simplification; for larger windows, this would need to be optimized
+        // (e.g., shared memory, or processing directly from global memory)
+        uint8_t local_window[10]; // Assuming max window_size is 10 for now
+        for (size_t i = 0; i < window_size; ++i) {
+            local_window[i] = d_bits[index_start + i];
+        }
+
+        // Calculate flip and rupture counts
+        for (size_t i = 1; i < window_size; ++i) {
+            if (local_window[i-1] != local_window[i]) {
+                result.flip_count++;
+            } else if (local_window[i-1] == 1 && local_window[i] == 1) {
+                result.rupture_count++;
+            }
+        }
+
+        // Calculate entropy (Shannon entropy)
+        size_t ones = 0;
+        for (size_t i = 0; i < window_size; ++i) {
+            if (local_window[i] == 1) ones++;
+        }
+        size_t zeros = window_size - ones;
+
+        if (ones > 0 && zeros > 0) {
+            double p1 = static_cast<double>(ones) / window_size;
+            double p0 = static_cast<double>(zeros) / window_size;
+            result.entropy = -(p1 * log2(p1) + p0 * log2(p0));
+        } else {
+            result.entropy = 0.0f;
+        }
+
+        // Coherence and Stability logic
+        result.coherence = detectTrendAcceleration(local_window, window_size) ? 0.7f : 0.3f;
+        result.stability = detectMeanReversion(local_window, window_size) ? 0.7f : 0.3f;
+
+        // Set confidence based on window size and pattern consistency
+        result.confidence = fminf(1.0f, static_cast<float>(window_size) / 10.0f) * result.coherence;
+
+        d_results[0] = result;
+    }
+}
+
+// Host-side launcher function using RAII-compliant abstractions
+cudaError_t launchAnalyzeBitPatternsKernel(
+    const uint8_t* h_bits,
+    size_t total_bits_size,
+    size_t index_start,
+    size_t window_size,
+    ForwardWindowResult* h_results,
+    cudaStream_t stream)
+{
+    // Use DeviceBuffer for RAII memory management
+    sep::cuda::memory::DeviceBuffer<uint8_t> d_bits(total_bits_size);
+    sep::cuda::memory::DeviceBuffer<ForwardWindowResult> d_results(1);
+
+    // Copy input data to device
+    CUDA_CHECK(cudaMemcpyAsync(
+        d_bits.data(), 
+        h_bits, 
+        total_bits_size * sizeof(uint8_t), 
+        cudaMemcpyHostToDevice, 
+        stream
+    ));
+
+    // Launch kernel
+    dim3 blockSize(1);
+    dim3 gridSize(1);
+    
+    analyzeBitPatternsKernel<<<gridSize, blockSize, 0, stream>>>(
+        d_bits.data(),
+        total_bits_size,
+        index_start,
+        window_size,
+        d_results.data()
+    );
+    
+    // Check for kernel launch errors
+    CUDA_CHECK_LAST();
+
+    // Copy results back to host
+    CUDA_CHECK(cudaMemcpyAsync(
+        h_results,
+        d_results.data(),
+        sizeof(ForwardWindowResult),
+        cudaMemcpyDeviceToHost,
+        stream
+    ));
+
+    // Synchronize stream
+    CUDA_CHECK(cudaStreamSynchronize(stream));
+
+    // Memory is automatically freed by DeviceBuffer destructors
+    return cudaSuccess;
+}
+
+} // namespace pattern
+} // namespace cuda
+} // namespace sep
