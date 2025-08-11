@@ -1,8 +1,10 @@
 #pragma once
 #include <string>
+#include <chrono>
 
 namespace sep::cache {
 
+// Source type describing origin of cached data
 enum class DataSource {
     API,
     SIMULATED,
@@ -23,4 +25,32 @@ inline DataSource stringToDataSource(const std::string& str) {
     return DataSource::UNKNOWN;
 }
 
+// Provider of market data. We specifically track OANDA vs testing stubs.
+enum class DataProvider {
+    OANDA,
+    STUB,
+    UNKNOWN
+};
+
+inline std::string dataProviderToString(DataProvider provider) {
+    switch (provider) {
+        case DataProvider::OANDA: return "oanda";
+        case DataProvider::STUB: return "stub";
+        default: return "unknown";
+    }
+}
+
+inline DataProvider stringToDataProvider(const std::string& str) {
+    if (str == "oanda" || str == "OANDA") return DataProvider::OANDA;
+    if (str == "stub" || str == "STUB") return DataProvider::STUB;
+    return DataProvider::UNKNOWN;
+}
+
+// Metadata stored for each cache record
+struct EntryMetadata {
+    std::chrono::system_clock::time_point timestamp;
+    DataProvider provider{DataProvider::UNKNOWN};
+};
+
 } // namespace sep::cache
+

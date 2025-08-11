@@ -406,9 +406,11 @@ bool CacheValidator::checkDataContinuity(const std::string& cache_path, const Va
 std::vector<std::chrono::system_clock::time_point> CacheValidator::extractTimestamps(const std::string& cache_path) const {
     std::vector<std::chrono::system_clock::time_point> timestamps;
     
-    std::vector<std::chrono::system_clock::time_point> temp_timestamps;
-    if (parseJsonCache(cache_path, temp_timestamps)) {
-        timestamps = std::move(temp_timestamps);
+    std::vector<EntryMetadata> entries;
+    if (parseJsonCache(cache_path, entries)) {
+        for (const auto& m : entries) {
+            timestamps.push_back(m.timestamp);
+        }
     }
     
     return timestamps;
@@ -548,39 +550,42 @@ void CacheValidator::performPeriodicValidation() {
                   valid_count, results.size());
 }
 
-bool CacheValidator::parseJsonCache(const std::string& cache_path, std::vector<std::chrono::system_clock::time_point>& timestamps) const {
+bool CacheValidator::parseJsonCache(const std::string& cache_path, std::vector<EntryMetadata>& entries) const {
     try {
         std::ifstream file(cache_path);
         if (!file.is_open()) return false;
-        
+
         nlohmann::json root;
         file >> root;
-        
-        // Assuming the JSON structure has a "data" array with timestamp fields
+
+        // Expected JSON structure: { "data": [ {"timestamp": ..., "provider": ...}, ... ] }
         if (root.contains("data") && root["data"].is_array()) {
             for (const auto& entry : root["data"]) {
-                if (!entry.contains("source")) {
-                    spdlog::warn("Cache entry missing source metadata in {}", cache_path);
+                if (!entry.contains("timestamp") || !entry.contains("provider")) {
+                    spdlog::warn("Cache entry missing provenance metadata in {}", cache_path);
                     continue;
                 }
-                auto src = stringToDataSource(entry["source"].get<std::string>());
-                if (src == DataSource::UNKNOWN) {
-                    spdlog::warn("Unrecognized source metadata in {}", cache_path);
+                EntryMetadata meta;
+                // Timestamp can be numeric or string encoded
+                if (entry["timestamp"].is_number()) {
+                    meta.timestamp = std::chrono::system_clock::from_time_t(entry["timestamp"].get<time_t>());
+                } else if (entry["timestamp"].is_string()) {
+                    // For string timestamps we currently just mark as now
+                    meta.timestamp = std::chrono::system_clock::now();
+                } else {
                     continue;
                 }
-                if (entry.contains("timestamp")) {
-                    if (entry["timestamp"].is_string()) {
-                        std::string timestamp_str = entry["timestamp"].get<std::string>();
-                        timestamps.push_back(std::chrono::system_clock::now());
-                    } else if (entry["timestamp"].is_number()) {
-                        auto timestamp = std::chrono::system_clock::from_time_t(entry["timestamp"].get<time_t>());
-                        timestamps.push_back(timestamp);
-                    }
+
+                meta.provider = stringToDataProvider(entry["provider"].get<std::string>());
+                if (meta.provider == DataProvider::UNKNOWN) {
+                    spdlog::warn("Unrecognized provider metadata in {}", cache_path);
+                    continue;
                 }
+                entries.push_back(meta);
             }
         }
-        
-        return !timestamps.empty();
+
+        return !entries.empty();
     } catch (const std::exception& e) {
         spdlog::error("Error parsing JSON cache {}: {}", cache_path, e.what());
         return false;
@@ -603,16 +608,11 @@ bool CacheValidator::validateJsonStructure(const std::string& cache_path) const 
 
 bool CacheValidator::validateEntrySources(const std::string& cache_path) const {
     try {
-        std::ifstream file(cache_path);
-        if (!file.is_open()) return false;
-        nlohmann::json root; 
-        file >> root;
-        if (!root.contains("data") || !root["data"].is_array()) return false;
-        for (const auto& entry : root["data"]) {
-            if (!entry.contains("source")) return false;
-            if (stringToDataSource(entry["source"].get<std::string>()) == DataSource::UNKNOWN) return false;
-        }
-        return true;
+        std::vector<EntryMetadata> entries;
+        if (!parseJsonCache(cache_path, entries)) return false;
+        return std::all_of(entries.begin(), entries.end(), [](const EntryMetadata& m) {
+            return m.provider == DataProvider::OANDA;
+        });
     } catch (const std::exception& e) {
         spdlog::error("Error validating entry sources in {}: {}", cache_path, e.what());
         return false;
