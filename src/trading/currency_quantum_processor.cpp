@@ -1,11 +1,20 @@
-#include "common/sep_precompiled.h"
 #include "currency_quantum_processor.hpp"
+#include "../../_sep/testbed/trace.hpp"
+#include <vector>
 
 namespace sep::trading {
 
-std::vector<double> CurrencyQuantumProcessor::processQuantumSignals(const std::string& pair) {
-    // Stub implementation
-    return {0.5, 0.6, 0.7};
+std::vector<double> CurrencyQuantumProcessor::processQuantumSignals(const std::string& pair,
+                                              const std::vector<double>& prices) {
+    sep::testbed::trace("process", pair + " " + std::to_string(prices.size()) + " pts");
+    std::vector<double> signals;
+    signals.reserve(prices.size());
+    for (double p : prices) {
+        signals.push_back(p / 100.0);
+    }
+    if (!signals.empty())
+        sep::testbed::trace("signal", "first=" + std::to_string(signals.front()));
+    return signals;
 }
 
 } // namespace sep::trading
