@@ -5,6 +5,7 @@
 #include <stdexcept>
 
 #include "stdlib/stdlib.h"
+#include "../../../_sep/testbed/placeholder_detection.h"
 
 namespace dsl::compiler {
 
@@ -47,6 +48,7 @@ std::function<void(Context&)> Compiler::compile_stream_declaration(const ast::St
 #ifdef SEP_BACKTESTING
         // Backtesting placeholder: attach mock stream data
         context.set_variable(stream.name, Value("stream_data"));
+        sep::testbed::ensure_not_placeholder("stream_data");
 #else
         throw std::runtime_error("Stream creation requires production implementation");
 #endif

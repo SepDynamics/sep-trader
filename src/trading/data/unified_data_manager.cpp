@@ -7,6 +7,7 @@
 #include <thread>
 
 #include "common/sep_precompiled.h"
+#include "../../../_sep/testbed/placeholder_detection.h"
 
 namespace sep::trading {
 
@@ -231,6 +232,7 @@ bool UnifiedDataManager::saveCacheFile(const std::string& filepath, const std::v
         for (const auto& item : data) {
             // TODO: Implement proper MarketData serialization
             // For now, just write placeholder
+            sep::testbed::ensure_not_placeholder("MarketData serialization placeholder");
         }
         
         return true;
@@ -253,6 +255,7 @@ std::vector<sep::connectors::MarketData> UnifiedDataManager::loadCacheFile(const
         
         // TODO: Implement proper MarketData deserialization
         // For now, return empty vector
+        sep::testbed::ensure_not_placeholder("MarketData deserialization placeholder");
         
     } catch (const std::exception& e) {
         // Return empty vector on error
