@@ -8,6 +8,7 @@
 
 #include "common/sep_precompiled.h"
 #include "quantum/types.h"
+#include "../../_sep/testbed/trace.hpp"
 
 namespace sep::trading {
 
@@ -197,22 +198,29 @@ void TickerPatternAnalyzer::resetPerformanceStats() {
 }
 
 TickerPatternAnalysis TickerPatternAnalyzer::performQuantumAnalysis(const std::string& ticker_symbol) {
+    // Fetch market data then delegate to generalized path
+    auto market_data = fetchMarketData(ticker_symbol, config_.lookback_hours);
+    return analyzeFromMarketData(ticker_symbol, market_data);
+}
+
+TickerPatternAnalysis TickerPatternAnalyzer::analyzeFromMarketData(
+    const std::string& ticker_symbol,
+    const std::vector<sep::connectors::MarketData>& market_data) {
     TickerPatternAnalysis analysis;
     analysis.ticker_symbol = ticker_symbol;
     analysis.analysis_timestamp = std::chrono::system_clock::now();
-    
-    // Fetch market data (simulated for now)
-    auto market_data = fetchMarketData(ticker_symbol, config_.lookback_hours);
+
     analysis.data_points_analyzed = market_data.size();
-    
+    sep::testbed::trace("ingest", std::to_string(market_data.size()) + " points");
+
     if (market_data.empty()) {
         throw std::runtime_error("No market data available");
     }
-    
-    // Perform QFH analysis
-    auto qfh_result = performQFHAnalysis(market_data);
 
-    // Use the manifold optimizer to process the QFH result
+    auto qfh_result = performQFHAnalysis(market_data);
+    sep::testbed::trace("feature extraction",
+                        "coherence=" + std::to_string(qfh_result.coherence));
+
     sep::quantum::QuantumState initial_state;
     initial_state.coherence = qfh_result.coherence;
     initial_state.entropy = qfh_result.entropy;
@@ -221,37 +229,31 @@ TickerPatternAnalysis TickerPatternAnalyzer::performQuantumAnalysis(const std::s
     sep::quantum::manifold::QuantumManifoldOptimizer::OptimizationTarget target;
     auto optimization_result = manifold_optimizer_->optimize(initial_state, target);
 
-    if (optimization_result.success)
-    {
+    if (optimization_result.success) {
         analysis.coherence_score = optimization_result.optimized_state.coherence;
         analysis.entropy_level = optimization_result.optimized_state.entropy;
         analysis.stability_index = optimization_result.optimized_state.stability;
-    }
-    else
-    {
-        // Fallback to raw QFH results if optimization fails
+    } else {
         analysis.coherence_score = qfh_result.coherence;
         analysis.entropy_level = qfh_result.entropy;
         analysis.stability_index = 1.0 - qfh_result.rupture_ratio;
     }
 
     analysis.rupture_probability = qfh_result.rupture_ratio;
-
-    // Classify pattern type
     analysis.dominant_pattern = classifyPattern(market_data, qfh_result);
-    
-    // Generate trading signals
+
     generateTradingSignals(analysis);
-    
-    // Perform risk assessment
+    const char* signal_dir = "HOLD";
+    if (analysis.primary_signal == TickerPatternAnalysis::SignalDirection::BUY)
+        signal_dir = "BUY";
+    else if (analysis.primary_signal == TickerPatternAnalysis::SignalDirection::SELL)
+        signal_dir = "SELL";
+    sep::testbed::trace("signal emission", signal_dir);
+
     performRiskAssessment(analysis);
-    
-    // Multi-timeframe analysis
     analysis.timeframe_results = analyzeTimeframes(ticker_symbol);
-    
-    // Predict pattern evolution
     predictPatternEvolution(analysis);
-    
+
     analysis.analysis_successful = true;
     return analysis;
 }
