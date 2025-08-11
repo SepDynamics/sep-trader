@@ -432,6 +432,7 @@ namespace sep::trading
         std::stringstream ss;
         ss << pair_symbol << "_" << std::put_time(std::localtime(&time_t), "%Y%m%d");
         return ss.str();
+
     }
 
     bool QuantumPairTrainer::isCacheValid(const std::string& cache_key) const
