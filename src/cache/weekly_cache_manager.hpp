@@ -9,6 +9,7 @@
 #include <atomic>
 #include <thread>
 #include <condition_variable>
+#include <nlohmann/json.hpp>
 
 namespace sep::cache {
 
@@ -177,6 +178,7 @@ private:
     std::atomic<size_t> active_updates_{0};
     std::unordered_map<std::string, std::unique_ptr<std::thread>> active_update_threads_;
     mutable std::mutex queue_mutex_;
+    mutable std::mutex file_io_mutex_;
     
     // Data source provider
     std::function<std::vector<std::string>(const std::string&, std::chrono::system_clock::time_point, std::chrono::system_clock::time_point)> data_source_provider_;
@@ -224,8 +226,10 @@ private:
     // Data processing
     std::vector<std::string> fetchDataForWeek(const std::string& pair_symbol, 
                                             std::chrono::system_clock::time_point week_start) const;
-    bool writeCacheFile(const std::string& cache_path, const std::vector<std::string>& data) const;
-    std::vector<std::string> readCacheFile(const std::string& cache_path) const;
+    bool writeCacheFile(const std::string& cache_path, const std::vector<std::string>& data,
+                        const nlohmann::json& provenance) const;
+    std::vector<std::string> readCacheFile(const std::string& cache_path,
+                                           nlohmann::json* provenance = nullptr) const;
     
     // Event notification
     void notifyUpdateStatus(const std::string& pair, ::sep::cache::WeeklyCacheStatus old_status, ::sep::cache::WeeklyCacheStatus new_status);
