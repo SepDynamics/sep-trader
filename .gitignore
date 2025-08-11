@@ -175,6 +175,7 @@ reports/
 data/large/
 datasets/
 *.csv
+!tests/data/*.csv
 *.json.gz
 
 # Jupyter notebooks
@@ -271,3 +272,4 @@ cmake-build-*/
 *_generated.*
 !*_template.*
 config/OANDA.env
+!_sep/
