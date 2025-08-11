@@ -267,3 +267,6 @@ cmake-build-*/
 *_generated.*
 !*_template.*
 config/OANDA.env
+!_sep/
+!_sep/testbed/
+!_sep/testbed/*
