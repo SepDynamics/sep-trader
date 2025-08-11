@@ -48,7 +48,7 @@ public:
 
     std::string get_header_value(const std::string& key) const override
     {
-        // Call the stub's get_header_value
+        // Delegate to Crow's request implementation
         return req_.get_header_value(key);
     }
 
