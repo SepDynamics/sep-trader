@@ -1,5 +1,6 @@
 add_sep_test(data_pipeline_tests SOURCES data_pipeline/test_data_integrity.cpp)
 add_sep_test(pipeline_full_cycle SOURCES pipeline/test_full_cycle.cpp)
+add_sep_test(oanda_integration_test SOURCES integration/oanda_integration_test.cpp DEPENDENCIES sep_connectors)
 add_sep_test(cuda_validation SOURCES performance/cuda_validation.cpp ../_sep/testbed/cuda_marketdata_harness.cu)
 add_sep_test(trading_signal_trace SOURCES integration/test_signal_trace.cpp)
 add_sep_test(unit_data_pipeline SOURCES unit/data_pipeline_test.cpp)
