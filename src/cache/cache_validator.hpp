@@ -173,7 +173,7 @@ private:
     void performPeriodicValidation();
     
     // JSON parsing helpers (for cache content analysis)
-    bool parseJsonCache(const std::string& cache_path, std::vector<std::chrono::system_clock::time_point>& timestamps) const;
+    bool parseJsonCache(const std::string& cache_path, std::vector<EntryMetadata>& entries) const;
     bool validateJsonStructure(const std::string& cache_path) const;
 };
 

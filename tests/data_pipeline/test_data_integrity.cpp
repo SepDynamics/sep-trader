@@ -2,6 +2,10 @@
 #include "trading/quantum_pair_trainer.hpp"
 #include "connectors/oanda_connector.h"
 #include "dsl/stdlib/core_primitives.h"
+#include "cache/cache_validator.hpp"
+#include <nlohmann/json.hpp>
+#include <fstream>
+#include <filesystem>
 #include <cstdlib>
 #include <chrono>
 
@@ -113,6 +117,25 @@ TEST_F(DataIntegrityTest, NoHardcodedSimulationValues) {
         trainer.fetchTrainingData("EUR_USD"),
         std::runtime_error
     );
+}
+
+/**
+ * Test: Cache validator rejects data not tagged with OANDA provider
+ */
+TEST_F(DataIntegrityTest, CacheValidatorRejectsStubProvider) {
+    using namespace sep::cache;
+    nlohmann::json root;
+    root["data"] = {{{"timestamp", 1}, {"provider", "stub"}}};
+    auto path = std::filesystem::temp_directory_path() / "stub_cache.json";
+    {
+        std::ofstream out(path);
+        out << root.dump();
+    }
+
+    CacheValidator validator;
+    EXPECT_FALSE(validator.validateEntrySources(path.string()));
+
+    std::filesystem::remove(path);
 }
 
 } // namespace sep::tests
