@@ -53,7 +53,7 @@ Thumbs.db
 
 # Logs and output
 *.log
-output/
+# output/
 logs/
 *.txt
 

@@ -31,8 +31,18 @@ QuantumPairTrainer::QuantumPairTrainer(const QuantumTrainingConfig& config)
         throw std::runtime_error("Failed to initialize engine facade");
     }
     
-    // Initialize OANDA connector (stub for now)
-    // oanda_connector_ = std::make_unique<sep::connectors::OandaConnector>();
+    // Initialize OANDA connector with real credentials
+    const char* api_key = std::getenv("OANDA_API_KEY");
+    const char* account_id = std::getenv("OANDA_ACCOUNT_ID");
+    if (api_key && account_id) {
+        oanda_connector_ = std::make_unique<sep::connectors::OandaConnector>(api_key, account_id, true); // true = sandbox
+        if (!oanda_connector_->initialize()) {
+            throw std::runtime_error("Failed to initialize OANDA connector: " + oanda_connector_->getLastError());
+        }
+    } else {
+        // Log warning but continue - allows unit testing without credentials
+        std::cerr << "Warning: OANDA credentials not found. Set OANDA_API_KEY and OANDA_ACCOUNT_ID environment variables for real data." << std::endl;
+    }
 }
 
 QuantumPairTrainer::~QuantumPairTrainer() {
@@ -220,36 +230,51 @@ PairTrainingResult QuantumPairTrainer::performQuantumTraining(const std::string&
 std::vector<sep::connectors::MarketData> QuantumPairTrainer::fetchTrainingData(
     const std::string& pair_symbol, size_t hours_back) {
     
-    // For now, return simulated market data
-    // In real implementation, this would fetch from OANDA API
-    
-    std::vector<sep::connectors::MarketData> data;
-    
-    // Generate realistic forex data for EUR_USD
-    double base_price = 1.0850; // EUR/USD typical rate
-    auto now = std::chrono::system_clock::now();
-    
-    for (size_t i = 0; i < hours_back * 60; ++i) { // Minute data
-        sep::connectors::MarketData point;
-        point.instrument = pair_symbol;
-        point.timestamp = std::chrono::duration_cast<std::chrono::milliseconds>(
-            now.time_since_epoch()).count() - (i * 60 * 1000); // Go back in time
-        
-        // Simulate realistic price movement
-        double noise = (std::rand() % 100 - 50) / 100000.0; // ±0.5 pip noise
-        point.bid = base_price + noise - 0.0001; // 1 pip spread
-        point.ask = base_price + noise + 0.0001;
-        point.mid = base_price + noise;
-        point.volume = 100 + (std::rand() % 500);
-        point.atr = 0.0050; // 50 pip ATR
-        
-        data.push_back(point);
-        
-        // Small trend component
-        base_price += (std::rand() % 3 - 1) / 100000.0;
+    if (!oanda_connector_) {
+        throw std::runtime_error("OANDA connector not initialized. Check your OANDA_API_KEY and OANDA_ACCOUNT_ID environment variables.");
     }
     
-    return data;
+    // Calculate timestamps for the requested time range
+    auto now = std::chrono::system_clock::now();
+    auto start_time = now - std::chrono::hours(hours_back);
+    
+    // Format timestamps into ISO 8601 strings required by OANDA API
+    auto formatTimestamp = [](const std::chrono::system_clock::time_point& tp) -> std::string {
+        auto time_t = std::chrono::system_clock::to_time_t(tp);
+        std::stringstream ss;
+        ss << std::put_time(std::gmtime(&time_t), "%Y-%m-%dT%H:%M:%SZ");
+        return ss.str();
+    };
+    
+    std::string from_str = formatTimestamp(start_time);
+    std::string to_str = formatTimestamp(now);
+    
+    // Fetch real OANDA data
+    auto oanda_candles = oanda_connector_->getHistoricalData(pair_symbol, "M1", from_str, to_str);
+    
+    if (oanda_candles.empty()) {
+        throw std::runtime_error("Failed to fetch OANDA data: " + oanda_connector_->getLastError());
+    }
+    
+    // Convert OandaCandle to MarketData format
+    std::vector<sep::connectors::MarketData> market_data;
+    market_data.reserve(oanda_candles.size());
+    
+    for (const auto& candle : oanda_candles) {
+        sep::connectors::MarketData md;
+        md.instrument = pair_symbol;
+        md.timestamp = std::chrono::duration_cast<std::chrono::milliseconds>(
+            sep::common::parseTimestamp(candle.time).time_since_epoch()).count();
+        md.mid = candle.close;
+        md.bid = candle.low;   // Approximation - could be improved with tick data
+        md.ask = candle.high;  // Approximation - could be improved with tick data
+        md.volume = candle.volume;
+        md.atr = 0.0050; // Will be calculated later from historical volatility
+        
+        market_data.push_back(md);
+    }
+    
+    return market_data;
 }
 
 std::vector<uint8_t> QuantumPairTrainer::convertToBitstream(

@@ -59,11 +59,12 @@ __global__ void trajectoryKernel(const TrajectoryPointDevice* trajectories,
 void launchTrajectoryKernel(const TrajectoryPointDevice* trajectory_points,
                             DampedValueDevice* results,
                             int num_trajectories,
-                            int trajectory_length) {
+                            int trajectory_length,
+                            cudaStream_t stream) {
     dim3 blockSize(1);
     dim3 gridSize(num_trajectories);
 
-    trajectoryKernel<<<gridSize, blockSize>>>(trajectory_points, results, num_trajectories, trajectory_length);
+    trajectoryKernel<<<gridSize, blockSize, 0, stream>>>(trajectory_points, results, num_trajectories, trajectory_length);
     
     // It's important to check for errors after launching the kernel
     cudaError_t err = cudaGetLastError();

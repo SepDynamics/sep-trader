@@ -30,7 +30,8 @@ struct DampedValueDevice {
 void launchTrajectoryKernel(const TrajectoryPointDevice* trajectory_points,
                             DampedValueDevice* results,
                             int num_trajectories,
-                            int trajectory_length);
+                            int trajectory_length,
+                            cudaStream_t stream);
 
 // CPU version for testing and fallback
 void simulateForwardWindowMetrics(const std::vector<::sep::quantum::bitspace::TrajectoryPoint>& trajectories, std::vector<::sep::quantum::bitspace::DampedValue>& results);

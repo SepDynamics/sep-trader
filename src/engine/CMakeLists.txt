@@ -24,13 +24,13 @@ add_sep_library(sep_engine
         internal/cuda_impl.cu
         internal/raii.cu
         internal/stream.cu
-        internal/pattern_kernels.cu
+        
         internal/cuda_api.cu
         internal/event.cu
         internal/utils.cu
-        internal/kernels.cu
+        
         internal/core.cu
-        internal/quantum_kernels.cu
+        
         internal/memory.cu
     DEPENDENCIES
         sep_core_types

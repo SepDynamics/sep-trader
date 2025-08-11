@@ -11,7 +11,9 @@
 #include <sstream>
 
 #include "candle_types.h"
-#include "forward_window_kernels.hpp"
+
+#include "cuda/pattern/bit_pattern_kernels.h"
+#include <cuda_runtime.h>
 #include "quantum/bitspace/pattern_processor.h"
 #include "quantum/quantum_manifold_optimizer.h"
 #include "quantum/signal.h"
@@ -961,16 +963,31 @@ std::map<std::string, sep::trading::QuantumTradingSignal> sep::trading::MultiTim
             size_t window_start = (pattern_idx >= 10) ? (pattern_idx - 10) : 0;
             size_t window_end = std::min(price_bitstream.size(), pattern_idx + 1);
             std::vector<uint8_t> window_bits(price_bitstream.begin() + window_start,
-                                           price_bitstream.begin() + window_end);
-            
+                                         price_bitstream.begin() + window_end);
+
             if (window_bits.size() >= 2) {
-                auto forward_window_result = sep::apps::cuda::simulateForwardWindowMetrics(window_bits, 0);
+                // Use CUDA kernel for bit pattern analysis
+                sep::apps::cuda::ForwardWindowResultDevice d_result_host;
+                cudaStream_t stream;
+                cudaStreamCreate(&stream);
+
+                sep::SEPResult cuda_result = sep::apps::cuda::launchAnalyzeBitPatternsKernel(
+                    window_bits.data(), window_bits.size(), 0, window_bits.size(), &d_result_host, stream);
+
+                cudaStreamDestroy(stream);
+
+                if (cuda_result != sep::SEPResult::SUCCESS) {
+                    std::cerr << "CUDA Kernel Launch Error: " << sep::core::resultToString(cuda_result) << std::endl;
+                    // For now, I'll set default values if CUDA fails.
+                    d_result_host.coherence = 0.0f;
+                    d_result_host.stability = 0.0f;
+                }
                 
-                if (forward_window_result.coherence >= 0.85f) {
+                if (d_result_host.coherence >= 0.85f) {
                     pattern_modifier = 1.12; // TrendAcceleration
-                } else if (forward_window_result.coherence >= 0.8f && forward_window_result.stability >= 0.82f) {
+                } else if (d_result_host.coherence >= 0.8f && d_result_host.stability >= 0.82f) {
                     pattern_modifier = 1.08; // VolatilityBreakout  
-                } else if (forward_window_result.coherence >= 0.75f && forward_window_result.stability >= 0.7f) {
+                } else if (d_result_host.coherence >= 0.75f && d_result_host.stability >= 0.7f) {
                     pattern_modifier = 0.95; // MeanReversion
                 }
             }

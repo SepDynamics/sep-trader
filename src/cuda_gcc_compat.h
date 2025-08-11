@@ -64,8 +64,19 @@ template <typename T> struct __array_rank_impl<T[]> { static const size_t value 
 
 // Prevent specific C++ headers from using problematic pthread/locale functions
 // Block the features that cause conflicts without blocking basic functionality
+#ifdef _GLIBCXX_HAS_GTHREADS
+#undef _GLIBCXX_HAS_GTHREADS
+#endif
 #define _GLIBCXX_HAS_GTHREADS 0
+
+#ifdef _GLIBCXX_USE_PTHREAD_CLOCKLOCK
+#undef _GLIBCXX_USE_PTHREAD_CLOCKLOCK
+#endif
 #define _GLIBCXX_USE_PTHREAD_CLOCKLOCK 0
+
+#ifdef _GLIBCXX_USE_LOCALE
+#undef _GLIBCXX_USE_LOCALE
+#endif
 #define _GLIBCXX_USE_LOCALE 0
 
 // Specifically disable the conflicting math functions

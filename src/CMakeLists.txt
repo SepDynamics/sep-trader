@@ -28,6 +28,7 @@ endif()
 add_subdirectory(memory)
 add_subdirectory(quantum)
 add_subdirectory(engine)
+add_subdirectory(cuda)
 add_subdirectory(connectors)
 add_compile_definitions(FMT_HEADER_ONLY)
 # Temporarily disable trading module due to persistent std::array/functional issues
