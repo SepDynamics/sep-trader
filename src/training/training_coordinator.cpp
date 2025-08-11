@@ -6,6 +6,7 @@
 #include "trading/quantum_pair_trainer.hpp"
 #include "connectors/oanda_connector.h"
 #include "cache/weekly_cache_manager.hpp"
+#include <algorithm>
 
 // Restore array if corrupted
 #ifdef array
@@ -50,37 +51,37 @@ bool TrainingCoordinator::initializeComponents() {
         cache_manager_ = std::make_unique<cache::WeeklyCacheManager>();
         
         // Set up OANDA data source provider for cache manager
-        cache_manager_->setDataSourceProvider([](const std::string& pair_symbol, 
+        cache_manager_->setDataSourceProvider([](const std::string& pair_symbol,
                                                 std::chrono::system_clock::time_point from,
                                                 std::chrono::system_clock::time_point to) -> std::vector<std::string> {
-            
+
             const char* api_key = std::getenv("OANDA_API_KEY");
             const char* account_id = std::getenv("OANDA_ACCOUNT_ID");
-            
+
             if (!api_key || !account_id) {
                 spdlog::warn("OANDA credentials not available for data fetching");
                 return {};
             }
-            
+
             try {
                 auto oanda_connector = std::make_unique<sep::connectors::OandaConnector>(api_key, account_id, true);
                 if (!oanda_connector->initialize()) {
                     spdlog::error("Failed to initialize OANDA connector for cache data");
                     return {};
                 }
-                
+
                 // Convert time points to ISO 8601 strings
                 auto time_t_from = std::chrono::system_clock::to_time_t(from);
                 auto time_t_to = std::chrono::system_clock::to_time_t(to);
-                
+
                 char from_str[32];
-                char to_str[32]; 
+                char to_str[32];
                 strftime(from_str, sizeof(from_str), "%Y-%m-%dT%H:%M:%S.000000000Z", gmtime(&time_t_from));
                 strftime(to_str, sizeof(to_str), "%Y-%m-%dT%H:%M:%S.000000000Z", gmtime(&time_t_to));
-                
+
                 // Fetch historical data from OANDA
                 auto candles = oanda_connector->getHistoricalData(pair_symbol, "M1", from_str, to_str);
-                
+
                 // Convert candles to string format for cache storage
                 std::vector<std::string> result;
                 for (const auto& candle : candles) {
@@ -93,16 +94,32 @@ bool TrainingCoordinator::initializeComponents() {
                     candle_json["volume"] = candle.volume;
                     result.push_back(candle_json.dump());
                 }
-                
+
                 spdlog::info("Fetched {} candles for {} from OANDA", result.size(), pair_symbol);
                 return result;
-                
+
             } catch (const std::exception& e) {
                 spdlog::error("Error fetching OANDA data for cache: {}", e.what());
                 return {};
             }
         });
-        
+
+        // Initialize weekly data fetcher
+        data_fetcher_ = std::make_unique<WeeklyDataFetcher>();
+        DataFetchConfig fetch_config;
+        fetch_config.oanda_api_key = std::getenv("OANDA_API_KEY") ? std::getenv("OANDA_API_KEY") : "";
+        fetch_config.oanda_account_id = std::getenv("OANDA_ACCOUNT_ID") ? std::getenv("OANDA_ACCOUNT_ID") : "";
+        fetch_config.oanda_environment = "practice";
+        fetch_config.instruments = getStandardForexPairs();
+        fetch_config.granularities = getStandardGranularities();
+        fetch_config.history_days = 7;
+        fetch_config.compress_data = false;
+        fetch_config.parallel_fetchers = 2;
+        data_fetcher_->configure(fetch_config);
+
+        // Initialize remote synchronizer
+        remote_synchronizer_ = std::make_unique<RemoteSynchronizer>();
+
         return true;
     } catch (const std::exception& e) {
         std::cerr << "Failed to initialize components: " << e.what() << std::endl;
@@ -257,16 +274,20 @@ std::map<std::string, std::string> TrainingCoordinator::getSystemStatus() const 
 
 bool TrainingCoordinator::configureRemoteTrader(const RemoteTraderConfig& config) {
     remote_config_ = config;
-    
-    // Test connection
     std::cout << "🌐 Testing connection to " << config.host << ":" << config.port << "..." << std::endl;
-    
-    // Simulate connection test
-    std::this_thread::sleep_for(std::chrono::milliseconds(200));
-    remote_connected_ = true;
-    
-    std::cout << "✅ Remote trader connection configured" << std::endl;
-    return true;
+
+    if (!remote_synchronizer_) {
+        remote_synchronizer_ = std::make_unique<RemoteSynchronizer>();
+    }
+
+    remote_connected_ = remote_synchronizer_->sync();
+
+    if (remote_connected_) {
+        std::cout << "✅ Remote trader connection configured" << std::endl;
+    } else {
+        std::cout << "❌ Failed to connect to remote trader" << std::endl;
+    }
+    return remote_connected_;
 }
 
 bool TrainingCoordinator::syncPatternsToRemote() {
@@ -274,24 +295,36 @@ bool TrainingCoordinator::syncPatternsToRemote() {
         std::cout << "❌ Remote trader not connected" << std::endl;
         return false;
     }
-    
+
     std::cout << "🔄 Syncing patterns to remote trader..." << std::endl;
-    
-    // Simulate pattern sync
-    std::this_thread::sleep_for(std::chrono::milliseconds(300));
-    
-    std::cout << "✅ Patterns synchronized successfully" << std::endl;
-    return true;
+    bool success = true;
+    for (const auto& [pair, result] : training_results_) {
+        if (!sendPatternToRemote(pair, result)) {
+            success = false;
+        }
+    }
+    if (success) {
+        std::cout << "✅ Patterns synchronized successfully" << std::endl;
+    } else {
+        std::cout << "❌ Pattern synchronization failed" << std::endl;
+    }
+    return success;
 }
 
 bool TrainingCoordinator::fetchWeeklyDataForAll() {
     std::cout << "📥 Fetching weekly data for all instruments..." << std::endl;
-    
-    // Simulate data fetching
-    std::this_thread::sleep_for(std::chrono::seconds(2));
-    
-    std::cout << "✅ Weekly data fetch completed" << std::endl;
-    return true;
+    if (!data_fetcher_) {
+        std::cout << "❌ Data fetcher not initialized" << std::endl;
+        return false;
+    }
+    auto results = data_fetcher_->fetchAllInstruments();
+    bool success = std::all_of(results.begin(), results.end(), [](const auto& r) { return r.success; });
+    if (success) {
+        std::cout << "✅ Weekly data fetch completed" << std::endl;
+    } else {
+        std::cout << "❌ Weekly data fetch encountered errors" << std::endl;
+    }
+    return success;
 }
 
 PatternQuality TrainingCoordinator::assessPatternQuality(double accuracy) const {
@@ -348,7 +381,15 @@ bool TrainingCoordinator::startLiveTuning(const std::vector<std::string>& pairs)
     
     live_tuning_active_ = true;
     std::cout << "🎯 Starting live tuning for " << pairs.size() << " pairs..." << std::endl;
-    
+
+    {
+        std::lock_guard<std::mutex> lock(tuning_mutex_);
+        for (const auto& p : pairs) {
+            tuning_queue_.push(p);
+        }
+    }
+    tuning_cv_.notify_all();
+
     // Start tuning thread
     tuning_thread_ = std::thread(&TrainingCoordinator::liveTuningThreadFunction, this);
     
@@ -373,11 +414,18 @@ bool TrainingCoordinator::stopLiveTuning() {
 
 void TrainingCoordinator::liveTuningThreadFunction() {
     while (live_tuning_active_) {
-        // Simulate live tuning work
-        std::this_thread::sleep_for(std::chrono::seconds(5));
-        
-        if (live_tuning_active_) {
-            std::cout << "🔄 Live tuning iteration..." << std::endl;
+        std::unique_lock<std::mutex> lock(tuning_mutex_);
+        if (tuning_queue_.empty()) {
+            tuning_cv_.wait_for(lock, std::chrono::seconds(5));
+        }
+        if (!live_tuning_active_) {
+            break;
+        }
+        if (!tuning_queue_.empty()) {
+            auto pair = tuning_queue_.front();
+            tuning_queue_.pop();
+            lock.unlock();
+            performLiveTuning(pair);
         }
     }
 }
@@ -392,12 +440,17 @@ bool TrainingCoordinator::isRemoteTraderConnected() const {
 
 bool TrainingCoordinator::fetchWeeklyDataForPair(const std::string& pair) {
     std::cout << "📥 Fetching weekly data for " << pair << "..." << std::endl;
-    
-    // Simulate data fetching
-    std::this_thread::sleep_for(std::chrono::milliseconds(500));
-    
-    std::cout << "✅ Weekly data fetched for " << pair << std::endl;
-    return true;
+    if (!data_fetcher_) {
+        std::cout << "❌ Data fetcher not initialized" << std::endl;
+        return false;
+    }
+    auto result = data_fetcher_->fetchInstrument(pair);
+    if (result.success) {
+        std::cout << "✅ Weekly data fetched for " << pair << std::endl;
+    } else {
+        std::cout << "❌ Failed to fetch data for " << pair << std::endl;
+    }
+    return result.success;
 }
 
 bool TrainingCoordinator::syncParametersFromRemote() {
@@ -405,12 +458,54 @@ bool TrainingCoordinator::syncParametersFromRemote() {
         std::cout << "❌ Remote trader not connected" << std::endl;
         return false;
     }
-    
+
     std::cout << "🔄 Syncing parameters from remote trader..." << std::endl;
-    
-    // Simulate parameter sync
-    std::this_thread::sleep_for(std::chrono::milliseconds(300));
-    
-    std::cout << "✅ Parameters synchronized successfully" << std::endl;
+    bool success = true;
+    for (auto& [pair, result] : training_results_) {
+        if (!receiveParametersFromRemote(pair)) {
+            success = false;
+        } else {
+            saveTrainingResult(result);
+        }
+    }
+    if (success) {
+        std::cout << "✅ Parameters synchronized successfully" << std::endl;
+    } else {
+        std::cout << "❌ Parameter synchronization failed" << std::endl;
+    }
+    return success;
+}
+
+bool TrainingCoordinator::sendPatternToRemote(const std::string& pair, const TrainingResult& result) {
+    if (!remote_synchronizer_) {
+        return false;
+    }
+    saveTrainingResult(result);
+    return remote_synchronizer_->sync();
+}
+
+bool TrainingCoordinator::receiveParametersFromRemote(const std::string& pair) {
+    if (!remote_synchronizer_) {
+        return false;
+    }
+    bool ok = remote_synchronizer_->sync();
+    if (ok) {
+        std::lock_guard<std::mutex> lock(results_mutex_);
+        auto it = training_results_.find(pair);
+        if (it != training_results_.end()) {
+            saveTrainingResult(it->second);
+        }
+    }
+    return ok;
+}
+
+bool TrainingCoordinator::performLiveTuning(const std::string& pair) {
+    auto result = executeCudaTraining(pair, TrainingMode::LIVE_TUNE);
+    if (result.quality == PatternQuality::UNKNOWN) {
+        return false;
+    }
+    std::lock_guard<std::mutex> lock(results_mutex_);
+    training_results_[pair] = result;
+    saveTrainingResult(result);
     return true;
 }
