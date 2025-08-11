@@ -1,2 +1,4 @@
 add_sep_test(data_pipeline_tests SOURCES data_pipeline/test_data_integrity.cpp)
 add_sep_test(pipeline_full_cycle SOURCES pipeline/test_full_cycle.cpp)
+add_sep_test(accuracy_benchmark SOURCES performance/accuracy_benchmark.cpp)
+target_compile_definitions(accuracy_benchmark PRIVATE TEST_DATA_DIR="${CMAKE_SOURCE_DIR}/tests/data")

@@ -1,0 +1,24 @@
+name: Performance Benchmarks
+
+on:
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      gate:
+        description: 'Fail workflow on benchmark regression'
+        required: false
+        default: 'false'
+
+jobs:
+  accuracy:
+    runs-on: ubuntu-latest
+    continue-on-error: ${{ github.event_name == 'pull_request' || github.event.inputs.gate != 'true' }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Install dependencies
+        run: sudo apt-get update && sudo apt-get install -y g++ libgtest-dev
+      - name: Build accuracy benchmark
+        run: g++ -std=c++17 tests/performance/accuracy_benchmark.cpp -DTEST_DATA_DIR="$(pwd)/tests/data" -lgtest -lgtest_main -pthread -o accuracy_benchmark
+      - name: Run accuracy benchmark
+        run: ./accuracy_benchmark
