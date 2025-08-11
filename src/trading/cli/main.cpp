@@ -2,6 +2,7 @@
 #include <spdlog/spdlog.h>
 
 #include <algorithm>
+#include <array>
 #include <ctime>
 #include <iomanip>
 

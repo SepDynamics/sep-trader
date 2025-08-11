@@ -20,6 +20,7 @@
 #include <iostream>
 #include <mutex>
 #include <thread>
+#include <filesystem>
 
 
 namespace sep::apps {
@@ -895,8 +896,12 @@ void QuantumTrackerApp::runSimulation() {
 }
 
 void QuantumTrackerApp::logSimulatedTrade(const sep::trading::QuantumTradingSignal& signal, const Candle& candle) {
-    // Create simulation results directory if it doesn't exist
-    system("mkdir -p /sep/live_results/simulations");
+    // Create simulation results directory if it's doesn't exist
+    try {
+        std::filesystem::create_directories("/sep/live_results/simulations");
+    } catch (const std::exception& e) {
+        std::cerr << "[SIMULATION] Failed to create directory: /sep/live_results/simulations - " << e.what() << std::endl;
+    }
     
     // Log to simulation file
     std::string filename = "/sep/live_results/simulations/simulation_" + simulation_start_time_.substr(0, 10) + ".log";
@@ -1201,7 +1206,11 @@ void QuantumTrackerApp::runFileSimulation() {
 void QuantumTrackerApp::logHistoricalTrade(const sep::trading::QuantumTradingSignal& signal, 
                                            const Candle& candle, size_t candle_index) {
     // Create historical simulation results directory
-    system("mkdir -p /sep/live_results/historical_sim");
+    try {
+        std::filesystem::create_directories("/sep/live_results/historical_sim");
+    } catch (const std::exception& e) {
+        std::cerr << "[HISTORICAL_TRADE] Failed to create directory: /sep/live_results/historical_sim - " << e.what() << std::endl;
+    }
     
     // Generate filename based on current date
     auto now = std::chrono::system_clock::now();
@@ -1239,7 +1248,11 @@ void QuantumTrackerApp::logHistoricalTrade(const sep::trading::QuantumTradingSig
 void QuantumTrackerApp::logFileSimulatedTrade(const sep::trading::QuantumTradingSignal& signal, 
                                               const Candle& candle) {
     // Create file simulation results directory
-    system("mkdir -p /sep/live_results/file_sim");
+    try {
+        std::filesystem::create_directories("/sep/live_results/file_sim");
+    } catch (const std::exception& e) {
+        std::cerr << "[FILE_TRADE] Failed to create directory: /sep/live_results/file_sim - " << e.what() << std::endl;
+    }
     
     // Generate filename based on current date
     auto now = std::chrono::system_clock::now();

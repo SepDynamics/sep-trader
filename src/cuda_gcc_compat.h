@@ -5,7 +5,7 @@
 // Specifically addresses errors related to __is_pointer, __is_volatile, etc.
 // and _Float32 in mathcalls.h
 
-#if defined(__CUDACC__) && defined(__GNUC__) && (__GNUC__ >= 14)
+#if defined(__CUDACC__) && defined(__GNUC__) && (__GNUC__ >= 11)
 
 // Disable host compiler version check in host_config.h
 #define __NV_NO_HOST_COMPILER_CHECK 1
@@ -47,20 +47,33 @@ template <typename T> struct __array_rank_impl<T[]> { static const size_t value 
 #undef __GLIBC_USE_IEC_60559_TYPES_EXT__
 #endif
 
-// Workaround for noexcept in mathcalls.h
-// CUDA's math functions might not have noexcept, causing conflicts.
-// We can try to redefine noexcept to nothing for these specific headers.
-// More aggressive undefines for glibc's noexcept macros
-#if defined(__GNUC__) && !defined(__clang__)
-#undef __THROW
-#define __THROW
-#undef __NTH
-#define __NTH(fct) fct
-// Also try to undefine noexcept itself
-#undef noexcept
-#define noexcept
+// Workaround for math function conflicts between CUDA and glibc
+// The real issue is that glibc declares these functions with noexcept
+// while CUDA declares them without noexcept, causing conflicts
+
+// Surgical approach: only disable the specific problematic function usage
+// First, ensure std::array and other critical headers are available
+#include <array>
+#include <string>
+#include <cstddef>
+
+// Ensure array header is fully processed
+#ifndef _GLIBCXX_ARRAY
+#include <bits/stdc++.h>
 #endif
 
-#endif // __CUDACC__ && __GNUC__ && (__GNUC__ >= 14)
+// Prevent specific C++ headers from using problematic pthread/locale functions
+// Block the features that cause conflicts without blocking basic functionality
+#define _GLIBCXX_HAS_GTHREADS 0
+#define _GLIBCXX_USE_PTHREAD_CLOCKLOCK 0
+#define _GLIBCXX_USE_LOCALE 0
+
+// Specifically disable the conflicting math functions
+#define cospi __cuda_cospi
+#define sinpi __cuda_sinpi  
+#define cospif __cuda_cospif
+#define sinpif __cuda_sinpif
+
+#endif // __CUDACC__ && __GNUC__ && (__GNUC__ >= 11)
 
 #endif // CUDA_GCC_COMPAT_H

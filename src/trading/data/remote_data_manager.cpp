@@ -1,4 +1,7 @@
 
+#include "remote_data_manager.hpp"
+
+#include <array>
 #include <filesystem>
 #include <fstream>
 #include <mutex>

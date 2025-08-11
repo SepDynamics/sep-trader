@@ -59,4 +59,12 @@ target_include_directories(sep_engine PUBLIC
     ${CMAKE_SOURCE_DIR}/src/common
 )
 
+# Force CUDA standard to 17 (CUDA doesn't support C++20)
+if(CUDAToolkit_FOUND)
+    set_target_properties(sep_engine PROPERTIES
+        CUDA_STANDARD 17
+        CUDA_STANDARD_REQUIRED ON
+    )
+endif()
+
 # json_config.h can be included manually in source files that need it

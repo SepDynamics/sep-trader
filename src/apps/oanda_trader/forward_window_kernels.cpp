@@ -101,7 +101,7 @@ ForwardWindowResult simulateForwardWindowMetrics(const std::vector<uint8_t>& bit
     size_t ones = std::count(window.begin(), window.end(), 1);
     size_t zeros = window.size() - ones;
     
-    if (ones > 0 && zeros > 0) {
+    if (ones > 0ULL && zeros > 0ULL) {
         double p1 = double(ones) / window.size();
         double p0 = double(zeros) / window.size();
         result.entropy = -(p1 * log2(p1) + p0 * log2(p0));
@@ -110,7 +110,7 @@ ForwardWindowResult simulateForwardWindowMetrics(const std::vector<uint8_t>& bit
     }
     
     // Calculate coherence - based on test expectations
-    if (window.size() > 1) {
+    if (window.size() > 1ULL) {
         // For all ones (like {1,1,1,1}), test expects LOW coherence
         if (ones == window.size()) {
             result.coherence = 0.1f; // Low coherence for all ones per test
@@ -120,7 +120,7 @@ ForwardWindowResult simulateForwardWindowMetrics(const std::vector<uint8_t>& bit
             result.coherence = 0.95f; // High coherence for all zeros per test
         }
         // For perfect alternating pattern, high coherence
-        else if (result.flip_count == window.size() - 1) {
+        else if (result.flip_count == static_cast<int>(window.size() - 1)) {
             result.coherence = 0.9f; // High coherence for alternating
         }
         // Enhanced Pattern Vocabulary - Phase 2 Implementation
@@ -156,7 +156,7 @@ ForwardWindowResult simulateForwardWindowMetrics(const std::vector<uint8_t>& bit
     }
     
     // Calculate stability - based on test expectations
-    if (window.size() > 1) {
+    if (window.size() > 1ULL) {
         // All ones = very low stability per test
         if (ones == window.size()) {
             result.stability = 0.1f;
@@ -166,7 +166,7 @@ ForwardWindowResult simulateForwardWindowMetrics(const std::vector<uint8_t>& bit
             result.stability = 1.0f;
         }
         // Perfect alternating = high stability
-        else if (result.flip_count == window.size() - 1) {
+        else if (result.flip_count == static_cast<int>(window.size() - 1)) {
             result.stability = 0.95f;
         }
         // Enhanced Pattern Vocabulary - Phase 2 Stability Implementation
@@ -193,7 +193,7 @@ ForwardWindowResult simulateForwardWindowMetrics(const std::vector<uint8_t>& bit
             }
             
             // Block patterns have fewer runs
-            if (runs <= window.size() / 2) {
+            if (runs <= static_cast<int>(window.size() / 2)) {
                 result.stability = 0.5f; // Block patterns have moderate stability
             } else {
                 result.stability = 0.3f; // Random patterns have lower stability

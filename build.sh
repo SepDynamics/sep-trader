@@ -98,12 +98,13 @@ if [ "$NATIVE_BUILD" = true ] || [ "$SKIP_DOCKER" = true ] || ! "$DOCKER_BIN" in
     # This avoids brittle LD_PRELOAD hacks and hardcoded compiler paths.
     cmake .. -G Ninja \
         -DCMAKE_BUILD_TYPE=Release \
-        -DCMAKE_CXX_COMPILER=g++ \
-        -DCMAKE_C_COMPILER=gcc \
+        -DCMAKE_CXX_COMPILER=g++-11 \
+        -DCMAKE_C_COMPILER=gcc-11 \
         -DCMAKE_BUILD_WITH_INSTALL_RPATH=ON \
         -DCMAKE_EXPORT_COMPILE_COMMANDS=TRUE \
-        -DSEP_USE_GUI=OFF \
-        -DCMAKE_CXX_STANDARD=20         -DCMAKE_CXX_FLAGS="-Wno-error=pedantic -D__CORRECT_ISO_CPP11_MATH_H_PROTO"         -DCMAKE_CUDA_FLAGS="-Wno-deprecated-gpu-targets"
+        -DSEP_USE_GUI=OFF -DCMAKE_CXX_STANDARD=20 \
+        -DCMAKE_CXX_FLAGS="-Wno-error=pedantic -D__CORRECT_ISO_CPP11_MATH_H_PROTO" \
+        -DCMAKE_CUDA_FLAGS="-Wno-deprecated-gpu-targets" \
         $CUDA_FLAGS
 
     # Build with ninja using system libraries

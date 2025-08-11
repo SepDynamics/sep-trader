@@ -1,4 +1,3 @@
-
 #include <array>
 
 #include "common/sep_precompiled.h"

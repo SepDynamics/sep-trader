@@ -16,15 +16,8 @@
 
 #include <array>
 
-// Force the array header guard to be set
-#ifndef _GLIBCXX_ARRAY
-#define _GLIBCXX_ARRAY 1
-#endif
-
 // CRITICAL: Clean up any macro pollution that might corrupt std::array
 // This must be done AFTER array is included but BEFORE other headers
-
-using std::array; // Explicitly bring std::array into scope
 
 // Standard library includes
 #include <iostream>
@@ -52,7 +45,6 @@ using std::array; // Explicitly bring std::array into scope
 #include <fstream>
 #include <sstream>
 #include <map>
-#include <stack>
 #include <deque>
 #include <list>
 #include <variant>
@@ -63,10 +55,12 @@ using std::array; // Explicitly bring std::array into scope
 #include <cassert>
 #include <limits>
 
-// Third-party library includes
+// Third-party library includes (exclude GLM from CUDA compilation to avoid conflicts)
+#ifndef __CUDACC__
 #include <glm/glm.hpp>
 #include <glm/vec3.hpp>
 #include <glm/mat4x4.hpp>
+#endif
 
 #include <fmt/format.h>
 #include <spdlog/spdlog.h>

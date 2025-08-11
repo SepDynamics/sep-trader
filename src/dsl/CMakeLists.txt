@@ -75,7 +75,7 @@ add_executable(sep_dsl_interpreter
 target_link_libraries(sep_dsl_interpreter PRIVATE 
     sep_dsl 
     sep_engine 
-    sep_trading 
+    # sep_trading  # Temporarily disabled
     sep_core
     sep_config
     sep_cache

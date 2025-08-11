@@ -1,4 +1,5 @@
 
+#include "common/sep_precompiled.h"
 #include "quantum_pair_trainer.hpp"
 #include <stdexcept>
 #include <thread>

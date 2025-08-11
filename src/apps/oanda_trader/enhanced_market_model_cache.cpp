@@ -205,12 +205,9 @@ bool EnhancedMarketModelCache::fetchAssetData(const std::string& instrument, std
     // Try to use base cache first if available
     if (base_cache_) {
         if (base_cache_->ensureCacheForLastWeek(instrument)) {
-            const auto& signal_map = base_cache_->getSignalMap();
-            // Convert signals back to candle data (simplified)
-            // In production, we'd store raw candle data in base cache
         }
     }
-    
+
     // Fallback: fetch directly from OANDA
     bool data_fetched = false;
     auto oanda_candles = oanda_connector_->getHistoricalData(instrument, "M1", "", "");

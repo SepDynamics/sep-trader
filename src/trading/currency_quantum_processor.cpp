@@ -1,3 +1,4 @@
+#include "common/sep_precompiled.h"
 #include "currency_quantum_processor.hpp"
 
 namespace sep::trading {

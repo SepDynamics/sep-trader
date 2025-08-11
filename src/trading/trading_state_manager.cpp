@@ -1,3 +1,4 @@
+#include "common/sep_precompiled.h"
 #include "trading_state_manager.hpp"
 
 namespace sep::trading {

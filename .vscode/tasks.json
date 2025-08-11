@@ -31,7 +31,13 @@
             "label": "Build in Container",
             "type": "shell",
             "command": "docker",
-            "args": ["exec", "sep_dev_container", "bash", "-c", "cd /workspace && ./build.sh --no-docker"],
+            "args": [
+                "exec",
+                "sep_build_env",
+                "bash",
+                "-c",
+                "cd /workspace && ./build.sh --no-docker"
+            ],
             "group": {
                 "kind": "build",
                 "isDefault": true
@@ -43,14 +49,19 @@
             },
             "dependsOn": "Start Development Container",
             "problemMatcher": [
-                "$gcc"
+                "$gcc-11"
             ]
         },
         {
             "label": "Container Terminal",
             "type": "shell",
             "command": "docker",
-            "args": ["exec", "-it", "sep_dev_container", "bash"],
+            "args": [
+                "exec",
+                "-it",
+                "sep_build_env",
+                "bash"
+            ],
             "group": "build",
             "presentation": {
                 "echo": true,

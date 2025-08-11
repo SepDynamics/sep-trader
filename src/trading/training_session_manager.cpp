@@ -1,3 +1,4 @@
+#include "common/sep_precompiled.h"
 #include "training_session_manager.hpp"
 
 namespace sep::trading {

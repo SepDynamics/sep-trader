@@ -4,6 +4,7 @@
 #include "core/pair_manager.hpp"
 #include "trading_state.hpp"
 #include "weekly_cache_manager.hpp"
+#include <queue>
 
 namespace sep::trading {
 

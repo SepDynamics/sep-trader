@@ -28,16 +28,21 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-# GLOBAL FIX: Force include array header using precompiled header approach
+# Disable automatic precompiled headers that are causing issues
+set(CMAKE_DISABLE_PRECOMPILE_HEADERS ON)
+
+# GLOBAL FIX: Force include array header and fix std library issues
 add_compile_definitions(
     _GLIBCXX_DEBUG_PEDANTIC=0  # Disable pedantic debug checks
     _GLIBCXX_CONCEPT_CHECKS=0  # Disable concept checks that might interfere
-    
+    _GLIBCXX_ARRAY_DEFINED=1   # Force array header to be available
 )
+
+# Removed global force-include - using surgical target-specific approach instead
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wpedantic -O3")
 
-# Force include array_protection.h for all compilation units
+# Include directory for source files  
 include_directories(BEFORE ${CMAKE_SOURCE_DIR}/src)
 
 
@@ -65,17 +70,11 @@ if(SEP_USE_CUDA)
     # Set CUDA paths before enabling language
     set(CMAKE_CUDA_COMPILER "$ENV{CUDA_HOME}/bin/nvcc")
     set(CMAKE_CUDA_HOST_COMPILER "/usr/bin/g++-11")
-    set(CUDA_USE_STATIC_CUDA_RUNTIME OFF)
-    
-    # Set CUDA standard and architecture
-    set(CMAKE_CUDA_ARCHITECTURES 75)
-    set(CMAKE_CUDA_STANDARD 17)
-    set(CMAKE_CUDA_STANDARD_REQUIRED ON)
-    set(CMAKE_CUDA_EXTENSIONS OFF)
+    set(CMAKE_CUDA_ARCHITECTURES 61;75;86;89)
 
     # Set CUDA flags BEFORE enabling language to ensure they're available during compiler identification
-    # Add flag to suppress math function conflicts with newer glibc
-    set(CMAKE_CUDA_FLAGS "-Wno-deprecated-gpu-targets -Xcompiler=-D__GLIBC_MINOR__=30")
+    # Fix math function conflicts by including GCC compatibility header
+    set(CMAKE_CUDA_FLAGS "-Wno-deprecated-gpu-targets --expt-relaxed-constexpr -include ${CMAKE_SOURCE_DIR}/src/cuda_gcc_compat.h")
     
     # Now enable CUDA language
     enable_language(CUDA)
@@ -167,6 +166,15 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(nlohmann_json)
 
+# Apply surgical fix for std::array visibility to nlohmann_json
+# Use the base target, not the alias
+if(TARGET nlohmann_json)
+    target_compile_definitions(nlohmann_json INTERFACE _GLIBCXX_ARRAY_DEFINED=1)
+endif()
+
+# Global fix for std::array visibility in GCC 11
+add_compile_definitions(_GLIBCXX_ARRAY_DEFINED=1)
+
 
 # Use system yaml-cpp instead of downloading
 find_package(PkgConfig REQUIRED)
@@ -208,6 +216,12 @@ if(SEP_USE_TBB)
         GIT_SHALLOW TRUE
     )
     FetchContent_MakeAvailable(oneTBB)
+    
+    # Apply surgical fix for std::array visibility to TBB targets
+    if(TARGET tbb)
+        target_compile_definitions(tbb PRIVATE _GLIBCXX_ARRAY_DEFINED=1)
+        # Don't force-include our headers into external TBB library
+    endif()
 endif()
 
 

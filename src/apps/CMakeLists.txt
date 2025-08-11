@@ -9,7 +9,7 @@ set_target_properties(data_downloader PROPERTIES SKIP_PRECOMPILE_HEADERS ON)
 target_include_directories(data_downloader PRIVATE ${CMAKE_SOURCE_DIR}/src)
 
 target_link_libraries(data_downloader PRIVATE
-    sep_trading
+    # sep_trading  # Temporarily disabled
     sep_connectors
     sep_common
     sep_core

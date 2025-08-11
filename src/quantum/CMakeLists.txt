@@ -43,6 +43,11 @@ target_include_directories(sep_quantum PUBLIC
 )
 
 if(CUDAToolkit_FOUND)
+    # Force CUDA standard to 17 (CUDA doesn't support C++20)
+    set_target_properties(sep_quantum PROPERTIES
+        CUDA_STANDARD 17
+        CUDA_STANDARD_REQUIRED ON
+    )
     target_compile_options(sep_quantum PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:--allow-unsupported-compiler --extended-lambda --display-error-number>)
 endif()
 

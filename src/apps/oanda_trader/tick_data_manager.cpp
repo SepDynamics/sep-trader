@@ -54,8 +54,7 @@ bool TickDataManager::loadHistoricalTicks(const std::string& instrument) {
     
     // Calculate 2 hours ago (reduced from 48H for faster initialization)
     auto now = std::chrono::system_clock::now();
-    auto start_time = now - std::chrono::hours(2);
-    
+
     std::cout << "[TickDataManager] Starting intensive tick data collection..." << std::endl;
     std::cout << "[TickDataManager] Note: This will collect ALL price updates over 2H" << std::endl;
     

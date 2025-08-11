@@ -11,6 +11,53 @@
 
 namespace sep {
 
+// ToString functions for enum serialization
+std::string volatilityToString(VolatilityLevel level) {
+    switch (level) {
+        case VolatilityLevel::Low: return "Low";
+        case VolatilityLevel::Medium: return "Medium";
+        case VolatilityLevel::High: return "High";
+        default: return "Unknown";
+    }
+}
+
+std::string trendStrengthToString(TrendStrength strength) {
+    switch (strength) {
+        case TrendStrength::Ranging: return "Ranging";
+        case TrendStrength::Weak: return "Weak";
+        case TrendStrength::Strong: return "Strong";
+        default: return "Unknown";
+    }
+}
+
+std::string liquidityToString(LiquidityLevel level) {
+    switch (level) {
+        case LiquidityLevel::Low: return "Low";
+        case LiquidityLevel::Medium: return "Medium";
+        case LiquidityLevel::High: return "High";
+        default: return "Unknown";
+    }
+}
+
+std::string newsImpactToString(NewsImpactLevel level) {
+    switch (level) {
+        case NewsImpactLevel::None: return "None";
+        case NewsImpactLevel::Low: return "Low";
+        case NewsImpactLevel::Medium: return "Medium";
+        case NewsImpactLevel::High: return "High";
+        default: return "Unknown";
+    }
+}
+
+std::string quantumCoherenceToString(QuantumCoherenceLevel level) {
+    switch (level) {
+        case QuantumCoherenceLevel::Low: return "Low";
+        case QuantumCoherenceLevel::Medium: return "Medium";
+        case QuantumCoherenceLevel::High: return "High";
+        default: return "Unknown";
+    }
+}
+
 MarketRegimeAdaptiveProcessor::MarketRegimeAdaptiveProcessor(
     std::shared_ptr<sep::cache::EnhancedMarketModelCache> market_cache)
     : market_cache_(market_cache) {
@@ -398,11 +445,24 @@ void MarketRegimeAdaptiveProcessor::logRegimeDetails(const MarketRegime& regime,
 }
 
 std::string MarketRegimeAdaptiveProcessor::serializeRegimeData(const MarketRegime& regime, const AdaptiveThresholds& thresholds) {
-    return fmt::format("{{ \"regime\": \"{}\", \"confidence_threshold\": {:.3f}, \"coherence_threshold\": {:.3f}, \"frequency_modifier\": {:.3f} }}",
-                      thresholds.regime_description,
-                      thresholds.confidence_threshold,
-                      thresholds.coherence_threshold,
-                      thresholds.signal_frequency_modifier);
+    nlohmann::json regime_json;
+    regime_json["volatility"] = volatilityToString(regime.volatility);
+    regime_json["trend_strength"] = trendStrengthToString(regime.trend);
+    regime_json["liquidity"] = liquidityToString(regime.liquidity);
+    regime_json["news_impact"] = newsImpactToString(regime.news_impact);
+    regime_json["quantum_coherence"] = quantumCoherenceToString(regime.q_coherence);
+
+    nlohmann::json thresholds_json;
+    thresholds_json["confidence"] = thresholds.confidence_threshold;
+    thresholds_json["coherence"] = thresholds.coherence_threshold;
+    thresholds_json["stability"] = thresholds.stability_requirement;
+    thresholds_json["frequency_modifier"] = thresholds.signal_frequency_modifier;
+
+    nlohmann::json final_json;
+    final_json["regime"] = regime_json;
+    final_json["adaptive_thresholds"] = thresholds_json;
+
+    return final_json.dump(4);
 }
 
 void MarketRegimeAdaptiveProcessor::updateRegimeCache(const std::string& asset) {

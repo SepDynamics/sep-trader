@@ -1,3 +1,4 @@
+#include "common/sep_precompiled.h"
 #include "pair_optimization_engine.hpp"
 
 namespace sep::trading {

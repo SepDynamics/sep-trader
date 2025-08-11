@@ -76,15 +76,12 @@ bool DataCacheManager::refreshCache(const std::string& instrument) {
     std::mutex data_mutex;
     std::condition_variable data_ready;
     bool data_received = false;
-    bool request_success = false;
-    
+
     try {
         candles = oanda_connector_->getHistoricalData(instrument, "M1", "", "");
         data_received = true;
         data_ready.notify_one();
-        
-        request_success = true;
-        
+
         // Wait for data with timeout
         std::unique_lock<std::mutex> lock(data_mutex);
         if (!data_ready.wait_for(lock, std::chrono::seconds(60), [&]{ return data_received; })) {
