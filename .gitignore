@@ -162,6 +162,10 @@ local/
 dev/
 scratch/
 
+# Allow committed testbed scenarios
+!_sep/
+!_sep/**
+
 # CI/CD artifacts
 artifacts/
 reports/
@@ -175,6 +179,7 @@ reports/
 data/large/
 datasets/
 *.csv
+!tests/data/*.csv
 *.json.gz
 
 # Jupyter notebooks
@@ -205,6 +210,10 @@ datasets/
 [._]s[a-rt-v][a-z]
 [._]ss[a-gi-z]
 [._]sw[a-p]
+
+# Allow internal testbed utilities
+!_sep/
+!_sep/testbed/
 
 # Emacs
 *~
@@ -267,5 +276,7 @@ cmake-build-*/
 *_generated.*
 !*_template.*
 config/OANDA.env
+
+# Allow committed testbed scenarios
 !_sep/
 !_sep/**
