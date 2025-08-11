@@ -3,11 +3,15 @@
 
 #include "training_coordinator.hpp"
 
+#include <curl/curl.h>
+#include <spdlog/spdlog.h>
+
+#include <algorithm>
+
 #include "cache/weekly_cache_manager.hpp"
 #include "common/sep_precompiled.h"
 #include "connectors/oanda_connector.h"
 #include "trading/quantum_pair_trainer.hpp"
-#include <algorithm>
 
 // Restore array if corrupted
 #ifdef array
@@ -121,51 +125,54 @@ bool TrainingCoordinator::initializeComponents()
                 }
             });
 
-                // Convert candles to string format for cache storage
-                std::vector<std::string> result;
-                for (const auto& candle : candles) {
-                    nlohmann::json candle_json;
-                    candle_json["timestamp"] = candle.timestamp;
-                    candle_json["open"] = candle.open;
-                    candle_json["high"] = candle.high;
-                    candle_json["low"] = candle.low;
-                    candle_json["close"] = candle.close;
-                    candle_json["volume"] = candle.volume;
-                    result.push_back(candle_json.dump());
-                }
+        // Convert candles to string format for cache storage
+        std::vector<std::string> result;
+        for (const auto& candle : candles)
+        {
+            nlohmann::json candle_json;
+            candle_json["timestamp"] = candle.timestamp;
+            candle_json["open"] = candle.open;
+            candle_json["high"] = candle.high;
+            candle_json["low"] = candle.low;
+            candle_json["close"] = candle.close;
+            candle_json["volume"] = candle.volume;
+            result.push_back(candle_json.dump());
+        }
 
-                spdlog::info("Fetched {} candles for {} from OANDA", result.size(), pair_symbol);
-                return result;
-
-            } catch (const std::exception& e) {
-                spdlog::error("Error fetching OANDA data for cache: {}", e.what());
-                return {};
-            }
-        });
-
-        // Initialize weekly data fetcher
-        data_fetcher_ = std::make_unique<WeeklyDataFetcher>();
-        DataFetchConfig fetch_config;
-        fetch_config.oanda_api_key = std::getenv("OANDA_API_KEY") ? std::getenv("OANDA_API_KEY") : "";
-        fetch_config.oanda_account_id = std::getenv("OANDA_ACCOUNT_ID") ? std::getenv("OANDA_ACCOUNT_ID") : "";
-        fetch_config.oanda_environment = "practice";
-        fetch_config.instruments = getStandardForexPairs();
-        fetch_config.granularities = getStandardGranularities();
-        fetch_config.history_days = 7;
-        fetch_config.compress_data = false;
-        fetch_config.parallel_fetchers = 2;
-        data_fetcher_->configure(fetch_config);
-
-        // Initialize remote synchronizer
-        remote_synchronizer_ = std::make_unique<RemoteSynchronizer>();
-
-        return true;
+        spdlog::info("Fetched {} candles for {} from OANDA", result.size(), pair_symbol);
+        return result;
     }
     catch (const std::exception& e)
     {
-        std::cerr << "Failed to initialize components: " << e.what() << std::endl;
-        return false;
+        spdlog::error("Error fetching OANDA data for cache: {}", e.what());
+        return {};
     }
+});
+
+// Initialize weekly data fetcher
+data_fetcher_ = std::make_unique<WeeklyDataFetcher>();
+DataFetchConfig fetch_config;
+fetch_config.oanda_api_key = std::getenv("OANDA_API_KEY") ? std::getenv("OANDA_API_KEY") : "";
+fetch_config.oanda_account_id =
+    std::getenv("OANDA_ACCOUNT_ID") ? std::getenv("OANDA_ACCOUNT_ID") : "";
+fetch_config.oanda_environment = "practice";
+fetch_config.instruments = getStandardForexPairs();
+fetch_config.granularities = getStandardGranularities();
+fetch_config.history_days = 7;
+fetch_config.compress_data = false;
+fetch_config.parallel_fetchers = 2;
+data_fetcher_->configure(fetch_config);
+
+// Initialize remote synchronizer
+remote_synchronizer_ = std::make_unique<RemoteSynchronizer>();
+
+return true;
+}
+catch (const std::exception& e)
+{
+    std::cerr << "Failed to initialize components: " << e.what() << std::endl;
+    return false;
+}
 }
 
 bool TrainingCoordinator::trainPair(const std::string& pair, TrainingMode mode)
@@ -342,44 +349,95 @@ bool TrainingCoordinator::configureRemoteTrader(const RemoteTraderConfig& config
 {
     remote_config_ = config;
 
-    // Test connection
-    std::cout << "🌐 Testing connection to " << config.host << ":" << config.port << "..."
-              << std::endl;
+    std::string scheme = config.ssl_enabled ? "https://" : "http://";
+    std::string url = scheme + config.host + ":" + std::to_string(config.port) + "/api/status";
 
-    // Simulate connection test
-    std::this_thread::sleep_for(std::chrono::milliseconds(200));
-    remote_connected_ = true;
+    CURL* curl = curl_easy_init();
+    if (!curl)
+    {
+        spdlog::error("CURL initialization failed");
+        remote_connected_ = false;
+        return false;
+    }
 
-    std::cout << "✅ Remote trader connection configured" << std::endl;
-    return true;
+    curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
+    curl_easy_setopt(curl, CURLOPT_NOBODY, 1L);
+
+    struct curl_slist* headers = nullptr;
+    if (!config.auth_token.empty())
+    {
+        std::string auth = "Authorization: Bearer " + config.auth_token;
+        headers = curl_slist_append(headers, auth.c_str());
+        curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
+    }
+
+    CURLcode res = curl_easy_perform(curl);
+    long http_code = 0;
+    if (res == CURLE_OK)
+    {
+        curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &http_code);
+    }
+    else
+    {
+        spdlog::error("Remote trader connection failed: {}", curl_easy_strerror(res));
+    }
+
+    if (headers)
+    {
+        curl_slist_free_all(headers);
+    }
+    curl_easy_cleanup(curl);
+
+    if (res == CURLE_OK && http_code == 200)
+    {
+        remote_connected_ = true;
+        spdlog::info("Remote trader connection configured");
+        return true;
+    }
+
+    remote_connected_ = false;
+    spdlog::error("Remote trader connection test failed with HTTP {}", http_code);
+    return false;
 }
 
 bool TrainingCoordinator::syncPatternsToRemote()
 {
     if (!remote_connected_)
     {
-        std::cout << "❌ Remote trader not connected" << std::endl;
+        spdlog::warn("Remote trader not connected");
         return false;
     }
 
-    std::cout << "🔄 Syncing patterns to remote trader..." << std::endl;
+    spdlog::info("Syncing patterns to remote trader...");
+    if (!remote_synchronizer_ || !remote_synchronizer_->sync())
+    {
+        spdlog::error("Pattern synchronization failed");
+        return false;
+    }
 
-    // Simulate pattern sync
-    std::this_thread::sleep_for(std::chrono::milliseconds(300));
-
-    std::cout << "✅ Patterns synchronized successfully" << std::endl;
+    spdlog::info("Patterns synchronized successfully");
     return true;
 }
 
 bool TrainingCoordinator::fetchWeeklyDataForAll()
 {
-    std::cout << "📥 Fetching weekly data for all instruments..." << std::endl;
+    if (!data_fetcher_)
+    {
+        spdlog::error("Weekly data fetcher not initialized");
+        return false;
+    }
 
-    // Simulate data fetching
-    std::this_thread::sleep_for(std::chrono::seconds(2));
-
-    std::cout << "✅ Weekly data fetch completed" << std::endl;
-    return true;
+    auto results = data_fetcher_->fetchAllInstruments();
+    bool all_ok = true;
+    for (const auto& r : results)
+    {
+        if (!r.success)
+        {
+            spdlog::error("Data fetch failed for {}: {}", r.instrument, r.error_message);
+            all_ok = false;
+        }
+    }
+    return all_ok;
 }
 
 PatternQuality TrainingCoordinator::assessPatternQuality(double accuracy) const
@@ -448,7 +506,8 @@ bool TrainingCoordinator::startLiveTuning(const std::vector<std::string>& pairs)
 
     {
         std::lock_guard<std::mutex> lock(tuning_mutex_);
-        for (const auto& p : pairs) {
+        for (const auto& p : pairs)
+        {
             tuning_queue_.push(p);
         }
     }
@@ -481,14 +540,22 @@ bool TrainingCoordinator::stopLiveTuning()
 
 void TrainingCoordinator::liveTuningThreadFunction()
 {
-    while (live_tuning_active_)
+    while (true)
     {
-        // Simulate live tuning work
-        std::this_thread::sleep_for(std::chrono::seconds(5));
-
-        if (live_tuning_active_)
+        std::unique_lock<std::mutex> lock(tuning_mutex_);
+        tuning_cv_.wait(lock, [this] { return !tuning_queue_.empty() || !live_tuning_active_; });
+        if (!live_tuning_active_ && tuning_queue_.empty())
         {
-            std::cout << "🔄 Live tuning iteration..." << std::endl;
+            break;
+        }
+
+        std::string pair = std::move(tuning_queue_.front());
+        tuning_queue_.pop();
+        lock.unlock();
+
+        if (!performLiveTuning(pair))
+        {
+            spdlog::warn("Live tuning failed for {}", pair);
         }
     }
 }
@@ -499,12 +566,18 @@ bool TrainingCoordinator::isRemoteTraderConnected() const { return remote_connec
 
 bool TrainingCoordinator::fetchWeeklyDataForPair(const std::string& pair)
 {
-    std::cout << "📥 Fetching weekly data for " << pair << "..." << std::endl;
-
-    // Simulate data fetching
-    std::this_thread::sleep_for(std::chrono::milliseconds(500));
-
-    std::cout << "✅ Weekly data fetched for " << pair << std::endl;
+    if (!data_fetcher_)
+    {
+        spdlog::error("Weekly data fetcher not initialized");
+        return false;
+    }
+    auto result = data_fetcher_->fetchInstrument(pair);
+    if (!result.success)
+    {
+        spdlog::error("Weekly data fetch failed for {}: {}", pair, result.error_message);
+        return false;
+    }
+    spdlog::info("Weekly data fetched for {}", pair);
     return true;
 }
 
@@ -512,15 +585,21 @@ bool TrainingCoordinator::syncParametersFromRemote()
 {
     if (!remote_connected_)
     {
-        std::cout << "❌ Remote trader not connected" << std::endl;
+        spdlog::warn("Remote trader not connected");
         return false;
     }
 
-    std::cout << "🔄 Syncing parameters from remote trader..." << std::endl;
-
-    // Simulate parameter sync
-    std::this_thread::sleep_for(std::chrono::milliseconds(300));
-
-    std::cout << "✅ Parameters synchronized successfully" << std::endl;
+    spdlog::info("Syncing parameters from remote trader...");
+    if (!remote_synchronizer_ || !remote_synchronizer_->sync())
+    {
+        spdlog::error("Parameter synchronization failed");
+        return false;
+    }
+    spdlog::info("Parameters synchronized successfully");
     return true;
+}
+
+bool TrainingCoordinator::performLiveTuning(const std::string& pair)
+{
+    return trainPair(pair, TrainingMode::LIVE_TUNE);
 }
