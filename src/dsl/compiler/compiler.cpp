@@ -2,6 +2,7 @@
 
 #include <cmath>
 #include <iostream>
+#include <stdexcept>
 
 #include "stdlib/stdlib.h"
 
@@ -42,9 +43,13 @@ CompiledProgram Compiler::compile(const ast::Program& program) {
 std::function<void(Context&)> Compiler::compile_stream_declaration(const ast::StreamDecl& stream) {
     return [stream](Context& context) {
         std::cout << "Creating stream: " << stream.name << " from " << stream.source << std::endl;
-        
-        // Create a mock stream value for now
+
+#ifdef SEP_BACKTESTING
+        // Backtesting placeholder: attach mock stream data
         context.set_variable(stream.name, Value("stream_data"));
+#else
+        throw std::runtime_error("Stream creation requires production implementation");
+#endif
     };
 }
 

@@ -1,5 +1,6 @@
 #include <nlohmann/json.hpp>
 #include "weekly_cache_manager.hpp"
+#include "cache_metadata.hpp"
 
 #include <spdlog/spdlog.h>
 
@@ -676,7 +677,8 @@ WeeklyCacheStatus WeeklyCacheManager::assessCacheStatus(const std::string& pair_
     // Validate cache using cache validator
     auto validation_result = cache_validator_->validateCache(cache_path);
     
-    if (validation_result == ValidationResult::CORRUPTED) {
+    if (validation_result == ValidationResult::CORRUPTED ||
+        validation_result == ValidationResult::MISSING_SOURCE) {
         return WeeklyCacheStatus::ERROR;
     }
     
@@ -872,9 +874,15 @@ bool WeeklyCacheManager::writeCacheFile(const std::string& cache_path, const std
         for (const auto& record : data) {
             try {
                 nlohmann::json item = nlohmann::json::parse(record);
+                if (!item.contains("source")) {
+                    item["source"] = dataSourceToString(DataSource::API);
+                }
                 data_array.push_back(item);
             } catch (const nlohmann::json::parse_error&) {
-                data_array.push_back(record);
+                nlohmann::json item;
+                item["value"] = record;
+                item["source"] = dataSourceToString(DataSource::API);
+                data_array.push_back(item);
             }
         }
 
@@ -905,11 +913,19 @@ std::vector<std::string> WeeklyCacheManager::readCacheFile(const std::string& ca
 
         if (root.contains("data") && root["data"].is_array()) {
             for (const auto& item : root["data"]) {
-                if (item.is_string()) {
-                    data.push_back(item.get<std::string>());
-                } else {
-                    data.push_back(item.dump());
+                if (!item.is_object()) {
+                    spdlog::warn("Skipping non-object cache entry in {}", cache_path);
+                    continue;
                 }
+                if (!item.contains("source")) {
+                    spdlog::warn("Cache entry missing source metadata in {}", cache_path);
+                    continue;
+                }
+                if (stringToDataSource(item["source"].get<std::string>()) == DataSource::UNKNOWN) {
+                    spdlog::warn("Unrecognized source in {}", cache_path);
+                    continue;
+                }
+                data.push_back(item.dump());
             }
         }
 

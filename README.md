@@ -102,6 +102,15 @@ docker-compose logs -f sep-trader
 - **Storage**: 50GB volume for historical data and logs
 - **Network**: Automated deployment to Digital Ocean
 
+## 🧪 Backtesting vs Production
+
+The project supports a backtesting mode controlled by the `SEP_BACKTESTING`
+compile-time flag. When enabled, lightweight stubs replace heavy dependencies
+such as CUDA and spdlog to allow experimentation on systems without those
+libraries. Production builds must omit this flag and link against the real
+implementations, ensuring that any experimental placeholders are excluded from
+live trading binaries.
+
 ## 🏢 Professional Features
 
 ### **✅ Currently Operational**
@@ -130,6 +139,7 @@ docker-compose logs -f sep-trader
 - **[docs/SYSTEM_OVERVIEW.md](docs/SYSTEM_OVERVIEW.md)** - Complete architecture overview
 - **[docs/PROJECT_STATUS.md](docs/PROJECT_STATUS.md)** - Current implementation status
 - **[docs/CLOUD_DEPLOYMENT.md](docs/CLOUD_DEPLOYMENT.md)** - Cloud deployment guide
+- **[docs/cuda_kernel_consolidation_analysis.md](docs/cuda_kernel_consolidation_analysis.md)** - CUDA kernel locations and consolidation plan
 
 ## 🔒 Intellectual Property
 
