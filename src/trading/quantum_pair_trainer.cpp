@@ -1,12 +1,13 @@
 
 #include "quantum_pair_trainer.hpp"
 
-#include <iomanip>
 #include <functional>
+#include <iomanip>
 #include <sstream>
 #include <stdexcept>
 #include <thread>
 
+#include "../../_sep/testbed/oanda_market_data_helper.hpp"
 #include "common/sep_precompiled.h"
 #include "memory/redis_manager.h"
 
@@ -16,7 +17,7 @@ namespace sep
     {
         using sep::persistence::createRedisManager;
     }
-}
+}  // namespace sep
 
 namespace sep::trading
 {
@@ -131,7 +132,8 @@ namespace sep::trading
             data.generation_count = static_cast<std::uint32_t>(result.convergence_iterations);
             data.weight = static_cast<float>(result.profitability_score);
 
-            std::uint64_t model_id = std::hash<std::string>{}(pair_symbol +
+            std::uint64_t model_id = std::hash<std::string>{}(
+                pair_symbol +
                 std::to_string(std::chrono::system_clock::to_time_t(result.training_end)));
             redis_manager_->storePattern(model_id, data, result.pair_symbol);
         }
@@ -296,59 +298,7 @@ namespace sep::trading
                 "environment variables.");
         }
 
-        // Calculate timestamps for the requested time range
-        auto now = std::chrono::system_clock::now();
-        auto start_time = now - std::chrono::hours(hours_back);
-
-        // Format timestamps into ISO 8601 strings required by OANDA API
-        auto formatTimestamp = [](const std::chrono::system_clock::time_point& tp) -> std::string {
-            auto time_t = std::chrono::system_clock::to_time_t(tp);
-            std::stringstream ss;
-            ss << std::put_time(std::gmtime(&time_t), "%Y-%m-%dT%H:%M:%SZ");
-            return ss.str();
-        };
-
-        std::string from_str = formatTimestamp(start_time);
-        std::string to_str = formatTimestamp(now);
-
-        // Fetch real OANDA data
-        auto oanda_candles =
-            oanda_connector_->getHistoricalData(pair_symbol, "M1", from_str, to_str);
-
-        // If no data returned (e.g., when running offline), fall back to any
-        // locally cached generic data without time range parameters
-        if (oanda_candles.empty())
-        {
-            oanda_candles = oanda_connector_->getHistoricalData(pair_symbol, "M1", "", "");
-        }
-
-        if (oanda_candles.empty())
-        {
-            throw std::runtime_error("Failed to fetch OANDA data: " +
-                                     oanda_connector_->getLastError());
-        }
-
-        // Convert OandaCandle to MarketData format
-        std::vector<sep::connectors::MarketData> market_data;
-        market_data.reserve(oanda_candles.size());
-
-        for (const auto& candle : oanda_candles)
-        {
-            sep::connectors::MarketData md;
-            md.instrument = pair_symbol;
-            md.timestamp = std::chrono::duration_cast<std::chrono::milliseconds>(
-                               sep::common::parseTimestamp(candle.time).time_since_epoch())
-                               .count();
-            md.mid = candle.close;
-            md.bid = candle.low;   // Approximation - could be improved with tick data
-            md.ask = candle.high;  // Approximation - could be improved with tick data
-            md.volume = candle.volume;
-            md.atr = 0.0050;  // Will be calculated later from historical volatility
-
-            market_data.push_back(md);
-        }
-
-        return market_data;
+        return sep::testbed::fetchMarketData(*oanda_connector_, pair_symbol, hours_back);
     }
 
     std::vector<uint8_t> QuantumPairTrainer::convertToBitstream(
@@ -459,7 +409,6 @@ namespace sep::trading
         std::stringstream ss;
         ss << pair_symbol << "_" << std::put_time(std::localtime(&time_t), "%Y%m%d");
         return ss.str();
-
     }
 
     bool QuantumPairTrainer::isCacheValid(const std::string& cache_key) const
