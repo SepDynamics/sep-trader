@@ -773,7 +773,7 @@ double CacheHealthMonitor::calculateFreshnessScore(const std::string& pair_symbo
     if (cache_validator_) {
         auto quality = cache_validator_->analyzeCacheQuality(
             cache_validator_->getCachePathForPair(pair_symbol));
-        return quality.freshness_score;
+        return quality.data_freshness;
     }
     return 0.0;
 }
@@ -782,7 +782,7 @@ double CacheHealthMonitor::calculateCompletenessScore(const std::string& pair_sy
     if (cache_validator_) {
         auto quality = cache_validator_->analyzeCacheQuality(
             cache_validator_->getCachePathForPair(pair_symbol));
-        return quality.completeness_score;
+        return quality.data_completeness;
     }
     return 0.0;
 }
@@ -791,7 +791,7 @@ double CacheHealthMonitor::calculateConsistencyScore(const std::string& pair_sym
     if (cache_validator_) {
         auto quality = cache_validator_->analyzeCacheQuality(
             cache_validator_->getCachePathForPair(pair_symbol));
-        return quality.consistency_score;
+        return quality.data_consistency;
     }
     return 0.0;
 }

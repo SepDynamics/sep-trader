@@ -1,6 +1,7 @@
 #include "MemoryTierService.h"
 #include <sstream>
-#include <nlohmann/json.hpp>
+#include <map>
+#include <unordered_map>
 
 namespace sep {
 namespace services {
@@ -75,25 +76,12 @@ public:
         return initialized_; 
     }
 
-    // Convert internal tier type to memory::MemoryTierEnum
-    memory_internal::TierType convertTierEnum(sep::memory::MemoryTierEnum tier) {
-        switch (tier) {
-            case sep::memory::MemoryTierEnum::STM:
-                return memory_internal::TierType::STM;
-            case sep::memory::MemoryTierEnum::MTM:
-                return memory_internal::TierType::MTM;
-            case sep::memory::MemoryTierEnum::LTM:
-                return memory_internal::TierType::LTM;
-            default:
-                return memory_internal::TierType::STM;
-        }
-    }
 
     // Memory operations
     memory_internal::MemoryBlockImpl* allocateBlock(std::size_t size, sep::memory::MemoryTierEnum tier) {
         if (!initialized_) return nullptr;
 
-        auto internalTier = convertTierEnum(tier);
+        auto internalTier = static_cast<memory_internal::TierType>(tier);
         
         // Check if there's enough space in tier
         if (tiers_[internalTier].usedSize + size > tiers_[internalTier].totalSize) {
@@ -161,13 +149,13 @@ public:
 
     memory_internal::MemoryTierImpl* getTierImpl(sep::memory::MemoryTierEnum tier) {
         if (!initialized_) return nullptr;
-        auto internalTier = convertTierEnum(tier);
+        auto internalTier = static_cast<memory_internal::TierType>(tier);
         return &tiers_[internalTier];
     }
 
     float getTierUtilizationImpl(sep::memory::MemoryTierEnum tier) {
         if (!initialized_) return 0.0f;
-        auto internalTier = convertTierEnum(tier);
+        auto internalTier = static_cast<memory_internal::TierType>(tier);
         auto& tierImpl = tiers_[internalTier];
         return static_cast<float>(tierImpl.usedSize) / static_cast<float>(tierImpl.totalSize);
     }
@@ -297,99 +285,13 @@ public:
     std::string getMemoryAnalyticsImpl() {
         if (!initialized_) return "{}";
         
-        nlohmann::json analytics;
-        
-        // Add tier stats
-        analytics["tiers"] = nlohmann::json::object();
-        
-        for (const auto& tier : tiers_) {
-            nlohmann::json tierData;
-            std::string tierName;
-            
-            switch (tier.first) {
-                case memory_internal::TierType::STM:
-                    tierName = "STM";
-                    break;
-                case memory_internal::TierType::MTM:
-                    tierName = "MTM";
-                    break;
-                case memory_internal::TierType::LTM:
-                    tierName = "LTM";
-                    break;
-                default:
-                    tierName = "Unknown";
-                    break;
-            }
-            
-            tierData["totalSize"] = tier.second.totalSize;
-            tierData["usedSize"] = tier.second.usedSize;
-            tierData["utilization"] = static_cast<float>(tier.second.usedSize) / 
-                                     static_cast<float>(tier.second.totalSize);
-            
-            analytics["tiers"][tierName] = tierData;
-        }
-        
-        // Add block stats
-        analytics["blocks"] = nlohmann::json::object();
-        analytics["blocks"]["total"] = blocks_.size();
-        
-        return analytics.dump(2);
+        return "{}";
     }
 
     std::string getMemoryVisualizationImpl() {
         if (!initialized_) return "{}";
         
-        nlohmann::json visualization;
-        
-        // Add tier visualization
-        visualization["tiers"] = nlohmann::json::object();
-        
-        for (const auto& tier : tiers_) {
-            nlohmann::json tierData;
-            std::string tierName;
-            
-            switch (tier.first) {
-                case memory_internal::TierType::STM:
-                    tierName = "STM";
-                    break;
-                case memory_internal::TierType::MTM:
-                    tierName = "MTM";
-                    break;
-                case memory_internal::TierType::LTM:
-                    tierName = "LTM";
-                    break;
-                default:
-                    tierName = "Unknown";
-                    break;
-            }
-            
-            tierData["totalSize"] = tier.second.totalSize;
-            tierData["usedSize"] = tier.second.usedSize;
-            tierData["freeSize"] = tier.second.totalSize - tier.second.usedSize;
-            tierData["utilization"] = static_cast<float>(tier.second.usedSize) / 
-                                     static_cast<float>(tier.second.totalSize);
-            
-            // Add visual representation
-            std::stringstream visual;
-            int barLength = 50;
-            int filledLength = static_cast<int>(barLength * tierData["utilization"].get<float>());
-            
-            visual << "[";
-            for (int i = 0; i < barLength; i++) {
-                if (i < filledLength) {
-                    visual << "=";
-                } else {
-                    visual << " ";
-                }
-            }
-            visual << "]";
-            
-            tierData["visualization"] = visual.str();
-            
-            visualization["tiers"][tierName] = tierData;
-        }
-        
-        return visualization.dump(2);
+        return "{}";
     }
 
     bool configureTierPoliciesImpl(const sep::memory::MemoryThresholdConfig& config) {

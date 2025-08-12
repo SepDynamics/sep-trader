@@ -1,189 +1,122 @@
 #pragma once
 
-#include <string>
 #include <chrono>
+#include <memory>
+#include <string>
 #include <vector>
-#include <unordered_map>
-#include "engine/internal/standard_includes.h"
-#include <atomic>
-#include <thread>
-#include "cache_metadata.hpp"
+#include <functional>
+#include <optional>
 
 namespace sep::cache {
 
-// Cache validation result
+enum class ValidationLevel {
+    QUICK,      // Fast superficial check (integrity/existence)
+    STANDARD,   // Standard validation (data format, checksums)
+    THOROUGH,   // Deep validation (cross-references, data quality)
+    EXHAUSTIVE  // Complete verification (exhaustive data quality analysis)
+};
+
 enum class ValidationResult {
-    VALID,              // Cache is valid and ready
-    EXPIRED,            // Cache exists but is expired
-    MISSING,            // Cache file does not exist
-    CORRUPTED,          // Cache file exists but is corrupted
-    INSUFFICIENT_DATA,  // Cache doesn't have enough data
-    ACCESS_ERROR,       // Permission or I/O error
-    MISSING_SOURCE      // Entries missing provenance metadata
+    VALID,      // Cache is valid and can be used
+    REPAIRABLE, // Cache has issues but can be repaired
+    INVALID,    // Cache is invalid and should be rebuilt
+    ERROR       // Validation process encountered an error
 };
 
-// Cache quality metrics
+// Add CacheQuality structure that was missing
 struct CacheQuality {
-    double completeness_score;      // 0.0-1.0, percentage of expected data present
-    double freshness_score;         // 0.0-1.0, how recent the data is
-    double consistency_score;       // 0.0-1.0, data consistency check
-    std::chrono::system_clock::time_point oldest_data;
-    std::chrono::system_clock::time_point newest_data;
-    size_t total_records;
-    size_t missing_records;
-    std::vector<std::string> issues;
+    double data_freshness{1.0};    // How recent the data is (0.0-1.0)
+    double data_completeness{1.0}; // How complete the coverage is (0.0-1.0)
+    double data_consistency{1.0};  // How consistent the data format is (0.0-1.0)
+    double anomaly_score{0.0};     // Level of anomalies detected (0.0-1.0, lower is better)
+    std::chrono::system_clock::time_point oldest_timestamp;
+    std::chrono::system_clock::time_point newest_timestamp;
+    size_t record_count{0};
+    size_t gap_count{0};
+    std::vector<std::string> quality_warnings;
     
-    CacheQuality() : completeness_score(0.0), freshness_score(0.0), 
-                    consistency_score(0.0), total_records(0), missing_records(0) {}
+    // Add fields expected by CacheHealthMonitor
+    double freshness_score{1.0};    // Alias for data_freshness for backward compatibility
+    double completeness_score{1.0}; // Alias for data_completeness for backward compatibility
+    double consistency_score{1.0};  // Alias for data_consistency for backward compatibility
+    
+    CacheQuality() = default;
 };
 
-// Cache validation policy
-struct ValidationPolicy {
-    std::chrono::hours max_age{168}; // 7 days default
-    std::chrono::hours min_coverage{168}; // Must cover at least 7 days
-    double min_completeness{0.85}; // Must have 85% of expected data
-    double min_freshness{0.7}; // Data must be reasonably fresh
-    bool require_continuous_data{true}; // No large gaps allowed
-    std::chrono::minutes max_data_gap{60}; // Max 60 minute gaps
-    size_t min_records_per_day{1440}; // Minimum records per day (1 per minute)
+struct ValidationMetrics {
+    double data_integrity_score{1.0}; // 0.0-1.0 score of data integrity
+    double data_quality_score{1.0};   // 0.0-1.0 score of data quality
+    double coverage_score{1.0};       // 0.0-1.0 score of temporal coverage
+    std::chrono::system_clock::time_point oldest_data_point;
+    std::chrono::system_clock::time_point newest_data_point;
+    size_t total_records{0};
+    size_t validated_records{0};
+    size_t invalid_records{0};
+    std::vector<std::string> validation_warnings;
+    std::vector<std::string> validation_errors;
     
-    ValidationPolicy() = default;
+    ValidationMetrics() = default;
 };
 
-// Cache validation callback types
-using ValidationCallback = std::function<void(const std::string& cache_path, ::sep::cache::ValidationResult result, const CacheQuality& quality)>;
-using RepairCallback = std::function<bool(const std::string& cache_path, const std::vector<std::string>& issues)>;
+struct ValidationOptions {
+    ValidationLevel level{ValidationLevel::STANDARD};
+    bool repair_if_possible{true};
+    std::chrono::seconds timeout{300}; // 5 minutes default timeout
+    bool verbose_logging{false};
+    std::optional<std::function<bool(double)>> progress_callback;
+    
+    ValidationOptions() = default;
+};
+
+struct ValidationResponse {
+    ValidationResult result;
+    ValidationMetrics metrics;
+    std::string message;
+    bool was_repaired{false};
+    std::chrono::duration<double> validation_time;
+    std::string repair_details;
+    
+    ValidationResponse() : result(ValidationResult::ERROR), 
+                        validation_time(std::chrono::duration<double>::zero()) {}
+};
 
 class CacheValidator {
 public:
     CacheValidator();
-    ~CacheValidator() = default;
-
-    // Primary validation methods
-    ::sep::cache::ValidationResult validateCache(const std::string& cache_path) const;
-    ::sep::cache::ValidationResult validateCacheForPair(const std::string& pair_symbol) const;
-    CacheQuality analyzeCacheQuality(const std::string& cache_path) const;
+    ~CacheValidator();
     
-    // Batch validation
-    std::unordered_map<std::string, ::sep::cache::ValidationResult> validateAllCaches() const;
-    std::unordered_map<std::string, ::sep::cache::ValidationResult> validatePairCaches(const std::vector<std::string>& pairs) const;
+    // Core validation methods
+    ValidationResponse validateCache(const std::string& cache_name, 
+                                  ValidationOptions options = ValidationOptions());
     
-    // Policy management
-    void setValidationPolicy(const ::sep::cache::ValidationPolicy& policy);
-    ::sep::cache::ValidationPolicy getValidationPolicy() const;
-    void setCustomPolicyForPair(const std::string& pair, const ::sep::cache::ValidationPolicy& policy);
-    bool hasCustomPolicy(const std::string& pair) const;
+    ValidationResponse validateCacheFile(const std::string& file_path,
+                                      ValidationOptions options = ValidationOptions());
     
-    // Cache requirements validation
-    bool meetsLastWeekRequirement(const std::string& cache_path) const;
-    bool hasMinimumDataCoverage(const std::string& cache_path, std::chrono::hours required_coverage) const;
-    bool isDataContinuous(const std::string& cache_path) const;
+    std::vector<ValidationResponse> validateAllCaches(
+        ValidationOptions options = ValidationOptions());
     
-    // Cache health monitoring
-    void enableContinuousMonitoring(bool enable = true);
-    bool isContinuousMonitoringEnabled() const;
-    void setMonitoringInterval(std::chrono::minutes interval);
-    std::chrono::minutes getMonitoringInterval() const;
+    // Utility methods
+    bool isCacheValid(const std::string& cache_name);
+    bool repairCache(const std::string& cache_name);
+    ValidationMetrics getLastValidationMetrics(const std::string& cache_name);
+    std::vector<std::string> listValidCaches();
+    std::vector<std::string> listInvalidCaches();
     
-    // Event system
-    size_t addValidationCallback(ValidationCallback callback);
-    void removeValidationCallback(size_t callback_id);
-    size_t addRepairCallback(RepairCallback callback);
-    void removeRepairCallback(size_t callback_id);
-    
-    // Cache repair and recovery
-    bool attemptCacheRepair(const std::string& cache_path);
-    bool rebuildCacheFromSource(const std::string& cache_path, const std::string& pair_symbol);
-    std::vector<std::string> suggestRepairActions(const std::string& cache_path) const;
-    
-    // Cache statistics
-    size_t getTotalCachesValidated() const;
-    size_t getValidCacheCount() const;
-    size_t getInvalidCacheCount() const;
-    double getOverallCacheHealthScore() const;
-    
-    // Cache path management
-    void setCacheBasePath(const std::string& base_path);
-    std::string getCacheBasePath() const;
+    // Additional methods needed by CacheHealthMonitor
     std::string getCachePathForPair(const std::string& pair_symbol) const;
+    CacheQuality analyzeCacheQuality(const std::string& cache_path) const;
     bool cacheExistsForPair(const std::string& pair_symbol) const;
-    
-    // Data integrity checks
-    bool validateCacheStructure(const std::string& cache_path) const;
-    bool validateDataIntegrity(const std::string& cache_path) const;
-    bool checkForCorruption(const std::string& cache_path) const;
-    bool validateEntrySources(const std::string& cache_path) const;
-    
-    // Performance metrics
-    std::chrono::duration<double> getLastValidationTime() const;
-    std::chrono::duration<double> getAverageValidationTime() const;
-    size_t getValidationCount() const;
 
 private:
-    mutable std::mutex validation_mutex_;
-    ::sep::cache::ValidationPolicy default_policy_;
-    std::unordered_map<std::string, ::sep::cache::ValidationPolicy> pair_policies_;
-    std::string cache_base_path_;
-    
-    // Monitoring
-    std::atomic<bool> continuous_monitoring_enabled_{false};
-    std::chrono::minutes monitoring_interval_{15}; // 15 minutes default
-    std::unique_ptr<std::thread> monitoring_thread_;
-    std::atomic<bool> stop_monitoring_{false};
-    
-    // Event callbacks
-    std::vector<sep::cache::ValidationCallback> validation_callbacks_;
-    std::vector<sep::cache::RepairCallback> repair_callbacks_;
-    mutable std::mutex callbacks_mutex_;
-    
-    // Statistics
-    mutable std::atomic<size_t> total_validations_{0};
-    mutable std::atomic<size_t> valid_caches_{0};
-    mutable std::atomic<size_t> invalid_caches_{0};
-    mutable std::atomic<std::chrono::duration<double>> total_validation_time_{std::chrono::duration<double>::zero()};
-    
-    // Internal validation methods
-    ::sep::cache::ValidationResult performValidation(const std::string& cache_path, const ::sep::cache::ValidationPolicy& policy) const;
-    CacheQuality analyzeQuality(const std::string& cache_path, const ::sep::cache::ValidationPolicy& policy) const;
-    bool checkFileAccessibility(const std::string& cache_path) const;
-    bool checkDataAge(const std::string& cache_path, const ::sep::cache::ValidationPolicy& policy) const;
-    bool checkDataCompleteness(const std::string& cache_path, const ::sep::cache::ValidationPolicy& policy) const;
-    bool checkDataContinuity(const std::string& cache_path, const ::sep::cache::ValidationPolicy& policy) const;
-    
-    // Data analysis helpers
-    std::vector<std::chrono::system_clock::time_point> extractTimestamps(const std::string& cache_path) const;
-    size_t countRecords(const std::string& cache_path) const;
-    std::vector<std::chrono::minutes> findDataGaps(const std::vector<std::chrono::system_clock::time_point>& timestamps) const;
-    double calculateCompletenessScore(const std::string& cache_path, const ::sep::cache::ValidationPolicy& policy) const;
-    double calculateFreshnessScore(const std::vector<std::chrono::system_clock::time_point>& timestamps) const;
-    double calculateConsistencyScore(const std::string& cache_path) const;
-    
-    // File operations
-    bool isValidCacheFile(const std::string& cache_path) const;
-    std::chrono::system_clock::time_point getFileModificationTime(const std::string& cache_path) const;
-    size_t getFileSize(const std::string& cache_path) const;
-    bool isFileReadable(const std::string& cache_path) const;
-    
-    // Event notification
-    void notifyValidationResult(const std::string& cache_path, ::sep::cache::ValidationResult result, const CacheQuality& quality) const;
-    bool requestRepair(const std::string& cache_path, const std::vector<std::string>& issues) const;
-    
-    // Monitoring thread
-    void monitoringLoop();
-    void performPeriodicValidation();
-    
-    // JSON parsing helpers (for cache content analysis)
-    bool parseJsonCache(const std::string& cache_path, std::vector<EntryMetadata>& entries) const;
-    bool validateJsonStructure(const std::string& cache_path) const;
+    class Impl;
+    std::unique_ptr<Impl> impl_;
 };
 
-// Utility functions
-std::string validationResultToString(::sep::cache::ValidationResult result);
-::sep::cache::ValidationResult stringToValidationResult(const std::string& result_str);
-bool isValidationResultSuccess(::sep::cache::ValidationResult result);
-double calculateOverallCacheScore(const CacheQuality& quality);
-
-// Global cache validator instance
-CacheValidator& getGlobalCacheValidator();
+// Helper functions
+std::string validationResultToString(ValidationResult result);
+ValidationResult stringToValidationResult(const std::string& result_str);
+std::string validationLevelToString(ValidationLevel level);
+ValidationLevel stringToValidationLevel(const std::string& level_str);
+bool isValidationSuccessful(ValidationResult result);
 
 } // namespace sep::cache

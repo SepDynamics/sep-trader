@@ -5,7 +5,6 @@
 #include <string>
 #include <stdexcept>
 #include <vector>
-#include "memory/redis_manager.h"
 
 namespace sep {
 

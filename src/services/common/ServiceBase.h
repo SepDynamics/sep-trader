@@ -12,7 +12,7 @@ namespace services {
  * Base class for all service implementations
  * Provides common functionality for service lifecycle management
  */
-class ServiceBase : public IService {
+class ServiceBase : public virtual IService {
 public:
     ServiceBase(const std::string& name, const std::string& version);
     virtual ~ServiceBase() = default;

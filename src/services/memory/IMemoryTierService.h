@@ -3,6 +3,7 @@
 #include "../include/Result.h"
 #include "../include/IService.h"
 #include <cstddef>
+#include <cstdint>  // Add this for uint32_t
 #include <string>
 #include <vector>
 #include <memory>
@@ -24,7 +25,7 @@ namespace services {
  * Memory Tier Service interface
  * Provides an abstraction layer for memory tier management operations
  */
-class IMemoryTierService : public IService {
+class IMemoryTierService : public virtual IService {
 public:
     virtual ~IMemoryTierService() = default;
 

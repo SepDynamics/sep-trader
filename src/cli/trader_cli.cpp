@@ -8,7 +8,7 @@
 #include "trader_cli.hpp"
 
 // Additional system headers needed
-#include <csignal>
+#include <signal.h>       // Use C-style signal.h instead of csignal
 #include <filesystem>
 
 // Third-party libraries
@@ -30,6 +30,7 @@ using cuda::ts::vector;
 #include "../core_integrated/weekly_cache_manager.hpp"
 #include "../core_types/result.h"
 #include "../memory/redis_manager.h"
+#include "../trading/data/unified_data_manager.hpp"
 
 // Third-party libraries
 #include <fmt/format.h>
@@ -37,12 +38,8 @@ using cuda::ts::vector;
 #include <spdlog/spdlog.h>
 
 namespace sep {
-// Forward declare
-namespace persistence {
-    inline auto createRedisManager() { return nullptr; }
-}
-
 namespace memory {
+    // Use the fully qualified function to avoid ambiguity
     using ::sep::persistence::createRedisManager;
 }
 }
@@ -58,11 +55,12 @@ namespace sep::cli
     using ::sep::trading::TradingState;
     using ::sep::trading::WeeklyCacheManager;
 
+    // Move this outside of anonymous namespace so it can be accessed
+    volatile sig_atomic_t g_shutdown_requested = 0;
+
     namespace
     {
-        volatile std::sig_atomic_t g_shutdown_requested = 0;
-
-        void signal_handler(int signal)
+        void signal_handler(int signal_num)
         {
             g_shutdown_requested = 1;
             std::cout << "\nShutdown requested...\n";
@@ -74,9 +72,9 @@ TraderCLI::TraderCLI() : verbose_(false), config_path_("config/"),
     analyzer_(std::make_unique<sep::trading::TickerPatternAnalyzer>()),
     dynamic_pair_manager_(std::make_unique<sep::trading::DynamicPairManager>()) {
     register_commands();
-    // Use std::signal with the correct signal handler
-    std::signal(SIGINT, signal_handler);
-    std::signal(SIGTERM, signal_handler);
+    // Use C-style signal function
+    signal(SIGINT, signal_handler);
+    signal(SIGTERM, signal_handler);
 }
 
 TraderCLI::~TraderCLI() = default;
@@ -248,7 +246,7 @@ int TraderCLI::handle_start(const std::vector<std::string>& args) {
         
         if (daemon_mode) {
             std::cout << "🔄 Running in daemon mode (Ctrl+C to stop)...\n";
-            while (!g_shutdown_requested) {
+            while (!::sep::cli::g_shutdown_requested) {
                 std::this_thread::sleep_for(std::chrono::seconds(1));
                 
                 // Update health metrics
@@ -285,7 +283,7 @@ int TraderCLI::handle_stop(const std::vector<std::string>& /* args */) {
         state.setSystemStatus(SystemStatus::STOPPING);
 
         // Send shutdown signal to running processes
-        g_shutdown_requested = 1;
+        ::sep::cli::g_shutdown_requested = 1;
         
         std::this_thread::sleep_for(std::chrono::milliseconds(500));
         state.setSystemStatus(SystemStatus::IDLE);
@@ -583,9 +581,6 @@ int TraderCLI::handle_trading(const std::vector<std::string>& args) {
 // Helper functions from QuantumTrainingCLI
 std::string signalDirectionToString(sep::trading::TickerPatternAnalysis::SignalDirection direction) {
     switch (direction) {
-        case sep::trading::TickerPatternAnalysis::SignalDirection::BUY: return "BUY";
-        case sep::trading::TickerPatternAnalysis::SignalDirection::SELL: return "SELL";
-        case sep::trading::TickerPatternAnalysis::SignalDirection::HOLD: return "HOLD";
         case sep::trading::TickerPatternAnalysis::SignalDirection::UP:
             return "UP";
         case sep::trading::TickerPatternAnalysis::SignalDirection::DOWN:

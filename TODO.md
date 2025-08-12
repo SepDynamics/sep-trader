@@ -98,6 +98,27 @@
 
 ## Technical Debt Items
 
+### Critical Build Issues 🚨
+- [ ] Fix incomplete type errors in `trader_cli.cpp`:
+  - [ ] Define full implementation of `WeeklyCacheManager` currently causing incomplete type error
+  - [ ] Define full implementation of `CacheValidator` currently causing incomplete type error
+  - [ ] Define full implementation of `DynamicConfigManager` currently causing incomplete type error
+  - [ ] Complete implementation of `UnifiedDataManager::Impl` to fix sizeof error
+
+- [ ] Resolve ambiguous function calls:
+  - [ ] Fix ambiguous `createRedisManager()` function call by:
+    - [ ] Either removing one of the conflicting declarations
+    - [ ] Or fully qualifying the call to the intended implementation
+    - [ ] Current conflict between `sep::persistence::createRedisManager()` and `sep::persistence::createRedisManager(const std::string&, int)`
+
+- [ ] Fix enum-related issues:
+  - [ ] Update `TickerPatternAnalysis::SignalDirection` enum to include `UP`, `DOWN` and `NEUTRAL` values
+  - [ ] Or update code to use the correct enum values that actually exist
+
+- [ ] Fix syntax errors:
+  - [ ] Fix line 1091 in `trader_cli.cpp` where there's an unexpected `}` token
+
+### Other Technical Debt 
 - [ ] Resolve CUDA compilation issues with service headers
 - [ ] Address header include path inconsistencies
 - [ ] Implement proper error handling across service boundaries

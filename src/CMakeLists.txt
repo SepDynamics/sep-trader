@@ -22,7 +22,7 @@ add_subdirectory(connectors)
 add_subdirectory(services)
 add_compile_definitions(FMT_HEADER_ONLY)
 # Temporarily disable trading module due to persistent std::array/functional issues
-# add_subdirectory(trading)
+add_subdirectory(trading)
 add_subdirectory(dsl)
 add_subdirectory(cli)
 add_subdirectory(apps)

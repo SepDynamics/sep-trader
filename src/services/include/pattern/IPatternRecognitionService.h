@@ -6,6 +6,7 @@
 #include <vector>
 #include <string>
 #include <memory>
+#include <array>
 #include <functional>
 
 namespace sep {

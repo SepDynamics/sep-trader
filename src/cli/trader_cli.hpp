@@ -23,22 +23,9 @@ namespace sep
 {
     namespace core
     {
-        enum class SystemStatus
-        {
-            IDLE,
-            TRADING,
-            STOPPING,
-            ERROR
-        };
-
-        struct SystemHealth
-        {
-            double cpu_usage;
-            double memory_usage;
-            double network_latency;
-            int active_connections;
-            int pending_orders;
-        };
+        // Forward declare only - no redefinition
+        enum class SystemStatus;
+        struct SystemHealth;
     }  // namespace core
 
     namespace trading
@@ -53,21 +40,8 @@ namespace sep
         class CacheHealthMonitor;
         class CacheValidator;
 
-        struct TickerPatternAnalysis
-        {
-            enum class SignalDirection
-            {
-                UP,
-                DOWN,
-                NEUTRAL
-            };
-            enum class SignalStrength
-            {
-                WEAK,
-                MODERATE,
-                STRONG
-            };
-        };
+        // Forward declare only - no redefinition
+        struct TickerPatternAnalysis;
     }  // namespace trading
 }  // namespace sep
 
