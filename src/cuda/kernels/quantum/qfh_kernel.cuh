@@ -2,11 +2,12 @@
 #define SEP_CUDA_QFH_KERNEL_CUH
 
 #include <cuda_runtime.h>
+
 #include <cstdint>
 
-#include "../../common/kernel_launch.h"
-#include "../../common/stream/stream.h"
-#include "../../common/memory/device_buffer.h"
+#include "common/kernel_launch.h"
+#include "common/memory/device_buffer.h"
+#include "common/stream/stream.h"
 
 // Forward declaration
 namespace sep {

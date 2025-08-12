@@ -1,11 +1,12 @@
 #include <cuda_runtime.h>
+
 #include <iostream>
-#include <vector>
 #include <mutex>
 #include <unordered_map>
+#include <vector>
 
 #include "device_buffer.h"
-#include "../error/cuda_error.h"
+#include "error/cuda_error.h"
 
 namespace sep {
 namespace cuda {

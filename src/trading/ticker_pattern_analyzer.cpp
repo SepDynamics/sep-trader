@@ -10,7 +10,7 @@
 #include "quantum/types.h"
 
 #ifdef SEP_BACKTESTING
-#include "../../_sep/testbed/trace.hpp"
+#include "../_sep/testbed/trace.hpp"
 #endif
 
 namespace sep::trading {

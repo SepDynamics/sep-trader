@@ -1,36 +1,40 @@
+// Include precompiled header first for CUDA compatibility layer
+#include "../common/sep_precompiled.h"
+
+// Include CUDA type system directly
+#include "../engine/internal/cuda/common/cuda_type_system.h"
+
+// Include our class header
 #include "trader_cli.hpp"
 
-#include <algorithm>
-#include <array>
-#include <chrono>
-#include <ctime>
+// Additional system headers needed
+#include <csignal>
 #include <filesystem>
-#include <fstream>
-#include <future>
-#include <iomanip>
-#include <iostream>
-#include <thread>
 
-#include <csignal> // Use C++ signal header
+// Third-party libraries
+#include <fmt/format.h>
+#include <hiredis/hiredis.h>
+#include <spdlog/spdlog.h>
 
-// Define signal constants if not already defined
-#ifndef SIGINT
-#define SIGINT 2
-#endif
-#ifndef SIGTERM
-#define SIGTERM 15
-#endif
+// Use CUDA compatibility types
+using cuda::ts::make_unique;
+using cuda::ts::string;
+using cuda::ts::vector;
 
-// Commenting out missing header for now
-// #include "common/sep_precompiled.h"
-#include "core_integrated/cache_health_monitor.hpp"
-#include "core_integrated/cache_validator.hpp"
-#include "core_integrated/dynamic_config_manager.hpp"
-#include "core_integrated/pair_manager.hpp"
-#include "core_integrated/trading_state.hpp"
-#include "core_integrated/weekly_cache_manager.hpp"
-#include "core_types/result.h"
-#include "memory/redis_manager.h"
+// Project includes
+#include "../core_integrated/cache_health_monitor.hpp"
+#include "../core_integrated/cache_validator.hpp"
+#include "../core_integrated/dynamic_config_manager.hpp"
+#include "../core_integrated/pair_manager.hpp"
+#include "../core_integrated/trading_state.hpp"
+#include "../core_integrated/weekly_cache_manager.hpp"
+#include "../core_types/result.h"
+#include "../memory/redis_manager.h"
+
+// Third-party libraries
+#include <fmt/format.h>
+#include <hiredis/hiredis.h>
+#include <spdlog/spdlog.h>
 
 namespace sep {
 // Forward declare
@@ -43,76 +47,16 @@ namespace memory {
 }
 }
 
-// For fmt::format
-#include <fmt/format.h>
-#include <spdlog/spdlog.h>
-
-// Forward declare needed types and enums
-namespace sep {
-namespace trading {
-    class QuantumPairTrainer;
-    class TickerPatternAnalyzer;
-    class DynamicPairManager;
-    struct TickerPatternAnalysis {
-        enum class SignalDirection { UP, DOWN, NEUTRAL };
-        enum class SignalStrength { WEAK, MODERATE, STRONG };
-    };
-}
-
-namespace core {
-    enum class SystemStatus { IDLE, TRADING, STOPPING, ERROR };
-    struct SystemHealth {
-        double cpu_usage;
-        double memory_usage;
-        double network_latency;
-        int active_connections;
-        int pending_orders;
-    };
-}
-
-namespace config {}
-namespace cache {}
-
-namespace trading {
-    class TradingState {
-    public:
-        static TradingState& getInstance() {
-            static TradingState instance;
-            return instance;
-        }
-        bool loadState() { return true; }
-        void setSystemStatus(core::SystemStatus) {}
-        core::SystemStatus getSystemStatus() { return core::SystemStatus::IDLE; }
-        void updateSystemHealth(core::SystemHealth&) {}
-    };
-    
-    class PairManager {
-    public:
-        bool addPair(const std::string&) { return true; }
-        bool removePair(const std::string&) { return true; }
-        bool enablePair(const std::string&) { return true; }
-        bool disablePair(const std::string&) { return true; }
-        size_t getActivePairs() { return 0; }
-    };
-    
-    class DynamicConfigManager {};
-    class WeeklyCacheManager {};
-    class CacheHealthMonitor {};
-    class CacheValidator {
-    public:
-        bool validateDataIntegrity(const std::string&) { return true; }
-    };
-}
-
-namespace cli {
+namespace sep::cli
+{
     // Using declarations
-    using sep::trading::TradingState;
-    using sep::trading::PairManager;
-    using sep::trading::DynamicConfigManager;
-    using sep::trading::WeeklyCacheManager;
-    using sep::trading::CacheHealthMonitor;
-    using sep::trading::CacheValidator;
-    using sep::core::SystemStatus;
+    using ::sep::core::SystemStatus;
+    using ::sep::trading::CacheHealthMonitor;
+    using ::sep::trading::CacheValidator;
+    using ::sep::trading::DynamicConfigManager;
+    using ::sep::trading::PairManager;
+    using ::sep::trading::TradingState;
+    using ::sep::trading::WeeklyCacheManager;
 
     namespace
     {
@@ -130,8 +74,9 @@ TraderCLI::TraderCLI() : verbose_(false), config_path_("config/"),
     analyzer_(std::make_unique<sep::trading::TickerPatternAnalyzer>()),
     dynamic_pair_manager_(std::make_unique<sep::trading::DynamicPairManager>()) {
     register_commands();
-    ::signal(SIGINT, signal_handler);
-    ::signal(SIGTERM, signal_handler);
+    // Use std::signal with the correct signal handler
+    std::signal(SIGINT, signal_handler);
+    std::signal(SIGTERM, signal_handler);
 }
 
 TraderCLI::~TraderCLI() = default;
@@ -641,6 +586,12 @@ std::string signalDirectionToString(sep::trading::TickerPatternAnalysis::SignalD
         case sep::trading::TickerPatternAnalysis::SignalDirection::BUY: return "BUY";
         case sep::trading::TickerPatternAnalysis::SignalDirection::SELL: return "SELL";
         case sep::trading::TickerPatternAnalysis::SignalDirection::HOLD: return "HOLD";
+        case sep::trading::TickerPatternAnalysis::SignalDirection::UP:
+            return "UP";
+        case sep::trading::TickerPatternAnalysis::SignalDirection::DOWN:
+            return "DOWN";
+        case sep::trading::TickerPatternAnalysis::SignalDirection::NEUTRAL:
+            return "NEUTRAL";
         default: return "UNKNOWN";
     }
 }
@@ -1136,7 +1087,7 @@ void TraderCLI::print_quantum_config_details() const {
     );
 }
 
-} // namespace cli
+}  // namespace cli
 } // namespace sep
 
 

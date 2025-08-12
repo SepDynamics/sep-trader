@@ -4,16 +4,16 @@
 // Include all public CUDA interfaces
 
 // Common utilities
-#include "../common/cuda_common.h"
-#include "../common/error/cuda_error.h"
-#include "../common/kernel_launch.h"
+#include "common/cuda_common.h"
+#include "common/error/cuda_error.h"
+#include "common/kernel_launch.h"
 
 // Memory management
-#include "../common/memory/buffer.h"
-#include "../common/memory/device_buffer.h"
+#include "common/memory/buffer.h"
+#include "common/memory/device_buffer.h"
 
 // Stream management
-#include "../common/stream/stream.h"
+#include "common/stream/stream.h"
 
 namespace sep {
 namespace cuda {

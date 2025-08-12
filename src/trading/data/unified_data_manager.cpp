@@ -8,7 +8,7 @@
 #include <condition_variable>
 
 #include "common/sep_precompiled.h"
-#include "../../../_sep/testbed/placeholder_detection.h"
+#include "../_sep/testbed/placeholder_detection.h"
 #include "common/financial_data_types.h"
 
 namespace sep::trading {

@@ -2,12 +2,13 @@
 #define SEP_CUDA_DEVICE_BUFFER_H
 
 #include <cuda_runtime.h>
+
 #include <cstddef>
 #include <stdexcept>
 #include <string>
 
-#include "buffer.h"
 #include "../error/cuda_error.h"
+#include "buffer.h"
 
 namespace sep {
 namespace cuda {

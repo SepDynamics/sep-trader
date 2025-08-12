@@ -4,9 +4,9 @@
 #include <iostream>
 #include <stdexcept>
 
-#include "stdlib/stdlib.h"
-#include "../../../_sep/testbed/placeholder_detection.h"
+#include "../_sep/testbed/placeholder_detection.h"
 #include "core_primitives.h"
+#include "stdlib/stdlib.h"
 
 namespace dsl::compiler {
 

@@ -1,11 +1,11 @@
+#include <cuda_runtime.h>
+
+#include <cmath>
+#include <cstdint>
+
+#include "common/error/cuda_error.h"
 #include "qfh_kernel.cuh"
 #include "quantum_types.cuh"
-
-#include <cuda_runtime.h>
-#include <cstdint>
-#include <cmath>
-
-#include "../../common/error/cuda_error.h"
 
 namespace sep {
 namespace cuda {

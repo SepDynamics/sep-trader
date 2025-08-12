@@ -2,16 +2,16 @@
 #define SEP_CUDA_QUANTUM_KERNELS_H
 
 #include <cuda_runtime.h>
+
 #include <cstdint>
 
-#include "qbsa_kernel.cuh"
-#include "qsh_kernel.cuh"
-#include "qfh_kernel.cuh"
+#include "common/memory/device_buffer.h"
+#include "common/stream/stream.h"
 #include "embedding_kernels.cuh"
+#include "qbsa_kernel.cuh"
+#include "qfh_kernel.cuh"
+#include "qsh_kernel.cuh"
 #include "quantum_types.cuh"
-
-#include "../../common/stream/stream.h"
-#include "../../common/memory/device_buffer.h"
 
 namespace sep {
 namespace cuda {

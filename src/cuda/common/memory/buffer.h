@@ -2,11 +2,12 @@
 #define SEP_CUDA_BUFFER_H
 
 #include <cuda_runtime.h>
+
 #include <cstddef>
 #include <memory>
 #include <type_traits>
 
-#include "../error/cuda_error.h"
+#include "error/cuda_error.h"
 
 namespace sep {
 namespace cuda {

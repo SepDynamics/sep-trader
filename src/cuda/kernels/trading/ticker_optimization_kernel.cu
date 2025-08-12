@@ -1,8 +1,8 @@
-#include "ticker_optimization_kernel.cuh"
-#include "../../common/cuda_common.h"
-
 #include <cuda_runtime.h>
 #include <device_launch_parameters.h>
+
+#include "common/cuda_common.h"
+#include "ticker_optimization_kernel.cuh"
 
 namespace sep::cuda::trading {
 

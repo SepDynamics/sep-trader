@@ -1,15 +1,75 @@
 #pragma once
 
+// Include the precompiled header first
+#include "../common/sep_precompiled.h"
+
+// Standard C++ headers
 #include <string>
 #include <vector>
 #include <functional> // For std::function
 #include <map>        // For std::map
 #include <memory>     // For std::unique_ptr
 
-#include "../engine/internal/standard_includes.h"
-#include "../trading/quantum_pair_trainer.hpp" // For QuantumPairTrainer
-#include "../trading/ticker_pattern_analyzer.hpp" // For TickerPatternAnalyzer
-#include "../trading/dynamic_pair_manager.hpp" // For DynamicPairManager
+// Standard includes file for uniformity
+#include "engine/internal/standard_includes.h"
+
+// Include necessary trading headers directly
+#include "trading/dynamic_pair_manager.hpp"
+#include "trading/quantum_pair_trainer.hpp"
+#include "trading/ticker_pattern_analyzer.hpp"
+
+// Forward declare needed classes and enums
+namespace sep
+{
+    namespace core
+    {
+        enum class SystemStatus
+        {
+            IDLE,
+            TRADING,
+            STOPPING,
+            ERROR
+        };
+
+        struct SystemHealth
+        {
+            double cpu_usage;
+            double memory_usage;
+            double network_latency;
+            int active_connections;
+            int pending_orders;
+        };
+    }  // namespace core
+
+    namespace trading
+    {
+        class QuantumPairTrainer;
+        class TickerPatternAnalyzer;
+        class DynamicPairManager;
+        class TradingState;
+        class PairManager;
+        class DynamicConfigManager;
+        class WeeklyCacheManager;
+        class CacheHealthMonitor;
+        class CacheValidator;
+
+        struct TickerPatternAnalysis
+        {
+            enum class SignalDirection
+            {
+                UP,
+                DOWN,
+                NEUTRAL
+            };
+            enum class SignalStrength
+            {
+                WEAK,
+                MODERATE,
+                STRONG
+            };
+        };
+    }  // namespace trading
+}  // namespace sep
 
 namespace sep {
 namespace cli {

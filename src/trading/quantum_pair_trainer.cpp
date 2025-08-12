@@ -11,8 +11,8 @@
 #include "memory/redis_manager.h"
 
 #ifdef SEP_BACKTESTING
-#include "../../_sep/testbed/oanda_market_data_helper.hpp"
-#include "../../_sep/testbed/quantum_accuracy_stub.hpp"
+#include "../_sep/testbed/oanda_market_data_helper.hpp"
+#include "../_sep/testbed/quantum_accuracy_stub.hpp"
 #endif
 
 namespace sep

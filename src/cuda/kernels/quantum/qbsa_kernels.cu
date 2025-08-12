@@ -1,11 +1,11 @@
 #include <cuda_runtime.h>
+
 #include <cstdint>
 
-#include "../../common/kernel_launch.h"
-#include "../../common/stream/stream.h"
-#include "../../common/memory/device_buffer.h"
-#include "../../common/error/cuda_error.h"
-
+#include "common/error/cuda_error.h"
+#include "common/kernel_launch.h"
+#include "common/memory/device_buffer.h"
+#include "common/stream/stream.h"
 #include "quantum_types.cuh"
 
 namespace sep {

@@ -1,7 +1,8 @@
 #pragma once
 
 #include <cuda_runtime.h>
-#include "../../common/cuda_common.h"
+
+#include "common/cuda_common.h"
 
 namespace sep::cuda::trading {
 

@@ -1,9 +1,9 @@
-#include "qbsa_kernel.cuh"
-
 #include <cuda_runtime.h>
+
 #include <cstdint>
 
-#include "../../common/error/cuda_error.h"
+#include "common/error/cuda_error.h"
+#include "qbsa_kernel.cuh"
 
 namespace sep {
 namespace cuda {

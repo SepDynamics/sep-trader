@@ -1,12 +1,13 @@
 #include <cuda_runtime.h>
 #include <device_launch_parameters.h>
+
 #include <cmath>
 
-#include "process_pattern_kernel.cuh"
+#include "cuda/common/device_buffer.h"
+#include "cuda/common/error/cuda_error.h"
+#include "cuda/common/stream.h"
 #include "pattern_types.cuh"
-#include "../../../cuda/common/error/cuda_error.h"
-#include "../../../cuda/common/device_buffer.h"
-#include "../../../cuda/common/stream.h"
+#include "process_pattern_kernel.cuh"
 
 namespace sep {
 namespace cuda {

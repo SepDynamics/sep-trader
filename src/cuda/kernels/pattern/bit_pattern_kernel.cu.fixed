@@ -5,9 +5,9 @@
 
 #include "bit_pattern_kernel.cuh"
 #include "pattern_types.cuh"
-#include "../../common/error/cuda_error.h"
-#include "../../common/memory/device_buffer.h"
-#include "../../common/stream/stream.h"
+#include "common/error/cuda_error.h"
+#include "common/memory/device_buffer.h"
+#include "common/stream/stream.h"
 
 namespace sep {
 namespace cuda {

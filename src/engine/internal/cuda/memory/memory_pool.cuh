@@ -1,8 +1,8 @@
 #pragma once
 
 // Project headers
-#include "../common/cuda_includes.cuh"
-#include "../error/cuda_error.cuh"
+#include "common/cuda_includes.cuh"
+#include "error/cuda_error.cuh"
 
 // Standard library includes
 #include <array>

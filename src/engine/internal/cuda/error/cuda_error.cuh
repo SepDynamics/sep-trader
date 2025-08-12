@@ -7,7 +7,7 @@
 #ifdef __CUDACC__
 #include <cuda_runtime.h>
 #else
-#include "../common/cuda_host_decls.h"
+#include "common/cuda_host_decls.h"
 #endif
 
 namespace sep::cuda::error {

@@ -1,9 +1,9 @@
-#include "embedding_kernels.cuh"
-
 #include <cuda_runtime.h>
+
 #include <cstdint>
 
-#include "../../common/error/cuda_error.h"
+#include "common/error/cuda_error.h"
+#include "embedding_kernels.cuh"
 
 namespace sep {
 namespace cuda {

@@ -2,10 +2,11 @@
 #define SEP_CUDA_STREAM_H
 
 #include <cuda_runtime.h>
+
 #include <functional>
 #include <memory>
 
-#include "../error/cuda_error.h"
+#include "error/cuda_error.h"
 
 namespace sep {
 namespace cuda {
