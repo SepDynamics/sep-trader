@@ -1,0 +1,122 @@
+#include <cuda_runtime.h>
+#include <device_launch_parameters.h>
+#include <cstdint>
+#include <cmath>
+
+#include "process_pattern_kernel.cuh"
+#include "pattern_types.cuh"
+#include "../../common/error/cuda_error.h"
+#include "../../common/memory/device_buffer.h"
+#include "../../common/stream/stream.h"
+
+namespace sep {
+namespace cuda {
+namespace pattern {
+
+// CUDA kernel for pattern preprocessing
+__global__ void preProcessPatternKernel(
+    const uint8_t* d_raw_patterns,
+    size_t pattern_count,
+    size_t pattern_size,
+    float* d_processed_patterns
+) {
+    int idx = blockIdx.x * blockDim.x + threadIdx.x;
+    if (idx >= pattern_count) {
+        return;
+    }
+
+    const uint8_t* current_pattern = &d_raw_patterns[idx * pattern_size];
+    float* output_pattern = &d_processed_patterns[idx * pattern_size];
+    
+    // Simple normalization as an example
+    float sum = 0.0f;
+    for (size_t i = 0; i < pattern_size; ++i) {
+        sum += static_cast<float>(current_pattern[i]);
+    }
+    
+    float mean = sum / pattern_size;
+    
+    // Normalize the pattern (center around mean)
+    for (size_t i = 0; i < pattern_size; ++i) {
+        output_pattern[i] = static_cast<float>(current_pattern[i]) - mean;
+    }
+}
+
+// Host-side launcher for pattern preprocessing
+cudaError_t launchPreProcessPatternKernel(
+    const uint8_t* h_raw_patterns,
+    size_t pattern_count,
+    size_t pattern_size,
+    float* h_processed_patterns,
+    cudaStream_t stream
+) {
+    // Allocate device memory
+    uint8_t* d_raw_patterns;
+    float* d_processed_patterns;
+    
+    cudaError_t err = cudaMallocAsync(&d_raw_patterns, pattern_count * pattern_size * sizeof(uint8_t), stream);
+    if (err != cudaSuccess) return err;
+    
+    err = cudaMallocAsync(&d_processed_patterns, pattern_count * pattern_size * sizeof(float), stream);
+    if (err != cudaSuccess) {
+        cudaFreeAsync(d_raw_patterns, stream);
+        return err;
+    }
+    
+    // Copy input data to device
+    err = cudaMemcpyAsync(d_raw_patterns, h_raw_patterns, 
+                         pattern_count * pattern_size * sizeof(uint8_t),
+                         cudaMemcpyHostToDevice, stream);
+    if (err != cudaSuccess) {
+        cudaFreeAsync(d_raw_patterns, stream);
+        cudaFreeAsync(d_processed_patterns, stream);
+        return err;
+    }
+    
+    // Launch kernel
+    const int block_size = 256;
+    const int grid_size = (pattern_count + block_size - 1) / block_size;
+    
+    preProcessPatternKernel<<<grid_size, block_size, 0, stream>>>(
+        d_raw_patterns,
+        pattern_count,
+        pattern_size,
+        d_processed_patterns
+    );
+    
+    // Check for kernel launch errors
+    err = cudaGetLastError();
+    if (err != cudaSuccess) {
+        cudaFreeAsync(d_raw_patterns, stream);
+        cudaFreeAsync(d_processed_patterns, stream);
+        return err;
+    }
+    
+    // Copy results back to host
+    err = cudaMemcpyAsync(h_processed_patterns, d_processed_patterns,
+                         pattern_count * pattern_size * sizeof(float),
+                         cudaMemcpyDeviceToHost, stream);
+    if (err != cudaSuccess) {
+        cudaFreeAsync(d_raw_patterns, stream);
+        cudaFreeAsync(d_processed_patterns, stream);
+        return err;
+    }
+    
+    // Synchronize the stream
+    err = cudaStreamSynchronize(stream);
+    if (err != cudaSuccess) {
+        cudaFreeAsync(d_raw_patterns, stream);
+        cudaFreeAsync(d_processed_patterns, stream);
+        return err;
+    }
+    
+    // Free device memory
+    cudaFreeAsync(d_raw_patterns, stream);
+    cudaFreeAsync(d_processed_patterns, stream);
+    
+    return cudaSuccess;
+}
+
+} // namespace pattern
+} // namespace cuda
+} // namespace sep

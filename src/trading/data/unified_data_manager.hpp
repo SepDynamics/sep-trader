@@ -1,5 +1,6 @@
 #pragma once
 
+// Standard library includes
 #include <array>
 #include <chrono>
 #include <fstream>
@@ -9,10 +10,19 @@
 #include <optional>
 #include <string>
 #include <vector>
+#include <functional>
+#include <cstdint>
 
-#include "connectors/oanda_connector.h"
-#include "engine/internal/standard_includes.h"
+// Include third-party dependencies
 #include <nlohmann/json.hpp>
+
+// Forward declarations
+namespace sep {
+namespace connectors {
+class OandaConnector;
+struct MarketData;
+}
+}
 
 namespace sep::trading {
 
@@ -66,7 +76,7 @@ struct CacheInfo {
 class UnifiedDataManager {
 public:
     explicit UnifiedDataManager(const UnifiedDataConfig& config);
-    ~UnifiedDataManager();
+    ~UnifiedDataManager() = default;
 
     // ============ LIVE TRADING CACHE API (from DataCacheManager) ============
     

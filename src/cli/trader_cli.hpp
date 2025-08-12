@@ -1,17 +1,15 @@
 #pragma once
 
-#pragma once
-
 #include <string>
 #include <vector>
 #include <functional> // For std::function
 #include <map>        // For std::map
 #include <memory>     // For std::unique_ptr
 
-#include "engine/internal/standard_includes.h"
-#include "trading/quantum_pair_trainer.hpp" // For QuantumPairTrainer
-#include "trading/ticker_pattern_analyzer.hpp" // For TickerPatternAnalyzer
-#include "trading/dynamic_pair_manager.hpp" // For DynamicPairManager
+#include "../engine/internal/standard_includes.h"
+#include "../trading/quantum_pair_trainer.hpp" // For QuantumPairTrainer
+#include "../trading/ticker_pattern_analyzer.hpp" // For TickerPatternAnalyzer
+#include "../trading/dynamic_pair_manager.hpp" // For DynamicPairManager
 
 namespace sep {
 namespace cli {

@@ -5,9 +5,9 @@
 
 #include "bit_pattern_kernel.cuh"
 #include "pattern_types.cuh"
-#include "common/error/cuda_error.h"
-#include "common/memory/device_buffer.h"
-#include "common/stream/stream.h"
+#include "../../common/error/cuda_error.h"
+#include "../../common/memory/device_buffer.h"
+#include "../../common/stream/stream.h"
 
 namespace sep {
 namespace cuda {
@@ -110,8 +110,8 @@ cudaError_t launchAnalyzeBitPatternsKernel(
     cudaStream_t stream)
 {
     // Use DeviceBuffer for RAII memory management
-    sep::cuda::memory::DeviceBuffer<uint8_t> d_bits(total_bits_size);
-    sep::cuda::memory::DeviceBuffer<ForwardWindowResult> d_results(1);
+    sep::cuda::DeviceBuffer<uint8_t> d_bits(total_bits_size);
+    sep::cuda::DeviceBuffer<ForwardWindowResult> d_results(1);
 
     // Copy input data to device
     CUDA_CHECK(cudaMemcpyAsync(
@@ -135,7 +135,10 @@ cudaError_t launchAnalyzeBitPatternsKernel(
     );
     
     // Check for kernel launch errors
-    CUDA_CHECK_LAST();
+    cudaError_t err = cudaGetLastError();
+    if (err != cudaSuccess) {
+        return err;
+    }
 
     // Copy results back to host
     CUDA_CHECK(cudaMemcpyAsync(
