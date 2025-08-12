@@ -101,6 +101,7 @@ docker-compose logs -f sep-trader
 - **Remote Execution**: 8GB RAM, 2 vCPU droplet sufficient
 - **Storage**: 50GB volume for historical data and logs
 - **Network**: Automated deployment to Digital Ocean
+- **Development**: Morph Fast Apply enabled for rapid code modifications
 
 ## 🧪 Backtesting vs Production
 
@@ -121,6 +122,7 @@ live trading binaries.
 - **DSL Interpreter** - Domain-specific language for pattern analysis
 - **Docker Containerization** - Production-ready deployment system
 - **Automated Synchronization** - Local→remote data pipeline
+- **Morph Fast Apply** - Rapid code modification system with intelligent diff application
 
 ### **🔧 Implementation Needed**
 - **Python Training Manager** - High-level training orchestration

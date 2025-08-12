@@ -43,6 +43,7 @@ _deps
 *~
 qdrant_storage/
 data.sqlite
+data.sqlite-journal
 
 # OS generated files
 .DS_Store

@@ -29,5 +29,9 @@
         "get-library-docs"
       ]
     }
+  },
+  "morph": {
+    "enabled": true,
+    "configPath": ".kilocode/morph.json"
   }
 }
