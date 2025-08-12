@@ -1,7 +1,5 @@
 #include "oanda_trader_app.hpp"
 
-#include <nlohmann/json.hpp>
-
 #include "common/sep_precompiled.h"
 
 #ifdef SEP_USE_GUI

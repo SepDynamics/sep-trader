@@ -1,5 +1,7 @@
-#include <nlohmann/json.hpp>
 #pragma once
+
+#include <array>
+#include <nlohmann/json.hpp>
 
 #include <GLFW/glfw3.h>
 
