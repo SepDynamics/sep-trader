@@ -14,7 +14,7 @@ add_sep_library(sep_dsl
         runtime/interpreter.h
         runtime/runtime.h
         optimizer/optimizer.h
-    PCH_HEADER ../common/sep_precompiled.h
+    PCH_HEADER ../common/stable_headers.h
     DEPENDENCIES
         sep_engine
         nlohmann_json::nlohmann_json
@@ -23,4 +23,5 @@ add_sep_library(sep_dsl
 target_include_directories(sep_dsl PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${spdlog_SOURCE_DIR}/include
+    /usr/include/c++/11
 )

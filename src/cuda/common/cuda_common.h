@@ -1,6 +1,7 @@
 #ifndef SEP_CUDA_COMMON_H
 #define SEP_CUDA_COMMON_H
 
+#include "../common/stable_headers.h"
 #include <cuda_runtime.h>
 #include <device_launch_parameters.h>
 

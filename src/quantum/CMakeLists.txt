@@ -43,6 +43,7 @@ target_include_directories(sep_quantum PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${CMAKE_SOURCE_DIR}/src
     ${spdlog_SOURCE_DIR}/include
+    /usr/include/c++/11
 )
 
 if(CUDAToolkit_FOUND)

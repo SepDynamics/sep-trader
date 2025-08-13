@@ -1,20 +1,14 @@
-// CRITICAL: For CUDA compilation, use precompiled header for array protection
-#include "common/sep_precompiled.h"
+// CRITICAL: For CUDA compilation, include our special CUDA header fix first
+#include "../common/global_includes.h"
+#include "../cuda/cuda_header_fix.cuh"
 
-// Include compatibility header first to handle math function conflicts
-#include <cuda_runtime.h>
+// This file now includes all necessary headers, including <cuda_runtime.h>
 
 // GLM CUDA compatibility
-
-#define CUDA_VERSION 12090
-#define __CUDA_VER_MAJOR__ 12
-#define __CUDA_VER_MINOR__ 9
-
-#include <cmath>
 #include <glm/glm.hpp>
 
-#include "engine/internal/cuda_math_compat.h"
-#include "quantum/quantum_processor_cuda.h"
+#include "../engine/internal/cuda_math_compat.h"
+#include "quantum_processor_cuda.h"
 
 namespace sep::quantum {
 

@@ -1,17 +1,7 @@
 #pragma once
 
 // Include the precompiled header first
-#include "../common/sep_precompiled.h"
-
-// Standard C++ headers
-#include <string>
-#include <vector>
-#include <functional> // For std::function
-#include <map>        // For std::map
-#include <memory>     // For std::unique_ptr
-
-// Standard includes file for uniformity
-#include "engine/internal/standard_includes.h"
+#include "../common/stable_headers.h"
 
 // Include necessary trading headers directly
 #include "trading/dynamic_pair_manager.hpp"

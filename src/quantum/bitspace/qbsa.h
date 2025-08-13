@@ -6,7 +6,7 @@
 
 #include "engine/internal/standard_includes.h"
 #include "quantum/gpu_context.h"
-#include "/workspace/src/quantum/qbsa.cuh"
+#include "quantum/qbsa.cuh"
 
 namespace sep::quantum::bitspace {
 

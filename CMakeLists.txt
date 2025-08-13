@@ -36,7 +36,6 @@ set(CMAKE_DISABLE_PRECOMPILE_HEADERS OFF)
 add_compile_definitions(
     _GLIBCXX_DEBUG_PEDANTIC=0  # Disable pedantic debug checks
     _GLIBCXX_CONCEPT_CHECKS=0  # Disable concept checks that might interfere
-    FORCE_INCLUDE_ARRAY=1
 )
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wpedantic -O3")
@@ -45,12 +44,12 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wpedantic -O3")
 # This ensures std::array is available for nlohmann_json and all dependencies
 # set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -include array") # Removed to avoid conflicts with std::array
 
-# Relax two-phase name lookup for GCC 11 compatibility with nlohmann_json
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fpermissive")
+# Add the C++ standard library include path to the global flags
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -isystem /usr/include/c++/11")
+set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -isystem /usr/include/c++/11")
 
-# Include directory for source files and force include array protection
-include_directories(BEFORE ${CMAKE_SOURCE_DIR}/src)
-add_compile_options(-include ${CMAKE_SOURCE_DIR}/src/array_protection.h)
+
+# Removed force-include of array_protection.h to avoid breaking standard library dependencies
 
 
 if(SEP_USE_TBB)
@@ -90,11 +89,12 @@ if(SEP_USE_CUDA)
     # Configure CUDA standard
     set(CMAKE_CUDA_STANDARD 17)
     set(CMAKE_CUDA_STANDARD_REQUIRED ON)
+    set(CMAKE_CUDA_EXTENSIONS OFF)
     
     # Enable CUDA language and find toolkit
     enable_language(CUDA)
     find_package(CUDAToolkit REQUIRED)
-    set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -include ${CMAKE_SOURCE_DIR}/src/array_protection.h")
+    # Removed force-include of array_protection.h for CUDA to avoid breaking standard library
     
     message(STATUS "Found CUDAToolkit")
     message(STATUS "CUDA Libraries: ${CUDAToolkit_LIBRARY_DIR}")
@@ -113,6 +113,7 @@ if(SEP_USE_CUDA)
     
     # Add CUDA paths to include and link directories
     include_directories(SYSTEM ${CUDAToolkit_INCLUDE_DIRS})
+    include_directories(SYSTEM /usr/include/c++/11)
     link_directories(${CUDAToolkit_LIBRARY_DIR})
 
 endif()
@@ -132,7 +133,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # The following global include is problematic and has been removed.
 # Include directories should be added on a per-target basis.
-# include_directories(${CMAKE_SOURCE_DIR}/src)
+include_directories(${CMAKE_SOURCE_DIR}/src)
 
 # Disable nlohmann global UDLs to prevent conflicts
 add_compile_definitions(NLOHMANN_JSON_USE_GLOBAL_UDLS=0)
@@ -170,22 +171,16 @@ endif()
 
 include(FetchContent)
 
-# Include the patch function for nlohmann_json
-include(cmake/nlohmann_json_patch.cmake)
-
 # Use system GLM instead of downloading
 find_package(glm REQUIRED)
 # Use FetchContent for nlohmann_json with GCC 11 fix
 FetchContent_Declare(
   nlohmann_json
   GIT_REPOSITORY https://github.com/nlohmann/json.git
-  GIT_TAG v3.11.3
+  GIT_TAG v3.11.2
   GIT_SHALLOW TRUE
 )
 FetchContent_MakeAvailable(nlohmann_json)
-
-# Apply patch to fix missing std::array header in GCC 11
-patch_nlohmann_json()
 
 # Apply surgical fix for std::array visibility to nlohmann_json
 # Use the base target, not the alias

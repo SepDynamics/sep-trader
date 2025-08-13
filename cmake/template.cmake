@@ -55,7 +55,7 @@ function(add_sep_library name)
         foreach(cuda_source ${ARG_CUDA_SOURCES})
             get_filename_component(ext ${cuda_source} EXT)
             if(ext STREQUAL ".cu")
-                set(CUDA_FLAGS "-forward-unknown-to-host-compiler -Xcompiler=-fPIC --expt-relaxed-constexpr --extended-lambda --display-error-number --allow-unsupported-compiler -Wno-deprecated-gpu-targets")
+                set(CUDA_FLAGS "--expt-relaxed-constexpr --extended-lambda")
                 
                 # Add architecture-specific flags
                 foreach(arch ${CMAKE_CUDA_ARCHITECTURES})

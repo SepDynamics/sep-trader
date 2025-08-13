@@ -2,7 +2,7 @@
 #include <cuda_runtime.h>
 #include <device_launch_parameters.h>
 
-#include <array>
+// Removed <array> include to fix CUDA compilation issue
 #include <cub/cub.cuh>
 #include <iostream>
 

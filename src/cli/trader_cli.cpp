@@ -1,8 +1,5 @@
 // Include precompiled header first for CUDA compatibility layer
-#include "../common/sep_precompiled.h"
-
-// Signal handling
-#include <csignal>
+#include "../common/stable_headers.h"
 
 // Include CUDA type system directly
 #include "../engine/internal/cuda/common/cuda_type_system.h"
@@ -10,18 +7,10 @@
 // Include our class header
 #include "trader_cli.hpp"
 
-// Additional system headers needed
-#include <filesystem>
-
-// Third-party libraries
-#include <fmt/format.h>
-#include <hiredis/hiredis.h>
-#include <spdlog/spdlog.h>
-
 // Use CUDA compatibility types
-using cuda::ts::make_unique;
-using cuda::ts::string;
-using cuda::ts::vector;
+using cuda::type_system::make_unique;
+using cuda::type_system::string;
+using cuda::type_system::vector;
 
 // Project includes
 #include "../core_integrated/cache_health_monitor.hpp"
