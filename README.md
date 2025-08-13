@@ -161,6 +161,7 @@ live trading binaries.
 - **[docs/PROJECT_STATUS.md](docs/PROJECT_STATUS.md)** - Current implementation status
 - **[docs/CLOUD_DEPLOYMENT.md](docs/CLOUD_DEPLOYMENT.md)** - Cloud deployment guide
 - **[docs/cuda_kernel_consolidation_analysis.md](docs/cuda_kernel_consolidation_analysis.md)** - CUDA kernel locations and consolidation plan
+- **[docs/kernel_feature_overview.md](docs/kernel_feature_overview.md)** - Kernel and architecture feature overview with code links
 
 ## 🔒 Intellectual Property
 
