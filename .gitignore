@@ -60,6 +60,7 @@ Thumbs.db
 logs/
 *.txt
 !tests/CMakeLists.txt
+!src/apps/oanda_trader/CMakeLists.txt
 
 # Dependencies
 node_modules/
