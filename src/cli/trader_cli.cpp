@@ -1,6 +1,9 @@
 // Include precompiled header first for CUDA compatibility layer
 #include "../common/sep_precompiled.h"
 
+// Signal handling
+#include <csignal>
+
 // Include CUDA type system directly
 #include "../engine/internal/cuda/common/cuda_type_system.h"
 
@@ -8,7 +11,6 @@
 #include "trader_cli.hpp"
 
 // Additional system headers needed
-#include <csignal>
 #include <filesystem>
 
 // Third-party libraries
@@ -57,7 +59,7 @@ namespace sep::cli
     using ::sep::cache::WeeklyCacheManager;
 
     // Global shutdown flag, accessible within sep::cli namespace
-    volatile ::sig_atomic_t g_shutdown_requested = 0;
+    volatile sig_atomic_t g_shutdown_requested = 0;
 
     namespace
     {
