@@ -35,7 +35,7 @@ struct WindowResult {
 };
 
 // Using alias to maintain compatibility with existing code  
-using ForwardWindowResult = sep::quantum::bitspace::ForwardWindowResult;
+using ForwardWindowResult = sep::core::ForwardWindowResult;
 
 // CUDA context for managing device memory and streams
 struct CudaContext {

@@ -3,7 +3,7 @@
 
 #include <cuda_runtime.h>
 
-#include "stream.h"
+#include "cuda/stream.h"
 
 namespace sep {
 namespace cuda {
