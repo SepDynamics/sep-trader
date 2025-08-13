@@ -3,8 +3,7 @@
 #include <cuda_runtime.h>
 #include "trading_types.cuh"
 #include "multi_pair_kernel.cuh"
-#include "pattern_analysis_kernel.cuh"
-#include "quantum_training_kernel.cuh"
+#include "../../../quantum/trading_kernels.cuh"
 #include "ticker_optimization_kernel.cuh"
 
 /**
@@ -54,7 +53,7 @@ inline cudaError_t analyzePatterns(
     float* analysis_results,
     int data_points
 ) {
-    return launchPatternAnalysisKernel(
+    return sep::quantum::launchPatternAnalysisKernel(
         market_data,
         analysis_results,
         data_points
@@ -76,7 +75,7 @@ inline cudaError_t trainQuantumPatterns(
     int data_size,
     int pattern_count
 ) {
-    return launchQuantumTrainingKernel(
+    return sep::quantum::launchQuantumTrainingKernel(
         input_data,
         output_patterns,
         data_size,

@@ -21,6 +21,7 @@ add_sep_library(sep_quantum
         qbsa_cuda.cu
         quantum_processor_cuda.cu
         ../cuda/pattern/bit_pattern_kernels.cu
+        trading_kernels.cu
     DEPENDENCIES
     sep_core_types
     sep_quantum_bitspace
