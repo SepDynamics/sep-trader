@@ -1,6 +1,6 @@
 #pragma once
 
-#include "oanda_connector.h"
+#include "io/oanda_connector.h"
 
 // Forward declarations for CUDA types to avoid header conflicts
 namespace sep::apps::cuda {

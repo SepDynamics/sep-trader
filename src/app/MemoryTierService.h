@@ -1,7 +1,7 @@
 #pragma once
 
 #include "IMemoryTierService.h"
-#include "ServiceBase.h"
+#include "app/ServiceBase.h"
 #include <mutex>
 #include <atomic>
 #include <unordered_map>

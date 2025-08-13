@@ -1,3 +1,5 @@
+#define SEP_BACKTESTING
+#define GLM_COMPILER 0
 // CRITICAL: For CUDA compilation, apply comprehensive std::array protection
 #include <cuda_runtime.h>
 #include <device_launch_parameters.h>

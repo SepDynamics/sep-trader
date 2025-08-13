@@ -14,7 +14,7 @@
 #include <vector>
 
 #include "forward_window_result.h"
-#include "oanda_connector.h"
+#include "io/oanda_connector.h"
 #include "engine.h"
 #ifdef SEP_USE_GUI
 #include "imgui.h"

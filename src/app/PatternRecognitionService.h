@@ -1,6 +1,6 @@
 #pragma once
 
-#include "IPatternRecognitionService.h"
+#include "app/IPatternRecognitionService.h"
 #include "ServiceBase.h"
 #include "nlohmann_json_safe.h"
 #include <array>

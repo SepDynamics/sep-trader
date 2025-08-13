@@ -9,7 +9,7 @@
 #include <unordered_map>
 #include <string>
 
-#include "oanda_connector.h"
+#include "io/oanda_connector.h"
 #include "qfh.h"
 #include "qbsa.h"
 #include "pattern_evolution_bridge.h"
