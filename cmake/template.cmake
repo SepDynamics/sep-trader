@@ -134,7 +134,8 @@ function(add_sep_executable name)
         ${CMAKE_SOURCE_DIR}/src
     )
     
-    # Add dependencies
+    # Link required core dependencies and any additional libraries
+    target_link_libraries(${name} PRIVATE sep_core_deps)
     if(ARG_DEPENDENCIES)
         target_link_libraries(${name} PRIVATE ${ARG_DEPENDENCIES})
     endif()

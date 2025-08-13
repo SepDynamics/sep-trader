@@ -105,8 +105,8 @@ if(SEP_USE_CUDA)
     message(STATUS "CUDA Architectures: ${CMAKE_CUDA_ARCHITECTURES}")
     
     # Add CUDA paths to include and link directories
-    include_directories("$ENV{CUDA_HOME}/include")
-    link_directories("$ENV{CUDA_HOME}/lib64")
+    include_directories(SYSTEM ${CUDAToolkit_INCLUDE_DIRS})
+    link_directories(${CUDAToolkit_LIBRARY_DIR})
 
 endif()
 

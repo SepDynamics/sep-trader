@@ -1,6 +1,7 @@
 #include "QuantumProcessingService.h"
 #include <algorithm>
 #include <cmath>
+#include <array>
 #include <functional>
 
 namespace sep {

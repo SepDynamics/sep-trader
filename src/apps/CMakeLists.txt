@@ -20,4 +20,6 @@ target_link_libraries(data_downloader PRIVATE
 )
 
 # ENABLED: oanda_trader subdirectory
-add_subdirectory(oanda_trader)
+if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/oanda_trader/CMakeLists.txt)
+    add_subdirectory(oanda_trader)
+endif()
