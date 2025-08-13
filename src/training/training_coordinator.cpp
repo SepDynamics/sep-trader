@@ -1,3 +1,4 @@
+#include "nlohmann_json_safe.h"
 // SEP Professional Training Coordinator Implementation
 // Coordinates local CUDA training with remote trading deployment
 

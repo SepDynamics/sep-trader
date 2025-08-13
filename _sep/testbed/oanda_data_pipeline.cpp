@@ -1,4 +1,4 @@
-#include <nlohmann/json.hpp>
+#include "nlohmann_json_safe.h"
 #include <fstream>
 #include <vector>
 #include <string>

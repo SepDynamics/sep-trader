@@ -1,3 +1,4 @@
+#include "nlohmann_json_safe.h"
 #include "oanda_trader_app.hpp"
 
 #include "common/sep_precompiled.h"

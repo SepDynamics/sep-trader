@@ -1,7 +1,7 @@
 // Simple test to verify CUDA+JSON compatibility
 
 #include "common/sep_precompiled.h"
-#include <nlohmann/json.hpp>
+#include "nlohmann_json_safe.h"
 
 int main() {
     nlohmann::json j;

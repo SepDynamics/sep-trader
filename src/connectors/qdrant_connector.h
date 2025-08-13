@@ -4,7 +4,7 @@
 #include <string>
 #include <vector>
 #include <cstdint>
-#include <nlohmann/json.hpp>
+#include "nlohmann_json_safe.h"
 
 namespace sep {
 namespace connectors {
