@@ -15,7 +15,7 @@
 
 #include "common/financial_data_types.h"
 #include "engine/internal/standard_includes.h"
-#include <nlohmann/json.hpp>
+#include "nlohmann_json_safe.h"
 
 namespace sep {
 namespace connectors {

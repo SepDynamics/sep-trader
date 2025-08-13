@@ -1,3 +1,4 @@
+#include "nlohmann_json_safe.h"
 #include "qdrant_connector.h"
 #include <curl/curl.h>
 #include <sstream>

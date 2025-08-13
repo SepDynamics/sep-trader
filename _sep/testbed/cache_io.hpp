@@ -2,7 +2,7 @@
 
 #include <string>
 #include <vector>
-#include <nlohmann/json.hpp>
+#include "nlohmann_json_safe.h"
 
 namespace sep::testbed {
 

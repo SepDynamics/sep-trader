@@ -3,7 +3,7 @@
 #include "connectors/oanda_connector.h"
 #include "dsl/stdlib/core_primitives.h"
 #include "cache/cache_validator.hpp"
-#include <nlohmann/json.hpp>
+#include "nlohmann_json_safe.h"
 #include <fstream>
 #include <filesystem>
 #include <cstdlib>

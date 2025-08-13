@@ -1,7 +1,7 @@
 #define SEP_ENABLE_TRACE
 #include "../trace.hpp"
 #include "../../src/trading/signal_pipeline.hpp"
-#include <nlohmann/json.hpp>
+#include "nlohmann_json_safe.h"
 #include <fstream>
 #include <vector>
 #include <string>

@@ -2,7 +2,7 @@
 
 #include <chrono>
 #include <fstream>
-#include <nlohmann/json.hpp>
+#include "nlohmann_json_safe.h"
 #include <vector>
 
 #include "apps/oanda_trader/candle_types.h"

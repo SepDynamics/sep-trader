@@ -36,6 +36,7 @@ set(CMAKE_DISABLE_PRECOMPILE_HEADERS OFF)
 add_compile_definitions(
     _GLIBCXX_DEBUG_PEDANTIC=0  # Disable pedantic debug checks
     _GLIBCXX_CONCEPT_CHECKS=0  # Disable concept checks that might interfere
+    FORCE_INCLUDE_ARRAY=1
 )
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wpedantic -O3")
@@ -47,8 +48,9 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wpedantic -O3")
 # Relax two-phase name lookup for GCC 11 compatibility with nlohmann_json
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fpermissive")
 
-# Include directory for source files
+# Include directory for source files and force include array protection
 include_directories(BEFORE ${CMAKE_SOURCE_DIR}/src)
+add_compile_options(-include ${CMAKE_SOURCE_DIR}/src/array_protection.h)
 
 
 if(SEP_USE_TBB)
@@ -86,7 +88,7 @@ if(SEP_USE_CUDA)
     # Enable CUDA language and find toolkit
     enable_language(CUDA)
     find_package(CUDAToolkit REQUIRED)
-    set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS}")
+    set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -include ${CMAKE_SOURCE_DIR}/src/array_protection.h")
     
     message(STATUS "Found CUDAToolkit")
     message(STATUS "CUDA Libraries: ${CUDAToolkit_LIBRARY_DIR}")
