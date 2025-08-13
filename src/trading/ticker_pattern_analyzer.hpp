@@ -56,7 +56,7 @@ struct TickerPatternAnalysis {
     
     // Trading signals
     enum class SignalStrength { NONE, WEAK, MODERATE, STRONG, VERY_STRONG };
-    enum class SignalDirection { HOLD, BUY, SELL };
+    enum class SignalDirection { HOLD, BUY, SELL, UP, DOWN, NEUTRAL };
     
     SignalDirection primary_signal = SignalDirection::HOLD;
     SignalStrength signal_strength = SignalStrength::NONE;

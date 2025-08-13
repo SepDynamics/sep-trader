@@ -1,42 +1,26 @@
-# Find required dependencies
-find_package(PkgConfig REQUIRED)
-pkg_check_modules(CURL REQUIRED libcurl)
-
-# Create the connectors library
-add_library(sep_connectors STATIC
-    oanda_connector.cpp
-    market_data_converter.cpp
-    qdrant_connector.cpp
+add_sep_library(sep_connectors
+    SOURCES
+        oanda_connector.cpp
+        market_data_converter.cpp
+        qdrant_connector.cpp
+    PCH_HEADER ../common/sep_precompiled.h
+    DEPENDENCIES
+        CURL::libcurl
+        TBB::tbb
+        sep_engine
+        nlohmann_json::nlohmann_json
 )
-
-# Enable Position Independent Code for shared library compatibility
-set_target_properties(sep_connectors PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
 target_include_directories(sep_connectors PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}
-    ${CMAKE_SOURCE_DIR}/src
-    ${CMAKE_SOURCE_DIR}/src/common
-PRIVATE
-    ${CURL_INCLUDE_DIRS}
+    ${spdlog_SOURCE_DIR}/include
 )
-
-target_link_libraries(sep_connectors PUBLIC
-    ${CURL_LIBRARIES}
-    TBB::tbb
-PRIVATE
-    sep_engine
-    nlohmann_json::nlohmann_json
-)
-target_compile_options(sep_connectors PRIVATE ${CURL_CFLAGS_OTHER})
 
 # Build the Qdrant test executable
 add_executable(test_qdrant test_qdrant.cpp)
 target_link_libraries(test_qdrant PRIVATE
     sep_connectors
     sep_core_types
-    ${CURL_LIBRARIES}
+    CURL::libcurl
     nlohmann_json::nlohmann_json
 )
-
-
-

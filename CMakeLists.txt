@@ -25,11 +25,12 @@ project(sep_engine VERSION 1.0.0 LANGUAGES CXX)
 
 # Ensure consistent C++17 standard
 set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D_GLIBCXX_USE_CXX11_ABI=0")
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-# Disable automatic precompiled headers that are causing issues
-set(CMAKE_DISABLE_PRECOMPILE_HEADERS ON)
+# Enable precompiled headers
+set(CMAKE_DISABLE_PRECOMPILE_HEADERS OFF)
 
 # GLOBAL FIX: Force include array header and fix std library issues
 add_compile_definitions(
@@ -38,11 +39,16 @@ add_compile_definitions(
     _GLIBCXX_ARRAY_DEFINED=1   # Force array header to be available
 )
 
-# Removed global force-include - using surgical target-specific approach instead
-
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wpedantic -O3")
 
-# Include directory for source files  
+# CRITICAL FIX: Force include array header for all compilation units
+# This ensures std::array is available for nlohmann_json and all dependencies
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -include array")
+
+# Relax two-phase name lookup for GCC 11 compatibility with nlohmann_json
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fpermissive")
+
+# Include directory for source files
 include_directories(BEFORE ${CMAKE_SOURCE_DIR}/src)
 
 
@@ -81,6 +87,7 @@ if(SEP_USE_CUDA)
     # Enable CUDA language and find toolkit
     enable_language(CUDA)
     find_package(CUDAToolkit REQUIRED)
+    set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -include array -Xcompiler -Wno-pedantic -D_GLIBCXX_USE_CXX11_ABI=0")
     
     message(STATUS "Found CUDAToolkit")
     message(STATUS "CUDA Libraries: ${CUDAToolkit_LIBRARY_DIR}")
@@ -132,6 +139,7 @@ add_compile_definitions(NLOHMANN_JSON_USE_GLOBAL_UDLS=0)
 enable_testing()
 
 # Find required packages
+find_package(CURL REQUIRED)
 find_package(Threads REQUIRED)
 # TBB built via FetchContent to avoid system dependencies
 find_package(benchmark)
@@ -155,6 +163,9 @@ endif()
 
 include(FetchContent)
 
+# Include the patch function for nlohmann_json
+include(cmake/nlohmann_json_patch.cmake)
+
 # Use system GLM instead of downloading
 find_package(glm REQUIRED)
 # Use FetchContent for nlohmann_json with GCC 11 fix
@@ -165,6 +176,9 @@ FetchContent_Declare(
   GIT_SHALLOW TRUE
 )
 FetchContent_MakeAvailable(nlohmann_json)
+
+# Apply patch to fix missing std::array header in GCC 11
+patch_nlohmann_json()
 
 # Apply surgical fix for std::array visibility to nlohmann_json
 # Use the base target, not the alias
@@ -241,7 +255,7 @@ if(SEP_USE_GUI)
 
     target_include_directories(imgui PUBLIC
         ${imgui_SOURCE_DIR}
-        ${imgui_SOURCE_DIR}/backends
+        ${imgai_SOURCE_DIR}/backends
     )
 
     set(IMPLOT_SOURCES
@@ -277,6 +291,7 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(fmt)
 
 # Use FetchContent for spdlog
+add_definitions(-DSPDLOG_FMT_EXTERNAL)
 FetchContent_Declare(
   spdlog
   GIT_REPOSITORY https://github.com/gabime/spdlog.git
@@ -286,6 +301,10 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(spdlog)
 
 add_library(sep_core_deps INTERFACE)
+target_include_directories(sep_core_deps INTERFACE 
+    ${spdlog_SOURCE_DIR}/include
+    ${fmt_SOURCE_DIR}/include
+)
 target_link_libraries(sep_core_deps INTERFACE
     Threads::Threads
 #    benchmark::benchmark
@@ -299,6 +318,7 @@ target_link_libraries(sep_core_deps INTERFACE
     TBB::tbb
     fmt::fmt
     spdlog::spdlog
+    CURL::libcurl
 )
 
 

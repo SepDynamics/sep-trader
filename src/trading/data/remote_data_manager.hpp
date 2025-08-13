@@ -1,5 +1,5 @@
-#include <nlohmann/json.hpp>
 #pragma once
+#include "../../nlohmann_json_safe.h"
 
 #include <chrono>
 #include <future>

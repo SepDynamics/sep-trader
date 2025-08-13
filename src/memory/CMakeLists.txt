@@ -15,11 +15,13 @@ add_sep_library(sep_memory
         CUDA::cuda_driver
         spdlog::spdlog
         hiredis
+    PCH_HEADER ../common/sep_precompiled.h
 )
 
 target_include_directories(sep_memory PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${CMAKE_SOURCE_DIR}/src
+    ${spdlog_SOURCE_DIR}/include
 )
 
 # Fixed by proper include order in standard_includes.h

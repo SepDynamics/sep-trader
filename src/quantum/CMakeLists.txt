@@ -34,13 +34,14 @@ add_sep_library(sep_quantum
     spdlog::spdlog
 )
 
-target_precompile_headers(sep_quantum PRIVATE ${CMAKE_SOURCE_DIR}/src/nlohmann_json_safe.h)
+target_precompile_headers(sep_quantum PRIVATE ../common/sep_precompiled.h)
 
 add_dependencies(sep_quantum sep_memory)
 
 target_include_directories(sep_quantum PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${CMAKE_SOURCE_DIR}/src
+    ${spdlog_SOURCE_DIR}/include
 )
 
 if(CUDAToolkit_FOUND)

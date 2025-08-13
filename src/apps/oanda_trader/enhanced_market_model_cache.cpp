@@ -5,7 +5,7 @@
 #include <filesystem>
 #include <fstream>
 #include <iostream>
-#include <nlohmann/json.hpp>
+#include "../../nlohmann_json_safe.h"
 #include <numeric>
 #include <thread>
 

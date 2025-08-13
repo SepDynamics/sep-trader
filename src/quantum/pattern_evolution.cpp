@@ -1,4 +1,4 @@
-#include <nlohmann/json.hpp>
+#include "../nlohmann_json_safe.h"
 #include "quantum/pattern_evolution.h"
 
 #include <string.h>

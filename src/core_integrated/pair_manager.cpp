@@ -4,7 +4,7 @@
 #include <fstream>
 #include <iomanip>
 #include <iostream>
-#include <nlohmann/json.hpp>
+#include "../nlohmann_json_safe.h"
 #include <regex>
 #include <sstream>
 

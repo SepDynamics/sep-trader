@@ -1,4 +1,4 @@
-#include <nlohmann/json.hpp>
+#include "../../nlohmann_json_safe.h"
 
 #include "common/sep_precompiled.h"
 #include "engine/internal/standard_includes.h"

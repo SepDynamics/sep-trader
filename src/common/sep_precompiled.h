@@ -15,6 +15,8 @@
 // We MUST include array before any header that might pull in functional.
 
 #include <array>
+#include "../nlohmann_json_safe.h"
+
 
 // CUDA compatibility layer (must come after array but before other includes)
 #include "engine/internal/cuda/common/cuda_prerequisites.h"

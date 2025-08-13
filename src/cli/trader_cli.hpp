@@ -17,6 +17,13 @@
 #include "trading/dynamic_pair_manager.hpp"
 #include "trading/quantum_pair_trainer.hpp"
 #include "trading/ticker_pattern_analyzer.hpp"
+#include "../core_integrated/trading_state.hpp"
+#include "../core_integrated/pair_manager.hpp"
+#include "../core_integrated/dynamic_config_manager.hpp"
+#include "../core_integrated/weekly_cache_manager.hpp"
+#include "../core_integrated/cache_health_monitor.hpp"
+#include "../core_integrated/cache_validator.hpp"
+#include "../core_integrated/trading_state.hpp"
 
 // Forward declare needed classes and enums
 namespace sep
@@ -30,16 +37,6 @@ namespace sep
 
     namespace trading
     {
-        class QuantumPairTrainer;
-        class TickerPatternAnalyzer;
-        class DynamicPairManager;
-        class TradingState;
-        class PairManager;
-        class DynamicConfigManager;
-        class WeeklyCacheManager;
-        class CacheHealthMonitor;
-        class CacheValidator;
-
         // Forward declare only - no redefinition
         struct TickerPatternAnalysis;
     }  // namespace trading

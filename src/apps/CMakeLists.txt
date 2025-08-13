@@ -2,11 +2,12 @@
 
 # ENABLED: data_downloader
 add_executable(data_downloader data_downloader.cpp)
-set_target_properties(data_downloader PROPERTIES SKIP_PRECOMPILE_HEADERS ON)
+target_precompile_headers(data_downloader PRIVATE ../common/sep_precompiled.h)
+
 
 # REMOVED: Problematic forced include
 
-target_include_directories(data_downloader PRIVATE ${CMAKE_SOURCE_DIR}/src)
+target_include_directories(data_downloader PRIVATE ${CMAKE_SOURCE_DIR}/src ${spdlog_SOURCE_DIR}/include)
 
 target_link_libraries(data_downloader PRIVATE
     # sep_trading  # Temporarily disabled

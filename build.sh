@@ -103,8 +103,8 @@ if [ "$NATIVE_BUILD" = true ] || [ "$SKIP_DOCKER" = true ] || ! "$DOCKER_BIN" in
         -DCMAKE_BUILD_WITH_INSTALL_RPATH=ON \
         -DCMAKE_EXPORT_COMPILE_COMMANDS=TRUE \
         -DSEP_USE_GUI=OFF -DCMAKE_CXX_STANDARD=20 \
-        -DCMAKE_CXX_FLAGS="-Wno-error=pedantic -D__CORRECT_ISO_CPP11_MATH_H_PROTO" \
-        -DCMAKE_CUDA_FLAGS="-Wno-deprecated-gpu-targets" \
+        -DCMAKE_CXX_FLAGS="-Wno-error=pedantic -D__CORRECT_ISO_CPP11_MATH_H_PROTO -Wno-pedantic -Wno-unknown-warning-option -Wno-invalid-source-encoding -D_GLIBCXX_USE_CXX11_ABI=0" \
+        -DCMAKE_CUDA_FLAGS="-Wno-deprecated-gpu-targets -Xcompiler -Wno-pedantic -Xcompiler -Wno-unknown-warning-option -Xcompiler -Wno-invalid-source-encoding -D_GLIBCXX_USE_CXX11_ABI=0" \
         $CUDA_FLAGS
 
     # Build with ninja using system libraries
@@ -142,7 +142,7 @@ echo "Mounting local directory $(pwd) to ${SEP_WORKSPACE_PATH} in the container.
         -DCMAKE_EXPORT_COMPILE_COMMANDS=TRUE \
         -DSEP_USE_CUDA=ON \
         -DSEP_USE_GUI=OFF \
-        -DCMAKE_CXX_FLAGS="-D__CORRECT_ISO_CPP11_MATH_H_PROTO"         -DCMAKE_CXX_STANDARD=20         -DCMAKE_CUDA_FLAGS="-Wno-deprecated-gpu-targets"
+        -DCMAKE_CXX_FLAGS="-D__CORRECT_ISO_CPP11_MATH_H_PROTO -Wno-pedantic -Wno-unknown-warning-option -Wno-invalid-source-encoding -D_GLIBCXX_USE_CXX11_ABI=0"         -DCMAKE_CXX_STANDARD=20         -DCMAKE_CUDA_FLAGS="-Wno-deprecated-gpu-targets -Xcompiler -Wno-pedantic -Xcompiler -Wno-unknown-warning-option -Xcompiler -Wno-invalid-source-encoding -D_GLIBCXX_USE_CXX11_ABI=0"
     
     ninja -k 0 2>&1 | tee ${SEP_WORKSPACE_PATH}/output/build_log.txt
     
@@ -159,8 +159,7 @@ fix_compile_commands() {
 
 # Extract errors from build log
 if [ -f output/build_log.txt ]; then
-    echo "Extracting errors to output/errors.txt..."
-    grep -i "error\|failed\|fatal" output/build_log.txt > output/errors.txt 2>/dev/null || echo "No errors found" > output/errors.txt
+    grep -i "error\|failed\|fatal" output/build_log.txt > output/build_log.txt.tmp && mv output/build_log.txt.tmp output/build_log.txt || echo "No errors found" > output/build_log.txt
 fi
 
 

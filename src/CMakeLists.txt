@@ -6,6 +6,7 @@ add_subdirectory(core_types)
 add_subdirectory(common)
 
 add_subdirectory(core_integrated)
+add_subdirectory(metrics_library)
 
 if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/ui/CMakeLists.txt)
     add_subdirectory(ui)

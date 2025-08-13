@@ -45,7 +45,7 @@ add_sep_library(sep_engine
         fmt::fmt
 )
 
-target_precompile_headers(sep_engine PRIVATE ${CMAKE_SOURCE_DIR}/src/nlohmann_json_safe.h)
+target_precompile_headers(sep_engine PRIVATE ../common/sep_precompiled.h)
 
 target_include_directories(sep_engine PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/facade
@@ -54,6 +54,7 @@ target_include_directories(sep_engine PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/memory
     ${CMAKE_CURRENT_SOURCE_DIR}/batch
     ${CMAKE_CURRENT_SOURCE_DIR}/config
+    ${spdlog_SOURCE_DIR}/include
     PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/internal
     ${CMAKE_SOURCE_DIR}/src/common

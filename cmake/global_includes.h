@@ -1,40 +1,6 @@
-#pragma once
+#ifndef GLOBAL_INCLUDES_H
+#define GLOBAL_INCLUDES_H
 
-#include <iostream>
-#include <vector>
-#include <string>
-#include <memory>
-#include <mutex>
-#include <shared_mutex>
-#include <atomic>
-#include <thread>
-#include <condition_variable>
-#include <functional>
-#include <chrono>
-#include <cmath>
-#include <complex>
-#include <cstdint>
-#include <future>
-#include <numeric>
-#include <optional>
-#include <stdexcept>
-#include <unordered_map>
-#include <iomanip>
-#include <memory_resource>
+#include <array>
 
-#include <glm/glm.hpp>
-#include <glm/vec3.hpp>
-#include <glm/mat4x4.hpp>
-
-#include <fmt/format.h>
-#define SPDLOG_FMT_EXTERNAL
-#include <spdlog/spdlog.h>
-
-#include <algorithm>
-#include <memory>
-#include <execution>
-
-#ifdef __CUDACC__
-#include <cuda_runtime.h> 
-#include <cufft.h>
-#endif
+#endif // GLOBAL_INCLUDES_H

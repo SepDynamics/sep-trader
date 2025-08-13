@@ -1,7 +1,7 @@
 #pragma once
 
-#include <array>
 #include "../../nlohmann_json_safe.h"
+#include <array>
 #include <vector>
 #include <string>
 #include <map>

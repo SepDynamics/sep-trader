@@ -8,7 +8,7 @@
 #include "trader_cli.hpp"
 
 // Additional system headers needed
-#include <signal.h>       // Use C-style signal.h instead of csignal
+#include <csignal>
 #include <filesystem>
 
 // Third-party libraries
@@ -48,14 +48,15 @@ namespace sep::cli
 {
     // Using declarations
     using ::sep::core::SystemStatus;
-    using ::sep::trading::CacheHealthMonitor;
-    using ::sep::trading::CacheValidator;
-    using ::sep::trading::DynamicConfigManager;
-    using ::sep::trading::PairManager;
-    using ::sep::trading::TradingState;
-    using ::sep::trading::WeeklyCacheManager;
+    using ::sep::core::SystemHealth; // Added for SystemHealth struct
+    using ::sep::cache::CacheHealthMonitor;
+    using ::sep::cache::CacheValidator;
+    using ::sep::config::DynamicConfigManager;
+    using ::sep::core::PairManager;
+    using ::sep::core::TradingState;
+    using ::sep::cache::WeeklyCacheManager;
 
-    // Move this outside of anonymous namespace so it can be accessed
+    // Global shutdown flag, accessible within sep::cli namespace
     volatile sig_atomic_t g_shutdown_requested = 0;
 
     namespace
@@ -66,6 +67,9 @@ namespace sep::cli
             std::cout << "\nShutdown requested...\n";
         }
     }
+
+    // Ensure signal_handler is visible for signal registration
+    // using ::sep::cli::signal_handler; // Not needed if signal_handler is in anonymous namespace and g_shutdown_requested is in sep::cli
 
 TraderCLI::TraderCLI() : verbose_(false), config_path_("config/"),
     trainer_(std::make_unique<sep::trading::QuantumPairTrainer>()),
@@ -236,7 +240,8 @@ int TraderCLI::handle_start(const std::vector<std::string>& args) {
         // Validate cache
         std::cout << "🗂️  Validating cache system...\n";
         CacheValidator validator;
-        if (!validator.validateDataIntegrity(config_path_ + "cache/")) {
+        sep::cache::ValidationResponse validation_response = validator.validateCacheFile(config_path_ + "cache/");
+        if (validation_response.result != sep::cache::ValidationResult::VALID) {
             std::cout << "⚠️  Cache validation issues detected\n";
         }
         
@@ -283,7 +288,7 @@ int TraderCLI::handle_stop(const std::vector<std::string>& /* args */) {
         state.setSystemStatus(SystemStatus::STOPPING);
 
         // Send shutdown signal to running processes
-        ::sep::cli::g_shutdown_requested = 1;
+        g_shutdown_requested = 1;
         
         std::this_thread::sleep_for(std::chrono::milliseconds(500));
         state.setSystemStatus(SystemStatus::IDLE);
