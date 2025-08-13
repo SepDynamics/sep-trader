@@ -72,6 +72,25 @@ export LD_LIBRARY_PATH=./build/src/core:./build/src/config:./build/src/c_api
 ./build/src/dsl/sep_dsl_interpreter examples/test.sep
 ```
 
+### **Docker Build Workflow**
+```bash
+# 1. Build the CUDA-enabled image
+docker build -t sep_build_env .
+
+# 2. Run the build inside the container
+docker run --gpus all --rm \
+    -v $(pwd):/workspace \
+    -e SEP_WORKSPACE_PATH=/workspace \
+    sep_build_env ./build.sh --native
+```
+
+**Required environment variables**
+
+- `SEP_WORKSPACE_PATH` – mount point of the repository inside the container
+- `CUDA_HOME` – CUDA toolkit location (defaults to `/usr/local/cuda`)
+- `PKG_CONFIG_PATH` – must include `/usr/lib/x86_64-linux-gnu/pkgconfig`
+- `LD_LIBRARY_PATH` – extended to expose CUDA libraries
+
 ### **Operational Workflow**
 ```bash
 # Generate trading signals (local CUDA machine)

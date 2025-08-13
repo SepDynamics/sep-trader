@@ -2,6 +2,7 @@
 
 #include "IService.h"
 #include "MemoryTierTypes.h"
+#include <array>
 #include <functional>
 #include <string>
 #include <vector>
