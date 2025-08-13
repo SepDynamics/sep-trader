@@ -20,6 +20,7 @@ add_sep_library(sep_quantum
     CUDA_SOURCES
         qbsa_cuda.cu
         quantum_processor_cuda.cu
+        pattern_kernels.cu
         ../cuda/pattern/bit_pattern_kernels.cu
     DEPENDENCIES
     sep_core_types
