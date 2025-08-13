@@ -7,5 +7,11 @@ cudaError_t launchPatternAnalysisKernel(const float* market_data, float* analysi
 
 cudaError_t launchQuantumTrainingKernel(const float* input_data, float* output_patterns, int data_size, int pattern_count);
 
+cudaError_t launchMultiPairProcessingKernel(
+    const float* pair_data,
+    float* processed_signals,
+    int pair_count,
+    int data_per_pair);
+
 } // namespace sep::quantum
 
