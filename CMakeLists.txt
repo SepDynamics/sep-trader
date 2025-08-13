@@ -43,7 +43,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wpedantic -O3")
 
 # CRITICAL FIX: Force include array header for all compilation units
 # This ensures std::array is available for nlohmann_json and all dependencies
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -include array")
+# set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -include array") # Removed to avoid conflicts with std::array
 
 # Relax two-phase name lookup for GCC 11 compatibility with nlohmann_json
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fpermissive")
@@ -87,7 +87,7 @@ if(SEP_USE_CUDA)
     # Enable CUDA language and find toolkit
     enable_language(CUDA)
     find_package(CUDAToolkit REQUIRED)
-    set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -include array -Xcompiler -Wno-pedantic -D_GLIBCXX_USE_CXX11_ABI=0")
+    set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS}")
     
     message(STATUS "Found CUDAToolkit")
     message(STATUS "CUDA Libraries: ${CUDAToolkit_LIBRARY_DIR}")

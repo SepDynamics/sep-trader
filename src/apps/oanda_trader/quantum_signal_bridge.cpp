@@ -789,7 +789,7 @@ bool sep::trading::MultiTimeframeAnalyzer::loadTimeframeData(
     std::vector<Candle> m5_candles;
     std::ifstream m5_stream(m5_file_path);
     if (m5_stream) {
-        json m5_json;
+        nlohmann::json m5_json;
         m5_stream >> m5_json;
         if (m5_json.contains("candles")) {
             m5_candles = m5_json["candles"].get<std::vector<Candle>>();
@@ -809,7 +809,7 @@ bool sep::trading::MultiTimeframeAnalyzer::loadTimeframeData(
     std::vector<Candle> m15_candles;
     std::ifstream m15_stream(m15_file_path);
     if (m15_stream) {
-        json m15_json;
+        nlohmann::json m15_json;
         m15_stream >> m15_json;
         if (m15_json.contains("candles")) {
             m15_candles = m15_json["candles"].get<std::vector<Candle>>();

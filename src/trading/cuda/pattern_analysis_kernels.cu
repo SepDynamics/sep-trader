@@ -1,4 +1,3 @@
-#undef _GLIBCXX_ARRAY_DEFINED
 #include <array>
 
 #include <cuda_runtime.h>

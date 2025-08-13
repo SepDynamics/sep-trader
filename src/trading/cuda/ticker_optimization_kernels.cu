@@ -1,4 +1,3 @@
-#undef _GLIBCXX_ARRAY_DEFINED
 #include <array>
 
 // CRITICAL: For CUDA compilation, include ALL necessary headers early

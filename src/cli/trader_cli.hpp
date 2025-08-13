@@ -113,6 +113,7 @@ private:
     std::unique_ptr<sep::trading::QuantumPairTrainer> trainer_;
     std::unique_ptr<sep::trading::TickerPatternAnalyzer> analyzer_;
     std::unique_ptr<sep::trading::DynamicPairManager> dynamic_pair_manager_; // Renamed to avoid conflict with core::PairManager
+    sep::cache::ValidationResponse validation_response_;
 };
 
 } // namespace cli

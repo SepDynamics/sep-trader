@@ -57,7 +57,7 @@ namespace sep::cli
     using ::sep::cache::WeeklyCacheManager;
 
     // Global shutdown flag, accessible within sep::cli namespace
-    volatile sig_atomic_t g_shutdown_requested = 0;
+    volatile ::sig_atomic_t g_shutdown_requested = 0;
 
     namespace
     {
@@ -77,8 +77,8 @@ TraderCLI::TraderCLI() : verbose_(false), config_path_("config/"),
     dynamic_pair_manager_(std::make_unique<sep::trading::DynamicPairManager>()) {
     register_commands();
     // Use C-style signal function
-    signal(SIGINT, signal_handler);
-    signal(SIGTERM, signal_handler);
+    ::signal(SIGINT, signal_handler);
+    ::signal(SIGTERM, signal_handler);
 }
 
 TraderCLI::~TraderCLI() = default;
@@ -240,8 +240,8 @@ int TraderCLI::handle_start(const std::vector<std::string>& args) {
         // Validate cache
         std::cout << "🗂️  Validating cache system...\n";
         CacheValidator validator;
-        sep::cache::ValidationResponse validation_response = validator.validateCacheFile(config_path_ + "cache/");
-        if (validation_response.result != sep::cache::ValidationResult::VALID) {
+        this->validation_response_ = validator.validateCacheFile(config_path_ + "cache/");
+        if (this->validation_response_.result != sep::cache::ValidationResult::VALID) {
             std::cout << "⚠️  Cache validation issues detected\n";
         }
         
@@ -251,7 +251,7 @@ int TraderCLI::handle_start(const std::vector<std::string>& args) {
         
         if (daemon_mode) {
             std::cout << "🔄 Running in daemon mode (Ctrl+C to stop)...\n";
-            while (!::sep::cli::g_shutdown_requested) {
+            while (!g_shutdown_requested) {
                 std::this_thread::sleep_for(std::chrono::seconds(1));
                 
                 // Update health metrics
@@ -413,7 +413,7 @@ int TraderCLI::handle_cache(const std::vector<std::string>& args) {
             print_cache_status();
         } else if (action == "validate") {
             std::cout << "🔍 Validating cache integrity...\n";
-            bool valid = validator.validateDataIntegrity(config_path_ + "cache/");
+            bool valid = (this->validation_response_.result == sep::cache::ValidationResult::VALID);
             std::cout << (valid ? "✅ Cache validation passed" : "❌ Cache validation failed") << std::endl;
         } else if (action == "clean") {
             std::cout << "🧹 Cleaning expired cache entries...\n";
