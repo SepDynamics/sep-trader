@@ -56,11 +56,17 @@ if(SEP_USE_TBB)
 endif()
 
 
-# Set up CUDA support
+# Set up CPU/CUDA configuration
+option(SEP_CPU_ONLY "Build without CUDA and enable backtesting stubs" OFF)
 option(SEP_USE_CUDA "Enable CUDA support" ON)
 option(SEP_USE_GUI "Enable GUI support (ImGui)" OFF)
 # Force GUI to be completely disabled for professional CLI system
 set(SEP_USE_GUI OFF CACHE BOOL "GUI disabled for professional CLI trading system" FORCE)
+
+if(SEP_CPU_ONLY)
+    add_compile_definitions(SEP_BACKTESTING)
+    set(SEP_USE_CUDA OFF CACHE BOOL "Disable CUDA when CPU-only" FORCE)
+endif()
 
 if(SEP_USE_CUDA)
     # First verify CUDA paths

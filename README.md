@@ -131,6 +131,9 @@ libraries. Production builds must omit this flag and link against the real
 implementations, ensuring that any experimental placeholders are excluded from
 live trading binaries.
 
+Configure `-DSEP_CPU_ONLY=ON` to automatically enable `SEP_BACKTESTING` and
+skip CUDA targets, allowing backtesting builds on machines without GPUs.
+
 ## 🏢 Professional Features
 
 ### **✅ Currently Operational**
