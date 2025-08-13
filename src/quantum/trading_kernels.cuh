@@ -13,5 +13,10 @@ cudaError_t launchMultiPairProcessingKernel(
     int pair_count,
     int data_per_pair);
 
+cudaError_t launchTickerOptimizationKernel(
+    const float* ticker_data,
+    float* optimized_parameters,
+    int param_count);
+
 } // namespace sep::quantum
 
