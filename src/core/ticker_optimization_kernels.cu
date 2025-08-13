@@ -7,7 +7,7 @@
 #include <cstdint>
 #include <vector>
 
-#include "core/ticker_optimization_kernel.cuh"
+#include "cuda/ticker_optimization_kernel.cuh"
 
 extern "C" {
 

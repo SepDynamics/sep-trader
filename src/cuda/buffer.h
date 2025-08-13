@@ -1,7 +1,7 @@
 #ifndef SEP_CUDA_BUFFER_H
 #define SEP_CUDA_BUFFER_H
 
-#include "stable_headers.h"
+#include "../util/stable_headers.h"
 #include <cuda_runtime.h>
 
 #include <cstddef>

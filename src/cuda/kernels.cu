@@ -1,7 +1,7 @@
 #include <cuda_runtime.h>
 
-#include "core/kernels.h"
-#include "qfh.h"
+#include "../core/kernels.h"
+#include "../core/qfh.h"
 
 // Forward declarations for kernels implemented in quantum_kernels.cu
 __global__ void qbsa_kernel(const std::uint32_t* d_probe_indices,

@@ -1,9 +1,10 @@
 #include <cuda_runtime.h>
 
 #include "event.h"
-#include "stream.h"
+#include "../cuda/stream.h"
 
-namespace sep::cuda {
+namespace sep {
+namespace cuda {
 
 Event::Event(unsigned int flags) {
     cudaEventCreateWithFlags(&event_, flags);
@@ -58,4 +59,5 @@ bool Event::valid() const {
     return event_ != nullptr;
 }
 
-}  // namespace sep::cuda
+}  // namespace cuda
+}  // namespace sep

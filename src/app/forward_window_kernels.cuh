@@ -4,15 +4,15 @@
 #include <vector>
 #include <cstdint>
 #include <cuda_runtime.h>
-#include "core/trajectory.h"
-#include "core/forward_window_result.h"
+#include "../core/trajectory.h"
+#include "../core/forward_window_result.h"
 
 namespace sep::apps::cuda {
 
 // Use full namespace paths to avoid CUDA compilation issues
-// using TrajectoryPoint = ::sep::core::TrajectoryPoint;
-// using DampedValue = ::sep::core::DampedValue;
-// using ForwardWindowResult = ::sep::core::ForwardWindowResult;
+using TrajectoryPoint = ::sep::quantum::bitspace::TrajectoryPoint;
+using DampedValue = ::sep::quantum::bitspace::DampedValue;
+using ForwardWindowResult = ::sep::quantum::bitspace::ForwardWindowResult;
 
 // Device-side equivalent of TrajectoryPoint
 struct TrajectoryPointDevice {
@@ -35,7 +35,7 @@ void launchTrajectoryKernel(const TrajectoryPointDevice* trajectory_points,
                             cudaStream_t stream);
 
 // CPU version for testing and fallback
-void simulateForwardWindowMetrics(const std::vector<::sep::core::TrajectoryPoint>& trajectories, std::vector<::sep::core::DampedValue>& results);
+void simulateForwardWindowMetrics(const std::vector<TrajectoryPoint>& trajectories, std::vector<DampedValue>& results);
 
 } // namespace sep::apps::cuda
 

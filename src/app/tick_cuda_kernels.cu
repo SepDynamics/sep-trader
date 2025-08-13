@@ -160,7 +160,7 @@ __global__ void calculateRollingWindowsOptimized(
             // Calculate volatility in second pass
             double variance_sum = 0.0;
             for (size_t chunk_start = 0; chunk_start < tick_count; chunk_start += CUDA_BLOCK_SIZE) {
-                for (size_t i = chunk_start; i < min(chunk_start + CUDA_BLOCK_SIZE, tick_count); ++i) {
+                for (size_t i = chunk_start; i < (chunk_start + CUDA_BLOCK_SIZE < tick_count ? chunk_start + CUDA_BLOCK_SIZE : tick_count); ++i) {
                     if (ticks[i].timestamp >= window_start && ticks[i].timestamp <= window_end) {
                         double diff = ticks[i].price - result.mean_price;
                         variance_sum += diff * diff;
