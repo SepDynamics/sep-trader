@@ -21,7 +21,7 @@ namespace memory {
 
 /// Request types for the facade (pure data, no logic)
 struct PatternProcessRequest {
-    std::vector<::sep::core::Pattern> patterns;
+    std::vector<::sep::quantum::Pattern> patterns;
     std::string context_id;
     float coherence_threshold{0.5f};
     bool async_processing{false};
@@ -65,7 +65,7 @@ struct ManifoldOptimizationResponse {
 };
 
 struct StorePatternRequest {
-    ::sep::core::Pattern pattern;
+    ::sep::quantum::Pattern pattern;
     float coherence{0.0f};
     float stability{0.0f};
     uint32_t generation_count{0};
@@ -78,7 +78,7 @@ struct StorePatternResponse {
 };
 
 struct BatchProcessRequest {
-    std::vector<::sep::core::CandleData> market_data;
+    std::vector<::sep::CandleData> market_data;
     std::string symbol;
     uint64_t timestamp_start{0};
     uint64_t timestamp_end{0};
@@ -166,15 +166,15 @@ struct StreamQueryRequest {
 
 /// Response types for the facade (pure data, no logic)
 struct PatternProcessResponse {
-    std::vector<::sep::core::Pattern> processed_patterns;
+    std::vector<::sep::quantum::Pattern> processed_patterns;
     std::string correlation_id;
     float coherence_score{0.0f};
     bool processing_complete{false};
 };
 
 struct PatternAnalysisResponse {
-    ::sep::core::Pattern pattern;
-    std::vector<::sep::core::PatternRelationship> relationships;
+    ::sep::quantum::Pattern pattern;
+    std::vector<::sep::quantum::PatternRelationship> relationships;
     float confidence_score{0.0f};
     float entropy{0.0f};
     std::string analysis_summary;
@@ -260,7 +260,7 @@ struct StreamResponse {
 
 struct StreamDataResponse {
     std::vector<uint8_t> recent_data;
-    std::vector<::sep::core::Pattern> recent_patterns;
+    std::vector<::sep::quantum::Pattern> recent_patterns;
     uint64_t total_data_points{0};
     uint64_t processed_patterns{0};
     float average_coherence{0.0f};
@@ -318,7 +318,7 @@ public:
     
     // Memory operations  
     ::sep::core::Result queryMemory(const MemoryQueryRequest& request,
-                            std::vector<::sep::core::Pattern>& results);
+                            std::vector<::sep::quantum::Pattern>& results);
     
     // System status
     ::sep::core::Result getHealthStatus(HealthStatusResponse& response);

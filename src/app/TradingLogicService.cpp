@@ -1,3 +1,5 @@
+#include "Result.h"
+
 Result<std::vector<TradingSignal>> TradingLogicService::generateSignalsFromPatterns(
     const std::vector<std::shared_ptr<Pattern>>& patterns,
     const MarketContext& context) {

@@ -2,12 +2,13 @@
 #include <vector>
 
 #include "core_primitives.h"
+#include "vm.h"
 
-namespace dsl::stdlib {
+namespace sep_dsl::stdlib {
 
 // Import Value type
-using dsl::compiler::Value;
-using dsl::compiler::Context;
+using sep_dsl::bytecode::Value;
+using Context = sep_dsl::bytecode::VMExecutionContext;
 
 // ============================================================================
 // Basic Statistical Functions (TASK.md Phase 2A Priority 1)

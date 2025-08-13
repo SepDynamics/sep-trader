@@ -22,7 +22,8 @@ public:
         ResourceUnavailable,
         OperationFailed,
         Timeout,
-        Internal
+        Internal,
+        NotImplemented
     };
 
     Error() : m_code(Code::None) {}

@@ -74,6 +74,7 @@ function(add_sep_library name)
     target_include_directories(${name} PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}
         ${CMAKE_SOURCE_DIR}/src
+        ${CMAKE_SOURCE_DIR}
     )
     
     # Add dependencies (filter out CUDA when disabled)
@@ -132,6 +133,7 @@ function(add_sep_executable name)
     target_include_directories(${name} PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}
         ${CMAKE_SOURCE_DIR}/src
+        ${CMAKE_SOURCE_DIR}
     )
     
     # Link required core dependencies and any additional libraries

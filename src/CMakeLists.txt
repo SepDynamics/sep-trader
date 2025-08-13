@@ -12,16 +12,6 @@ set(CMAKE_CUDA_STANDARD_REQUIRED ON)
 
 find_package(CUDA REQUIRED)
 
-# Set include directories
-include_directories(
-    ${CMAKE_BINARY_DIR}/_deps/spdlog-src/include
-    ${CMAKE_CURRENT_SOURCE_DIR}/app
-    ${CMAKE_CURRENT_SOURCE_DIR}/core
-    ${CMAKE_CURRENT_SOURCE_DIR}/cuda
-    ${CMAKE_CURRENT_SOURCE_DIR}/io
-    ${CMAKE_CURRENT_SOURCE_DIR}/util
-)
-
 # Gather all source files
 file(GLOB_RECURSE ALL_SOURCES
     "app/*.cpp"
@@ -44,15 +34,10 @@ foreach(file ${ALL_SOURCES})
     endif()
 endforeach()
 
-# Create a library from the non-main source files
-add_library(sep_lib ${LIB_SOURCES})
+# Create a library from the non-main source files using add_sep_library
+add_sep_library(sep_lib SOURCES ${LIB_SOURCES} DEPENDENCIES sep_core_deps CUDA::cudart)
 
-# Create executables for each main file
-add_executable(trader_cli app/cli_main.cpp)
-add_executable(oanda_trader app/oanda_trader_main.cpp)
-add_executable(sep_app app/app_main.cpp)
-
-# Link the executables to the library
-target_link_libraries(trader_cli PRIVATE sep_lib CUDA::cudart)
-target_link_libraries(oanda_trader PRIVATE sep_lib CUDA::cudart)
-target_link_libraries(sep_app PRIVATE sep_lib CUDA::cudart)
+# Create executables for each main file using add_sep_executable
+add_sep_executable(trader_cli SOURCES app/cli_main.cpp DEPENDENCIES sep_lib)
+add_sep_executable(oanda_trader SOURCES app/oanda_trader_main.cpp DEPENDENCIES sep_lib)
+add_sep_executable(sep_app SOURCES app/app_main.cpp DEPENDENCIES sep_lib)

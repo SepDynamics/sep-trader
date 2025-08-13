@@ -33,9 +33,10 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_DISABLE_PRECOMPILE_HEADERS OFF)
 
 # GLOBAL FIX: Force include array header and fix std library issues
-add_compile_definitions(
+add_definitions(
     _GLIBCXX_DEBUG_PEDANTIC=0  # Disable pedantic debug checks
     _GLIBCXX_CONCEPT_CHECKS=0  # Disable concept checks that might interfere
+    -DGLM_FORCE_CUDA_VERSION=1100
 )
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wpedantic -O3")
