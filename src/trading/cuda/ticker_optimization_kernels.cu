@@ -7,7 +7,7 @@
 #include <cstdint>
 #include <vector>
 
-#include "quantum/trading_kernels.cuh"
+#include "../../cuda/kernels/trading/ticker_optimization_kernel.cuh"
 
 extern "C" {
 
@@ -16,7 +16,7 @@ void launch_ticker_optimization(
     float* optimized_parameters,
     int param_count
 ) {
-    sep::quantum::launchTickerOptimizationKernel(
+    sep::cuda::trading::launchTickerOptimizationKernel(
         ticker_data, optimized_parameters, param_count
     );
 }

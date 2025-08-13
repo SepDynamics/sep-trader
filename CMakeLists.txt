@@ -36,7 +36,6 @@ set(CMAKE_DISABLE_PRECOMPILE_HEADERS OFF)
 add_compile_definitions(
     _GLIBCXX_DEBUG_PEDANTIC=0  # Disable pedantic debug checks
     _GLIBCXX_CONCEPT_CHECKS=0  # Disable concept checks that might interfere
-    _GLIBCXX_ARRAY_DEFINED=1   # Force array header to be available
 )
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wpedantic -O3")
@@ -182,12 +181,7 @@ patch_nlohmann_json()
 
 # Apply surgical fix for std::array visibility to nlohmann_json
 # Use the base target, not the alias
-if(TARGET nlohmann_json)
-    target_compile_definitions(nlohmann_json INTERFACE _GLIBCXX_ARRAY_DEFINED=1)
-endif()
 
-# Global fix for std::array visibility in GCC 11
-add_compile_definitions(_GLIBCXX_ARRAY_DEFINED=1)
 
 
 # Use system yaml-cpp instead of downloading
@@ -232,9 +226,6 @@ if(SEP_USE_TBB)
     FetchContent_MakeAvailable(oneTBB)
     
     # Apply surgical fix for std::array visibility to TBB targets
-    if(TARGET tbb)
-        target_compile_definitions(tbb PRIVATE _GLIBCXX_ARRAY_DEFINED=1)
-        # Don't force-include our headers into external TBB library
     endif()
 endif()
 

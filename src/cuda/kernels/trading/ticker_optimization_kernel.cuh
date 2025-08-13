@@ -2,7 +2,7 @@
 
 #include <cuda_runtime.h>
 
-#include "common/cuda_common.h"
+#include "../../common/cuda_common.h"
 #include "trading_types.cuh"
 
 namespace sep::cuda::trading {
