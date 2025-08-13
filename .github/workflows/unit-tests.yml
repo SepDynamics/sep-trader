@@ -19,3 +19,5 @@ jobs:
         run: g++-11 -std=c++17 tests/unit/data_pipeline_test.cpp -lgtest -lgtest_main -lpthread -o unit_test
       - name: Run Tests
         run: ./unit_test
+      - name: Validate pitch claim matrix
+        run: python scripts/check_validation_matrix.py
