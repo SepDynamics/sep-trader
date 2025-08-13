@@ -224,9 +224,6 @@ if(SEP_USE_TBB)
         GIT_SHALLOW TRUE
     )
     FetchContent_MakeAvailable(oneTBB)
-    
-    # Apply surgical fix for std::array visibility to TBB targets
-    endif()
 endif()
 
 
