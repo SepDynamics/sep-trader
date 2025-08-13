@@ -1,7 +1,7 @@
 #ifndef SEP_CUDA_KERNEL_LAUNCH_H
 #define SEP_CUDA_KERNEL_LAUNCH_H
 
-#include "stable_headers.h"
+#include "../util/stable_headers.h"
 #include <cuda_runtime.h>
 #include "cuda_error.h"
 #include "stream.h"

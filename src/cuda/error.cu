@@ -1,5 +1,5 @@
 // Merged from: src/core/internal/cuda/error/cuda_error.cu
-#include "cuda_error.cuh"
+#include "cuda/cuda_error.cuh"
 
 namespace sep::cuda::error {
 

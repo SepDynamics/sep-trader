@@ -3,7 +3,7 @@
 #include "util/stable_headers.h"
 #include "core/cuda_compatibility.h"
 #include "util/nlohmann_json_safe.h"
-#include "util/result.h"
+#include "../util/result.h"
 #include "util/financial_data_types.h"
 #include "io/oanda_connector.h"
 #include "core/pattern_types.h"

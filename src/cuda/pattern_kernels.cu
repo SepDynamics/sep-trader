@@ -1,7 +1,7 @@
 #include <cuda_runtime.h>
 #include <device_launch_parameters.h>
 
-#include "pattern_types.h"
+#include "core/pattern_types.h"
 
 namespace {
 

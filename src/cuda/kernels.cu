@@ -1,6 +1,6 @@
 #include <cuda_runtime.h>
 
-#include "kernels.h"
+#include "core/kernels.h"
 #include "qfh.h"
 
 // Forward declarations for kernels implemented in quantum_kernels.cu

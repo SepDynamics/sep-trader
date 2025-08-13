@@ -3,7 +3,7 @@
 #ifndef SRC_CUDA_STREAM_MERGED_H
 #define SRC_CUDA_STREAM_MERGED_H
 
-#include "stable_headers.h"
+#include "../util/stable_headers.h"
 #include <cuda_runtime.h>
 
 #include <functional>

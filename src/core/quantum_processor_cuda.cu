@@ -1,5 +1,5 @@
 // CRITICAL: For CUDA compilation, include our special CUDA header fix first
-#include "global_includes.h"
+#include "core/global_includes.h"
 #include "cuda_header_fix.cuh"
 
 // This file now includes all necessary headers, including <cuda_runtime.h>

@@ -4,7 +4,7 @@
 #include <cmath>     // For log2, fabs
 
 #include "bit_pattern_types.cuh" // Include the new device types
-#include "result.h"
+#include "util/result.h"
 #include "error_handler.h"
 
 // Helper device functions (will be ported from forward_window_kernels.cpp)
