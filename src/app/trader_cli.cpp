@@ -1,11 +1,11 @@
 // Include precompiled header first for CUDA compatibility layer
-#include "stable_headers.h"
+#include "util/stable_headers.h"
 
 // Include CUDA type system directly
-#include "cuda_type_system.h"
+#include "core/cuda_compatibility.h"
 
 // Include our class header
-#include "trader_cli.hpp"
+#include "app/trader_cli.hpp"
 
 // Use CUDA compatibility types
 using cuda::type_system::make_unique;
@@ -13,15 +13,15 @@ using cuda::type_system::string;
 using cuda::type_system::vector;
 
 // Project includes
-#include "cache_health_monitor.hpp"
-#include "cache_validator.hpp"
-#include "dynamic_config_manager.hpp"
-#include "pair_manager.hpp"
-#include "trading_state.hpp"
-#include "weekly_cache_manager.hpp"
-#include "result.h"
-#include "redis_manager.h"
-#include "unified_data_manager.hpp"
+#include "core/cache_health_monitor.hpp"
+#include "core/cache_validator.hpp"
+#include "core/dynamic_config_manager.hpp"
+#include "core/pair_manager.hpp"
+#include "core/trading_state.hpp"
+#include "core/weekly_cache_manager.hpp"
+#include "util/result.h"
+#include "util/redis_manager.h"
+#include "core/unified_data_manager.hpp"
 
 // Third-party libraries
 #include <fmt/format.h>

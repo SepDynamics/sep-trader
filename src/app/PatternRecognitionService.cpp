@@ -1,9 +1,5 @@
-#include "PatternRecognitionService.h"
-#include <algorithm>
-#include <cmath>
-#include <random>
-#include <sstream>
-#include <chrono>
+#include "core/sep_precompiled.h"
+#include "app/PatternRecognitionService.h"
 
 namespace sep {
 namespace services {

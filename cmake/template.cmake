@@ -51,23 +51,13 @@ function(add_sep_library name)
             endif()
         endforeach()
         
-        # Apply CUDA compilation flags only to .cu source files
-        foreach(cuda_source ${ARG_CUDA_SOURCES})
-            get_filename_component(ext ${cuda_source} EXT)
-            if(ext STREQUAL ".cu")
-                set(CUDA_FLAGS "--expt-relaxed-constexpr --extended-lambda")
-                
-                # Add architecture-specific flags
-                foreach(arch ${CMAKE_CUDA_ARCHITECTURES})
-                    string(APPEND CUDA_FLAGS " --generate-code=arch=compute_${arch},code=[compute_${arch},sm_${arch}]")
-                endforeach()
-                
-                set_source_files_properties(${cuda_source} PROPERTIES
-                    LANGUAGE CUDA
-                    COMPILE_FLAGS "${CUDA_FLAGS}"
-                )
-            endif()
+        # Apply CUDA compilation flags to the target
+        set(CUDA_FLAGS "--expt-relaxed-constexpr --extended-lambda")
+        foreach(arch ${CMAKE_CUDA_ARCHITECTURES})
+            string(APPEND CUDA_FLAGS " --generate-code=arch=compute_${arch},code=[compute_${arch},sm_${arch}]")
         endforeach()
+        
+        target_compile_options(${name} PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:${CUDA_FLAGS}>)
     endif()
     
     # Set include directories

@@ -35,7 +35,8 @@ foreach(file ${ALL_SOURCES})
 endforeach()
 
 # Create a library from the non-main source files using add_sep_library
-add_sep_library(sep_lib SOURCES ${LIB_SOURCES} DEPENDENCIES sep_core_deps CUDA::cudart)
+add_sep_library(sep_lib SOURCES ${LIB_SOURCES} DEPENDENCIES sep_core_deps CUDA::cudart PCH_HEADER core/sep_precompiled.h)
+target_include_directories(sep_lib PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
 # Create executables for each main file using add_sep_executable
 add_sep_executable(trader_cli SOURCES app/cli_main.cpp DEPENDENCIES sep_lib)
