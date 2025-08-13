@@ -29,7 +29,7 @@ Professional multi-currency trading system implementing quantum field harmonics 
 Local CUDA Machine (Training)     Remote Droplet (Execution)
 ├── Quantum Pattern Analysis  →   ├── Trading Execution
 ├── Model Training            →   ├── Signal Processing  
-├── Signal Generation         →   ├── Market Monitoring
+├── Signal Generation         →   └── Market Monitoring
 └── Data Synchronization      →   └── Performance Logging
 ```
 
@@ -88,7 +88,6 @@ docker run --gpus all --rm \
 
 - `SEP_WORKSPACE_PATH` – mount point of the repository inside the container
 - `CUDA_HOME` – CUDA toolkit location (defaults to `/usr/local/cuda`)
-- `PKG_CONFIG_PATH` – must include `/usr/lib/x86_64-linux-gnu/pkgconfig`
 - `LD_LIBRARY_PATH` – extended to expose CUDA libraries
 
 ### **Operational Workflow**
@@ -191,3 +190,31 @@ skip CUDA targets, allowing backtesting builds on machines without GPUs.
 **SEP Dynamics, Inc.** | Quantum-Inspired Financial Intelligence  
 Patent-Pending Technology | Professional Trading Platform  
 **alex@sepdynamics.com** | Austin, Texas
+
+---
+
+# Merged READMEs from src directory
+
+## From: src/core/bitspace/README.md
+
+This directory contains the bitspace processing components.
+
+## From: src/core/README.md
+
+This directory contains the core application logic.
+
+## From: src/cuda/README.md
+
+This directory contains CUDA-specific code.
+
+## From: src/app/README.md
+
+This directory contains application-level code.
+
+## From: src/io/README.md
+
+This directory contains I/O related code.
+
+## From: src/util/README.md
+
+This directory contains utility code.

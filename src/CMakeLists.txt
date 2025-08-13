@@ -1,64 +1,58 @@
-# Enforce header-only spdlog for all targets
+cmake_minimum_required(VERSION 3.18)
+project(sep_trader)
 
+add_definitions(-DSEP_BACKTESTING)
+add_definitions(-DGLM_COMPILER=0)
 
-# Add component subdirectories - core components needed for quant processing
-add_subdirectory(core_types)
-add_subdirectory(common)
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/core_integrated/CMakeLists.txt)
-    add_subdirectory(core_integrated)
-endif()
-if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/metrics_library/CMakeLists.txt)
-    add_subdirectory(metrics_library)
-endif()
+set(CMAKE_CUDA_STANDARD 17)
+set(CMAKE_CUDA_STANDARD_REQUIRED ON)
 
-if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/ui/CMakeLists.txt)
-    add_subdirectory(ui)
-endif()
+find_package(CUDA REQUIRED)
 
-# Core libraries always built
+# Set include directories
+include_directories(
+    ${CMAKE_BINARY_DIR}/_deps/spdlog-src/include
+    ${CMAKE_CURRENT_SOURCE_DIR}/app
+    ${CMAKE_CURRENT_SOURCE_DIR}/core
+    ${CMAKE_CURRENT_SOURCE_DIR}/cuda
+    ${CMAKE_CURRENT_SOURCE_DIR}/io
+    ${CMAKE_CURRENT_SOURCE_DIR}/util
+)
 
-# Optional modules that require full environment (CUDA, external deps)
-add_subdirectory(memory)
-add_subdirectory(quantum)
-add_subdirectory(engine)
-if(NOT SEP_CPU_ONLY AND EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/cuda/CMakeLists.txt)
-    add_subdirectory(cuda)
-endif()
-add_subdirectory(connectors)
-if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/services/CMakeLists.txt)
-    add_subdirectory(services)
-endif()
-add_compile_definitions(FMT_HEADER_ONLY)
-# Temporarily disable trading module due to persistent std::array/functional issues
-if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/trading/CMakeLists.txt)
-    add_subdirectory(trading)
-endif()
-add_subdirectory(dsl)
-if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/cli/CMakeLists.txt)
-    add_subdirectory(cli)
-endif()
-if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/apps/CMakeLists.txt)
-    add_subdirectory(apps)
-endif()
+# Gather all source files
+file(GLOB_RECURSE ALL_SOURCES
+    "app/*.cpp"
+    "app/*.cu"
+    "core/*.cpp"
+    "core/*.cu"
+    "cuda/*.cpp"
+    "cuda/*.cu"
+    "io/*.cpp"
+    "io/*.cu"
+    "util/*.cpp"
+    "util/*.cu"
+)
 
-# Standalone API server for headless engine operation (temporarily disabled)
-# add_executable(sep_api_server
-#     api_main.cpp
-# )
-# 
-# target_include_directories(sep_api_server PRIVATE
-#     ${CMAKE_CURRENT_SOURCE_DIR}
-#     ${CMAKE_SOURCE_DIR}/src
-# )
-# 
-# target_link_libraries(sep_api_server PRIVATE
-#     sep_api
-#     sep_engine
-#     sep_quantum
-#     sep_memory
-#     Threads::Threads
-# )
+# Separate main files from library source files
+set(LIB_SOURCES)
+foreach(file ${ALL_SOURCES})
+    if(NOT file MATCHES "main.cpp$")
+        list(APPEND LIB_SOURCES ${file})
+    endif()
+endforeach()
 
+# Create a library from the non-main source files
+add_library(sep_lib ${LIB_SOURCES})
 
+# Create executables for each main file
+add_executable(trader_cli app/cli_main.cpp)
+add_executable(oanda_trader app/oanda_trader_main.cpp)
+add_executable(sep_app app/app_main.cpp)
 
+# Link the executables to the library
+target_link_libraries(trader_cli PRIVATE sep_lib CUDA::cudart)
+target_link_libraries(oanda_trader PRIVATE sep_lib CUDA::cudart)
+target_link_libraries(sep_app PRIVATE sep_lib CUDA::cudart)
