@@ -5,10 +5,10 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <vector>
 
-#include "pattern_types.h"
-#include "standard_includes.h"
-#include "types.h"
-#include "processor.h"
+#include "core/pattern_types.h"
+#include "core/standard_includes.h"
+#include "core/types.h"
+#include "core/processor.h"
 
 using namespace glm;
 

@@ -1,8 +1,7 @@
 #pragma once
 
-#include "standard_includes.h"
-#include "types.h"
-#include "types.h"
+#include "core/standard_includes.h"
+#include "core/types.h"
 
 namespace sep::core {
 

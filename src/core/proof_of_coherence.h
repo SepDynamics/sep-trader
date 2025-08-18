@@ -5,7 +5,7 @@
 #include <vector>
 #include <cstdint>
 
-#include "types.h" // For common SEP types
+#include "core/types.h"
 
 namespace sep::core {
 

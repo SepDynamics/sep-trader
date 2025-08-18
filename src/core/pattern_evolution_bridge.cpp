@@ -1,4 +1,4 @@
-#include "pattern_evolution_bridge.h"
+#include "core/pattern_evolution_bridge.h"
 
 #include <algorithm>
 #include <glm/glm.hpp>
@@ -6,7 +6,7 @@
 #include <memory>
 #include <numeric>
 
-#include "standard_includes.h"
+#include "core/standard_includes.h"
 #include "quantum_manifold_optimizer.h"
 
 namespace sep::quantum {

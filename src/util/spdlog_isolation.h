@@ -13,7 +13,7 @@
 #include <vector>
 
 #include "cuda.h"
-#include "macros.h"
+#include "core/macros.h"
 
 #define SEP_SPDLOG_AVAILABLE 1
 
@@ -51,7 +51,7 @@ public:
 // When compiling with CUDA, provide stub implementations
 
 // Include our isolation headers
-#include "standard_includes.h"
+#include "core/standard_includes.h"
 #if !SEP_CUDA_AVAILABLE
 // Host builds can include standard library headers directly
 #    include <atomic>

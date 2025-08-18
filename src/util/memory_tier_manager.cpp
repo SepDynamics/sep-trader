@@ -1,5 +1,5 @@
 #include "util/nlohmann_json_safe.h"
-#include "memory_tier_manager.hpp"
+#include "util/memory_tier_manager.hpp"
 
 #include <algorithm>
 #include <chrono>
@@ -13,10 +13,10 @@
 #include <string>
 #include <vector>
 
-#include "common.h"
-#include "types.h"
+#include "core/common.h"
+#include "core/types.h"
 #include "pattern_processor.hpp"
-#include "processor.h"
+#include "core/processor.h"
 
 namespace sep {
 namespace memory {

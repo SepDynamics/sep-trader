@@ -16,9 +16,9 @@
 #include <cstring>
 #include <mutex>
 
-#include "logging.h"
-#include "types.h"
-#include "redis_manager.h"
+#include "core/logging.h"
+#include "core/types.h"
+#include "util/redis_manager.h"
 #ifndef SEP_NO_REDIS
 #include <hiredis/hiredis.h>
 #define SEP_HAS_HIREDIS 1
@@ -31,7 +31,7 @@ namespace logging = sep::logging;
 #include <sstream>
 #include <string>
 
-#include "memory_tier_manager.hpp"
+#include "util/memory_tier_manager.hpp"
 
 namespace sep::persistence {
 

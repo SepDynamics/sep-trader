@@ -10,7 +10,7 @@
 #include <sstream>
 #include <thread>
 
-#include "financial_data_types.h"
+#include "util/financial_data_types.h"
 #include "data_parser.h"
 
 namespace sep {

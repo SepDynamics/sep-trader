@@ -6,8 +6,8 @@
 #include <sstream>
 #include <thread>
 
-#include "sep_precompiled.h"
-#include "types.h"
+#include "core/sep_precompiled.h"
+#include "core/types.h"
 
 #ifdef SEP_BACKTESTING
 #include "trace.hpp"

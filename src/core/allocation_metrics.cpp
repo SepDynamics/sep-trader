@@ -1,8 +1,8 @@
-#include "allocation_metrics.h"
+#include "core/allocation_metrics.h"
 
-#include "metrics_collector.h"
-#include "prometheus_exporter.h"
-#include "types.h"
+#include "core/metrics_collector.h"
+#include "core/prometheus_exporter.h"
+#include "core/types.h"
 
 namespace sep::metrics {
 namespace {

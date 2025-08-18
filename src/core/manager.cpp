@@ -1,11 +1,11 @@
 #include "util/nlohmann_json_safe.h"
 #include "manager.h"
 
-#include "config.h"
-#include "standard_includes.h"
+#include "core/config.h"
+#include "core/standard_includes.h"
 #include "env_keys.h"
 #include "memory_tier_manager_serialization.hpp"
-#include "types.h"
+#include "core/types.h"
 
 namespace sep::config
 {

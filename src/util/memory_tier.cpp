@@ -1,14 +1,13 @@
-#include "memory_tier.hpp"
+#include "util/memory_tier.hpp"
 
-#include "allocation_metrics.h"
-#include "common.h"
-#include "cuda_sep.h"
-#include "logging.h"
-#include "macros.h"
-#include "types.h"
-#include "logger.hpp"
-#include "memory_tier_manager.hpp"
-#include "types.h"
+#include "core/allocation_metrics.h"
+#include "core/common.h"
+#include "core/cuda_sep.h"
+#include "core/logging.h"
+#include "core/macros.h"
+#include "core/types.h"
+#include "util/logger.hpp"
+#include "util/memory_tier_manager.hpp"
 
 // Standard headers
 #include <algorithm>

@@ -1,13 +1,13 @@
 #pragma once
 
-#include "qbsa.h"
+#include "core/qbsa.h"
 
 // Compatibility header - redirects to new unified processor
 #include <glm/vec3.hpp>
 #include <memory>
 #include <stdexcept>
 
-#include "processor.h"
+#include "core/processor.h"
 
 namespace sep::quantum {
 

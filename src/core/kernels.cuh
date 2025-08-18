@@ -1,7 +1,7 @@
 #pragma once
 
 // CUDA macros and compatibility layer
-#include "macros.h"
+#include "core/macros.h"
 
 #ifdef __CUDACC__
 #include <cuda_runtime.h>
@@ -9,7 +9,7 @@
 
 #include <cmath>
 
-#include "cuda_helpers.h"
+#include "core/cuda_helpers.h"
 #endif
 
 // Standard headers
@@ -20,7 +20,7 @@
 
 // Other project headers
 #include "constants.h"
-#include "types.h"
+#include "core/types.h"
 
 #ifndef __CUDACC__
 #include <algorithm>

@@ -1,5 +1,5 @@
 #pragma once
-#include "sep_precompiled.h"
+#include "core/sep_precompiled.h"
 #include "oanda_connector.h"
 #include "result.h"
 #include "qfh.h"

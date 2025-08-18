@@ -1,4 +1,4 @@
-#include "nlohmann_json_safe.h"
+#include "util/nlohmann_json_safe.h"
 #ifndef SEP_CONTEXT_RESOURCE_PREDICTOR_H
 #define SEP_CONTEXT_RESOURCE_PREDICTOR_H
 
@@ -6,7 +6,7 @@
 #include <cstddef>
 #include <vector>
 
-#include "standard_includes.h"
+#include "core/standard_includes.h"
 
 // Minimal context types for compilation
 namespace sep::context {

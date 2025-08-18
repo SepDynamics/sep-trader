@@ -7,12 +7,12 @@
 #include <thread>
 #include <vector>
 
-#include "standard_includes.h"
-#include "types.h"
-#include "quantum_processor_qfh.h"
+#include "core/standard_includes.h"
+#include "core/types.h"
+#include "core/quantum_processor_qfh.h"
 
 namespace sep::quantum::manifold {
-#include "pattern_evolution_bridge.h"
+#include "core/pattern_evolution_bridge.h"
 
     QuantumManifoldOptimizer::Config QuantumManifoldOptimizer::createManifoldConfig(
         const PatternEvolutionBridge::Config& cfg)

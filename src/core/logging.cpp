@@ -1,6 +1,6 @@
-#include "logging.h"
+#include "core/logging.h"
 
-#include "common.h"
+#include "core/common.h"
 
 #ifdef SEP_HAS_OPENTELEMETRY
 #include <opentelemetry/trace/provider.h>
@@ -11,7 +11,7 @@
 #include <cstring> // For std::strlen
 #include <spdlog/spdlog.h>
 #include <cstring>
-#include "pattern_metric_engine.h"
+#include "core/pattern_metric_engine.h"
 
 namespace sep::logging {
 

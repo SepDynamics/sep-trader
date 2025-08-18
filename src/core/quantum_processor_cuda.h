@@ -4,7 +4,7 @@
 #include <glm/vec3.hpp>
 #include <memory>
 
-#include "quantum_processor.h"
+#include "core/quantum_processor.h"
 
 namespace sep::quantum {
 

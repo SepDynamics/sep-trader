@@ -2,7 +2,7 @@
 
 #include <cstdint>
 
-#include "../core/kernels.h"
+#include "core/kernels.h"
 
 namespace {
 

@@ -1,6 +1,6 @@
 #include "tick_data_manager.hpp"
 #include "tick_cuda_kernels.cuh"
-#include "financial_data_types.h"
+#include "util/financial_data_types.h"
 #include <iostream>
 #include <algorithm>
 #include <cmath>

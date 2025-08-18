@@ -7,8 +7,8 @@
 #include <stdexcept>
 #include <thread>
 
-#include "sep_precompiled.h"
-#include "redis_manager.h"
+#include "core/sep_precompiled.h"
+#include "util/redis_manager.h"
 
 #ifdef SEP_BACKTESTING
 #include "oanda_market_data_helper.hpp"

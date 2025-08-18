@@ -2,7 +2,7 @@
 
 #include <stdexcept>
 
-#include "raii.h"
+#include "util/raii.h"
 
 namespace sep {
 namespace cuda {

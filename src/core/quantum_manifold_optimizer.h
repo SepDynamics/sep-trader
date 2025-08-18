@@ -1,16 +1,14 @@
 // quantum_manifold_optimizer.h
 #pragma once
 
-#include "config.h"
+#include "core/config.h"
 #include "cuda_api.hpp"
 #ifdef __CUDACC__
-#include "cufft.h"
+#include "core/cufft.h"
 #endif
-#include "core.h"
-#include "types.h"
-#include "types.h"
-#include "config.h"
-#include "pattern_evolution_bridge.h"
+#include "core/core.h"
+#include "core/types.h"
+#include "core/pattern_evolution_bridge.h"
 
 // Forward declarations
 namespace sep::cuda {
@@ -29,7 +27,7 @@ namespace sep::cuda {
 #include <complex>
 #include <condition_variable>
 #include <cstdint>
-#include "standard_includes.h"
+#include "core/standard_includes.h"
 #include <execution>
 #include <future>
 #include <glm/glm.hpp>
@@ -45,13 +43,11 @@ namespace sep::cuda {
 #include <vector>
 
 #include "glm_cuda_compat.h"
-#include "types.h"
-#include "memory_tier_manager.hpp"
-#include "types.h"
-#include "qbsa.h"
+#include "util/memory_tier_manager.hpp"
+#include "core/qbsa.h"
 #include "qfh.h"
 #include "pattern.h"
-#include "quantum_processor_qfh.h"
+#include "core/quantum_processor_qfh.h"
 
 namespace sep::quantum { class PatternEvolutionBridge; }
 

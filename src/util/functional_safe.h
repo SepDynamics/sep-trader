@@ -4,4 +4,4 @@
 // Safe wrapper for functional header to prevent std::array issues
 // This ensures array is included before functional to satisfy GCC 11 STL dependencies
 
-#include "sep_precompiled.h"
+#include "core/sep_precompiled.h"

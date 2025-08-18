@@ -4,7 +4,7 @@
 
 #include "cuda.h"
 #include "raii.h"
-#include "types.h"
+#include "core/types.h"
 
 namespace sep {
 

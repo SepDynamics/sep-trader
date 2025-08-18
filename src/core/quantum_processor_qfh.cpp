@@ -1,9 +1,8 @@
-#include "quantum_processor_qfh.h"
+#include "core/quantum_processor_qfh.h"
 
-#include "standard_includes.h"
-#include "types.h"
-#include "types.h"  // For MemoryTierEnum
-#include "processor.h"
+#include "core/standard_includes.h"
+#include "core/types.h"
+#include "core/processor.h"
 
 namespace sep::quantum {
 

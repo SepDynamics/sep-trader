@@ -2,7 +2,7 @@
 #include "compiler.h"
 #include "qfh.h"
 #include "quantum_manifold_optimizer.h" 
-#include "pattern_evolution_bridge.h"
+#include "core/pattern_evolution_bridge.h"
 #include <vector>
 #include <memory>
 

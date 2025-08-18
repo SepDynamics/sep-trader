@@ -1,13 +1,13 @@
-#include "common.h"  // defines sep::SEPResult
-#include "core.h"
-#include "logging.h"
-#include "types.h"
-#include "memory_tier_manager.hpp"
-#include "pattern_evolution_bridge.h"
-#include "processor.h"
+#include "core/common.h"  // defines sep::SEPResult
+#include "core/core.h"
+#include "core/logging.h"
+#include "core/types.h"
+#include "util/memory_tier_manager.hpp"
+#include "core/pattern_evolution_bridge.h"
+#include "core/processor.h"
 #include "quantum_manifold_optimizer.h"
-#include "quantum_processor.h"
-#include "quantum_processor_qfh.h"
+#include "core/quantum_processor.h"
+#include "core/quantum_processor_qfh.h"
 
 // Define namespace alias for clarity
 namespace logging = sep::logging;

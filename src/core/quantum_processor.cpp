@@ -1,4 +1,4 @@
-#include "quantum_processor.h"
+#include "core/quantum_processor.h"
 
 #include <algorithm>
 #include <bitset>
@@ -12,10 +12,10 @@
 #include <vector>
 
 #include "math_common.h"
-#include "types.h"
+#include "core/types.h"
 #include "qbsa_qfh.h"
 #include "quantum_processor_cuda.h"
-#include "quantum_processor_qfh.h"
+#include "core/quantum_processor_qfh.h"
 
 namespace sep::quantum {
 

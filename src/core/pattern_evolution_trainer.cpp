@@ -1,4 +1,4 @@
-#include "sep_precompiled.h"
+#include "core/sep_precompiled.h"
 #include "pattern_evolution_trainer.hpp"
 
 namespace sep::trading {

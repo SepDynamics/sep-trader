@@ -1,10 +1,10 @@
 #pragma once
-#include "sep_precompiled.h"
+#include "core/sep_precompiled.h"
 #include "oanda_connector.h"
 #include "result.h"
 #include "facade.h"
 #include "qfh.h"
-#include "pattern_evolution_bridge.h"
+#include "core/pattern_evolution_bridge.h"
 #include "quantum_manifold_optimizer.h"
 
 namespace sep

@@ -91,17 +91,15 @@ double PatternProcessor::matchHistoricalPaths(const std::vector<double>& current
 } // namespace sep::quantum::bitspace
 
 // Merged from: src/core/pattern_processor.cpp
-#include "common.h"
-#include "cuda_helpers.h"
-#include "cuda_sep.h"
-#include "pattern_types.h"
-#include "types.h"
-#include "types.h"
-#include "config.h"
-#include "pattern_evolution_bridge.h"
-#include "processor.h"
-#include "quantum_processor.h"
-#include "types.h"
+#include "core/common.h"
+#include "core/cuda_helpers.h"
+#include "core/cuda_sep.h"
+#include "core/pattern_types.h"
+#include "core/types.h"
+#include "core/config.h"
+#include "core/pattern_evolution_bridge.h"
+#include "core/processor.h"
+#include "core/quantum_processor.h"
 
 using ::sep::memory::MemoryTierEnum;
 

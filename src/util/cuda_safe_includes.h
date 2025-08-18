@@ -3,4 +3,4 @@
 // Deprecated - use the unified header solution
 // CUDA-safe includes that avoid std::array conflicts
 // Always include array first before anything else that might need it
-#include "sep_precompiled.h"
+#include "core/sep_precompiled.h"

@@ -1,7 +1,7 @@
 #pragma once
 #include <vector>
 
-#include "core_primitives.h"
+#include "util/core_primitives.h"
 #include "vm.h"
 
 namespace sep_dsl::stdlib {

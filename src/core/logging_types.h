@@ -1,5 +1,5 @@
 #pragma once
-#include "standard_includes.h"
+#include "core/standard_includes.h"
 
 namespace sep::logging {
 

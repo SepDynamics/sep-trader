@@ -11,7 +11,7 @@
 #include <thread>
 
 #include "pqxx_time_point_traits.h"  // Must come after pqxx include
-#include "sep_precompiled.h"
+#include "core/sep_precompiled.h"
 // #include <compression/gzip.hpp> // Optional compression - not available
 
 namespace sep::trading {

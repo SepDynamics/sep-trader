@@ -1,5 +1,5 @@
 #pragma once
-#include "nlohmann_json_safe.h"
+#include "util/nlohmann_json_safe.h"
 
 #include <chrono>
 #include <future>
@@ -7,7 +7,7 @@
 #include <string>
 #include <vector>
 
-#include "standard_includes.h"
+#include "core/standard_includes.h"
 
 namespace sep::trading {
 

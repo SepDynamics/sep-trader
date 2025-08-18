@@ -2,7 +2,7 @@
 
 #include <cuda_runtime.h>
 
-#include "sep_precompiled.h"
+#include "core/sep_precompiled.h"
 #include "cuda_types.hpp"
 
 #ifdef __CUDACC__
@@ -22,17 +22,16 @@
 #include <string>
 #include <vector>
 
-#include "core.h"
+#include "core/core.h"
 #include "cuda.h"
-#include "cuda_helpers.h"
-#include "logging.h"
+#include "core/cuda_helpers.h"
+#include "core/logging.h"
 #include "memory.h"
-#include "types.h"
-#include "memory_tier_manager.hpp"
-#include "types.h"
-#include "pattern_evolution_bridge.h"
+#include "core/types.h"
+#include "util/memory_tier_manager.hpp"
+#include "core/pattern_evolution_bridge.h"
 #include "quantum_manifold_optimizer.h"
-#include "quantum_processor_qfh.h"
+#include "core/quantum_processor_qfh.h"
 
 namespace sep::quantum {
 

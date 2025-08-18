@@ -1,7 +1,7 @@
 #pragma once
 
 #include <array>
-#include "nlohmann_json_safe.h"
+#include "util/nlohmann_json_safe.h"
 
 #include <GLFW/glfw3.h>
 

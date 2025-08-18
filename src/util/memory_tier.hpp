@@ -2,14 +2,14 @@
 
 // C++ Standard Library
 #include "result.h"
-#include "standard_includes.h"
+#include "core/standard_includes.h"
 
 // Third-party headers
 #include <glm/vec3.hpp>
 
 // Project headers
-#include "persistent_pattern_data.hpp"
-#include "types.h"
+#include "util/persistent_pattern_data.hpp"
+#include "core/types.h"
 
 namespace sep {
 namespace memory {

@@ -11,9 +11,9 @@
 #include <complex>
 #include <glm/glm.hpp>
 
-#include "pattern_types.h"
-#include "standard_includes.h"
-#include "config.h"
+#include "core/pattern_types.h"
+#include "core/standard_includes.h"
+#include "core/config.h"
 
 namespace sep {
 

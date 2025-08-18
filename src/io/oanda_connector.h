@@ -13,9 +13,9 @@
 #include <unordered_map>
 #include <vector>
 
-#include "financial_data_types.h"
-#include "standard_includes.h"
-#include "nlohmann_json_safe.h"
+#include "util/financial_data_types.h"
+#include "core/standard_includes.h"
+#include "util/nlohmann_json_safe.h"
 
 namespace sep {
 namespace connectors {

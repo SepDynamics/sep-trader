@@ -9,11 +9,9 @@
 #include <cstdlib>
 #include <cstring>
 #include <ctime>
-#include <random>
 
-#include "types.h"  // For PatternData/PatternConfig
-#include "types.h"
-#include "quantum_processor_qfh.h"
+#include "core/types.h"
+#include "core/quantum_processor_qfh.h"
 
 // Standard Library Includes
 #include <cmath>
@@ -22,7 +20,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-#include "pattern_evolution_bridge.h"
+#include "core/pattern_evolution_bridge.h"
 
 sep::compat::PatternData sep::quantum::mcp::PatternEvolution::evolvePattern(
     const nlohmann::json& config, const std::string& patternId)

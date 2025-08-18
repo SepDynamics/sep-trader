@@ -1,10 +1,10 @@
 #ifndef SEP_MEMORY_TIER_MANAGER_SERIALIZATION_HPP
-#include "nlohmann_json_safe.h"
+#include "util/nlohmann_json_safe.h"
 #define SEP_MEMORY_TIER_MANAGER_SERIALIZATION_HPP
 
 #include <array>
 
-#include "memory_tier_manager.hpp"
+#include "util/memory_tier_manager.hpp"
 
 namespace sep {
 namespace config {

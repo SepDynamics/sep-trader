@@ -8,9 +8,8 @@
 #include <mutex>
 #include <vector>
 
-#include "types.h"
-#include "types.h"
-#include "qbsa.h"
+#include "core/types.h"
+#include "core/qbsa.h"
 #include "qfh.h"
 
 namespace sep::quantum {

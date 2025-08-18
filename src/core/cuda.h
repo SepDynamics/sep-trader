@@ -3,10 +3,10 @@
 #ifdef __CUDACC__
 #include <cuda_runtime.h>
 
-#include "cuda_helpers.h"
-#include "cuda_sep.h"
+#include "core/cuda_helpers.h"
+#include "core/cuda_sep.h"
 #endif
-#include "core.h"
+#include "core/core.h"
 
 namespace sep::cuda {
 

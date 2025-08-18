@@ -1,7 +1,7 @@
 #include <cuda_runtime.h>
 
 #include "event.h"
-#include "../cuda/stream.h"
+#include "cuda/stream.h"
 
 namespace sep {
 namespace cuda {

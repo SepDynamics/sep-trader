@@ -5,7 +5,7 @@
 #include <cstdint>
 
 // Include forward window result outside any namespace
-#include "../core/forward_window_result.h"
+#include "core/forward_window_result.h"
 
 namespace sep::apps::cuda {
 

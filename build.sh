@@ -122,7 +122,8 @@ echo "Mounting local directory $(pwd) to ${SEP_WORKSPACE_PATH} in the container.
 "${DOCKER_BIN}" run --gpus all --rm \
     -v $(pwd):${SEP_WORKSPACE_PATH} \
     -e SEP_WORKSPACE_PATH=${SEP_WORKSPACE_PATH} \
-    sep_build_env bash -c '
+    sep_build_env bash -c \
+    '\
     # Add exception for dubious ownership
     git config --global --add safe.directory "*"
     

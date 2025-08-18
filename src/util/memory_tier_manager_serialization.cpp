@@ -1,6 +1,6 @@
 #include "util/nlohmann_json_safe.h"
-#include "memory_tier_manager.hpp"
-#include "persistent_pattern_data.hpp"
+#include "util/memory_tier_manager.hpp"
+#include "util/persistent_pattern_data.hpp"
 
 namespace sep {
 namespace config {

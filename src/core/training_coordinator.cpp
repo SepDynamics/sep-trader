@@ -9,7 +9,7 @@
 
 #include <algorithm>
 
-#include "sep_precompiled.h"
+#include "core/sep_precompiled.h"
 #include "oanda_connector.h"
 #include "weekly_cache_manager.hpp"
 #include "quantum_pair_trainer.hpp"
@@ -20,7 +20,7 @@
 #endif
 
 // Don't include standard_includes.h as it may cause issues
-// #include "standard_includes.h"
+// #include "core/standard_includes.h"
 
 using namespace sep::training;
 

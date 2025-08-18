@@ -1,7 +1,7 @@
 #pragma once
 
-#include "standard_includes.h"
-#include "prometheus_exporter.h"
+#include "core/standard_includes.h"
+#include "core/prometheus_exporter.h"
 
 namespace sep::metrics {
 

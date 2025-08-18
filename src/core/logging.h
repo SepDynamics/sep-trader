@@ -6,9 +6,9 @@
 #include <memory>
 #include <string>
 
-#include "standard_includes.h"
+#include "core/standard_includes.h"
 #include "logging_types.h"
-#include "types.h"
+#include "core/types.h"
 #include "tracing.h"
 
 namespace sep::quantum {

@@ -1,8 +1,8 @@
 #include "util/nlohmann_json_safe.h"
 
-#include "sep_precompiled.h"
-#include "standard_includes.h"
-#include "macros.h"
+#include "core/sep_precompiled.h"
+#include "core/standard_includes.h"
+#include "core/macros.h"
 #if defined(__CUDACC__)
 #  include <cuda_runtime.h> // real CUDA header when available
 #endif
@@ -31,21 +31,21 @@
 #include <thread>
 #include <vector>
 
-#include "common.h"  // defines sep::SEPResult
-#include "config.h"
-#include "core.h"
+#include "core/common.h"  // defines sep::SEPResult
+#include "core/config.h"
+#include "core/core.h"
 #include "cuda_api.hpp"
-#include "cuda_sep.h"
+#include "core/cuda_sep.h"
 #include "dag_graph.h"
 #include "data_parser.h"
 #include "engine.h"
 #include "error_handler.h"
-#include "logging.h"  // This is actually the logging manager
+#include "core/logging.h"  // This is actually the logging manager
 #include "memory.h"
-#include "memory_tier_manager.hpp"
-#include "qbsa.h"
+#include "util/memory_tier_manager.hpp"
+#include "core/qbsa.h"
 #include "stream.h"
-#include "types.h"
+#include "core/types.h"
 
 // Define namespace alias for clarity
 namespace logging = sep::logging;

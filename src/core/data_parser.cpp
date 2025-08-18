@@ -4,10 +4,9 @@
 #include <cmath>
 #include <ctime>
 
-#include "financial_data_types.h"
-#include "standard_includes.h"
-#include "types.h"
-#include "types.h"
+#include "util/financial_data_types.h"
+#include "core/standard_includes.h"
+#include "core/types.h"
 
 namespace sep {
 

@@ -5,7 +5,7 @@
 #include <stdexcept>
 
 #include "placeholder_detection.h"
-#include "core_primitives.h"
+#include "util/core_primitives.h"
 #include "stdlib.h"
 
 namespace dsl::compiler {

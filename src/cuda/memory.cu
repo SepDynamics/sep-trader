@@ -185,8 +185,8 @@ template void zeroDeviceMemory<double>(double*, size_t);
 #include <cstring>  // For std::memcpy (if needed implicitly for unified memory)
 
 #include "cuda.h"
-#include "raii.h"
-#include "types.h"
+#include "util/raii.h"
+#include "core/types.h"
 
 namespace sep {
 

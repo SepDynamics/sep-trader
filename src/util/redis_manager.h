@@ -8,8 +8,8 @@
 #include <string>
 #include <vector>
 
-#include "persistent_pattern_data.hpp"
-#include "types.h"
+#include "util/persistent_pattern_data.hpp"
+#include "core/types.h"
 
 namespace sep::persistence {
 

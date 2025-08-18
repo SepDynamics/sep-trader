@@ -5,8 +5,8 @@
 #include <memory>
 #include <vector>
 
-#include "standard_includes.h"
-#include "qbsa.h"
+#include "core/standard_includes.h"
+#include "core/qbsa.h"
 #include "qfh.h"
 
 namespace sep::quantum {

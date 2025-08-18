@@ -4,8 +4,8 @@
 #include <cmath>     // For log2, fabs
 
 #include "bit_pattern_types.cuh" // Include the new device types
-#include "../util/result.h"
-#include "../core/error_handler.h"
+#include "util/result.h"
+#include "core/error_handler.h"
 
 // Helper device functions (will be ported from forward_window_kernels.cpp)
 __device__ bool detectTrendAcceleration(const uint8_t* window, size_t window_size);

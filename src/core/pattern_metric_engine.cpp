@@ -1,9 +1,9 @@
-#include "pattern_metric_engine.h"
+#include "core/pattern_metric_engine.h"
 
 #include <algorithm>
 #include <cmath>
 
-#include "logging.h"
+#include "core/logging.h"
 #ifdef _WIN32
 #include <windows.h>
 #else

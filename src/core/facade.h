@@ -3,8 +3,8 @@
 #include "pattern.h"
 #include "candle_data.h"
 #include "result.h"
-#include "memory_tier_manager.hpp"
-#include "types.h"
+#include "util/memory_tier_manager.hpp"
+#include "core/types.h"
 #include <vector>
 #include <string>
 #include <memory>

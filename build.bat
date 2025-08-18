@@ -1,121 +1,49 @@
 @echo off
-REM Windows build script for SEP Engine
-REM Equivalent of build.sh for Windows development
+setlocal
 
-setlocal EnableDelayedExpansion
+echo Building SEP Engine with Docker on Windows...
 
-echo Building SEP Engine on Windows...
+set REBUILD_FLAG=false
+if "%1"=="--rebuild" set REBUILD_FLAG=true
 
-REM Parse command line arguments
-set REBUILD=false
-set SKIP_DOCKER=false
-set NATIVE_BUILD=true
-set USE_CUDA=true
-
-:parse_args
-if "%~1"=="" goto args_done
-if "%~1"=="--rebuild" set REBUILD=true
-if "%~1"=="--no-docker" set SKIP_DOCKER=true
-if "%~1"=="--no-cuda" set USE_CUDA=false
-shift
-goto parse_args
-:args_done
-
-REM Set default workspace path
-if not defined SEP_WORKSPACE_PATH set SEP_WORKSPACE_PATH=%CD%
-
-REM Create output directories
-if not exist output mkdir output
-if not exist build mkdir build
-
-echo Building natively on Windows...
-
-REM Clean up previous build artifacts if rebuild requested
-if "%REBUILD%"=="true" (
-    echo Performing a full rebuild...
-    rmdir /s /q build >nul 2>&1
-    rmdir /s /q output >nul 2>&1  
-    del CMakeCache.txt >nul 2>&1
-    del Makefile >nul 2>&1
-    mkdir output
-    mkdir build
+docker info >nul 2>&1
+if %ERRORLEVEL% neq 0 (
+    echo Docker is not running or not installed. Please start Docker and try again.
+    exit /b 1
 )
 
-cd build
+echo Mounting local directory %CD% to /workspace in the container.
 
-REM Configure CUDA support
-set CUDA_FLAGS=-DSEP_USE_CUDA=OFF
-if "%USE_CUDA%"=="true" (
-    where nvcc >nul 2>&1
-    if !ERRORLEVEL! == 0 (
-        echo CUDA detected, enabling CUDA support...
-        set CUDA_FLAGS=-DSEP_USE_CUDA=ON
-        
-        REM Auto-detect CUDA_HOME if not set
-        if not defined CUDA_HOME (
-            for /f "tokens=*" %%i in ('where nvcc') do (
-                set NVCC_PATH=%%i
-                for %%j in ("!NVCC_PATH!") do set CUDA_HOME=%%~dpj
-                set CUDA_HOME=!CUDA_HOME:~0,-5!
-            )
-            echo Auto-detected CUDA_HOME: !CUDA_HOME!
-        ) else (
-            echo Using existing CUDA_HOME: !CUDA_HOME!
+REM Create output directory if it doesn't exist
+if not exist "output" mkdir output
+
+REM Use PowerShell's Tee-Object to capture output to build_log.txt while showing on screen
+powershell -Command "docker run --gpus all --rm -v '%CD%:/workspace' -w /workspace -e REBUILD_FLAG=%REBUILD_FLAG% sep-trader-build bash -c 'set -e; echo \"--- Running build inside container ---\"; git config --global --add safe.directory /workspace; if [ $REBUILD_FLAG = true ] ; then echo \"Cleaning previous build...\"; rm -rf build output; fi; mkdir -p build output; cd build; echo \"Configuring with CMake...\"; cmake .. -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER=/usr/bin/gcc-11 -DCMAKE_CXX_COMPILER=/usr/bin/g++-11 -DCMAKE_CUDA_HOST_COMPILER=/usr/bin/g++-11 -DCMAKE_BUILD_WITH_INSTALL_RPATH=ON -DCMAKE_EXPORT_COMPILE_COMMANDS=TRUE -DSEP_USE_CUDA=ON -DSEP_USE_GUI=OFF -DCMAKE_CXX_STANDARD=20 -DCMAKE_CXX_FLAGS=\"-Wno-pedantic -Wno-unknown-warning-option -Wno-invalid-source-encoding -D_GLIBCXX_USE_CXX11_ABI=0\" -DCMAKE_CUDA_FLAGS=\"-Wno-deprecated-gpu-targets -Xcompiler -Wno-pedantic -Xcompiler -Wno-unknown-warning-option -Xcompiler -Wno-invalid-source-encoding -D_GLIBCXX_USE_CXX11_ABI=0\"; echo \"Building with Ninja...\"; ninja -k 0; echo \"Copying compile_commands.json...\"; cp compile_commands.json ..; echo \"--- Build finished ---\"' 2>&1 | Tee-Object -FilePath 'output\build_log.txt'"
+
+set DOCKER_EXIT_CODE=%ERRORLEVEL%
+
+REM Extract errors from build log like build.sh does
+if exist "output\build_log.txt" (
+    echo Extracting errors from build log...
+    powershell -Command "Select-String -Path 'output\build_log.txt' -Pattern 'error|failed|fatal' -CaseSensitive:$false | ForEach-Object { $_.Line } | Out-File 'output\errors.txt' -Encoding UTF8"
+    if exist "output\errors.txt" (
+        for %%A in (output\errors.txt) do if %%~zA==0 (
+            echo No errors found > output\errors.txt
         )
-    ) else (
-        echo CUDA not detected, building without CUDA support...
-        set USE_CUDA=false
+        echo Error summary saved to output\errors.txt
     )
 )
 
-REM Find Visual Studio Build Tools
-call "C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools\VC\Auxiliary\Build\vcvars64.bat" 2>nul
-if errorlevel 1 call "C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\VC\Auxiliary\Build\vcvars64.bat" 2>nul
-if errorlevel 1 call "C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Auxiliary\Build\vcvars64.bat" 2>nul
-if errorlevel 1 call "C:\Program Files\Microsoft Visual Studio\2022\Professional\VC\Auxiliary\Build\vcvars64.bat" 2>nul
-
-REM Configure with CMake using MSVC
-REM Configure with CMake using MSVC
-REM Configure with CMake using MSVC
-cmake .. -G "Visual Studio 16 2019" ^
-    -DCMAKE_BUILD_TYPE=Release ^
-    -DCMAKE_EXPORT_COMPILE_COMMANDS=TRUE ^
-    -DSEP_USE_GUI=OFF ^
-    -DCMAKE_CXX_STANDARD=17 ^
-    -DCMAKE_CXX_FLAGS="/W3 /EHsc /std:c++17" ^
-    -DCMAKE_CUDA_STANDARD=17 ^
-    %CUDA_FLAGS%
-
-if errorlevel 1 (
-    echo CMake configuration failed!
-    cd ..
+if %DOCKER_EXIT_CODE% neq 0 (
+    echo.
+    echo Docker build failed!
+    echo Check output\build_log.txt for detailed error information.
+    echo Check output\errors.txt for filtered error summary.
     exit /b 1
 )
 
-REM Build with MSBuild
-cmake --build . --config Release 2>&1 | tee ..\output\build_log.txt
-
-if errorlevel 1 (
-    echo CMake configuration failed!
-    cd ..
-    exit /b 1
-)
-
-REM Build with Ninja
-ninja -k 0 2>&1 | tee ..\output\build_log.txt
-
-if errorlevel 1 (
-    echo Build failed!
-    cd ..
-    exit /b 1
-)
-
-REM Copy compile_commands.json for IDE integration
-copy compile_commands.json .. >nul 2>&1
-
-cd ..
-
-echo Build complete!
 echo.
-echo Built executables should be in build\ directory
-echo Check output\build_log.txt for any warnings or errors
+echo Build complete!
+echo Built executables should be in the build/ directory.
+echo Build log saved to output\build_log.txt
+echo Error summary saved to output\errors.txt

@@ -2,7 +2,7 @@
 
 #include <queue>
 
-#include "sep_precompiled.h"
+#include "core/sep_precompiled.h"
 #include "pair_manager.hpp"
 #include "trading_state.hpp"
 #include "weekly_cache_manager.hpp"

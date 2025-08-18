@@ -9,7 +9,7 @@
 #include "util/nlohmann_json_safe.h"
 #include <thread>
 
-#include "sep_precompiled.h"
+#include "core/sep_precompiled.h"
 
 namespace sep::apps {
 

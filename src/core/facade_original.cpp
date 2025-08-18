@@ -1,9 +1,9 @@
-#include "memory_tier_manager.hpp"
-#include "types.h"
+#include "util/memory_tier_manager.hpp"
+#include "core/types.h"
 #include "pattern.h"
 #include "candle_data.h"
 #include "result.h"
-#include "pattern_types.h"
+#include "core/pattern_types.h"
 #include "data_parser.h"
 #include "facade.h"
 #include <glm/glm.hpp>
@@ -15,9 +15,9 @@
 // --- Core Engine Subsystem Includes ---
 // These are the real, high-performance backends.
 // The Facade's job is to orchestrate them.
-#include "pattern_metric_engine.h"
-#include "quantum_processor.h"
-#include "persistent_pattern_data.hpp"
+#include "core/pattern_metric_engine.h"
+#include "core/quantum_processor.h"
+#include "util/persistent_pattern_data.hpp"
 
 namespace {
 

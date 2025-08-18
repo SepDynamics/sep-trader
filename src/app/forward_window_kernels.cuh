@@ -4,8 +4,8 @@
 #include <vector>
 #include <cstdint>
 #include <cuda_runtime.h>
-#include "../core/trajectory.h"
-#include "../core/forward_window_result.h"
+#include "core/trajectory.h"
+#include "core/forward_window_result.h"
 
 namespace sep::apps::cuda {
 

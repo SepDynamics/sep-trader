@@ -1,8 +1,8 @@
 #ifndef SEP_CORE_ERROR_HANDLER_H
 #define SEP_CORE_ERROR_HANDLER_H
 
-#include "common.h"
-#include "standard_includes.h"
+#include "core/common.h"
+#include "core/standard_includes.h"
 // Removed duplicate include of core/types.h
 
 namespace sep {

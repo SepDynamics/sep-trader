@@ -2,14 +2,14 @@
 #define SEP_CUDA_COMPAT_H
 
 // Include CUDA macro definitions
-#include "macros.h"
+#include "core/macros.h"
 
 // CUDA compatibility layer for SEP engine
 #if SEP_CUDA_AVAILABLE
 #include <cuda_runtime.h>
 
 
-#include "cuda_helpers.h"
+#include "core/cuda_helpers.h"
 #include "math_common.h"
 
 // We don't need to define uint64_t as it's already provided by system headers

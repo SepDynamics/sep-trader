@@ -12,9 +12,9 @@
 #include <unordered_map>
 #include <vector>
 
-#include "types.h"
-#include "processor.h"
-#include "quantum_processor_qfh.h"
+#include "core/types.h"
+#include "core/processor.h"
+#include "core/quantum_processor_qfh.h"
 #include "signal.h"
 
 // Forward declaration to avoid circular includes
@@ -128,7 +128,7 @@ namespace sep::quantum
      *
      * @usage
      * @code
-     * #include "pattern_metric_engine.h"
+     * #include "core/pattern_metric_engine.h"
      * #include <vector>
      * #include <iostream>
      *

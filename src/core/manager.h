@@ -1,10 +1,10 @@
 #ifndef SEP_CONFIG_MANAGER_H
 #define SEP_CONFIG_MANAGER_H
 
-#include "config.h"
-#include "standard_includes.h"
-#include "memory_tier_manager.hpp"
-#include "types.h"
+#include "core/config.h"
+#include "core/standard_includes.h"
+#include "util/memory_tier_manager.hpp"
+#include "core/types.h"
 
 namespace sep::config {
 

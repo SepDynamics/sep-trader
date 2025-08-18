@@ -6,12 +6,11 @@
 #include <string>
 #include <vector>
 
-#include "common.h"
-#include "pattern_types.h"
-#include "system_hooks.h"
-#include "types.h"
-#include "gpu_context.h"
-#include "types.h"
+#include "core/common.h"
+#include "core/pattern_types.h"
+#include "core/system_hooks.h"
+#include "core/types.h"
+#include "core/gpu_context.h"
 
 namespace sep {
 

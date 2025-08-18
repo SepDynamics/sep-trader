@@ -4,8 +4,8 @@
 #include <cstdint>
 #include <vector>
 
-#include "standard_includes.h"
-#include "gpu_context.h"
+#include "core/standard_includes.h"
+#include "core/gpu_context.h"
 #include "qbsa.cuh"
 
 namespace sep::quantum::bitspace {

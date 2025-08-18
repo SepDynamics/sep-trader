@@ -2,7 +2,7 @@
 
 #include "app/IPatternRecognitionService.h"
 #include "ServiceBase.h"
-#include "nlohmann_json_safe.h"
+#include "util/nlohmann_json_safe.h"
 #include <array>
 #include <unordered_map>
 #include <mutex>

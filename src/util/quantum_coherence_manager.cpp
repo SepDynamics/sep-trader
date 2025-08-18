@@ -1,20 +1,19 @@
 
-#include "quantum_coherence_manager.h"
+#include "util/quantum_coherence_manager.h"
 
 #include <cuda_runtime.h>
 
-#include "sep_precompiled.h"
-#include "core.h"
-#include "cuda_helpers.h"
-#include "cuda_sep.h"
+#include "core/sep_precompiled.h"
+#include "core/core.h"
+#include "core/cuda_helpers.h"
+#include "core/cuda_sep.h"
 #include "cuda_types.hpp"
 #include "memory.h"
-#include "types.h"
-#include "memory_tier_manager.hpp"
-#include "types.h"
-#include "pattern_evolution_bridge.h"
+#include "core/types.h"
+#include "util/memory_tier_manager.hpp"
+#include "core/pattern_evolution_bridge.h"
 #include "quantum_manifold_optimizer.h"
-#include "quantum_processor_qfh.h"
+#include "core/quantum_processor_qfh.h"
 
 using sep::config::CudaConfig;
 using sep::memory::MemoryTierEnum;
@@ -23,8 +22,8 @@ using sep::memory::MemoryTierEnum;
 
 #include <glm/vec4.hpp>
 
-#include "logging.h"
-#include "standard_includes.h"
+#include "core/logging.h"
+#include "core/standard_includes.h"
 
 namespace sep::memory {
 

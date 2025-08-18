@@ -1,9 +1,9 @@
-#include "nlohmann_json_safe.h"
+#include "util/nlohmann_json_safe.h"
 #pragma once
 
 #include <array>
 
-#include "types.h"
+#include "core/types.h"
 
 // Forward declaration of PatternConfig
 namespace sep {

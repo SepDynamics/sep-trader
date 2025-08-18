@@ -1,5 +1,5 @@
 #include "util/nlohmann_json_safe.h"
-#include "qdrant_connector.h"
+#include "io/qdrant_connector.h"
 #include <curl/curl.h>
 #include <sstream>
 #include <iostream>

@@ -5,9 +5,9 @@
 #include <memory>
 #include <mutex>
 
-#include "common.h"
+#include "core/common.h"
 #include "kernels.h"
-#include "raii.h"
+#include "util/raii.h"
 
 extern "C" {
 
