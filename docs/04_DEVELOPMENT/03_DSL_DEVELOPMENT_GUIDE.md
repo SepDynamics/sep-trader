@@ -59,7 +59,7 @@ cd sep-dsl
 
 ## Component Development
 
-### 1. Core DSL Engine (`/sep/src/`)
+### 1. Core DSL Engine (`/src/`)
 
 The heart of SEP DSL written in C++:
 
@@ -69,7 +69,7 @@ src/dsl/ast/          // Abstract Syntax Tree nodes
 src/dsl/lexer/        // Tokenization
 src/dsl/parser/       // DSL parsing
 src/dsl/runtime/      // Execution engine
-src/engine/facade/    // C++ to CUDA bridge
+src/core/             // C++ to CUDA bridge
 ```
 
 **Development workflow:**
@@ -82,18 +82,18 @@ vim src/dsl/runtime/interpreter.cpp
 ./build/tests/dsl_interpreter_test
 ```
 
-### 2. Language Bindings (`/sep/bindings/`)
+### 2. Language Bindings (`/bindings/`)
 
 Multi-language support through C API:
 
-#### Python SDK (`/sep/bindings/python/`)
+#### Python SDK (`/bindings/python/`)
 ```bash
 cd bindings/python
 python setup.py build_ext --inplace
 python -c "import sep_dsl; print('OK')"
 ```
 
-#### JavaScript SDK (`/sep/bindings/javascript/`)
+#### JavaScript SDK (`/bindings/javascript/`)
 ```bash
 cd bindings/javascript  
 npm install
@@ -101,29 +101,29 @@ npm run build
 node -e "const {DSLInterpreter} = require('./lib'); console.log('OK')"
 ```
 
-#### Ruby SDK (`/sep/bindings/ruby/`)
+#### Ruby SDK (`/bindings/ruby/`)
 ```bash
 cd bindings/ruby
 ruby -Ilib -rsep_dsl -e "puts 'OK'"
 ```
 
-### 3. Developer Tools (`/sep/tools/`)
+### 3. Developer Tools (`/tools/`)
 
-#### Language Server (`/sep/tools/lsp/`)
+#### Language Server (`/tools/lsp/`)
 ```bash
 cd tools/lsp
 npm install && npm run build
 ./bin/sep-dsl-language-server --stdio
 ```
 
-#### VSCode Extension (`/sep/tools/vscode-extension/`)
+#### VSCode Extension (`/tools/vscode-extension/`)
 ```bash
 cd tools/vscode-extension
 npm install && npm run compile
 # Test in VSCode: F5 to launch Extension Development Host
 ```
 
-### 4. API Server (`/sep/api/`)
+### 4. API Server (`/api/`)
 
 REST and WebSocket API:
 ```bash
@@ -292,7 +292,7 @@ git push origin feature/your-feature-name
 
 ### Adding New Built-in Functions
 
-1. **Define in engine** (`src/engine/facade/facade.cpp`):
+1. **Define in engine** (`src/core/facade.cpp`):
 ```cpp
 core::Result<double> measure_stability(const std::string& data_name) {
     // Implementation
@@ -312,7 +312,7 @@ builtin_functions_["measure_stability"] = [this](const std::vector<Value>& args)
 ### Extending Language Support
 
 1. **Create binding directory**: `bindings/new-language/`
-2. **Implement C API wrapper**: Use existing C API in `src/c_api/`
+2. **Implement C API wrapper**: Use existing C API in `src/io/sep_c_api.h`
 3. **Add to build script**: Update `scripts/build_packages.sh`
 4. **Update documentation**: Add to main README
 
@@ -326,5 +326,3 @@ export SEP_METRICS=1
 # API server metrics
 curl http://localhost:3000/metrics  # Prometheus format
 ```
-
-This development guide provides the foundation for contributing to SEP DSL. For specific questions, check the [Contributing Guidelines](CONTRIBUTING.md) or open an issue.

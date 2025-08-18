@@ -94,16 +94,19 @@ function(add_sep_library name)
     
     # Common compile options
     if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
-        target_compile_options(${name} PRIVATE 
-            -Wall 
-            -Wextra 
+        target_compile_options(${name} PRIVATE
+            -Wall
+            -Wextra
             -Wpedantic
             -O3
         )
     elseif(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
-        target_compile_options(${name} PRIVATE 
-            /W4
+        target_compile_options(${name} PRIVATE
+            /W3
             /O2
+            /EHsc
+            /std:c++17
+            /bigobj
         )
     endif()
 endfunction()
@@ -137,16 +140,19 @@ function(add_sep_executable name)
     
     # Common compile options
     if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
-        target_compile_options(${name} PRIVATE 
-            -Wall 
-            -Wextra 
+        target_compile_options(${name} PRIVATE
+            -Wall
+            -Wextra
             -Wpedantic
             -O3
         )
     elseif(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
-        target_compile_options(${name} PRIVATE 
-            /W4
+        target_compile_options(${name} PRIVATE
+            /W3
             /O2
+            /EHsc
+            /std:c++17
+            /bigobj
         )
     endif()
 endfunction()

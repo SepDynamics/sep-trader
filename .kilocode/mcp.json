@@ -1,32 +1,18 @@
 {
   "mcpServers": {
-    "memory": {
-      "command": "npx",
-      "args": [
-        "-y",
-        "@modelcontextprotocol/server-memory"
-      ],
-      "alwaysAllow": [
-        "create_entities",
-        "create_relations",
-        "add_observations",
-        "delete_entities",
-        "delete_observations",
-        "search_nodes",
-        "read_graph",
-        "delete_relations",
-        "open_nodes"
-      ]
-    },
     "context7": {
-      "command": "npx",
+      "type": "streamable-http",
+      "url": "https://mcp.context7.com/mcp"
+    },
+    "memory": {
+      "command": "docker",
       "args": [
-        "-y",
-        "@upstash/context7-mcp"
-      ],
-      "alwaysAllow": [
-        "resolve-library-id",
-        "get-library-docs"
+        "run",
+        "-i",
+        "-v",
+        "claude-memory:/app/dist",
+        "--rm",
+        "mcp/memory"
       ]
     }
   },

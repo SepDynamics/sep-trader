@@ -1,9 +1,15 @@
 cmake_minimum_required(VERSION 3.15)
 
 # CRITICAL: Set compilers BEFORE project() to avoid CMake loops
-set(CMAKE_C_COMPILER "/usr/bin/gcc-11")
-set(CMAKE_CXX_COMPILER "/usr/bin/g++-11")
-set(CMAKE_CUDA_HOST_COMPILER "/usr/bin/g++-11")
+# Only set specific compilers on Linux
+if(UNIX AND NOT APPLE)
+    if(EXISTS "/usr/bin/gcc-11")
+        set(CMAKE_C_COMPILER "/usr/bin/gcc-11")
+        set(CMAKE_CXX_COMPILER "/usr/bin/g++-11")
+        set(CMAKE_CUDA_HOST_COMPILER "/usr/bin/g++-11")
+        message(STATUS "Using GCC-11 on Linux")
+    endif()
+endif()
 
 # Set workspace path from environment or use current directory
 if(DEFINED ENV{SEP_WORKSPACE_PATH})
@@ -45,9 +51,13 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wpedantic -O3")
 # This ensures std::array is available for nlohmann_json and all dependencies
 # set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -include array") # Removed to avoid conflicts with std::array
 
-# Add the C++ standard library include path to the global flags
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -isystem /usr/include/c++/11")
-set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -isystem /usr/include/c++/11")
+# Add the C++ standard library include path to the global flags (Linux only)
+if(UNIX AND NOT APPLE)
+    if(EXISTS "/usr/include/c++/11")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -isystem /usr/include/c++/11")
+        set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -isystem /usr/include/c++/11")
+    endif()
+endif()
 
 
 # Removed force-include of array_protection.h to avoid breaking standard library dependencies
@@ -82,7 +92,10 @@ if(SEP_USE_CUDA)
     
     # Set CUDA paths and flags before enabling language
     set(CMAKE_CUDA_COMPILER "$ENV{CUDA_HOME}/bin/nvcc")
-    set(CMAKE_CUDA_HOST_COMPILER "/usr/bin/g++-11")
+    # Only set specific CUDA host compiler on Linux
+    if(UNIX AND NOT APPLE AND EXISTS "/usr/bin/g++-11")
+        set(CMAKE_CUDA_HOST_COMPILER "/usr/bin/g++-11")
+    endif()
     set(CMAKE_CUDA_ARCHITECTURES "75;80;86" CACHE STRING "CUDA architectures")
     
     # CUDA flags are now set per-target in template.cmake
@@ -114,7 +127,9 @@ if(SEP_USE_CUDA)
     
     # Add CUDA paths to include and link directories
     include_directories(SYSTEM ${CUDAToolkit_INCLUDE_DIRS})
-    include_directories(SYSTEM /usr/include/c++/11)
+    if(UNIX AND NOT APPLE AND EXISTS "/usr/include/c++/11")
+        include_directories(SYSTEM /usr/include/c++/11)
+    endif()
     link_directories(${CUDAToolkit_LIBRARY_DIR})
 
 endif()
@@ -154,20 +169,31 @@ find_package(Threads REQUIRED)
 find_package(benchmark)
 include(cmake/gtest.cmake)
 
-find_package(PkgConfig REQUIRED)
-pkg_check_modules(PQXX REQUIRED libpqxx)
-pkg_check_modules(PQ REQUIRED libpq)
-
-if(PQXX_FOUND AND PQ_FOUND)
-    message(STATUS "Found PostgreSQL libraries using pkg-config")
-    add_library(PostgreSQL::pqxx INTERFACE IMPORTED)
-    set_property(TARGET PostgreSQL::pqxx PROPERTY INTERFACE_INCLUDE_DIRECTORIES "${PQXX_INCLUDE_DIRS}")
-    set_property(TARGET PostgreSQL::pqxx PROPERTY INTERFACE_LINK_LIBRARIES "${PQXX_LIBRARIES}")
-    add_library(PostgreSQL::pq INTERFACE IMPORTED)
-    set_property(TARGET PostgreSQL::pq PROPERTY INTERFACE_INCLUDE_DIRECTORIES "${PQ_INCLUDE_DIRS}")
-    set_property(TARGET PostgreSQL::pq PROPERTY INTERFACE_LINK_LIBRARIES "${PQ_LIBRARIES}")
+# Find PostgreSQL - use pkg-config on Linux, vcpkg on Windows
+if(WIN32)
+    # On Windows, use vcpkg
+    find_package(libpqxx CONFIG REQUIRED)
+    find_package(unofficial-libpq CONFIG REQUIRED)
+    add_library(PostgreSQL::pqxx ALIAS libpqxx::pqxx)
+    add_library(PostgreSQL::pq ALIAS unofficial::libpq::libpq)
+    message(STATUS "Found PostgreSQL libraries using vcpkg on Windows")
 else()
-    message(FATAL_ERROR "Could not find PostgreSQL libraries using pkg-config")
+    # On Linux, use pkg-config
+    find_package(PkgConfig REQUIRED)
+    pkg_check_modules(PQXX REQUIRED libpqxx)
+    pkg_check_modules(PQ REQUIRED libpq)
+
+    if(PQXX_FOUND AND PQ_FOUND)
+        message(STATUS "Found PostgreSQL libraries using pkg-config on Linux")
+        add_library(PostgreSQL::pqxx INTERFACE IMPORTED)
+        set_property(TARGET PostgreSQL::pqxx PROPERTY INTERFACE_INCLUDE_DIRECTORIES "${PQXX_INCLUDE_DIRS}")
+        set_property(TARGET PostgreSQL::pqxx PROPERTY INTERFACE_LINK_LIBRARIES "${PQXX_LIBRARIES}")
+        add_library(PostgreSQL::pq INTERFACE IMPORTED)
+        set_property(TARGET PostgreSQL::pq PROPERTY INTERFACE_INCLUDE_DIRECTORIES "${PQ_INCLUDE_DIRS}")
+        set_property(TARGET PostgreSQL::pq PROPERTY INTERFACE_LINK_LIBRARIES "${PQ_LIBRARIES}")
+    else()
+        message(FATAL_ERROR "Could not find PostgreSQL libraries using pkg-config")
+    endif()
 endif()
 
 include(FetchContent)
@@ -188,16 +214,24 @@ FetchContent_MakeAvailable(nlohmann_json)
 
 
 
-# Use system yaml-cpp instead of downloading
-find_package(PkgConfig REQUIRED)
-pkg_check_modules(YAML_CPP REQUIRED yaml-cpp)
-
-if(YAML_CPP_FOUND)
-    add_library(YAML::yaml-cpp INTERFACE IMPORTED)
-    set_property(TARGET YAML::yaml-cpp PROPERTY INTERFACE_INCLUDE_DIRECTORIES "${YAML_CPP_INCLUDE_DIRS}")
-    set_property(TARGET YAML::yaml-cpp PROPERTY INTERFACE_LINK_LIBRARIES "${YAML_CPP_LIBRARIES}")
+# Find yaml-cpp - use pkg-config on Linux, vcpkg on Windows
+if(WIN32)
+    # On Windows, use vcpkg
+    find_package(yaml-cpp CONFIG REQUIRED)
+    add_library(YAML::yaml-cpp ALIAS yaml-cpp)
+    message(STATUS "Found yaml-cpp using vcpkg on Windows")
 else()
-    message(FATAL_ERROR "Could not find yaml-cpp library using pkg-config")
+    # On Linux, use pkg-config
+    find_package(PkgConfig REQUIRED)
+    pkg_check_modules(YAML_CPP REQUIRED yaml-cpp)
+
+    if(YAML_CPP_FOUND)
+        add_library(YAML::yaml-cpp INTERFACE IMPORTED)
+        set_property(TARGET YAML::yaml-cpp PROPERTY INTERFACE_INCLUDE_DIRECTORIES "${YAML_CPP_INCLUDE_DIRS}")
+        set_property(TARGET YAML::yaml-cpp PROPERTY INTERFACE_LINK_LIBRARIES "${YAML_CPP_LIBRARIES}")
+    else()
+        message(FATAL_ERROR "Could not find yaml-cpp library using pkg-config")
+    endif()
 endif()
 
 if(SEP_USE_GUI)
