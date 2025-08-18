@@ -257,199 +257,100 @@ QuantumTradingSignal QuantumSignalBridge::analyzeMarketData(
     const std::vector<sep::apps::cuda::ForwardWindowResult>& forward_window_results) {
     std::lock_guard<std::mutex> lock(analysis_mutex_);
 
-        QuantumTradingSignal signal;
-        signal.instrument = current_data.instrument;
-        signal.timestamp = std::chrono::duration_cast<std::chrono::milliseconds>(
-                               std::chrono::system_clock::now().time_since_epoch())
-                               .count();
-        signal.source_candle_timestamp = current_data.timestamp;
+    QuantumTradingSignal signal;
+    signal.instrument = current_data.instrument;
+    signal.timestamp = std::chrono::duration_cast<std::chrono::milliseconds>(
+                           std::chrono::system_clock::now().time_since_epoch())
+                           .count();
+    signal.source_candle_timestamp = current_data.timestamp;
 
-        if (!initialized_ || history.size() < 20)
-        {
-            return signal;  // Return HOLD signal
-        }
+    if (!initialized_ || history.size() < 20 || forward_window_results.empty()) {
+        return signal;  // Return HOLD signal
+    }
 
-        try {
-        // Debug data format
-        debugDataFormat(history);
-        
-        // Convert price data to bit patterns
-        auto bits = convertPriceToBits(history);
-        last_bits_ = bits;
-        
-        if (bits.size() < 10) {  // Reduced from 32 to 10 for early testing
-            std::cout << "[QuantumSignal] Insufficient bit data: " << bits.size() << std::endl;
-            return signal;
-        }
-        
-        std::vector<sep::quantum::bitspace::TrajectoryPoint> trajectory_points;
-        for(size_t i = 0; i < history.size(); ++i) {
-            trajectory_points.push_back({history[i].mid, history[i].timestamp});
-        }
-        sep::quantum::bitspace::Trajectory trajectory(trajectory_points);
-        auto metrics = pattern_processor_->processTrajectory(trajectory);
+    try {
+        // The primary source of identifiers is the forward window analysis.
+        // We take the most recent result from the forward window.
+        const auto& latest_forward_result = forward_window_results.back();
 
-        signal.identifiers.confidence = metrics.confidence;
-        signal.identifiers.coherence = metrics.coherence;
-        signal.identifiers.stability = metrics.stability;
-        signal.identifiers.entropy = metrics.entropy;
-        
-        if (!forward_window_results.empty()) {
-            const auto& last_result = forward_window_results.back();
-            signal.identifiers.confidence = last_result.confidence;
-        } else {
-            signal.identifiers.confidence = 0.0f;
-            signal.identifiers.coherence = 0.0f;
-            signal.identifiers.stability = 0.0f;
-        }
-        
-        // Store debug metrics in identifiers
+        // Populate the signal identifiers from the forward window result.
+        signal.identifiers.confidence = latest_forward_result.confidence;
+        signal.identifiers.coherence = latest_forward_result.coherence;
+        signal.identifiers.stability = latest_forward_result.stability;
+        signal.identifiers.entropy = latest_forward_result.entropy;
+        signal.identifiers.converged = latest_forward_result.converged;
+        signal.identifiers.iterations = latest_forward_result.iterations;
 
+        // Create QFH and QBSA results from the forward window data to pass to determineDirection
+        sep::quantum::QFHResult qfh_result;
+        qfh_result.coherence = latest_forward_result.coherence;
+        qfh_result.entropy = latest_forward_result.entropy;
+        qfh_result.flip_ratio = latest_forward_result.flip_ratio;
+        qfh_result.rupture_ratio = latest_forward_result.rupture_ratio;
+        qfh_result.collapse_detected = latest_forward_result.quantum_collapse_detected;
 
-        // Direction determination based on normalized stability [0, 1]:
-        // < 0.45 = SELL (low stability = volatile conditions), > 0.55 = BUY (high stability =
-        // trending conditions)
-        if (signal.identifiers.stability < 0.45f)
-        {
-            signal.action = QuantumTradingSignal::SELL;
-        }
-        else if (signal.identifiers.stability > 0.55f)
-        {
-            signal.action = QuantumTradingSignal::BUY;
-        }
-        else
-        {
-            // HOLD zone - stability between 0.45-0.55 indicates uncertain market conditions
-            signal.action = QuantumTradingSignal::HOLD;
-        }
+        sep::quantum::bitspace::QBSAResult qbsa_result;
+        qbsa_result.correction_ratio = 1.0f - latest_forward_result.confidence; // Confidence is 1 - correction_ratio
 
-        // Apply strategy thresholds (from alpha analysis)
+        // Determine the trading direction using the dedicated function
+        signal.action = determineDirection(qfh_result, qbsa_result);
+
+        // Apply strategy thresholds
         bool meets_confidence = signal.identifiers.confidence >= confidence_threshold_.load();
         bool meets_coherence = signal.identifiers.coherence >= coherence_threshold_.load();
-        // For normalized stability [0,1], check distance from neutral (0.5)
         bool meets_stability = std::abs(signal.identifiers.stability - 0.5f) >= stability_threshold_.load();
-        
-        std::cout << "[QuantumSignal] Metrics - Confidence: " << signal.identifiers.confidence 
+
+        std::cout << "[QuantumSignal] Metrics - Confidence: " << signal.identifiers.confidence
                   << " (≥" << confidence_threshold_.load() << ": " << (meets_confidence ? "PASS" : "FAIL") << ")"
-                  << " Coherence: " << signal.identifiers.coherence 
+                  << " Coherence: " << signal.identifiers.coherence
                   << " (≥" << coherence_threshold_.load() << ": " << (meets_coherence ? "PASS" : "FAIL") << ")"
-                  << " Stability: " << signal.identifiers.stability 
+                  << " Stability: " << signal.identifiers.stability
                   << " (|0.5-val|≥" << stability_threshold_.load() << ": " << (meets_stability ? "PASS" : "FAIL") << ")"
-                  << " Direction: " << (signal.action == QuantumTradingSignal::BUY ? "BUY" : 
+                  << " Direction: " << (signal.action == QuantumTradingSignal::BUY ? "BUY" :
                                        signal.action == QuantumTradingSignal::SELL ? "SELL" : "HOLD")
                   << std::endl;
-        
+
         if (meets_confidence && meets_coherence && meets_stability && signal.action != QuantumTradingSignal::HOLD) {
-            
-            // PRODUCTION-GRADE ENHANCEMENT: Multi-timeframe confirmation
-            // Based on 60% accuracy breakthrough from testbed analysis
             std::string timestamp_str = std::to_string(current_data.timestamp);
             auto mtf_confirmation = getMultiTimeframeConfirmation(signal, timestamp_str);
-            signal.mtf_confirmation = mtf_confirmation;  // Store for GUI access
-            
-            // ENHANCED LOGGING FOR LIVE VALIDATION
-            auto now = std::chrono::system_clock::now();
-            auto time_t = std::chrono::system_clock::to_time_t(now);
-            std::stringstream log_entry;
-            log_entry << std::put_time(std::localtime(&time_t), "%Y-%m-%d %H:%M:%S")
-                      << " [SIGNAL_GENERATED] " << current_data.instrument
-                      << " Action=" << (signal.action == QuantumTradingSignal::BUY ? "BUY" : "SELL")
-                      << " Confidence=" << std::fixed << std::setprecision(4) << signal.identifiers.confidence
-                      << " Coherence=" << signal.identifiers.coherence
-                      << " Stability=" << signal.identifiers.stability
-                      << " Entropy=" << signal.identifiers.entropy
-                      << " Price=" << current_data.mid
-                      << " M5_Confirm=" << (mtf_confirmation.m5_confirms ? "YES" : "NO")
-                      << " M15_Confirm=" << (mtf_confirmation.m15_confirms ? "YES" : "NO")
-                      << " Triple_Confirmed=" << (mtf_confirmation.triple_confirmed ? "YES" : "NO");
-            
-            std::cout << log_entry.str() << std::endl;
-            
-            std::cout << "[QuantumSignal] Multi-timeframe check - M5: " 
-                      << (mtf_confirmation.m5_confirms ? "CONFIRM" : "REJECT")
-                      << " M15: " << (mtf_confirmation.m15_confirms ? "CONFIRM" : "REJECT")
-                      << " Triple: " << (mtf_confirmation.triple_confirmed ? "CONFIRMED" : "PENDING") << std::endl;
-            
-            // Apply production-grade triple confirmation logic
+            signal.mtf_confirmation = mtf_confirmation;
+
             if (mtf_confirmation.triple_confirmed) {
                 signal.should_execute = true;
-                
-                // Calculate risk management parameters
                 signal.suggested_position_size = calculatePositionSize(signal.identifiers.confidence, 10000.0);
                 signal.stop_loss_distance = calculateStopLoss(signal.identifiers.coherence);
                 signal.take_profit_distance = calculateTakeProfit(signal.identifiers.confidence);
                 
-                signal.should_execute = true; // Enable live trade execution for triple-confirmed signals
-                
-                // ENHANCED EXECUTION LOGGING
-                std::stringstream exec_log;
-                exec_log << std::put_time(std::localtime(&time_t), "%Y-%m-%d %H:%M:%S")
-                         << " [TRIPLE_CONFIRMED] " << current_data.instrument
-                         << " Action=" << (signal.action == QuantumTradingSignal::BUY ? "BUY" : "SELL")
-                         << " Size=" << std::fixed << std::setprecision(0) << signal.suggested_position_size
-                         << " StopLoss=" << std::setprecision(5) << signal.stop_loss_distance
-                         << " TakeProfit=" << signal.take_profit_distance
-                         << " ExecuteFlag=TRUE REASON=\"Triple Confirmation Met: M1 " 
-                         << (signal.action == QuantumTradingSignal::BUY ? "BUY" : "SELL") << ", M5 " 
-                         << (mtf_confirmation.m5_confirms ? "CONFIRM" : "REJECT") << ", M15 " 
-                         << (mtf_confirmation.m15_confirms ? "CONFIRM" : "REJECT") << "\"";
-                         
-                std::cout << exec_log.str() << std::endl;
-                
                 std::cout << "[QuantumSignal] 🚀 MULTI-TIMEFRAME CONFIRMED SIGNAL: " << current_data.instrument
                           << " Action: " << (signal.action == QuantumTradingSignal::BUY ? "BUY" : "SELL")
-                          << " Size: " << signal.suggested_position_size 
+                          << " Size: " << signal.suggested_position_size
                           << " (60% accuracy system activated) READY FOR EXECUTION!" << std::endl;
             } else {
                 signal.action = QuantumTradingSignal::HOLD;
                 signal.should_execute = false;
-                
-                // LOG NON-EXECUTED SIGNALS
-                std::stringstream hold_log;
-                hold_log << std::put_time(std::localtime(&time_t), "%Y-%m-%d %H:%M:%S")
-                         << " [SIGNAL_HOLD] " << current_data.instrument
-                         << " Action=HOLD ExecuteFlag=FALSE REASON=\"Awaiting M5/M15 Confirmation\"";
-                std::cout << hold_log.str() << std::endl;
-                
                 std::cout << "[QuantumSignal] ⏳ M1 Signal Detected - Awaiting M5/M15 Confirmation..." << std::endl;
             }
         } else {
             signal.action = QuantumTradingSignal::HOLD;
             signal.should_execute = false;
-            
-            // LOG THRESHOLD FAILURES
-            auto now = std::chrono::system_clock::now();
-            auto time_t = std::chrono::system_clock::to_time_t(now);
-            std::stringstream threshold_log;
-            threshold_log << std::put_time(std::localtime(&time_t), "%Y-%m-%d %H:%M:%S")
-                         << " [THRESHOLD_FAIL] " << current_data.instrument
-                         << " Action=HOLD ExecuteFlag=FALSE REASON=\"Thresholds not met: Conf=" 
-                         << (meets_confidence ? "PASS" : "FAIL") << " Coh=" 
-                         << (meets_coherence ? "PASS" : "FAIL") << " Stab=" 
-                         << (meets_stability ? "PASS" : "FAIL") << "\"";
-            std::cout << threshold_log.str() << std::endl;
-            
             std::cout << "[QuantumSignal] Thresholds not met - HOLD" << std::endl;
         }
-        
+
     } catch (const std::exception& e) {
         std::cerr << "[QuantumSignal] Analysis error: " << e.what() << std::endl;
     }
-    
-    // Feed current M1 data to real-time aggregator for M5/M15 candle building
+
     if (realtime_aggregator_) {
         Candle m1_candle;
         m1_candle.timestamp = current_data.timestamp;
-        // MarketData has bid/ask/mid, we'll simulate OHLC from mid price
         m1_candle.open = current_data.mid;
         m1_candle.high = current_data.mid;
         m1_candle.low = current_data.mid;
         m1_candle.close = current_data.mid;
         m1_candle.volume = current_data.volume;
-        
         realtime_aggregator_->addM1Candle(m1_candle);
     }
-    
+
     return signal;
 }
 }

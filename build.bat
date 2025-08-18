@@ -75,7 +75,9 @@ if errorlevel 1 call "C:\Program Files\Microsoft Visual Studio\2022\Community\VC
 if errorlevel 1 call "C:\Program Files\Microsoft Visual Studio\2022\Professional\VC\Auxiliary\Build\vcvars64.bat" 2>nul
 
 REM Configure with CMake using MSVC
-cmake .. -G "Ninja" ^
+REM Configure with CMake using MSVC
+REM Configure with CMake using MSVC
+cmake .. -G "Visual Studio 16 2019" ^
     -DCMAKE_BUILD_TYPE=Release ^
     -DCMAKE_EXPORT_COMPILE_COMMANDS=TRUE ^
     -DSEP_USE_GUI=OFF ^
@@ -83,6 +85,15 @@ cmake .. -G "Ninja" ^
     -DCMAKE_CXX_FLAGS="/W3 /EHsc /std:c++17" ^
     -DCMAKE_CUDA_STANDARD=17 ^
     %CUDA_FLAGS%
+
+if errorlevel 1 (
+    echo CMake configuration failed!
+    cd ..
+    exit /b 1
+)
+
+REM Build with MSBuild
+cmake --build . --config Release 2>&1 | tee ..\output\build_log.txt
 
 if errorlevel 1 (
     echo CMake configuration failed!

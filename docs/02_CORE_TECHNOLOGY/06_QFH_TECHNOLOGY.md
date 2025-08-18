@@ -499,6 +499,4 @@ elif qfh_state.classification == "NULL_STATE":
 
 ---
 
-**© 2025 SEP Dynamics, Inc. Patent-pending technology.**
-
-*QFH Technology represents a revolutionary advancement in financial modeling. All performance results are based on live trading and historical backtesting. Past performance does not guarantee future results.*
+**QFH Technology Status**: ✅ **Production Ready** - Proven 60.73% accuracy in live markets

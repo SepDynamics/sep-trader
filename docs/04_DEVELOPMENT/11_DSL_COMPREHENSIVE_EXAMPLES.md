@@ -1,3 +1,12 @@
+# SEP DSL Comprehensive Examples
+
+This document contains complete DSL examples demonstrating multi-domain pattern analysis capabilities.
+
+## Multi-Domain Analysis Example
+
+This demonstrates how the same DSL constructs work across different domains:
+
+```sep
 // Comprehensive Multi-Domain Analysis Example
 // This demonstrates how the same DSL constructs work across different domains
 
@@ -85,3 +94,49 @@ signal environmental_alert {
     confidence: environmental_anomaly.rapid_fluctuation
     action: INVESTIGATE
 }
+```
+
+## Key Concepts Demonstrated
+
+### 1. Domain Agnostic Analysis
+The same quantum analysis functions (`measure_coherence`, `measure_entropy`, `qfh_analyze`) work effectively across:
+- **Financial Markets**: Detecting volatility and trend breaks
+- **Scientific Experiments**: Monitoring quantum decoherence
+- **Medical Monitoring**: Identifying cardiac arrhythmias  
+- **IoT Networks**: Distinguishing sensor malfunctions from environmental events
+
+### 2. Pattern Composition
+Each pattern combines multiple quantum metrics to detect domain-specific conditions:
+- **Boolean Logic**: Using `&&`, `||`, `!` operators for complex conditions
+- **Threshold Analysis**: Comparing metrics against domain-appropriate thresholds
+- **Multi-Factor Decisions**: Combining multiple signals for confident detection
+
+### 3. Signal Generation
+Signals provide actionable outputs based on pattern analysis:
+- **Trigger Conditions**: When to activate the signal
+- **Confidence Levels**: How certain we are about the signal
+- **Action Specification**: What action to take when triggered
+
+### 4. Real-World Applications
+This example shows how AGI-level pattern recognition can be applied to:
+- **Trading Systems**: Automated market analysis and alert generation
+- **Laboratory Equipment**: Real-time experiment monitoring and control
+- **Healthcare Devices**: Patient monitoring and emergency detection
+- **Smart Cities**: Environmental monitoring and predictive maintenance
+
+## Running the Example
+
+```bash
+# Save the example as multi_domain_analysis.sep
+./build/src/dsl/sep_dsl_interpreter multi_domain_analysis.sep
+```
+
+## Expected Behavior
+
+The interpreter will:
+1. Set up data streams from various sources
+2. Execute pattern analysis on each data stream
+3. Generate appropriate signals based on detected patterns
+4. Output action recommendations for each domain
+
+This demonstrates the power of the SEP DSL: **one language, infinite applications**.
