@@ -1,12 +1,11 @@
-#include "compiler.h"
+#include "util/compiler.h"
 
 #include <cmath>
 #include <iostream>
 #include <stdexcept>
 
-#include "placeholder_detection.h"
 #include "util/core_primitives.h"
-#include "stdlib.h"
+#include "util/stdlib.h"
 
 namespace dsl::compiler {
 

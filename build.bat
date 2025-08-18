@@ -2,28 +2,18 @@
 setlocal
 
 echo Building SEP Engine with Docker on Windows...
-
-set REBUILD_FLAG=false
-if "%1"=="--rebuild" set REBUILD_FLAG=true
-
-docker info >nul 2>&1
-if %ERRORLEVEL% neq 0 (
-    echo Docker is not running or not installed. Please start Docker and try again.
-    exit /b 1
-)
-
 echo Mounting local directory %CD% to /workspace in the container.
 
 REM Create output directory if it doesn't exist
 if not exist "output" mkdir output
 
-REM Use PowerShell's Tee-Object to capture output to build_log.txt while showing on screen
-powershell -Command "docker run --gpus all --rm -v '%CD%:/workspace' -w /workspace -e REBUILD_FLAG=%REBUILD_FLAG% sep-trader-build bash -c 'set -e; echo \"--- Running build inside container ---\"; git config --global --add safe.directory /workspace; if [ $REBUILD_FLAG = true ] ; then echo \"Cleaning previous build...\"; rm -rf build output; fi; mkdir -p build output; cd build; echo \"Configuring with CMake...\"; cmake .. -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER=/usr/bin/gcc-11 -DCMAKE_CXX_COMPILER=/usr/bin/g++-11 -DCMAKE_CUDA_HOST_COMPILER=/usr/bin/g++-11 -DCMAKE_BUILD_WITH_INSTALL_RPATH=ON -DCMAKE_EXPORT_COMPILE_COMMANDS=TRUE -DSEP_USE_CUDA=ON -DSEP_USE_GUI=OFF -DCMAKE_CXX_STANDARD=20 -DCMAKE_CXX_FLAGS=\"-Wno-pedantic -Wno-unknown-warning-option -Wno-invalid-source-encoding -D_GLIBCXX_USE_CXX11_ABI=0\" -DCMAKE_CUDA_FLAGS=\"-Wno-deprecated-gpu-targets -Xcompiler -Wno-pedantic -Xcompiler -Wno-unknown-warning-option -Xcompiler -Wno-invalid-source-encoding -D_GLIBCXX_USE_CXX11_ABI=0\"; echo \"Building with Ninja...\"; ninja -k 0; echo \"Copying compile_commands.json...\"; cp compile_commands.json ..; echo \"--- Build finished ---\"' 2>&1 | Tee-Object -FilePath 'output\build_log.txt'"
+docker run --gpus all --rm -v "%CD%:/workspace" -w /workspace sep-trader-build bash -c "set -e; echo '--- Running build inside container ---'; git config --global --add safe.directory /workspace; mkdir -p build output; cd build; echo 'Configuring with CMake...'; cmake .. -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER=/usr/bin/gcc-11 -DCMAKE_CXX_COMPILER=/usr/bin/g++-11 -DCMAKE_CUDA_HOST_COMPILER=/usr/bin/g++-11 -DCMAKE_BUILD_WITH_INSTALL_RPATH=ON -DCMAKE_EXPORT_COMPILE_COMMANDS=TRUE -DSEP_USE_CUDA=ON -DSEP_USE_GUI=OFF -DCMAKE_CXX_STANDARD=20 -DCMAKE_CXX_FLAGS='-Wno-pedantic -Wno-unknown-warning-option -Wno-invalid-source-encoding -D_GLIBCXX_USE_CXX11_ABI=0' -DCMAKE_CUDA_FLAGS='-Wno-deprecated-gpu-targets -Xcompiler -Wno-pedantic -Xcompiler -Wno-unknown-warning-option -Xcompiler -Wno-invalid-source-encoding -D_GLIBCXX_USE_CXX11_ABI=0'; echo 'Building with Ninja...'; ninja -k 0; echo 'Copying compile_commands.json...'; cp compile_commands.json ..; echo '--- Build finished ---'" 2>&1 | powershell -Command "$input | Tee-Object -FilePath 'output\build_log.txt'"
 
 set DOCKER_EXIT_CODE=%ERRORLEVEL%
 
 REM Extract errors from build log like build.sh does
 if exist "output\build_log.txt" (
+    echo ---
     echo Extracting errors from build log...
     powershell -Command "Select-String -Path 'output\build_log.txt' -Pattern 'error|failed|fatal' -CaseSensitive:$false | ForEach-Object { $_.Line } | Out-File 'output\errors.txt' -Encoding UTF8"
     if exist "output\errors.txt" (

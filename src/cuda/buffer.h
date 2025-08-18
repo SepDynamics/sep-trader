@@ -8,7 +8,7 @@
 #include <memory>
 #include <type_traits>
 
-#include "cuda_error.h"
+#include "core/cuda_error.cuh"
 
 namespace sep {
 namespace cuda {

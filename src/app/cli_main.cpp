@@ -9,8 +9,8 @@
 #include <chrono>
 #include <thread>
 
-#include "training_coordinator.hpp"
-#include "cli_commands.hpp"
+#include "core/training_coordinator.hpp"
+#include "core/cli_commands.hpp"
 #include "status_display.hpp"
 
 using namespace sep::training;

@@ -1,7 +1,7 @@
 #include "signal_pipeline.hpp"
 #include "currency_quantum_processor.hpp"
 #include "pair_optimization_engine.hpp"
-#include "trace.hpp"
+#include "core/trace.hpp"
 
 namespace sep::trading {
 std::string runSignalPipeline(const std::string& pair, const std::vector<double>& prices) {

@@ -52,7 +52,7 @@ function(add_sep_library name)
         endforeach()
         
         # Apply CUDA compilation flags to the target
-        set(CUDA_FLAGS "--expt-relaxed-constexpr --extended-lambda")
+        set(CUDA_FLAGS "--expt-relaxed-constexpr --extended-lambda -Xcompiler -Wno-unknown-pragmas,-Wno-pedantic")
         foreach(arch ${CMAKE_CUDA_ARCHITECTURES})
             string(APPEND CUDA_FLAGS " --generate-code=arch=compute_${arch},code=[compute_${arch},sm_${arch}]")
         endforeach()

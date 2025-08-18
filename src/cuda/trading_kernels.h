@@ -4,7 +4,7 @@
 #include "trading_types.cuh"
 #include "multi_pair_kernel.cuh"
 #include "trading_kernels.cuh"
-#include "ticker_optimization_kernel.cuh"
+#include "cuda/ticker_optimization_kernel.cuh"
 
 /**
  * @file trading_kernels.h

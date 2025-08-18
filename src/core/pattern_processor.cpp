@@ -1,5 +1,5 @@
 // Merged from: src/core/bitspace/pattern_processor.cpp
-#include "pattern_processor.h"
+#include "core/pattern_processor.h"
 
 #include <numeric>
 #include <cmath>

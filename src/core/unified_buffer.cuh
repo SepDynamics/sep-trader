@@ -1,6 +1,6 @@
 #pragma once
 
-#include "cuda_error.cuh"
+#include "core/cuda_error.cuh"
 #include "cuda_includes.cuh"
 #include <type_traits>
 #include <stdexcept>

@@ -13,6 +13,8 @@
 #include <unordered_map>
 #include <vector>
 
+#include "core/candle_data.h"
+
 #include "util/financial_data_types.h"
 #include "core/standard_includes.h"
 #include "util/nlohmann_json_safe.h"

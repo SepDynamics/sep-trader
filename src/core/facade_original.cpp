@@ -2,10 +2,10 @@
 #include "core/types.h"
 #include "pattern.h"
 #include "candle_data.h"
-#include "result.h"
+#include "util/result.h"
 #include "core/pattern_types.h"
 #include "data_parser.h"
-#include "facade.h"
+#include "core/facade.h"
 #include <glm/glm.hpp>
 #include <algorithm>
 #include <memory>

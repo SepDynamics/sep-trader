@@ -3,8 +3,73 @@
 #include <cuda_runtime.h>
 #include <functional>
 #include <stdexcept>
+#include <cstdint>
 
 namespace sep {
+namespace cuda {
+
+/**
+ * RAII wrapper for CUDA streams
+ */
+class StreamRAII {
+public:
+    explicit StreamRAII(unsigned int flags = cudaStreamDefault);
+    ~StreamRAII() noexcept;
+    
+    // Move constructor and assignment
+    StreamRAII(StreamRAII&& other) noexcept;
+    StreamRAII& operator=(StreamRAII&& other) noexcept;
+    
+    // No copy operations
+    StreamRAII(const StreamRAII&) = delete;
+    StreamRAII& operator=(const StreamRAII&) = delete;
+    
+    // Get the underlying CUDA stream
+    cudaStream_t get() const;
+    
+    // Check if stream is valid
+    bool valid() const;
+    
+    // Synchronize the stream
+    void synchronize() const;
+    
+private:
+    cudaStream_t stream_;
+};
+
+/**
+ * RAII wrapper for CUDA device memory buffers
+ */
+template <typename T>
+class DeviceBufferRAII {
+public:
+    explicit DeviceBufferRAII(std::size_t count);
+    ~DeviceBufferRAII() noexcept;
+    
+    // Move constructor and assignment
+    DeviceBufferRAII(DeviceBufferRAII&& other) noexcept;
+    DeviceBufferRAII& operator=(DeviceBufferRAII&& other) noexcept;
+    
+    // No copy operations
+    DeviceBufferRAII(const DeviceBufferRAII&) = delete;
+    DeviceBufferRAII& operator=(const DeviceBufferRAII&) = delete;
+    
+    // Get the device pointer
+    T* get() const;
+    
+    // Get the number of elements
+    std::size_t count() const;
+    
+    // Check if buffer is valid
+    bool valid() const;
+    
+private:
+    T* ptr_;
+    std::size_t count_;
+};
+
+} // namespace cuda
+
 
 /**
  * Simple RAII wrapper for CUDA resources

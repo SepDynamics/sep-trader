@@ -5,7 +5,7 @@
 #include "util/memory_tier_manager.hpp"
 #include "core/pattern_evolution_bridge.h"
 #include "core/processor.h"
-#include "quantum_manifold_optimizer.h"
+#include "core/quantum_manifold_optimizer.h"
 #include "core/quantum_processor.h"
 #include "core/quantum_processor_qfh.h"
 

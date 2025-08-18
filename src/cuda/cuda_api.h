@@ -5,7 +5,7 @@
 
 // Common utilities
 #include "cuda_common.h"
-#include "cuda_error.h"
+#include "core/cuda_error.cuh"
 #include "kernel_launch.h"
 
 // Memory management
@@ -13,7 +13,7 @@
 #include "device_buffer.h"
 
 // Stream management
-#include "stream.h"
+#include "cuda/stream.h"
 
 namespace sep {
 namespace cuda {

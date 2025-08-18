@@ -3,8 +3,8 @@
 
 #include "util/stable_headers.h"
 #include <cuda_runtime.h>
-#include "cuda_error.h"
-#include "stream.h"
+#include "core/cuda_error.cuh"
+#include "cuda/stream.h"
 
 namespace sep {
 namespace cuda {

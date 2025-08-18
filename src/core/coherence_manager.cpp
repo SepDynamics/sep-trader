@@ -3,7 +3,7 @@
 #include <cuda_runtime.h>
 
 #include "core/sep_precompiled.h"
-#include "cuda_types.hpp"
+#include "core/cuda_types.hpp"
 
 #ifdef __CUDACC__
 #include <cuda_runtime.h>
@@ -30,7 +30,7 @@
 #include "core/types.h"
 #include "util/memory_tier_manager.hpp"
 #include "core/pattern_evolution_bridge.h"
-#include "quantum_manifold_optimizer.h"
+#include "core/quantum_manifold_optimizer.h"
 #include "core/quantum_processor_qfh.h"
 
 namespace sep::quantum {

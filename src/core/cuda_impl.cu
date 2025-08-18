@@ -11,7 +11,7 @@
 #include <string>
 #include <vector>
 
-#include "cuda_types.hpp"
+#include "core/cuda_types.hpp"
 #include "error_handler.h"
 
 namespace sep::cuda {

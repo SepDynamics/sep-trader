@@ -1,10 +1,10 @@
 #pragma once
 
 // Include the precompiled header first
-#include "stable_headers.h"
+#include "util/stable_headers.h"
 
 // Include necessary trading headers directly
-#include "dynamic_pair_manager.hpp"
+#include "core/dynamic_pair_manager.hpp"
 #include "quantum_pair_trainer.hpp"
 #include "ticker_pattern_analyzer.hpp"
 #include "trading_state.hpp"
@@ -12,7 +12,7 @@
 #include "dynamic_config_manager.hpp"
 #include "weekly_cache_manager.hpp"
 #include "cache_health_monitor.hpp"
-#include "cache_validator.hpp"
+#include "core/cache_validator.hpp"
 #include "trading_state.hpp"
 
 // Forward declare needed classes and enums

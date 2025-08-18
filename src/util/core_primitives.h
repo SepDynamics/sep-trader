@@ -1,7 +1,7 @@
 #pragma once
-#include "compiler.h"
-#include "qfh.h"
-#include "quantum_manifold_optimizer.h" 
+#include "util/compiler.h"
+#include "core/qfh.h"
+#include "core/quantum_manifold_optimizer.h" 
 #include "core/pattern_evolution_bridge.h"
 #include <vector>
 #include <memory>

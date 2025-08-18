@@ -13,16 +13,16 @@
 #include <thread>
 #include <vector>
 
-#include "forward_window_result.h"
+#include "core/forward_window_result.h"
 #include "io/oanda_connector.h"
-#include "engine.h"
+#include "core/engine.h"
 #ifdef SEP_USE_GUI
 #include "imgui.h"
 #endif
 #include "cuda_types.cuh"
 #include "forward_window_kernels.cuh"
 #include "tick_cuda_kernels.cuh"
-#include "quantum_signal_bridge.hpp"
+#include "app/quantum_signal_bridge.hpp"
 #include "managed_thread.hpp"
 
 namespace sep::apps {

@@ -10,7 +10,7 @@
 
 #include "core/types.h"
 #include "core/qbsa.h"
-#include "qfh.h"
+#include "core/qfh.h"
 
 namespace sep::quantum {
 

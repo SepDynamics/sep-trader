@@ -1,6 +1,6 @@
 #include "streaming_data_manager.h"
-#include "facade.h"
-#include "qfh.h"
+#include "core/facade.h"
+#include "core/qfh.h"
 #include <iostream>
 #include <algorithm>
 #include <chrono>

@@ -15,7 +15,7 @@
 
 #include "core/common.h"
 #include "core/types.h"
-#include "pattern_processor.hpp"
+#include "core/pattern_processor.hpp"
 #include "core/processor.h"
 
 namespace sep {

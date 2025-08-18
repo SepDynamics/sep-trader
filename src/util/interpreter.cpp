@@ -1,4 +1,4 @@
-#include "interpreter.h"
+#include "util/interpreter.h"
 
 #include <algorithm>
 #include <cmath>
@@ -7,7 +7,7 @@
 #include <regex>
 #include <stdexcept>
 
-#include "facade.h"
+#include "core/facade.h"
 
 namespace dsl::runtime {
 

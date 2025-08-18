@@ -5,7 +5,7 @@
 #include <cstddef>
 #include <cuda_runtime.h> // For cudaStream_t
 
-#include "result.h" // For sep::core::Result and SEPResult
+#include "util/result.h" // For sep::core::Result and SEPResult
 
 #include "bit_pattern_types.cuh" // Include the new device types
 

@@ -1,5 +1,5 @@
 #include "currency_quantum_processor.hpp"
-#include "trace.hpp"
+#include "core/trace.hpp"
 #include <vector>
 
 namespace sep::trading {

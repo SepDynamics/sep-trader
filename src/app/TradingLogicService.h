@@ -2,7 +2,7 @@
 
 #include "ServiceBase.h"
 #include "ITradingLogicService.h"
-#include "Result.h"
+#include "util/result.h"
 #include <map>
 #include <mutex>
 #include <vector>

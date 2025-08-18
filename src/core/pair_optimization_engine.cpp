@@ -1,6 +1,6 @@
 #include "pair_optimization_engine.hpp"
 #include <numeric>
-#include "trace.hpp"
+#include "core/trace.hpp"
 
 namespace sep::trading {
 

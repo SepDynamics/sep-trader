@@ -4,7 +4,7 @@
 #include <cstdint>
 #include <cstddef>
 
-#include "forward_window_result.h"
+#include "core/forward_window_result.h"
 
 namespace sep::apps::cuda {
 

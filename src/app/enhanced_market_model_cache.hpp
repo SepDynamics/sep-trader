@@ -6,8 +6,8 @@
 #include <chrono>
 #include <unordered_map>
 #include "io/oanda_connector.h"
-#include "candle_types.h"
-#include "quantum_signal_bridge.hpp"
+#include "app/candle_types.h"
+#include "app/quantum_signal_bridge.hpp"
 #include "market_model_cache.hpp"
 
 namespace sep::cache {

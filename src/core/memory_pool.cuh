@@ -2,7 +2,7 @@
 
 // Project headers
 #include "cuda_includes.cuh"
-#include "cuda_error.cuh"
+#include "core/cuda_error.cuh"
 
 // Standard library includes
 #include <array>

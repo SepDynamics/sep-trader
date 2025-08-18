@@ -1,4 +1,4 @@
-#include "Result.h"
+#include "util/result.h"
 
 Result<std::vector<TradingSignal>> TradingLogicService::generateSignalsFromPatterns(
     const std::vector<std::shared_ptr<Pattern>>& patterns,

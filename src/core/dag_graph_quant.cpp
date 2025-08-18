@@ -3,7 +3,7 @@
 #include <iomanip>
 #include <sstream>
 
-#include "dag_graph.h"
+#include "core/dag_graph.h"
 
 namespace sep {
 namespace dag {

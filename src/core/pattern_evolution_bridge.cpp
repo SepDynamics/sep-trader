@@ -7,7 +7,7 @@
 #include <numeric>
 
 #include "core/standard_includes.h"
-#include "quantum_manifold_optimizer.h"
+#include "core/quantum_manifold_optimizer.h"
 
 namespace sep::quantum {
 

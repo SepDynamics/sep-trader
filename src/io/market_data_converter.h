@@ -3,7 +3,7 @@
 #include <vector>
 #include <cstdint>
 #include <string>
-#include "oanda_connector.h"
+#include "io/oanda_connector.h"
 
 namespace sep {
 namespace connectors {

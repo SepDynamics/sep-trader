@@ -45,7 +45,7 @@ namespace sep::cuda {
 #include "glm_cuda_compat.h"
 #include "util/memory_tier_manager.hpp"
 #include "core/qbsa.h"
-#include "qfh.h"
+#include "core/qfh.h"
 #include "pattern.h"
 #include "core/quantum_processor_qfh.h"
 

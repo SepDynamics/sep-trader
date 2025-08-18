@@ -1,7 +1,7 @@
 // SEP Training CLI Commands Implementation
 // Command implementations for the professional training interface
 
-#include "cli_commands.hpp"
+#include "core/cli_commands.hpp"
 #include <iostream>
 #include <sstream>
 #include <algorithm>

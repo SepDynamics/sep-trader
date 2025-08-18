@@ -2,7 +2,7 @@
 // SEP Professional Training Coordinator Implementation
 // Coordinates local CUDA training with remote trading deployment
 
-#include "training_coordinator.hpp"
+#include "core/training_coordinator.hpp"
 
 #include <curl/curl.h>
 #include <spdlog/spdlog.h>
@@ -10,7 +10,7 @@
 #include <algorithm>
 
 #include "core/sep_precompiled.h"
-#include "oanda_connector.h"
+#include "io/oanda_connector.h"
 #include "weekly_cache_manager.hpp"
 #include "quantum_pair_trainer.hpp"
 

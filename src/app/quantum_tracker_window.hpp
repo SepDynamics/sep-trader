@@ -9,8 +9,8 @@
 #include <cmath>
 #include <optional>
 
-#include "oanda_connector.h"
-#include "quantum_signal_bridge.hpp"
+#include "io/oanda_connector.h"
+#include "app/quantum_signal_bridge.hpp"
 
 namespace sep::apps {
 

@@ -10,7 +10,7 @@
 #include "core/types.h"
 
 #ifdef SEP_BACKTESTING
-#include "trace.hpp"
+#include "core/trace.hpp"
 #endif
 
 namespace sep::trading {

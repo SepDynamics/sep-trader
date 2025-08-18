@@ -67,25 +67,24 @@
 // SEP Pattern Processing
 //==============================================================================
 #include "pattern_types.h"
-#include "forward_window_result.h"
+#include "core/forward_window_result.h"
 #include "trajectory.h"
-#include "trace.hpp"
+#include "core/trace.hpp"
 
 //==============================================================================
 // SEP CUDA Infrastructure
 //==============================================================================
-#include "stream.h"
+#include "cuda/stream.h"
 #include "kernels.h"
-#include "cuda/cuda_error.cuh"
+#include "core/cuda_error.cuh"
 
 //==============================================================================
 // SEP Utilities
 //==============================================================================
-#include "util/common.h"
-#include "util/logging.h"
-#include "util/types.h"
-#include "util/qfh.h"
-#include "util/placeholder_detection.h"
+#include "core/common.h"
+#include "core/logging.h"
+#include "core/types.h"
+#include "core/qfh.h"
 
 //==============================================================================
 // SEP Memory Management
@@ -95,5 +94,5 @@
 //==============================================================================
 // SEP Global Configuration
 //==============================================================================
-#include "global_includes.h"
-#include "ticker_optimization_kernel.cuh"
+#include "util/global_includes.h"
+#include "cuda/ticker_optimization_kernel.cuh"

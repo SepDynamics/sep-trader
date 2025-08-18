@@ -3,7 +3,7 @@
 #include <cstddef>
 
 #include "cuda.h"
-#include "raii.h"
+#include "util/raii.h"
 #include "core/types.h"
 
 namespace sep {

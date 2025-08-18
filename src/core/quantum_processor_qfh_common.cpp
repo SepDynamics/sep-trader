@@ -9,7 +9,7 @@
 #include "core/types.h"
 #include "core/pattern_evolution_bridge.h"
 #include "qbsa_qfh.h"
-#include "quantum_manifold_optimizer.h"
+#include "core/quantum_manifold_optimizer.h"
 #include "core/quantum_processor.h"
 #include "core/quantum_processor_qfh.h"
 

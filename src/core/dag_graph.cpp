@@ -1,4 +1,4 @@
-#include "dag_graph.h"
+#include "core/dag_graph.h"
 
 // Standard library includes
 #include <algorithm>

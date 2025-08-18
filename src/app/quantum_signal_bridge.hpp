@@ -10,15 +10,15 @@
 #include <string>
 
 #include "io/oanda_connector.h"
-#include "qfh.h"
+#include "core/qfh.h"
 #include "core/qbsa.h"
 #include "core/pattern_evolution_bridge.h"
-#include "pattern_processor.h"
-#include "forward_window_result.h"
+#include "core/pattern_processor.h"
+#include "core/forward_window_result.h"
 #include "core/types.h"
 #include "cuda_types.cuh"
 #include "forward_window_kernels.cuh"
-#include "candle_types.h"
+#include "app/candle_types.h"
 
 // Forward declaration for RealTimeAggregator
 class RealTimeAggregator;

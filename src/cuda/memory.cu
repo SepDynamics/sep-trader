@@ -74,7 +74,7 @@ template class DeviceMemory<char>;
 #include <vector>
 
 #include "device_buffer.h"
-#include "cuda_error.h"
+#include "core/cuda_error.cuh"
 
 namespace sep {
 namespace cuda {

@@ -1,6 +1,6 @@
 #pragma once
 #include "nodes.h"
-#include "lexer.h"
+#include "util/lexer.h"
 #include "optimizer.h"
 
 namespace dsl::parser {

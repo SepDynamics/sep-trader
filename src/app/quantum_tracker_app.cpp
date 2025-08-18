@@ -2,7 +2,7 @@
 #include "quantum_tracker_app.hpp"
 #include "unified_data_manager.hpp"
 #include "tick_data_manager.hpp"
-#include "candle_types.h"
+#include "app/candle_types.h"
 #include "market_utils.hpp"
 #include "weekend_optimizer.hpp"
 #ifdef SEP_USE_GUI

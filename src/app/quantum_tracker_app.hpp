@@ -12,12 +12,12 @@
 #include <atomic>
 #include <mutex>
 
-#include "oanda_connector.h"
+#include "io/oanda_connector.h"
 #include "unified_data_manager.hpp"
 #include "tick_data_manager.hpp"
-#include "candle_types.h"
+#include "app/candle_types.h"
 #include "market_model_cache.hpp"
-#include "quantum_signal_bridge.hpp"
+#include "app/quantum_signal_bridge.hpp"
 
 namespace sep::apps {
 

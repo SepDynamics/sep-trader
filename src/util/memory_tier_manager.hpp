@@ -26,7 +26,7 @@
 
 #include "core/common.h"
 
-#include "dag_graph.h"
+#include "core/dag_graph.h"
 
 #include "core/pattern_types.h"
 

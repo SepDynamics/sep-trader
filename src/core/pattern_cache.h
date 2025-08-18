@@ -1,7 +1,7 @@
 #pragma once
 
 #include "pattern.h"
-#include "result.h"
+#include "util/result.h"
 #include <unordered_map>
 #include <string>
 #include <memory>

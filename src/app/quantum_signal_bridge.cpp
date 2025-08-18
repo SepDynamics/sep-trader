@@ -1,6 +1,7 @@
 #include "util/nlohmann_json_safe.h"
-#include "quantum_signal_bridge.hpp"
+#include "app/quantum_signal_bridge.hpp"
 
+#include <cuda_runtime.h>
 #include <algorithm>
 #include <array>
 #include <chrono>
@@ -10,15 +11,14 @@
 #include <iostream>
 #include <sstream>
 
-#include "candle_types.h"
+#include "app/candle_types.h"
 
-#include "bit_pattern_kernels.h"
-#include <cuda_runtime.h>
-#include "pattern_processor.h"
-#include "quantum_manifold_optimizer.h"
-#include "signal.h"
-#include "types_serialization.h"
-#include "realtime_aggregator.hpp"
+#include "cuda/bit_pattern_kernels.h"
+#include "core/pattern_processor.h"
+#include "core/quantum_manifold_optimizer.h"
+#include "core/signal.h"
+#include "core/types_serialization.h"
+#include "app/realtime_aggregator.hpp"
 
 using json = nlohmann::json;
 

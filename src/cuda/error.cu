@@ -1,5 +1,5 @@
 // CUDA error handling implementation
-#include "cuda_error.h"
+#include "core/cuda_error.cuh"
 #include <iostream>
 #include <cstdio>
 

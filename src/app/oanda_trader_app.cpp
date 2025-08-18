@@ -16,7 +16,7 @@
 #include <thread>
 
 #include "market_data_converter.h"
-#include "engine.h"
+#include "core/engine.h"
 #ifdef SEP_USE_GUI
 #include "imgui.h"
 #endif

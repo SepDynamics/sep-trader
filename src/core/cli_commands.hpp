@@ -7,7 +7,7 @@
 #include <string>
 #include <vector>
 #include <memory>
-#include "training_coordinator.hpp"
+#include "core/training_coordinator.hpp"
 
 namespace sep {
 namespace training {

@@ -1,6 +1,6 @@
 #include "sep_c_api.h"
-#include "runtime.h"
-#include "facade.h"
+#include "util/runtime.h"
+#include "core/facade.h"
 #include <string>
 #include <memory>
 #include <cstring>

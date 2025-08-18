@@ -1,4 +1,4 @@
-#include "quantum_manifold_optimizer.h"
+#include "core/quantum_manifold_optimizer.h"
 
 #include <glm/glm.hpp>
 #include <memory>

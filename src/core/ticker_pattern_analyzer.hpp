@@ -1,9 +1,9 @@
 #pragma once
 #include "core/sep_precompiled.h"
-#include "oanda_connector.h"
-#include "result.h"
-#include "qfh.h"
-#include "quantum_manifold_optimizer.h"
+#include "io/oanda_connector.h"
+#include "util/result.h"
+#include "core/qfh.h"
+#include "core/quantum_manifold_optimizer.h"
 
 namespace sep::trading {
 

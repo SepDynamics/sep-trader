@@ -5,7 +5,7 @@
 #include <chrono>
 #include <memory>
 #include <unordered_map>
-#include "quantum_signal_bridge.hpp"
+#include "app/quantum_signal_bridge.hpp"
 #include "enhanced_market_model_cache.hpp"
 
 namespace sep {

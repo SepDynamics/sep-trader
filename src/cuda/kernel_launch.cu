@@ -1,5 +1,5 @@
 #include "kernel_launch.h"
-#include "cuda_error.h"
+#include "core/cuda_error.cuh"
 
 namespace sep {
 namespace cuda {

@@ -36,15 +36,15 @@
 #include "core/core.h"
 #include "cuda_api.hpp"
 #include "core/cuda_sep.h"
-#include "dag_graph.h"
+#include "core/dag_graph.h"
 #include "data_parser.h"
-#include "engine.h"
+#include "core/engine.h"
 #include "error_handler.h"
 #include "core/logging.h"  // This is actually the logging manager
 #include "memory.h"
 #include "util/memory_tier_manager.hpp"
 #include "core/qbsa.h"
-#include "stream.h"
+#include "cuda/stream.h"
 #include "core/types.h"
 
 // Define namespace alias for clarity
