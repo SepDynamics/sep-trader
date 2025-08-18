@@ -6,7 +6,8 @@
 #include <mutex>
 
 #include "core/common.h"
-#include "kernels.h"
+#include "core/result_types.h"
+#include "core/kernels.h"
 #include "util/raii.h"
 
 extern "C" {

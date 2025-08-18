@@ -1,4 +1,5 @@
 #include "pattern_cache.h"
+#include "core/result_types.h"
 #include <algorithm>
 #include <sstream>
 #include <iostream>
@@ -11,13 +12,13 @@ PatternCache::PatternCache(const PatternCacheConfig& config)
               << ", ttl=" << config_.ttl.count() << "min" << std::endl;
 }
 
-core::Result PatternCache::storePattern(const std::string& key, const core::Pattern& pattern, 
+sep::Result<void> PatternCache::storePattern(const std::string& key, const sep::quantum::Pattern& pattern,
                                        float computation_time_ms) {
     std::lock_guard<std::mutex> lock(cache_mutex_);
     
     // Check if pattern meets caching criteria
     if (!shouldCache(pattern)) {
-        return core::Result::INVALID_ARGUMENT;
+        return sep::makeError(sep::Error::Code::InvalidArgument, "Pattern does not meet caching criteria");
     }
     
     // Evict expired entries before adding new ones
@@ -32,19 +33,19 @@ core::Result PatternCache::storePattern(const std::string& key, const core::Patt
     auto entry = std::make_unique<CachedPatternEntry>(pattern, computation_time_ms);
     cache_[key] = std::move(entry);
     
-    std::cout << "PatternCache: Stored pattern '" << key << "' (coherence=" 
+    std::cout << "PatternCache: Stored pattern '" << key << "' (coherence="
               << pattern.coherence << ", computation_time=" << computation_time_ms << "ms)" << std::endl;
     
-    return core::Result::SUCCESS;
+    return sep::makeSuccess();  // Success case for void
 }
 
-core::Result PatternCache::retrievePattern(const std::string& key, core::Pattern& pattern) {
+sep::Result<bool> PatternCache::retrievePattern(const std::string& key, sep::quantum::Pattern& pattern) {
     std::lock_guard<std::mutex> lock(cache_mutex_);
     
     auto it = cache_.find(key);
     if (it == cache_.end()) {
         cache_misses_++;
-        return core::Result::NOT_FOUND;
+        return sep::Result<bool>(false);  // Pattern not found
     }
     
     auto& entry = it->second;
@@ -56,7 +57,7 @@ core::Result PatternCache::retrievePattern(const std::string& key, core::Pattern
         cache_.erase(it);
         expired_entries_++;
         cache_misses_++;
-        return core::Result::NOT_FOUND;
+        return sep::Result<bool>(false);
     }
     
     // Update access metadata
@@ -67,10 +68,10 @@ core::Result PatternCache::retrievePattern(const std::string& key, core::Pattern
     pattern = entry->pattern;
     cache_hits_++;
     
-    std::cout << "PatternCache: Retrieved pattern '" << key << "' (cache hit, age=" 
+    std::cout << "PatternCache: Retrieved pattern '" << key << "' (cache hit, age="
               << age.count() << "min, access_count=" << entry->access_count << ")" << std::endl;
     
-    return core::Result::SUCCESS;
+    return sep::Result<bool>(true);
 }
 
 bool PatternCache::hasPattern(const std::string& key) const {

@@ -46,7 +46,7 @@ namespace sep::cuda {
 #include "util/memory_tier_manager.hpp"
 #include "core/qbsa.h"
 #include "core/qfh.h"
-#include "pattern.h"
+#include "core/pattern.h"
 #include "core/quantum_processor_qfh.h"
 
 namespace sep::quantum { class PatternEvolutionBridge; }

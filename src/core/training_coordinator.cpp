@@ -11,7 +11,7 @@
 
 #include "core/sep_precompiled.h"
 #include "io/oanda_connector.h"
-#include "weekly_cache_manager.hpp"
+#include "core/weekly_cache_manager.hpp"
 #include "core/quantum_pair_trainer.hpp"
 
 // Restore array if corrupted

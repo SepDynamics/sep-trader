@@ -1,5 +1,5 @@
 
-#include "ticker_pattern_analyzer.hpp"
+#include "core/ticker_pattern_analyzer.hpp"
 
 #include <array>
 #include <iomanip>

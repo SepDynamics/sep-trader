@@ -12,6 +12,7 @@
 #include <vector>
 
 #include "core/cuda_types.hpp"
+#include "core/result_types.h"
 #include "error_handler.h"
 
 namespace sep::cuda {

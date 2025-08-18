@@ -119,33 +119,25 @@ public:
         const sep::quantum::Pattern& pattern) {
         sep::ProcessingResult result;
         result.pattern = pattern;
-        result.pattern.quantum_state.memory_tier = ::sep::memory::MemoryTierEnum::STM;
         result.success = false;
         
         // Convert quantum state to a format the quantum processor can use
         const auto& quantum_state = pattern.quantum_state;
         glm::vec3 stateData(quantum_state.coherence, quantum_state.stability, quantum_state.entropy);
         
-        // Process using quantum processor
+        // Process using quantum processor - use uint32_t hash directly
         bool success =
-            quantum_processor_->processPattern(stateData, std::hash<std::string>{}(pattern.id));
+            quantum_processor_->processPattern(stateData, std::hash<uint32_t>{}(pattern.id));
 
         result.success = success;
         if (success) {
             // Update quantum state values based on processing
             auto& evolved_state = result.pattern.quantum_state;
-            evolved_state.coherence = std::min(1.0f, quantum_state.coherence * 1.05f);
-            evolved_state.stability = std::min(1.0f, quantum_state.stability * 1.02f);
+            evolved_state.coherence = std::min(1.0, quantum_state.coherence * 1.05);
+            evolved_state.stability = std::min(1.0, quantum_state.stability * 1.02);
             evolved_state.generation++;
 
-            // Determine memory tier based on coherence and stability
-            if (evolved_state.coherence >= sep::quantum::COHERENCE_THRESHOLD &&
-                evolved_state.stability >= sep::quantum::STABILITY_THRESHOLD) {
-                evolved_state.memory_tier = ::sep::memory::MemoryTierEnum::LTM;
-            } else if (evolved_state.coherence >= sep::quantum::COHERENCE_THRESHOLD) {
-                evolved_state.memory_tier = ::sep::memory::MemoryTierEnum::MTM;
-            }
-            // Memory tier transition is tracked in the quantum state
+            // Memory tier logic is handled elsewhere - no memory_tier field in QuantumState
             result.success = true;
         } else {
             // Handle error case

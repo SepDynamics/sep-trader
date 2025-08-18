@@ -3,18 +3,16 @@
 #include <cuda_runtime.h>
 #include <cstdint>
 
-namespace sep {
-
-// Forward declarations for CUDA kernel functions
+// Forward declarations for CUDA kernel functions - Global scope for C linkage
 extern "C" {
     // QBSA kernel launch function
     cudaError_t launchQBSAKernel(
         const std::uint32_t* d_probe_indices,
-        const std::uint32_t* d_expectations, 
+        const std::uint32_t* d_expectations,
         std::uint32_t num_probes,
-        std::uint32_t* d_bitfield, 
+        std::uint32_t* d_bitfield,
         std::uint32_t* d_corrections,
-        std::uint32_t* d_correction_count, 
+        std::uint32_t* d_correction_count,
         cudaStream_t stream = nullptr
     );
 
@@ -27,6 +25,8 @@ extern "C" {
         cudaStream_t stream = nullptr
     );
 }
+
+namespace sep {
 
 namespace quantum {
 namespace bitspace {

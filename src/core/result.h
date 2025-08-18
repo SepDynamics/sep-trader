@@ -1,45 +1,180 @@
 #pragma once
 
-// The One True Normal Reference Frame for Result Types
-// This is the canonical source of truth for all result and error handling
+#include <variant>
+#include <string>
+#include <optional>
 
-namespace sep::core {
+// Forward declaration
+namespace sep {
+    struct Error;
+}
 
-/// Standard result type for all SEP operations
-enum class Result {
-    SUCCESS = 0,
-    FAILURE = 1,
-    INVALID_ARGUMENT = 2,
-    OUT_OF_MEMORY = 3,
-    CUDA_ERROR = 4,
-    FILE_NOT_FOUND = 5,
-    NETWORK_ERROR = 6,
-    TIMEOUT = 7,
-    NOT_INITIALIZED = 8,
-    ALREADY_EXISTS = 9,
-    NOT_FOUND = 10,
-    NOT_IMPLEMENTED = 11,
-    PROCESSING_ERROR = 12,
-    RUNTIME_ERROR = 13,
-    UNKNOWN_ERROR = 14
+// Include complete Error definition to fix incomplete type errors
+#include "core/error_handler.h"
+
+namespace sep {
+
+/**
+ * Result<T> template class - can hold either a value of type T or an Error
+ * Uses the existing Error struct from error_handler.h
+ * Specializes for void type using std::monostate
+ */
+template<typename T>
+class Result {
+public:
+    // Constructor for success case
+    Result(const T& value) : data_(value) {}
+    Result(T&& value) : data_(std::move(value)) {}
+    
+    // Constructor for error case
+    Result(const Error& error) : data_(error) {}
+    Result(Error&& error) : data_(std::move(error)) {}
+    
+    // Copy constructor
+    Result(const Result& other) : data_(other.data_) {}
+    
+    // Move constructor
+    Result(Result&& other) noexcept : data_(std::move(other.data_)) {}
+    
+    // Assignment operators
+    Result& operator=(const Result& other) {
+        if (this != &other) {
+            data_ = other.data_;
+        }
+        return *this;
+    }
+    
+    Result& operator=(Result&& other) noexcept {
+        if (this != &other) {
+            data_ = std::move(other.data_);
+        }
+        return *this;
+    }
+    
+    // Check if this result contains an error
+    bool isError() const {
+        return std::holds_alternative<Error>(data_);
+    }
+    
+    // Check if this result contains a value (opposite of isError)
+    bool isSuccess() const {
+        return std::holds_alternative<T>(data_);
+    }
+    
+    // Get the error (only valid if isError() returns true)
+    const Error& error() const {
+        return std::get<Error>(data_);
+    }
+    
+    // Get the value (only valid if isSuccess() returns true)
+    const T& value() const {
+        return std::get<T>(data_);
+    }
+    
+    // Get the value (only valid if isSuccess() returns true)
+    T& value() {
+        return std::get<T>(data_);
+    }
+    
+    // Operator bool - returns true if success, false if error
+    explicit operator bool() const {
+        return isSuccess();
+    }
+    
+    // Operator* - get value (undefined behavior if error)
+    const T& operator*() const {
+        return value();
+    }
+    
+    T& operator*() {
+        return value();
+    }
+    
+    // Operator-> - access value members (undefined behavior if error)
+    const T* operator->() const {
+        return &value();
+    }
+    
+    T* operator->() {
+        return &value();
+    }
+
+private:
+    std::variant<T, Error> data_;
 };
 
-/// Convert result to human-readable string
-const char* resultToString(Result result);
+/**
+ * Specialization for Result<void> - uses std::monostate to represent void success
+ */
+template<>
+class Result<void> {
+public:
+    // Constructor for success case
+    Result() : data_(std::monostate{}) {}
+    
+    // Constructor for error case
+    Result(const Error& error) : data_(error) {}
+    Result(Error&& error) : data_(std::move(error)) {}
+    
+    // Copy constructor
+    Result(const Result& other) : data_(other.data_) {}
+    
+    // Move constructor
+    Result(Result&& other) noexcept : data_(std::move(other.data_)) {}
+    
+    // Assignment operators
+    Result& operator=(const Result& other) {
+        if (this != &other) {
+            data_ = other.data_;
+        }
+        return *this;
+    }
+    
+    Result& operator=(Result&& other) noexcept {
+        if (this != &other) {
+            data_ = std::move(other.data_);
+        }
+        return *this;
+    }
+    
+    // Check if this result contains an error
+    bool isError() const {
+        return std::holds_alternative<Error>(data_);
+    }
+    
+    // Check if this result contains a value (opposite of isError)
+    bool isSuccess() const {
+        return std::holds_alternative<std::monostate>(data_);
+    }
+    
+    // Get the error (only valid if isError() returns true)
+    const Error& error() const {
+        return std::get<Error>(data_);
+    }
+    
+    // Operator bool - returns true if success, false if error
+    explicit operator bool() const {
+        return isSuccess();
+    }
 
-/// Check if result indicates success
-inline bool isSuccess(Result result) {
-    return result == Result::SUCCESS;
+private:
+    std::variant<std::monostate, Error> data_;
+};
+
+// Result creation helper functions
+template<typename T>
+Result<T> makeSuccess(T&& value) {
+    return Result<T>(std::forward<T>(value));
 }
 
-/// Check if result indicates failure
-inline bool isFailure(Result result) {
-    return result != Result::SUCCESS;
+// Specialization for void success
+inline Result<void> makeSuccess() {
+    return Result<void>();
 }
 
-} // namespace sep::core
-
-// Backward compatibility alias
-namespace sep {
-    using SEPResult = core::Result;
+template<typename T>
+Result<T> makeError(const Error& error) {
+    return Result<T>(error);
 }
+
+} // namespace sep

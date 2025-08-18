@@ -1,6 +1,6 @@
 #pragma once
 
-#include "pattern.h"
+#include "core/pattern.h"
 #include "candle_data.h"
 #include "util/result.h"
 #include "util/memory_tier_manager.hpp"
@@ -273,76 +273,76 @@ class EngineFacade {
 public:
     // Lifecycle management
     static EngineFacade& getInstance();
-    ::sep::core::Result initialize();
-    ::sep::core::Result shutdown();
+    ::sep::core::Result<void> initialize();
+    ::sep::core::Result<void> shutdown();
     
     // Core pattern operations
-    ::sep::core::Result processPatterns(const PatternProcessRequest& request, 
+    ::sep::core::Result<void> processPatterns(const PatternProcessRequest& request,
                                 PatternProcessResponse& response);
     
-    ::sep::core::Result analyzePattern(const PatternAnalysisRequest& request,
+    ::sep::core::Result<void> analyzePattern(const PatternAnalysisRequest& request,
                                PatternAnalysisResponse& response);
 
-    ::sep::core::Result qfhAnalyze(const QFHAnalysisRequest& request,
+    ::sep::core::Result<void> qfhAnalyze(const QFHAnalysisRequest& request,
                             QFHAnalysisResponse& response);
 
-    ::sep::core::Result manifoldOptimize(const ManifoldOptimizationRequest& request,
+    ::sep::core::Result<void> manifoldOptimize(const ManifoldOptimizationRequest& request,
     ManifoldOptimizationResponse& response);
 
-    ::sep::core::Result extractBits(const BitExtractionRequest& request,
+    ::sep::core::Result<void> extractBits(const BitExtractionRequest& request,
     BitExtractionResponse& response);
 
-    ::sep::core::Result storePattern(const StorePatternRequest& request,
+    ::sep::core::Result<void> storePattern(const StorePatternRequest& request,
                             StorePatternResponse& response);
     
-    ::sep::core::Result processBatch(const BatchProcessRequest& request,
+    ::sep::core::Result<void> processBatch(const BatchProcessRequest& request,
                              PatternProcessResponse& response);
     
     // Advanced batch processing
-    ::sep::core::Result processAdvancedBatch(const AdvancedBatchRequest& request,
+    ::sep::core::Result<void> processAdvancedBatch(const AdvancedBatchRequest& request,
                                      AdvancedBatchResponse& response);
     
     // Streaming data operations
-    ::sep::core::Result createStream(const StreamCreateRequest& request,
+    ::sep::core::Result<void> createStream(const StreamCreateRequest& request,
                              StreamResponse& response);
-    ::sep::core::Result startStream(const std::string& stream_id,
+    ::sep::core::Result<void> startStream(const std::string& stream_id,
                             StreamResponse& response);
-    ::sep::core::Result stopStream(const std::string& stream_id,
+    ::sep::core::Result<void> stopStream(const std::string& stream_id,
                            StreamResponse& response);
-    ::sep::core::Result deleteStream(const std::string& stream_id,
+    ::sep::core::Result<void> deleteStream(const std::string& stream_id,
                              StreamResponse& response);
-    ::sep::core::Result ingestStreamData(const StreamDataRequest& request,
+    ::sep::core::Result<void> ingestStreamData(const StreamDataRequest& request,
                                  StreamResponse& response);
-    ::sep::core::Result queryStream(const StreamQueryRequest& request,
+    ::sep::core::Result<void> queryStream(const StreamQueryRequest& request,
                             StreamDataResponse& response);
     
-    // Memory operations  
-    ::sep::core::Result queryMemory(const MemoryQueryRequest& request,
+    // Memory operations
+    ::sep::core::Result<void> queryMemory(const MemoryQueryRequest& request,
                             std::vector<::sep::quantum::Pattern>& results);
     
     // System status
-    ::sep::core::Result getHealthStatus(HealthStatusResponse& response);
-    ::sep::core::Result getMemoryMetrics(MemoryMetricsResponse& response);
+    ::sep::core::Result<void> getHealthStatus(HealthStatusResponse& response);
+    ::sep::core::Result<void> getMemoryMetrics(MemoryMetricsResponse& response);
     
     // Pattern cache operations
-    ::sep::core::Result clearPatternCache();
-    ::sep::core::Result configurePatternCache(size_t max_size, int ttl_minutes, float coherence_threshold);
+    ::sep::core::Result<void> clearPatternCache();
+    ::sep::core::Result<void> configurePatternCache(size_t max_size, int ttl_minutes, float coherence_threshold);
     
     // GPU memory operations
-    ::sep::core::Result allocateGPUMemory(const GPUMemoryAllocRequest& request,
+    ::sep::core::Result<void> allocateGPUMemory(const GPUMemoryAllocRequest& request,
                                   GPUMemoryAllocResponse& response);
-    ::sep::core::Result deallocateGPUMemory(const GPUMemoryDeallocRequest& request);
-    ::sep::core::Result configureGPUMemory(const GPUMemoryConfigRequest& request);
-    ::sep::core::Result defragmentGPUMemory();
-    ::sep::core::Result resetGPUMemoryStats();
+    ::sep::core::Result<void> deallocateGPUMemory(const GPUMemoryDeallocRequest& request);
+    ::sep::core::Result<void> configureGPUMemory(const GPUMemoryConfigRequest& request);
+    ::sep::core::Result<void> defragmentGPUMemory();
+    ::sep::core::Result<void> resetGPUMemoryStats();
     
     // Engine configuration operations
-    ::sep::core::Result setEngineConfig(const ConfigSetRequest& request,
+    ::sep::core::Result<void> setEngineConfig(const ConfigSetRequest& request,
                                 ConfigResponse& response);
-    ::sep::core::Result getEngineConfig(const ConfigGetRequest& request,
+    ::sep::core::Result<void> getEngineConfig(const ConfigGetRequest& request,
                                 ConfigResponse& response);
-    ::sep::core::Result listEngineConfig(ConfigListResponse& response);
-    ::sep::core::Result resetEngineConfig(const std::string& category = "");  // Empty = reset all
+    ::sep::core::Result<void> listEngineConfig(ConfigListResponse& response);
+    ::sep::core::Result<void> resetEngineConfig(const std::string& category = "");  // Empty = reset all
     
     // Prevent copying/moving
     EngineFacade(const EngineFacade&) = delete;

@@ -12,7 +12,6 @@
 
 #ifdef SEP_BACKTESTING
 #include "core/oanda_market_data_helper.hpp"
-#include "quantum_accuracy_stub.hpp"
 #endif
 
 namespace sep

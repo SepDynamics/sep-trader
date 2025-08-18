@@ -1,5 +1,4 @@
 #include "core/sep_precompiled.h"
-#include "app/data_downloader.hpp"
 
 int main() {
     // Replace with your actual API key and account ID for testing

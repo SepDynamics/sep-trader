@@ -11,6 +11,7 @@
 #include "core/system_hooks.h"
 #include "core/types.h"
 #include "core/gpu_context.h"
+#include "core/result_types.h"
 
 namespace sep {
 

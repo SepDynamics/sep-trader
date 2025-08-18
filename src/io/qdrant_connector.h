@@ -17,7 +17,15 @@ enum class SEPResult {
     NOT_FOUND,
     ALREADY_EXISTS,
     PROCESSING_ERROR,
-    NOT_INITIALIZED
+    NOT_INITIALIZED,
+    CUDA_ERROR,
+    UNKNOWN_ERROR,
+    FAILURE,
+    OUT_OF_MEMORY,
+    FILE_NOT_FOUND,
+    TIMEOUT,
+    NOT_IMPLEMENTED,
+    RUNTIME_ERROR
 };
 
 // Search result structure

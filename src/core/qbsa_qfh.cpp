@@ -35,7 +35,7 @@ public:
                                  static_cast<float>(probe_indices.size());
 
         // Use QFH to analyze the probe bits for collapse detection
-        std::vector<uint8_t> probe_bits = convertToBits(probe_indices);
+        std::vector<uint8_t> probe_bits = qfh_processor_.convertToBits(probe_indices);
         sep::quantum::QFHResult qfh_result = qfh_processor_.analyze(probe_bits);
 
         // Detect collapse based on rupture ratio from QFH
@@ -78,7 +78,7 @@ private:
         for (uint32_t v : values) {
             shim_values.push_back(v);
         }
-        return sep::quantum::QFHBasedProcessor::convertToBits(shim_values);
+        return qfh_processor_.convertToBits(shim_values);
     }
 };
 

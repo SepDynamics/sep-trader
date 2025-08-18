@@ -9,16 +9,20 @@ namespace sep {
 namespace services {
 
 /**
- * Represents a quantum state in the SEP Engine
+ * Represents a quantum state in the SEP Engine Services
+ * Note: Different from sep::quantum::QuantumState - this is for service layer
  */
-struct QuantumState {
+struct ServiceQuantumState {
     std::vector<std::complex<double>> amplitudes;
     int dimensions;
     double coherenceValue;
     std::string stateIdentifier;
     
-    QuantumState() : dimensions(0), coherenceValue(0.0) {}
+    ServiceQuantumState() : dimensions(0), coherenceValue(0.0) {}
 };
+
+// Alias for backward compatibility
+using QuantumState = ServiceQuantumState;
 
 /**
  * Represents a binary state vector derived from quantum state

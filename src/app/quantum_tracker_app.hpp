@@ -13,7 +13,7 @@
 #include <mutex>
 
 #include "io/oanda_connector.h"
-#include "unified_data_manager.hpp"
+#include "core/unified_data_manager.hpp"
 #include "tick_data_manager.hpp"
 #include "app/candle_types.h"
 #include "market_model_cache.hpp"

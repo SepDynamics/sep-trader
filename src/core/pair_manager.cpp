@@ -1,4 +1,4 @@
-#include "pair_manager.hpp"
+#include "core/pair_manager.hpp"
 
 #include <algorithm>
 #include <fstream>

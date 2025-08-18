@@ -1,5 +1,5 @@
 #include "util/nlohmann_json_safe.h"
-#include "cache_health_monitor.hpp"
+#include "core/cache_health_monitor.hpp"
 
 #include <spdlog/spdlog.h>
 

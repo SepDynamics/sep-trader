@@ -3,6 +3,7 @@
 
 #include "core/common.h"
 #include "core/standard_includes.h"
+#include "core/result_types.h"
 // Removed duplicate include of core/types.h
 
 namespace sep {

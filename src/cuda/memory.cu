@@ -132,7 +132,7 @@ void freeManagedMemory(T* ptr) {
 
 // Prefetch managed memory to device
 template <typename T>
-void prefetchToDevice(T* ptr, size_t count, int device_id = 0) {
+void prefetchToDevice(T* ptr, size_t count, int device_id) {
     CUDA_CHECK(cudaMemPrefetchAsync(ptr, count * sizeof(T), device_id));
 }
 

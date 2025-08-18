@@ -14,6 +14,7 @@
 #include "core/pattern_types.h"
 #include "core/standard_includes.h"
 #include "core/config.h"
+#include "core/quantum_types.h"
 
 namespace sep {
 
@@ -89,6 +90,22 @@ namespace config {
     struct AnalyticsConfig;
 }
 
+/**
+ * Quantum threshold configuration for quantum processing systems
+ */
+struct QuantumThresholdConfig {
+    double coherence_threshold = 0.7;
+    double stability_threshold = 0.8;
+    double collapse_threshold = 0.3;
+    double entanglement_threshold = 0.6;
+    double phase_threshold = 0.9;
+    double ltm_coherence_threshold = 0.9;
+    double mtm_coherence_threshold = 0.75;
+    int max_iterations = 1000;
+    bool enable_adaptive_thresholds = true;
+    double adaptive_learning_rate = 0.01;
+};
+
 // Originally from src/core/types.h
 struct PinState {
     uint64_t pin_id{0};
@@ -98,69 +115,46 @@ struct PinState {
     std::vector<uint32_t> bits{};
 };
 
-namespace quantum {
-
-    struct QuantumState {
-        float coherence{0.0f};
-        float stability{0.0f};
-        float entropy{0.0f};
-        float mutation_rate{0.0f};
-        float evolution_rate{0.0f};
-        float energy{0.0f};
-        float coupling_strength{0.0f};
-        int generation{0};
-        int mutation_count{0};
-        sep::memory::MemoryTierEnum memory_tier{sep::memory::MemoryTierEnum::STM};
-        int access_frequency{0};
-
-        enum class Status {
-            STABLE,
-            UNSTABLE,
-            COLLAPSED
-        };
-        Status state{Status::STABLE};
-        float phase{0.0f};
-    };
-
-    enum class RelationshipType {
-        Generic,
-        Entanglement,
-        ENTANGLEMENT = Entanglement,  // Add alias for compatibility
-        Causality
-    };
-
-    struct PatternRelationship {
-        std::string targetId{};
-        float strength{0.0f};
-        RelationshipType type{RelationshipType::Generic};
-    };
-
-    struct Pattern {
-        std::string id;
-        glm::vec4 position{0.0f};
-        glm::vec3 momentum{0.0f};
-        QuantumState quantum_state{};
-        std::vector<PatternRelationship> relationships{};
-        sep::compat::PatternData data{};
-        std::vector<std::string> parent_ids{};
-        uint64_t timestamp{0};
-        uint64_t last_accessed{0};
-        uint64_t last_modified{0};
-        int generation{0};
-        float coherence{0.0f};
-        glm::vec4 velocity{0.0f};
-        glm::vec4 attributes{0.0f};
-        std::complex<float> amplitude{1.0f, 0.0f};
-        QuantumState state{};
-        uint64_t last_updated{0};
-    };
-
-} // namespace quantum
+// quantum namespace types moved to quantum_types.h to avoid duplicates
 
 namespace compat {
     // Alias for backward compatibility or for a stable API
     using Pattern = quantum::Pattern;
 } // namespace compat
+
+namespace config {
+    struct SystemConfig {
+        bool debug_mode = false;
+        uint32_t max_threads = 8;
+        uint32_t memory_pool_size_mb = 1024;
+        std::string log_level = "INFO";
+        std::string data_path = "./data";
+        
+        // Additional fields expected by manager.cpp
+        struct {
+            size_t pool_size_mb = 1024;
+            bool enable_caching = true;
+        } memory;
+        
+        struct {
+            double coherence_threshold = 0.7;
+            bool enable_quantum_processing = true;
+        } quantum;
+    };
+    
+    struct CudaConfig {
+        bool use_gpu = true;
+        int device_id = 0;
+        size_t memory_limit_mb = 4096;
+        int max_memory_mb = 8192;
+        int batch_size = 1024;
+        float gpu_memory_limit = 0.9f;
+        bool enable_peer_access = false;
+        bool enable_unified_memory = true;
+        uint32_t stream_pool_size = 4;
+        bool enable_profiling = false;
+    };
+}
 
 } // namespace sep
 

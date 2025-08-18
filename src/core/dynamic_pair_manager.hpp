@@ -3,9 +3,9 @@
 #include <queue>
 
 #include "core/sep_precompiled.h"
-#include "pair_manager.hpp"
-#include "trading_state.hpp"
-#include "weekly_cache_manager.hpp"
+#include "core/pair_manager.hpp"
+#include "core/trading_state.hpp"
+#include "core/weekly_cache_manager.hpp"
 
 namespace sep::trading {
 

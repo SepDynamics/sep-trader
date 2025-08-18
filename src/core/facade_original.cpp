@@ -1,8 +1,10 @@
 #include "util/memory_tier_manager.hpp"
 #include "core/types.h"
-#include "pattern.h"
+#include "core/quantum_types.h"
+#include "core/pattern.h"
 #include "candle_data.h"
-#include "util/result.h"
+#include "core/result.h"
+#include "core/result_types.h"
 #include "core/pattern_types.h"
 #include "core/data_parser.h"
 #include "core/facade.h"
@@ -21,28 +23,36 @@
 
 namespace {
 
-// Helper to convert core::Pattern to compat::PatternData
-sep::compat::PatternData convertToCompatPattern(const sep::core::Pattern& core_pattern) {
+// Helper to convert quantum::Pattern to compat::PatternData
+sep::compat::PatternData convertToCompatPattern(const sep::quantum::Pattern& core_pattern) {
     sep::compat::PatternData compat_pattern;
-    compat_pattern.set_id(core_pattern.id);
+    compat_pattern.set_id(std::to_string(core_pattern.id));
     compat_pattern.coherence = core_pattern.coherence;
     compat_pattern.quantum_state.coherence = core_pattern.quantum_state.coherence;
     compat_pattern.quantum_state.stability = core_pattern.quantum_state.stability;
     compat_pattern.generation = core_pattern.generation;
     
-    // Copy Vec4 attributes to float array
-    compat_pattern[0] = core_pattern.attributes.x;
-    compat_pattern[1] = core_pattern.attributes.y;
-    compat_pattern[2] = core_pattern.attributes.z;
-    compat_pattern[3] = core_pattern.attributes.w;
+    // Copy vector<double> attributes to float array (assuming at least 4 elements)
+    if (core_pattern.attributes.size() >= 4) {
+        compat_pattern[0] = static_cast<float>(core_pattern.attributes[0]);
+        compat_pattern[1] = static_cast<float>(core_pattern.attributes[1]);
+        compat_pattern[2] = static_cast<float>(core_pattern.attributes[2]);
+        compat_pattern[3] = static_cast<float>(core_pattern.attributes[3]);
+    } else {
+        // Fill with defaults if not enough attributes
+        for (size_t i = 0; i < 4; ++i) {
+            compat_pattern[i] = (i < core_pattern.attributes.size()) ?
+                static_cast<float>(core_pattern.attributes[i]) : 0.0f;
+        }
+    }
     
     return compat_pattern;
 }
 
-// Helper to convert core::CandleData to common::CandleData
-sep::common::CandleData convertToCommonCandle(const sep::core::CandleData& core_candle) {
+// Helper to convert common::CandleData to common::CandleData (assuming input is from common namespace)
+sep::common::CandleData convertToCommonCandle(const sep::common::CandleData& core_candle) {
     sep::common::CandleData common_candle;
-    common_candle.timestamp = core_candle.timestamp;
+    common_candle.timestamp_ns = core_candle.timestamp_ns;
     common_candle.open = core_candle.open;
     common_candle.high = core_candle.high;
     common_candle.low = core_candle.low;
@@ -95,9 +105,9 @@ EngineFacade& EngineFacade::getInstance() {
 }
 
 // --- Lifecycle Management ---
-core::Result EngineFacade::initialize() {
+sep::Result<void> EngineFacade::initialize() {
     if (initialized_) {
-        return core::Result::ALREADY_EXISTS;
+        return sep::makeError(sep::Error::Code::AlreadyExists, "EngineFacade already initialized");
     }
 
     try

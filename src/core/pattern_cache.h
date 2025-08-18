@@ -1,7 +1,8 @@
 #pragma once
 
-#include "pattern.h"
-#include "util/result.h"
+#include "core/pattern.h"
+#include "core/result.h"
+#include "core/result_types.h"
 #include <unordered_map>
 #include <string>
 #include <memory>
@@ -42,9 +43,9 @@ public:
     ~PatternCache() = default;
 
     // Core cache operations
-    core::Result storePattern(const std::string& key, const core::Pattern& pattern, 
+    sep::Result<void> storePattern(const std::string& key, const core::Pattern& pattern,
                              float computation_time_ms = 0.0f);
-    core::Result retrievePattern(const std::string& key, core::Pattern& pattern);
+    sep::Result<bool> retrievePattern(const std::string& key, core::Pattern& pattern);
     bool hasPattern(const std::string& key) const;
     
     // Cache management

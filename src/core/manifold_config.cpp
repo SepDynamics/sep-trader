@@ -16,9 +16,9 @@ namespace sep::quantum::manifold {
                                                 .stm_to_mtm_min_gen = 5,
                                                 .mtm_to_ltm_min_gen = 10};
 
-    ::sep::QuantumThresholdConfig quantum{.ltm_coherence_threshold = 0.9f,
-                                          .mtm_coherence_threshold = 0.6f,
-                                          .stability_threshold = 0.8f};
+    ::sep::QuantumThresholdConfig quantum{.stability_threshold = 0.8f,
+                                          .ltm_coherence_threshold = 0.9f,
+                                          .mtm_coherence_threshold = 0.6f};
 
     ::sep::config::CudaConfig cuda{.use_gpu = true,
                                    .max_memory_mb = 8192,

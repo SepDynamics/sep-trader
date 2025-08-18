@@ -9,6 +9,7 @@
 #include <stdexcept>
 
 #include "string_operators.h"
+#include "core/quantum_types.h"
 
 namespace sep::quantum {
 
@@ -48,7 +49,7 @@ inline float deterministicNoise(uint64_t& state)
             std::vector<std::pair<std::string, float>> fitness_scores;
             for (const auto& pattern : patterns)
             {
-                fitness_scores.push_back(std::make_pair(pattern.id, calculateFitness(pattern)));
+                fitness_scores.push_back(std::make_pair(std::to_string(pattern.id), calculateFitness(pattern)));
             }
             std::sort(fitness_scores.begin(), fitness_scores.end(),
                       [](const auto& a, const auto& b) { return a.second > b.second; });
@@ -66,7 +67,7 @@ inline float deterministicNoise(uint64_t& state)
                 auto parent_ids = tournamentSelection(params.tournament_size, 2);
                 if (parent_ids.size() >= 2)
                 {
-                    Pattern parent1 = processor_->getPattern(parent_ids[0]);
+                    sep::quantum::Pattern parent1 = processor_->getPattern(parent_ids[0]);
                     auto parent2 = processor_->getPattern(parent_ids[1]);
                     auto child = crossover(parent1, parent2);
                     if (nextFloat() < processor_->getConfig().mutation_rate)
@@ -74,14 +75,14 @@ inline float deterministicNoise(uint64_t& state)
                         child = mutate(child);
                     }
                     processor_->addPattern(child);
-                    next_generation_ids.push_back(child.id);
+                    next_generation_ids.push_back(std::to_string(child.id));
                 }
                 else if (!parent_ids.empty())
                 {
                     ProcessingResult result = processor_->mutatePattern(parent_ids[0]);
                     if (result.success)
                     {
-                        next_generation_ids.push_back(result.pattern.id);
+                        next_generation_ids.push_back(std::to_string(result.pattern.id));
                     }
                 }
             }
@@ -89,9 +90,9 @@ inline float deterministicNoise(uint64_t& state)
             for (const auto& pattern : patterns)
             {
                 if (std::find(next_generation_ids.begin(), next_generation_ids.end(),
-                              std::string(pattern.id.c_str())) == next_generation_ids.end())
+                              std::to_string(pattern.id)) == next_generation_ids.end())
                 {
-                    processor_->removePattern(pattern.id);
+                    processor_->removePattern(std::to_string(pattern.id));
                 }
             }
 
@@ -113,7 +114,7 @@ inline float deterministicNoise(uint64_t& state)
         Pattern crossover(const Pattern& parent1, const Pattern& parent2)
         {
             Pattern child;
-            child.id = generatePatternId();
+            child.id = std::stoul(generatePatternId());
             child.parent_ids = {parent1.id, parent2.id};
             child.timestamp = getCurrentTimestamp();
             child.last_accessed = child.timestamp;
@@ -132,10 +133,10 @@ inline float deterministicNoise(uint64_t& state)
 
             child.position = parent1.position * (1.0f - alpha) + parent2.position * alpha;
 
-            if (!parent1.data.empty() && !parent2.data.empty())
+            if (!parent1.attributes.empty() && !parent2.attributes.empty())
             {
-                size_t size = std::min(parent1.data.get_size(), parent2.data.get_size());
-                child.data.resize(size);
+                size_t size = std::min(parent1.attributes.size(), parent2.attributes.size());
+                child.attributes.resize(size);
                 for (size_t i = 0; i < size; ++i)
                 {
                     child.data[i] = parent1.data[i] * (1.0f - alpha) + parent2.data[i] * alpha;
@@ -152,12 +153,12 @@ inline float deterministicNoise(uint64_t& state)
             float sigma = processor_->getConfig().mutation_rate;
 
             state.coherence =
-                glm::clamp(state.coherence + (nextFloat() * 2.0f - 1.0f) * sigma, 0.0f, 1.0f);
+                glm::clamp(state.coherence + (nextFloat() * 2.0f - 1.0f) * sigma, 0.0, 1.0);
             state.stability = glm::clamp(
-                state.stability + (nextFloat() * 2.0f - 1.0f) * sigma * 0.5f, 0.0f, 1.0f);
+                state.stability + (nextFloat() * 2.0f - 1.0f) * sigma * 0.5f, 0.0, 1.0);
             state.phase += (nextFloat() * 2.0f - 1.0f) * sigma * static_cast<float>(M_PI);  // Add phase mutation
             state.entropy =
-                glm::clamp(state.entropy + (nextFloat() * 2.0f - 1.0f) * sigma * 2.0f, 0.0f, 1.0f);
+                glm::clamp(state.entropy + (nextFloat() * 2.0f - 1.0f) * sigma * 2.0f, 0.0, 1.0);
             mutated.position +=
                 glm::vec4((nextFloat() * 2.0f - 1.0f) * sigma, (nextFloat() * 2.0f - 1.0f) * sigma,
                           (nextFloat() * 2.0f - 1.0f) * sigma, 0.0f);
@@ -252,7 +253,7 @@ inline float deterministicNoise(uint64_t& state)
             float fitness =
                 (coherence_fitness + stability_fitness + entropy_penalty + diversity_bonus) *
                 pressure_factor;
-            return glm::clamp(fitness, 0.0f, 1.0f);
+            return glm::clamp(fitness, 0.0, 1.0);
         }
 
         float calculateDiversity(const std::vector<Pattern>& patterns) const
@@ -416,12 +417,12 @@ inline float deterministicNoise(uint64_t& state)
             static uint64_t noise_state = 0;
             auto rnd = [&]() { return deterministicNoise(noise_state); };
             state.coherence =
-                glm::clamp(state.coherence + (rnd() * 2.0f - 1.0f) * sigma, 0.0f, 1.0f);
+                glm::clamp(state.coherence + (rnd() * 2.0f - 1.0f) * sigma, 0.0, 1.0);
             state.stability =
-                glm::clamp(state.stability + (rnd() * 2.0f - 1.0f) * sigma * 0.5f, 0.0f, 1.0f);
+                glm::clamp(state.stability + (rnd() * 2.0f - 1.0f) * sigma * 0.5f, 0.0, 1.0);
             state.phase += (rnd() * 2.0f - 1.0f) * sigma * static_cast<float>(M_PI);  // Add phase mutation
             state.entropy =
-                glm::clamp(state.entropy + (rnd() * 2.0f - 1.0f) * sigma * 2.0f, 0.0f, 1.0f);
+                glm::clamp(state.entropy + (rnd() * 2.0f - 1.0f) * sigma * 2.0f, 0.0, 1.0);
             mutated.position +=
                 glm::vec4((rnd() * 2.0f - 1.0f) * sigma, (rnd() * 2.0f - 1.0f) * sigma,
                           (rnd() * 2.0f - 1.0f) * sigma, 0.0f);

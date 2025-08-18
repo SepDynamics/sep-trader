@@ -2,7 +2,9 @@
 
 #include "ServiceBase.h"
 #include "ITradingLogicService.h"
-#include "util/result.h"
+#include "TradingTypes.h"
+#include "core/result.h"
+#include "core/result_types.h"
 #include <map>
 #include <mutex>
 #include <vector>
@@ -10,6 +12,8 @@
 #include <array>
 #include <functional>
 #include <unordered_map>
+#include <chrono>
+#include <iterator>
 
 namespace sep {
 namespace services {

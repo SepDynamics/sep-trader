@@ -6,14 +6,14 @@
 // Include necessary trading headers directly
 #include "core/dynamic_pair_manager.hpp"
 #include "core/quantum_pair_trainer.hpp"
-#include "ticker_pattern_analyzer.hpp"
-#include "trading_state.hpp"
-#include "pair_manager.hpp"
-#include "dynamic_config_manager.hpp"
-#include "weekly_cache_manager.hpp"
-#include "cache_health_monitor.hpp"
+#include "core/ticker_pattern_analyzer.hpp"
+#include "core/trading_state.hpp"
+#include "core/pair_manager.hpp"
+#include "core/dynamic_config_manager.hpp"
+#include "core/weekly_cache_manager.hpp"
+#include "core/cache_health_monitor.hpp"
 #include "core/cache_validator.hpp"
-#include "trading_state.hpp"
+#include "core/trading_state.hpp"
 
 // Forward declare needed classes and enums
 namespace sep

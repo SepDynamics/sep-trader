@@ -1,6 +1,6 @@
 #pragma once
 
-#include "pattern.h"
+#include "core/pattern.h"
 #include "candle_data.h"
 #include "util/result.h"
 #include <vector>

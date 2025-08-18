@@ -1,4 +1,4 @@
-#include "pattern.h"
+#include "core/pattern.h"
 #include <cstring>
 #include <algorithm>
 
@@ -37,30 +37,32 @@ void convertFromPOD(const QuantumStatePOD& src, QuantumState& dst) {
 }
 
 void convertToPOD(const PatternRelationship& src, PatternRelationshipPOD& dst) {
-    // Copy string with bounds checking
-    strncpy(dst.target_id, src.target_id.c_str(), sizeof(dst.target_id) - 1);
-    dst.target_id[sizeof(dst.target_id) - 1] = '\0'; // Ensure null termination
-    
+    // Direct assignment - target_id is uint32_t, not string
+    dst.target_id = src.target_id;
     dst.strength = src.strength;
-    dst.type = static_cast<int>(src.type);
+    dst.type = static_cast<uint32_t>(src.type);
 }
 
 void convertFromPOD(const PatternRelationshipPOD& src, PatternRelationship& dst) {
-    dst.target_id = std::string(src.target_id);
+    dst.target_id = src.target_id;
     dst.strength = src.strength;
     dst.type = static_cast<RelationshipType>(src.type);
 }
 
 void convertToPOD(const Pattern& src, PatternPOD& dst) {
-    // Copy ID with bounds checking
-    strncpy(dst.id, src.id.c_str(), sizeof(dst.id) - 1);
-    dst.id[sizeof(dst.id) - 1] = '\0';
+    // Direct assignment - id is uint32_t, not string
+    dst.id = src.id;
     
-    // Convert vectors
-    convertToPOD(src.position, dst.position);
-    convertToPOD(src.momentum, dst.momentum);
-    convertToPOD(src.velocity, dst.velocity);
-    convertToPOD(src.attributes, dst.attributes);
+    // Convert scalar values directly
+    dst.position = src.position;
+    dst.momentum = src.momentum;
+    dst.velocity = src.velocity;
+    
+    // Convert attributes vector to fixed array
+    dst.attribute_count = std::min(static_cast<uint32_t>(src.attributes.size()), 16U);
+    for (uint32_t i = 0; i < dst.attribute_count; ++i) {
+        dst.attributes[i] = src.attributes[i];
+    }
     
     // Convert quantum state
     convertToPOD(src.quantum_state, dst.quantum_state);
@@ -72,10 +74,9 @@ void convertToPOD(const Pattern& src, PatternPOD& dst) {
     }
     
     // Convert parent IDs (limited to array size)
-    dst.parent_count = std::min(static_cast<int>(src.parent_ids.size()), 8);
-    for (int i = 0; i < dst.parent_count; ++i) {
-        strncpy(dst.parent_ids[i], src.parent_ids[i].c_str(), sizeof(dst.parent_ids[i]) - 1);
-        dst.parent_ids[i][sizeof(dst.parent_ids[i]) - 1] = '\0';
+    dst.parent_count = std::min(static_cast<uint32_t>(src.parent_ids.size()), 16U);
+    for (uint32_t i = 0; i < dst.parent_count; ++i) {
+        dst.parent_ids[i] = src.parent_ids[i];
     }
     
     // Convert complex amplitude to real/imaginary parts
@@ -92,14 +93,20 @@ void convertToPOD(const Pattern& src, PatternPOD& dst) {
 }
 
 void convertFromPOD(const PatternPOD& src, Pattern& dst) {
-    // Copy ID
-    dst.id = std::string(src.id);
+    // Copy ID directly - it's uint32_t in both
+    dst.id = src.id;
     
-    // Convert vectors
-    convertFromPOD(src.position, dst.position);
-    convertFromPOD(src.momentum, dst.momentum);
-    convertFromPOD(src.velocity, dst.velocity);
-    convertFromPOD(src.attributes, dst.attributes);
+    // Convert scalar values directly
+    dst.position = src.position;
+    dst.momentum = src.momentum;
+    dst.velocity = src.velocity;
+    
+    // Convert attributes array back to vector
+    dst.attributes.clear();
+    dst.attributes.reserve(src.attribute_count);
+    for (uint32_t i = 0; i < src.attribute_count; ++i) {
+        dst.attributes.push_back(src.attributes[i]);
+    }
     
     // Convert quantum state
     convertFromPOD(src.quantum_state, dst.quantum_state);
@@ -107,7 +114,7 @@ void convertFromPOD(const PatternPOD& src, Pattern& dst) {
     // Convert relationships
     dst.relationships.clear();
     dst.relationships.reserve(src.relationship_count);
-    for (int i = 0; i < src.relationship_count; ++i) {
+    for (uint32_t i = 0; i < src.relationship_count; ++i) {
         PatternRelationship rel;
         convertFromPOD(src.relationships[i], rel);
         dst.relationships.push_back(rel);
@@ -116,12 +123,12 @@ void convertFromPOD(const PatternPOD& src, Pattern& dst) {
     // Convert parent IDs
     dst.parent_ids.clear();
     dst.parent_ids.reserve(src.parent_count);
-    for (int i = 0; i < src.parent_count; ++i) {
-        dst.parent_ids.emplace_back(src.parent_ids[i]);
+    for (uint32_t i = 0; i < src.parent_count; ++i) {
+        dst.parent_ids.push_back(src.parent_ids[i]);
     }
     
-    // Convert complex amplitude from real/imaginary parts
-    dst.amplitude = std::complex<float>(src.amplitude_real, src.amplitude_imag);
+    // Convert complex amplitude from real/imaginary parts (using double, not float)
+    dst.amplitude = std::complex<double>(src.amplitude_real, src.amplitude_imag);
     
     // Copy scalar fields
     dst.timestamp = src.timestamp;

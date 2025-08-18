@@ -98,8 +98,6 @@ if(SEP_USE_CUDA)
     endif()
     set(CMAKE_CUDA_ARCHITECTURES "75;80;86" CACHE STRING "CUDA architectures")
     
-    # CUDA flags are now set per-target in template.cmake
-    
     # Configure CUDA standard
     set(CMAKE_CUDA_STANDARD 17)
     set(CMAKE_CUDA_STANDARD_REQUIRED ON)
@@ -107,6 +105,10 @@ if(SEP_USE_CUDA)
     
     # Enable CUDA language and find toolkit
     enable_language(CUDA)
+    
+    # Global CUDA flags to suppress GCC extension warnings for all .cu files
+    set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} --expt-relaxed-constexpr --extended-lambda")
+    set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -Xcompiler -Wno-unknown-pragmas,-Wno-pedantic,-Wno-gnu-line-directive")
     find_package(CUDAToolkit REQUIRED)
     # Removed force-include of array_protection.h for CUDA to avoid breaking standard library
     
@@ -211,6 +213,11 @@ FetchContent_MakeAvailable(nlohmann_json)
 
 # Apply surgical fix for std::array visibility to nlohmann_json
 # Use the base target, not the alias
+# Suppress warnings from external dependency
+get_target_property(nlohmann_json_include_dirs nlohmann_json INTERFACE_INCLUDE_DIRECTORIES)
+if(nlohmann_json_include_dirs)
+    target_include_directories(nlohmann_json SYSTEM INTERFACE ${nlohmann_json_include_dirs})
+endif()
 
 
 

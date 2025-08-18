@@ -1,7 +1,7 @@
 #pragma once
 
 #include "core/cache_validator.hpp"
-#include "weekly_cache_manager.hpp"
+#include "core/weekly_cache_manager.hpp"
 #include <string>
 #include <chrono>
 #include <vector>

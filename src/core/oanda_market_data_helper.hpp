@@ -6,8 +6,8 @@
 #include <stdexcept>
 #include <vector>
 
-#include "common/financial_data_types.h"
-#include "connectors/oanda_connector.h"
+#include "util/financial_data_types.h"
+#include "io/oanda_connector.h"
 
 namespace sep
 {

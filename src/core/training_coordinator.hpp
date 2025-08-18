@@ -16,8 +16,8 @@
 #include <thread>
 #include <vector>
 
-#include "dynamic_config_manager.hpp"
-#include "weekly_cache_manager.hpp"
+#include "core/dynamic_config_manager.hpp"
+#include "core/weekly_cache_manager.hpp"
 #include "remote_synchronizer.hpp"
 #include "weekly_data_fetcher.hpp"
 
