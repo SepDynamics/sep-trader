@@ -11,7 +11,7 @@
 
 #include "core/training_coordinator.hpp"
 #include "core/cli_commands.hpp"
-#include "status_display.hpp"
+#include "core/status_display.hpp"
 
 using namespace sep::training;
 

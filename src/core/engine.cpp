@@ -37,7 +37,7 @@
 #include "cuda_api.hpp"
 #include "core/cuda_sep.h"
 #include "core/dag_graph.h"
-#include "data_parser.h"
+#include "core/data_parser.h"
 #include "core/engine.h"
 #include "error_handler.h"
 #include "core/logging.h"  // This is actually the logging manager

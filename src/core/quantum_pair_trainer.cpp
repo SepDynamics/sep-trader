@@ -1,5 +1,5 @@
 
-#include "quantum_pair_trainer.hpp"
+#include "core/quantum_pair_trainer.hpp"
 
 #include <functional>
 #include <iomanip>
@@ -11,7 +11,7 @@
 #include "util/redis_manager.h"
 
 #ifdef SEP_BACKTESTING
-#include "oanda_market_data_helper.hpp"
+#include "core/oanda_market_data_helper.hpp"
 #include "quantum_accuracy_stub.hpp"
 #endif
 

@@ -23,7 +23,7 @@
 #include "forward_window_kernels.cuh"
 #include "tick_cuda_kernels.cuh"
 #include "app/quantum_signal_bridge.hpp"
-#include "managed_thread.hpp"
+#include "util/managed_thread.hpp"
 
 namespace sep::apps {
 

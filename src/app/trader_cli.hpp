@@ -5,7 +5,7 @@
 
 // Include necessary trading headers directly
 #include "core/dynamic_pair_manager.hpp"
-#include "quantum_pair_trainer.hpp"
+#include "core/quantum_pair_trainer.hpp"
 #include "ticker_pattern_analyzer.hpp"
 #include "trading_state.hpp"
 #include "pair_manager.hpp"

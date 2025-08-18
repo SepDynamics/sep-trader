@@ -1,7 +1,7 @@
 // SEP Training Status Display Implementation
 // Professional status and monitoring display for training system
 
-#include "status_display.hpp"
+#include "core/status_display.hpp"
 #include <iostream>
 #include <iomanip>
 #include <thread>
