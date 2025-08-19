@@ -1,11 +1,10 @@
 Quantum-Inspired Pattern Evolution System for Financial Trading: The SEP Engine
 ===============================================================================
-White Paper
+White Paper — v1.2 (Draft for Discussion)
 
-Authors: [Your Name], SepDynamics Development Team
-Co-Author Candidate: Aaron [Last Name] (Pending Collaboration)
+Authors: Alexander Nagy, SepDynamics Development Team
+Potential Co-Author: (pending collaboration)
 Date: August 19, 2025
-Version: 1.0 Draft for Discussion
 
 Abstract
 --------
@@ -36,7 +35,7 @@ Inspired by quantum field theory and evolutionary biology, the SEP Engine models
 * Detail the four patent-pending core algorithms.
 * Present experimental results and benchmarks.
 * Outline integration and future research.
-* Propose collaborative extensions building on Aaron’s contributions.
+* Propose collaborative extensions building on prior quantum computing research.
 
 2. Technical Problem Solved
 ---------------------------
@@ -152,11 +151,11 @@ Event-based sensing and derivative coding in neuromorphic systems inform SEP’s
 * Cross-market evolution.
 
 ### 10.3 Collaboration Proposal
-Aaron, building on your work, we propose co-authorship for publication in a quantum finance venue. Let’s discuss over coffee.
+Building on your work, we propose co-authorship for publication in a quantum finance venue. Let’s discuss over coffee.
 
 Conclusion
 ----------
-The SEP Engine represents foundational IP in evolutionary quantum finance, with proven alpha and scalability. This white paper compiles our development journey—ready for your input, Aaron.
+The SEP Engine represents foundational IP in evolutionary quantum finance, with proven alpha and scalability. This white paper compiles our development journey—ready for your input.
 
 Next Steps: Review attached proofs and patent filings; meet for co-authorship discussion.
 
