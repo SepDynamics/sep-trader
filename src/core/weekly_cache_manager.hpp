@@ -65,6 +65,13 @@ public:
     WeeklyCacheRequirement getWeeklyCacheRequirement() const;
     void setCustomRequirementForPair(const std::string& pair, const WeeklyCacheRequirement& requirement);
     
+    // Data source provider
+    using DataSourceProvider = std::function<std::vector<std::string>(
+        const std::string& pair_symbol,
+        std::chrono::system_clock::time_point from,
+        std::chrono::system_clock::time_point to)>;
+    void setDataSourceProvider(const DataSourceProvider& provider);
+    
     // Implementation
     CacheOperationResult buildWeeklyCache(const std::string& pair_symbol, bool force_rebuild = false);
     CacheOperationResult fetchAndCacheWeeklyData(const std::string& pair_symbol);

@@ -15,6 +15,7 @@ public:
     std::map<std::string, WeeklyCacheRequirement> custom_requirements;
     std::map<std::string, WeeklyCacheStatus> cache_statuses;
     std::mutex mutex_;
+    WeeklyCacheManager::DataSourceProvider data_source_provider;
 };
 
 WeeklyCacheManager::WeeklyCacheManager() : impl_(std::make_unique<Impl>()) {}
@@ -90,6 +91,10 @@ CacheOperationResult WeeklyCacheManager::updateIncrementalCache(const std::strin
     result.status = WeeklyCacheStatus::BUILDING;
     result.message = "Not implemented yet";
     return result;
+}
+
+void WeeklyCacheManager::setDataSourceProvider(const DataSourceProvider& provider) {
+    impl_->data_source_provider = provider;
 }
 
 std::string weeklyCacheStatusToString(WeeklyCacheStatus status) {

@@ -15,6 +15,12 @@ struct ForwardWindowResult {
     // The following fields are for damped results from the kernel
     double damped_coherence = 0.0;
     double damped_stability = 0.0;
+    // Additional fields required by quantum signal bridge
+    bool converged = false;
+    int iterations = 0;
+    float flip_ratio = 0.0f;
+    float rupture_ratio = 0.0f;
+    bool quantum_collapse_detected = false;
 };
 
 } // namespace sep::quantum::bitspace

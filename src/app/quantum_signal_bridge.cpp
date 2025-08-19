@@ -829,7 +829,7 @@ std::map<std::string, sep::trading::QuantumTradingSignal> sep::trading::MultiTim
             // Initialize QFH processor for this timeframe
             sep::quantum::QFHOptions qfh_options;
             qfh_options.collapse_threshold = 0.3f;
-            qfh_options.flip_threshold = 0.7f;
+            qfh_options.coherence_threshold = 0.7f;
             sep::quantum::QFHBasedProcessor qfh_processor(qfh_options);
             
             sep::quantum::QFHResult qfh_result = qfh_processor.analyze(window_bits);

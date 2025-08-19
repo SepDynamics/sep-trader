@@ -41,6 +41,7 @@ struct MarketData {
 
 struct OandaCandle {
     std::string time;
+    std::string timestamp;  // Duplicate for API compatibility
     double open;
     double high;
     double low;

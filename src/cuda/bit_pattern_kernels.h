@@ -14,12 +14,12 @@ namespace sep::apps::cuda {
 using sep::SEPResult;
 
 // Host-side launcher function for the bit pattern analysis kernel
-extern "C" sep::core::Result launchAnalyzeBitPatternsKernel(const uint8_t* h_bits,
-                                                      size_t total_bits_size,
-                                                      size_t index_start,
-                                                      size_t window_size,
-                                                      ForwardWindowResultDevice* h_results,
-                                                      cudaStream_t stream);
+extern "C" SEPResult launchAnalyzeBitPatternsKernel(const uint8_t* h_bits,
+                                                     size_t total_bits_size,
+                                                     size_t index_start,
+                                                     size_t window_size,
+                                                     ForwardWindowResultDevice* h_results,
+                                                     cudaStream_t stream);
 
 } // namespace sep::apps::cuda
 

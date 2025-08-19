@@ -50,6 +50,15 @@ struct Error {
             default: code = Code::UnknownError; break;
         }
     }
+    
+    // Comparison operators for Error
+    bool operator==(const Error& other) const {
+        return code == other.code && message == other.message && location == other.location;
+    }
+    
+    bool operator!=(const Error& other) const {
+        return !(*this == other);
+    }
 };
 
 // Result template class
