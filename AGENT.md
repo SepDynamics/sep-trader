@@ -1,7 +1,7 @@
 # AGENT.md - SEP Professional Trading System Guide
 
 ## Project Overview
-**SEP Professional Trader-Bot** is a **production-ready autonomous trading system** using CUDA-accelerated quantum pattern analysis on forex data. **Professional baseline established August 2025** with enterprise architecture, remote deployment capabilities, and 60.73% high-confidence accuracy.
+**SEP Professional Trader-Bot** is a **production-ready autonomous trading system** using CUDA-accelerated bit-transition harmonic analysis on forex data. **Professional baseline established August 2025** with enterprise architecture, remote deployment capabilities, and 60.73% high-confidence accuracy.
 
 ## 🎉 BUILD STATUS: PRODUCTION READY
 **Last Updated**: August 2025  
@@ -12,7 +12,7 @@
 - **`data_downloader`** (449KB) - Market data fetching and caching tool  
 - **`sep_dsl_interpreter`** (1.2MB) - Domain-specific language for trading strategies
 - **`oanda_trader`** (2.1MB) - Complete OANDA trading application with GUI
-- **`quantum_tracker`** (1.6MB) - Real-time quantum pattern tracking system
+- **`quantum_tracker`** (1.6MB) - Real-time transition tracking system
 
 ### **System Components Status**
 - **DSL System**: ✅ Complete with interpreter working
@@ -24,12 +24,12 @@
 ## System Architecture
 
 ### **Hybrid Local/Remote Architecture**
-- **Local CUDA Training** - GPU-accelerated quantum pattern analysis and model training
+- **Local CUDA Training** - GPU-accelerated bit-transition harmonic analysis and model training
 - **Remote Droplet Execution** - CPU-only cloud trading execution on Digital Ocean
 - **Automated Synchronization** - Scripts to push signals from local to remote systems
 
 ### **Core Technology Stack**
-- **C++/CUDA Engine** - Main quantum pattern analysis and training system
+- **C++/CUDA Engine** - Main bit-transition harmonic analysis and training system
 - **Professional CLI** - Command-line interface for system administration
 - **Python Trading Service** - Lightweight remote execution service
 - **PostgreSQL + TimescaleDB** - Enterprise time-series data storage
@@ -106,7 +106,7 @@ echo 'pattern test { print("System operational") }' > test.sep
 # Build the system
 ./build.sh
 
-# Generate trading signals using quantum pattern analysis
+# Generate trading signals using bit-transition harmonic analysis
 # (Training commands would be implemented here - currently manual via C++ executables)
 
 # Verify signals generated in output/ directory
@@ -155,7 +155,7 @@ docker-compose logs -f sep-trader
 
 ## Key Technology Components
 
-### **Quantum Field Harmonics (QFH) Engine**
+### **Bit-Transition Harmonics (BTH) Engine**
 - **Location**: `src/quantum/` directory
 - **Technology**: Patent-pending bit-level pattern analysis (Application #584961162ABX)
 - **Performance**: 60.73% high-confidence accuracy achieved
@@ -178,7 +178,7 @@ docker-compose logs -f sep-trader
 ## Development Standards
 
 ### **Code Organization**
-- **C++ Core**: Main quantum engine in `src/` directory
+- **C++ Core**: Main engine in `src/` directory
 - **Python Services**: Remote execution in `scripts/`
 - **Configuration**: JSON-based in `config/` directory
 - **Documentation**: Consolidated in root and `docs/`
