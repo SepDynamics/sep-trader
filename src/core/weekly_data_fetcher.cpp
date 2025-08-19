@@ -130,6 +130,8 @@ std::string WeeklyDataFetcher::getCurrentOperation() const {
     return current_operation_;
 }
 
+namespace sep::training {
+
 std::vector<std::string> getStandardForexPairs() {
     return {
         "EUR_USD", "GBP_USD", "USD_JPY", "AUD_USD", "USD_CHF", "USD_CAD",
@@ -140,3 +142,5 @@ std::vector<std::string> getStandardForexPairs() {
 std::vector<std::string> getStandardGranularities() {
     return {"M1", "M5", "M15", "H1", "H4", "D"};
 }
+
+} // namespace sep::training

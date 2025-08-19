@@ -241,6 +241,27 @@ else()
     endif()
 endif()
 
+# Find hiredis (Redis C client) - use pkg-config on Linux, vcpkg on Windows
+if(WIN32)
+    # On Windows, use vcpkg
+    find_package(hiredis CONFIG REQUIRED)
+    add_library(Redis::hiredis ALIAS hiredis::hiredis)
+    message(STATUS "Found hiredis using vcpkg on Windows")
+else()
+    # On Linux, use pkg-config
+    find_package(PkgConfig REQUIRED)
+    pkg_check_modules(HIREDIS REQUIRED hiredis)
+
+    if(HIREDIS_FOUND)
+        add_library(Redis::hiredis INTERFACE IMPORTED)
+        set_property(TARGET Redis::hiredis PROPERTY INTERFACE_INCLUDE_DIRECTORIES "${HIREDIS_INCLUDE_DIRS}")
+        set_property(TARGET Redis::hiredis PROPERTY INTERFACE_LINK_LIBRARIES "${HIREDIS_LIBRARIES}")
+        message(STATUS "Found hiredis using pkg-config on Linux")
+    else()
+        message(FATAL_ERROR "Could not find hiredis library using pkg-config")
+    endif()
+endif()
+
 if(SEP_USE_GUI)
     FetchContent_Declare(
       imgui
@@ -348,6 +369,7 @@ target_link_libraries(sep_core_deps INTERFACE
     glm::glm
     nlohmann_json::nlohmann_json
     YAML::yaml-cpp
+    Redis::hiredis
     TBB::tbb
     fmt::fmt
     spdlog::spdlog

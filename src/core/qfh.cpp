@@ -403,4 +403,13 @@ double QFHBasedProcessor::calculateCosineSimilarity(const std::vector<double>& a
     return dot_product / (norm_a * norm_b);
 }
 
+void sep::quantum::QFHBasedProcessor::reset() {
+    // Call base class reset
+    QFHProcessor::reset();
+    
+    // Reset derived class state
+    current_state_ = QFHState::STABLE;
+    prev_bit_ = 0;
+}
+
 } // namespace sep::quantum
