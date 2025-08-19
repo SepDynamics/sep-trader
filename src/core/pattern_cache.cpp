@@ -103,7 +103,7 @@ void PatternCache::evictExpired() {
     }
 }
 
-core::Result PatternCache::configure(const PatternCacheConfig& config) {
+core::Result<void> PatternCache::configure(const PatternCacheConfig& config) {
     std::lock_guard<std::mutex> lock(cache_mutex_);
     config_ = config;
     
@@ -115,7 +115,7 @@ core::Result PatternCache::configure(const PatternCacheConfig& config) {
     std::cout << "PatternCache: Reconfigured with max_size=" << config_.max_cache_size 
               << ", ttl=" << config_.ttl.count() << "min" << std::endl;
     
-    return core::Result::SUCCESS;
+    return core::Result<void>();
 }
 
 PatternCache::CacheMetrics PatternCache::getMetrics() const {

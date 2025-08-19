@@ -42,18 +42,18 @@ public:
                                                    DataFormat format = DataFormat::AUTO);
 
     // Specific format parsers
-    std::vector<sep::common::CandleData> parseQuantJSON(const std::string& path);
+    std::vector<sep::CandleData> parseQuantJSON(const std::string& path);
         std::vector<quantum::Pattern> parseCSV(const std::string& path);
         std::vector<quantum::Pattern> parseBinary(const uint8_t* data, size_t size);
 
     // Convert raw candle data to SEP patterns
-        std::vector<quantum::Pattern> candlesToPatterns(const std::vector<sep::common::CandleData>& candles);
+        std::vector<quantum::Pattern> candlesToPatterns(const std::vector<sep::CandleData>& candles);
 
     // Utility: write candle data to OANDA-style JSON
-    void writeQuantJSON(const std::vector<sep::common::CandleData>& candles, const std::string& path) const;
+    void writeQuantJSON(const std::vector<sep::CandleData>& candles, const std::string& path) const;
 
     // Save candle data with validation checks (time ordering, field ranges)
-    bool saveValidatedCandlesJSON(const std::vector<sep::common::CandleData>& candles,
+    bool saveValidatedCandlesJSON(const std::vector<sep::CandleData>& candles,
                                   const std::string& path) const;
 
     // Convert patterns to PinStates for engine compatibility

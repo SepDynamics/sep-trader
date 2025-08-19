@@ -198,8 +198,8 @@ public:
         }
         Pattern& p1 = patterns_[it1->second];
         Pattern& p2 = patterns_[it2->second];
-        p1.relationships.push_back({pattern_id2, 1.0f, RelationshipType::ENTANGLEMENT});
-        p2.relationships.push_back({pattern_id1, 1.0f, RelationshipType::ENTANGLEMENT});
+        p1.relationships.push_back(PatternRelationship{it2->second, 1.0, RelationshipType::ENTANGLEMENT});
+        p2.relationships.push_back(PatternRelationship{it1->second, 1.0, RelationshipType::ENTANGLEMENT});
         return {true, p1, ""};
     }
 
@@ -265,8 +265,8 @@ public:
         }
         Pattern& p1 = patterns_[it1->second];
         Pattern& p2 = patterns_[it2->second];
-        p1.relationships.push_back({pattern_id2, strength, type});
-        p2.relationships.push_back({pattern_id1, strength, type});
+        p1.relationships.push_back(PatternRelationship{it2->second, strength, type});
+        p2.relationships.push_back(PatternRelationship{it1->second, strength, type});
         return sep::SEPResult::SUCCESS;
     }
 
@@ -301,13 +301,15 @@ public:
             if (pattern.quantum_state.coherence < qcfg.mtm_coherence_threshold) {
                 stm_count++;
             } else if (pattern.quantum_state.coherence < qcfg.ltm_coherence_threshold) {
-                case ::sep::memory::MemoryTierEnum::MTM: mtm_count++; break;
-                case ::sep::memory::MemoryTierEnum::LTM: ltm_count++; break;
-                case ::sep::memory::MemoryTierEnum::HOST: host_count++; break;
-                case ::sep::memory::MemoryTierEnum::DEVICE: device_count++; break;
-                case ::sep::memory::MemoryTierEnum::UNIFIED: unified_count++; break;
-                default: break;
+                mtm_count++;
+            } else {
+                ltm_count++;
             }
+            
+            // Memory tier information not available in current Pattern structure
+            // TODO: Add memory_tier field to Pattern or derive from other fields
+            // For now, increment host_count as default
+            host_count++;
         }
         status += "  STM patterns: " + std::to_string(stm_count) + "\n";
         status += "  MTM patterns: " + std::to_string(mtm_count) + "\n";
@@ -343,7 +345,7 @@ private:
         auto rnd = [&]() { return deterministicNoise(noise_state); };
         state.coherence = glm::clamp(state.coherence + (rnd() * 0.4f - 0.2f), 0.1, 1.0);  // Wider range
         state.stability = glm::clamp(state.stability + (rnd() * 2.0f - 1.0f) * config_.mutation_rate * 0.5f, 0.0, 1.0);
-        state.entropy = glm::clamp(state.entropy + rnd() * 0.3f - 0.15f, 0.0f, 1.0f);
+        state.entropy = glm::clamp(state.entropy + rnd() * 0.3 - 0.15, 0.0, 1.0);
         state.mutation_rate *= (1.0f + (rnd() * 2.0f - 1.0f) * 0.1f);
         state.mutation_count++;
     }
@@ -364,7 +366,7 @@ private:
     void rebuildPatternMap() {
         pattern_map_.clear();
         for (size_t i = 0; i < patterns_.size(); ++i) {
-            pattern_map_[patterns_[i].id] = i;
+            pattern_map_[std::to_string(patterns_[i].id)] = i;
         }
     }
 

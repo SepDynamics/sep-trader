@@ -132,21 +132,21 @@ Result<QuantumState> QuantumProcessingService::runQuantumPipeline(const QuantumS
         auto binaryResult = processBinaryStateAnalysis(state);
         if (binaryResult.isError()) {
             return Result<QuantumState>(Error(Error::Code::OperationFailed,
-                "Pipeline QBSA step failed: " + binaryResult.error().message()));
+                "Pipeline QBSA step failed: " + binaryResult.error().message));
         }
         
         // Step 2: QFH (with 3 levels)
         auto qfhResult = applyQuantumFourierHierarchy(state, 3);
         if (qfhResult.isError()) {
             return Result<QuantumState>(Error(Error::Code::OperationFailed,
-                "Pipeline QFH step failed: " + qfhResult.error().message()));
+                "Pipeline QFH step failed: " + qfhResult.error().message));
         }
         
         // Step 3: Coherence
         auto coherenceResult = calculateCoherence(state);
         if (coherenceResult.isError()) {
             return Result<QuantumState>(Error(Error::Code::OperationFailed,
-                "Pipeline coherence step failed: " + coherenceResult.error().message()));
+                "Pipeline coherence step failed: " + coherenceResult.error().message));
         }
         
         // Step 4: Create evolution parameters based on previous results
@@ -159,7 +159,7 @@ Result<QuantumState> QuantumProcessingService::runQuantumPipeline(const QuantumS
         auto evolvedState = evolveQuantumState(state, evolutionParams);
         if (evolvedState.isError()) {
             return Result<QuantumState>(Error(Error::Code::OperationFailed,
-                "Pipeline evolution step failed: " + evolvedState.error().message()));
+                "Pipeline evolution step failed: " + evolvedState.error().message));
         }
         
         return evolvedState;

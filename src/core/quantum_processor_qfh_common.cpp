@@ -157,14 +157,14 @@ float sep::quantum::QuantumProcessorQFHCommon::updateRelationship(const glm::vec
 
 bool sep::quantum::QuantumProcessorQFHCommon::isCollapsed(const glm::vec3& pattern) {
     float coherence = processPattern(pattern);
-    bool traditional_collapse = coherence < sep::COLLAPSE_THRESHOLD;
+    bool traditional_collapse = coherence < sep::quantum::COHERENCE_THRESHOLD;
     bool qfh_collapse = m_last_qfh_result.collapse_detected;
     return qfh_collapse || traditional_collapse;
 }
 
 bool sep::quantum::QuantumProcessorQFHCommon::isStable(const glm::vec3& pattern) {
     float coherence = processPattern(pattern);
-    bool traditional_stable = coherence >= sep::STABILITY_THRESHOLD;
+    bool traditional_stable = coherence >= sep::quantum::STABILITY_THRESHOLD;
     bool qfh_stable = m_last_qfh_result.rupture_ratio < 0.3f;
     return traditional_stable && qfh_stable;
 }
@@ -172,8 +172,8 @@ bool sep::quantum::QuantumProcessorQFHCommon::isStable(const glm::vec3& pattern)
 bool sep::quantum::QuantumProcessorQFHCommon::isQuantum(const glm::vec3& pattern) {
     float coherence = processPattern(pattern);
     bool traditional_quantum =
-        coherence >= sep::MIN_COHERENCE &&
-        coherence < sep::COLLAPSE_THRESHOLD;
+        coherence >= sep::quantum::MIN_COHERENCE &&
+        coherence < sep::quantum::COHERENCE_THRESHOLD;
     bool qfh_quantum = m_last_qfh_result.flip_ratio > 0.3f && m_last_qfh_result.rupture_ratio < 0.5f;
     return traditional_quantum || qfh_quantum;
 }
@@ -199,14 +199,14 @@ void sep::quantum::QuantumProcessorQFHCommon::analyzePatternBits() {
     for (uint32_t v : m_pattern_bits) {
         shim_bits.push_back(v);
     }
-    m_last_qfh_result = qfh_processor.analyze(QFHBasedProcessor::convertToBits(shim_bits));
+    m_last_qfh_result = qfh_processor.analyze(qfh_processor.convertToBits(shim_bits));
 
     // Add entropy calculation (Shannon on bits)
     if (shim_bits.empty()) {
         m_last_qfh_result.entropy = 0.0f;
         return;
     }
-    auto bits = QFHBasedProcessor::convertToBits(shim_bits);
+    auto bits = qfh_processor.convertToBits(shim_bits);
     if (bits.empty()) {
         m_last_qfh_result.entropy = 0.0f;
         return;

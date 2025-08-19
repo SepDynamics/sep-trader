@@ -51,8 +51,12 @@ public:
             for (size_t j = i + 1; j < patterns.size(); ++j) {
                 float strength = calculateEntanglementStrength(patterns[i], patterns[j]);
                 if (strength > config_.entanglement_threshold) {
-                    pairs.push_back({patterns[i].id, patterns[j].id, strength, 
-                                   calculatePhaseCorrelation(patterns[i], patterns[j])});
+                    EntanglementPair pair;
+                    pair.pattern_id1 = std::to_string(patterns[i].id);
+                    pair.pattern_id2 = std::to_string(patterns[j].id);
+                    pair.strength = strength;
+                    pair.phase_correlation = calculatePhaseCorrelation(patterns[i], patterns[j]);
+                    pairs.push_back(pair);
                 }
             }
         }
@@ -85,8 +89,8 @@ public:
 private:
     QuantumState getUpdatedState(const QuantumState& state) const {
         QuantumState updated = state;
-        updated.coherence = std::min(1.0f, updated.coherence + config_.evolution_step_size);
-        updated.stability = std::max(0.0f, updated.stability - config_.environment_coupling);
+        updated.coherence = std::min(1.0f, static_cast<float>(updated.coherence + static_cast<float>(config_.evolution_step_size)));
+        updated.stability = std::max(0.0f, static_cast<float>(updated.stability - static_cast<float>(config_.environment_coupling)));
         return updated;
     }
 
@@ -149,7 +153,7 @@ private:
     {
         glm::vec4 center(0.0f);
         for (const auto& pattern : patterns) {
-            center += pattern.position;
+            center += glm::vec4(static_cast<float>(pattern.position), 0.0f, 0.0f, 0.0f);
         }
         return center / static_cast<float>(patterns.size());
     }
@@ -159,7 +163,8 @@ private:
     {
         float max_distance = 0.0f;
         for (const auto& pattern : patterns) {
-            float distance = glm::length(pattern.position - center);
+            glm::vec4 pos_vec = glm::vec4(static_cast<float>(pattern.position), 0.0f, 0.0f, 0.0f);
+            float distance = glm::length(pos_vec - center);
             max_distance = std::max(max_distance, distance);
         }
         return max_distance;
@@ -170,9 +175,10 @@ private:
     {
         std::vector<std::string> collapsed;
         for (const auto& pattern : patterns) {
-            float distance = glm::length(pattern.position - event.collapse_center);
+            glm::vec4 pos_vec = glm::vec4(static_cast<float>(pattern.position), 0.0f, 0.0f, 0.0f);
+            float distance = glm::length(pos_vec - event.collapse_center);
             if (distance <= event.affected_radius) {
-                collapsed.push_back(pattern.id);
+                collapsed.push_back(std::to_string(pattern.id));
             }
         }
         return collapsed;

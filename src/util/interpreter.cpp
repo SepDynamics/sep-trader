@@ -69,7 +69,7 @@ void Interpreter::register_builtins() {
         sep::engine::PatternAnalysisResponse response;
         auto result = engine.analyzePattern(request, response);
         
-        if (sep::core::isSuccess(result)) {
+        if (result.isSuccess()) {
             return static_cast<double>(response.confidence_score);
         } else {
             throw std::runtime_error("Engine call failed for measure_coherence");
@@ -145,7 +145,7 @@ void Interpreter::register_builtins() {
         sep::engine::QFHAnalysisResponse response;
         auto result = engine.qfhAnalyze(request, response);
 
-        if (sep::core::isSuccess(result)) {
+        if (result.isSuccess()) {
             return static_cast<double>(response.rupture_ratio);
         } else {
             throw std::runtime_error("Engine call failed for qfh_analyze");
@@ -169,7 +169,7 @@ void Interpreter::register_builtins() {
         sep::engine::PatternAnalysisResponse response;
         auto result = engine.analyzePattern(request, response);
         
-        if (sep::core::isSuccess(result)) {
+        if (result.isSuccess()) {
             // Return stability as inverse of confidence variation (more stable = less variation)
             return static_cast<double>(response.confidence_score) * 0.8 + 0.2; // Stability score
         } else {
@@ -194,7 +194,7 @@ void Interpreter::register_builtins() {
         sep::engine::PatternAnalysisResponse response;
         auto result = engine.analyzePattern(request, response);
         
-        if (sep::core::isSuccess(result)) {
+        if (result.isSuccess()) {
             std::cout << "Real entropy from engine: " << response.entropy << std::endl;
             return static_cast<double>(response.entropy);
         } else {
@@ -217,7 +217,7 @@ void Interpreter::register_builtins() {
         sep::engine::BitExtractionResponse response;
         auto result = engine.extractBits(request, response);
         
-        if (sep::core::isSuccess(result) && response.success) {
+        if (result.isSuccess() && response.success) {
             // Convert bitstream to string for DSL use
             std::string bitstream_str;
             for (uint8_t bit : response.bitstream) {
@@ -246,7 +246,7 @@ void Interpreter::register_builtins() {
         sep::engine::ManifoldOptimizationResponse response;
         auto result = engine.manifoldOptimize(request, response);
         
-        if (sep::core::isSuccess(result) && response.success) {
+        if (result.isSuccess() && response.success) {
             return static_cast<double>(response.optimized_coherence);
         } else {
             throw std::runtime_error("Engine call failed for manifold_optimize");
@@ -2117,7 +2117,7 @@ Value Interpreter::call_builtin_function(const std::string& name, const std::vec
         sep::engine::PatternAnalysisResponse response;
         auto result = engine.analyzePattern(request, response);
         
-        if (sep::core::isSuccess(result)) {
+        if (result.isSuccess()) {
             return static_cast<double>(response.confidence_score);
         } else {
             throw std::runtime_error("Engine call failed for measure_coherence");
@@ -2146,7 +2146,7 @@ Value Interpreter::call_builtin_function(const std::string& name, const std::vec
         sep::engine::QFHAnalysisResponse response;
         auto result = engine.qfhAnalyze(request, response);
 
-        if (sep::core::isSuccess(result)) {
+        if (result.isSuccess()) {
             // For now, we'll return the rupture ratio as the primary result
             return static_cast<double>(response.rupture_ratio);
         } else {
@@ -2173,7 +2173,7 @@ Value Interpreter::call_builtin_function(const std::string& name, const std::vec
         sep::engine::PatternAnalysisResponse response;
         auto result = engine.analyzePattern(request, response);
         
-        if (sep::core::isSuccess(result)) {
+        if (result.isSuccess()) {
             // Return real entropy from QFH analysis
             std::cout << "Real entropy from engine: " << response.entropy << std::endl;
             return static_cast<double>(response.entropy);
@@ -2199,7 +2199,7 @@ Value Interpreter::call_builtin_function(const std::string& name, const std::vec
         sep::engine::BitExtractionResponse response;
         auto result = engine.extractBits(request, response);
         
-        if (sep::core::isSuccess(result) && response.success) {
+        if (result.isSuccess() && response.success) {
             // Convert bitstream to string representation for DSL
             std::string bitstream;
             for (uint8_t bit : response.bitstream) {
@@ -2232,7 +2232,7 @@ Value Interpreter::call_builtin_function(const std::string& name, const std::vec
         sep::engine::ManifoldOptimizationResponse response;
         auto result = engine.manifoldOptimize(request, response);
 
-        if (sep::core::isSuccess(result)) {
+        if (result.isSuccess()) {
             // For now, we'll return a boolean indicating success
             return response.success;
         } else {
@@ -2466,7 +2466,7 @@ Value Interpreter::call_builtin_function(const std::string& name, const std::vec
         sep::engine::StreamResponse response;
         auto result = engine.createStream(request, response);
 
-        if (sep::core::isSuccess(result) && response.success) {
+        if (result.isSuccess() && response.success) {
             std::cout << "DSL: Created stream '" << request.stream_id << "'" << std::endl;
             return true;
         } else {
@@ -2490,7 +2490,7 @@ Value Interpreter::call_builtin_function(const std::string& name, const std::vec
         sep::engine::StreamResponse response;
         auto result = engine.startStream(stream_id, response);
 
-        if (sep::core::isSuccess(result) && response.success) {
+        if (result.isSuccess() && response.success) {
             std::cout << "DSL: Started stream '" << stream_id << "' (" 
                       << response.active_streams.size() << " active)" << std::endl;
             return static_cast<double>(response.active_streams.size());
@@ -2515,7 +2515,7 @@ Value Interpreter::call_builtin_function(const std::string& name, const std::vec
         sep::engine::StreamResponse response;
         auto result = engine.stopStream(stream_id, response);
 
-        if (sep::core::isSuccess(result) && response.success) {
+        if (result.isSuccess() && response.success) {
             std::cout << "DSL: Stopped stream '" << stream_id << "'" << std::endl;
             return true;
         } else {
@@ -2547,7 +2547,7 @@ Value Interpreter::call_builtin_function(const std::string& name, const std::vec
         sep::engine::StreamResponse response;
         auto result = engine.ingestStreamData(request, response);
 
-        if (sep::core::isSuccess(result) && response.success) {
+        if (result.isSuccess() && response.success) {
             return true;
         } else {
             throw std::runtime_error("Failed to ingest data: " + response.error_message);
@@ -2577,7 +2577,7 @@ Value Interpreter::call_builtin_function(const std::string& name, const std::vec
         sep::engine::StreamDataResponse response;
         auto result = engine.queryStream(request, response);
 
-        if (sep::core::isSuccess(result)) {
+        if (result.isSuccess()) {
             // Return stream statistics as a formatted string
             std::string stats = "coherence:" + std::to_string(response.average_coherence) + 
                                ",patterns:" + std::to_string(response.processed_patterns) +
@@ -2594,7 +2594,7 @@ Value Interpreter::call_builtin_function(const std::string& name, const std::vec
         auto& engine = sep::engine::EngineFacade::getInstance();
         auto result = engine.clearPatternCache();
         
-        if (sep::core::isSuccess(result)) {
+        if (result.isSuccess()) {
             return std::string("Pattern cache cleared successfully");
         } else {
             throw std::runtime_error("Failed to clear pattern cache");
@@ -2614,7 +2614,7 @@ Value Interpreter::call_builtin_function(const std::string& name, const std::vec
             
             auto result = engine.configurePatternCache(max_size, ttl_minutes, coherence_threshold);
             
-            if (sep::core::isSuccess(result)) {
+            if (result.isSuccess()) {
                 return std::string("Pattern cache configured successfully");
             } else {
                 throw std::runtime_error("Failed to configure pattern cache");
@@ -2629,7 +2629,7 @@ Value Interpreter::call_builtin_function(const std::string& name, const std::vec
         sep::engine::MemoryMetricsResponse response;
         auto result = engine.getMemoryMetrics(response);
         
-        if (sep::core::isSuccess(result)) {
+        if (result.isSuccess()) {
             // Return cache metrics as formatted string
             std::string metrics = "cached_patterns:" + std::to_string(response.cached_patterns) +
                                 ",hits:" + std::to_string(response.cache_hits) +
@@ -2662,7 +2662,7 @@ Value Interpreter::call_builtin_function(const std::string& name, const std::vec
         sep::engine::GPUMemoryAllocResponse response;
         auto result = engine.allocateGPUMemory(request, response);
         
-        if (sep::core::isSuccess(result) && response.success) {
+        if (result.isSuccess() && response.success) {
             return static_cast<double>(response.memory_handle);
         } else {
             throw std::runtime_error("GPU memory allocation failed: " + response.error_message);
@@ -2685,7 +2685,7 @@ Value Interpreter::call_builtin_function(const std::string& name, const std::vec
         
         auto result = engine.deallocateGPUMemory(request);
         
-        if (sep::core::isSuccess(result)) {
+        if (result.isSuccess()) {
             return true;
         } else {
             throw std::runtime_error("GPU memory deallocation failed");
@@ -2721,7 +2721,7 @@ Value Interpreter::call_builtin_function(const std::string& name, const std::vec
         
         auto result = engine.configureGPUMemory(request);
         
-        if (sep::core::isSuccess(result)) {
+        if (result.isSuccess()) {
             return true;
         } else {
             throw std::runtime_error("GPU memory configuration failed");
@@ -2732,7 +2732,7 @@ Value Interpreter::call_builtin_function(const std::string& name, const std::vec
         auto& engine = sep::engine::EngineFacade::getInstance();
         auto result = engine.defragmentGPUMemory();
         
-        if (sep::core::isSuccess(result)) {
+        if (result.isSuccess()) {
             return true;
         } else {
             throw std::runtime_error("GPU memory defragmentation failed");
@@ -2744,7 +2744,7 @@ Value Interpreter::call_builtin_function(const std::string& name, const std::vec
         sep::engine::MemoryMetricsResponse response;
         auto result = engine.getMemoryMetrics(response);
         
-        if (sep::core::isSuccess(result)) {
+        if (result.isSuccess()) {
             // Return GPU memory stats as formatted string
             std::string stats = "total_allocated:" + std::to_string(response.gpu_total_allocated) +
                                ",current_usage:" + std::to_string(response.gpu_current_usage) +
@@ -2762,7 +2762,7 @@ Value Interpreter::call_builtin_function(const std::string& name, const std::vec
         auto& engine = sep::engine::EngineFacade::getInstance();
         auto result = engine.resetGPUMemoryStats();
         
-        if (sep::core::isSuccess(result)) {
+        if (result.isSuccess()) {
             return true;
         } else {
             throw std::runtime_error("GPU memory stats reset failed");
@@ -2827,7 +2827,7 @@ Value Interpreter::call_builtin_function(const std::string& name, const std::vec
         sep::engine::AdvancedBatchResponse response;
         auto result = engine.processAdvancedBatch(request, response);
         
-        if (!sep::core::isSuccess(result)) {
+        if (!result.isSuccess()) {
             throw std::runtime_error("Batch processing failed");
         }
         
@@ -2868,7 +2868,7 @@ Value Interpreter::call_builtin_function(const std::string& name, const std::vec
         sep::engine::ConfigResponse response;
         auto result = engine.setEngineConfig(request, response);
         
-        if (!sep::core::isSuccess(result)) {
+        if (!result.isSuccess()) {
             throw std::runtime_error("Failed to set engine config: " + response.error_message);
         }
         
@@ -2887,7 +2887,7 @@ Value Interpreter::call_builtin_function(const std::string& name, const std::vec
         sep::engine::ConfigResponse response;
         auto result = engine.getEngineConfig(request, response);
         
-        if (!sep::core::isSuccess(result)) {
+        if (!result.isSuccess()) {
             throw std::runtime_error("Failed to get engine config: " + response.error_message);
         }
         
@@ -2909,7 +2909,7 @@ Value Interpreter::call_builtin_function(const std::string& name, const std::vec
         sep::engine::ConfigListResponse response;
         auto result = engine.listEngineConfig(response);
         
-        if (!sep::core::isSuccess(result)) {
+        if (!result.isSuccess()) {
             throw std::runtime_error("Failed to list engine config: " + response.error_message);
         }
         
@@ -2938,7 +2938,7 @@ Value Interpreter::call_builtin_function(const std::string& name, const std::vec
         auto& engine = sep::engine::EngineFacade::getInstance();
         auto result = engine.resetEngineConfig(category);
         
-        if (!sep::core::isSuccess(result)) {
+        if (!result.isSuccess()) {
             throw std::runtime_error("Failed to reset engine config");
         }
         

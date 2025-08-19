@@ -20,8 +20,8 @@ std::vector<quantum::Pattern> DataParser::parseFile(const std::string& path, Dat
     switch (format) {
         case DataFormat::JSON:
         case DataFormat::CANDLE: {
-            auto candles = parseQuantJSON(path);
-            return candlesToPatterns(candles);
+            auto candleDatas = parseQuantJSON(path);
+            return candlesToPatterns(candleDatas);
         }
         case DataFormat::CSV:
             return parseCSV(path);
@@ -64,43 +64,43 @@ std::vector<quantum::Pattern> DataParser::parseBuffer(const uint8_t* data, size_
             std::string json_str(reinterpret_cast<const char*>(data), size);
             try {
                 nlohmann::json j = nlohmann::json::parse(json_str.c_str());
-                std::vector<sep::common::CandleData> candles;
+                std::vector<sep::CandleData> candleDatas;
 
-                if (j.contains("candles") && j["candles"].is_array()) {
-                    for (const auto& candle_json : j["candles"]) {
-                        sep::common::CandleData candle;
+                if (j.contains("candleDatas") && j["candleDatas"].is_array()) {
+                    for (const auto& candleData_json : j["candleDatas"]) {
+                        sep::CandleData candleData;
                         
-                        if (candle_json.contains("time") && candle_json["time"].is_string()) {
-                            auto tp = sep::common::parseTimestamp(candle_json["time"].get<std::string>());
-                            candle.timestamp = std::chrono::duration_cast<std::chrono::seconds>(tp.time_since_epoch()).count();
+                        if (candleData_json.contains("time") && candleData_json["time"].is_string()) {
+                            auto tp = sep::common::parseTimestamp(candleData_json["time"].get<std::string>());
+                            candleData.timestamp = std::chrono::duration_cast<std::chrono::seconds>(tp.time_since_epoch()).count();
                         }
                         
-                        if (candle_json.contains("volume") && candle_json["volume"].is_number()) {
-                            candle.volume = candle_json["volume"].get<uint64_t>();
+                        if (candleData_json.contains("volume") && candleData_json["volume"].is_number()) {
+                            candleData.volume = candleData_json["volume"].get<uint64_t>();
                         }
                         
-                        if (candle_json.contains("mid") && candle_json["mid"].is_object()) {
-                            const auto& mid = candle_json["mid"];
+                        if (candleData_json.contains("mid") && candleData_json["mid"].is_object()) {
+                            const auto& mid = candleData_json["mid"];
                             
                             if (mid.contains("o") && mid["o"].is_string()) {
-                                candle.open = std::stof(mid["o"].get<std::string>().c_str());
+                                candleData.open = std::stof(mid["o"].get<std::string>().c_str());
                             }
                             if (mid.contains("h") && mid["h"].is_string()) {
-                                candle.high = std::stof(mid["h"].get<std::string>().c_str());
+                                candleData.high = std::stof(mid["h"].get<std::string>().c_str());
                             }
                             if (mid.contains("l") && mid["l"].is_string()) {
-                                candle.low = std::stof(mid["l"].get<std::string>().c_str());
+                                candleData.low = std::stof(mid["l"].get<std::string>().c_str());
                             }
                             if (mid.contains("c") && mid["c"].is_string()) {
-                                candle.close = std::stof(mid["c"].get<std::string>().c_str());
+                                candleData.close = std::stof(mid["c"].get<std::string>().c_str());
                             }
                         }
                         
-                        candles.push_back(candle);
+                        candleDatas.push_back(candleData);
                     }
                 }
                 
-                return candlesToPatterns(candles);
+                return candlesToPatterns(candleDatas);
             } catch (const std::exception& e) {
                 std::cerr << "Error parsing JSON from buffer: " << e.what() << std::string("\n");
                 return {};
@@ -188,29 +188,26 @@ std::vector<quantum::Pattern> DataParser::parseCSV(const std::string& path)
 
         if (!values.empty()) {
             quantum::Pattern pattern;
-            pattern.id = std::to_string(line_num);
+            pattern.id = static_cast<uint32_t>(line_num);
             auto current_time = std::chrono::system_clock::now();
             pattern.timestamp = std::chrono::duration_cast<std::chrono::seconds>(current_time.time_since_epoch()).count();
 
-            // Map values to pattern fields
-            if (values.size() >= 1) pattern.position.x = values[0];
-            if (values.size() >= 2) pattern.position.y = values[1];
-            if (values.size() >= 3) pattern.position.z = values[2];
-            if (values.size() >= 4) pattern.position.w = values[3];
+            // Map first value to position, rest to attributes
+            if (values.size() >= 1) pattern.position = values[0];
             
-            // Store remaining values in data vector
-            for (size_t i = 4; i < values.size(); ++i) {
-                pattern.data.push_back(values[i]);
+            // Store remaining values in attributes vector
+            for (size_t i = 1; i < values.size(); ++i) {
+                pattern.attributes.push_back(values[i]);
             }
             
             // Initialize other fields
             pattern.generation = 0;
-            pattern.coherence = 0.0f;
+            pattern.coherence = 0.0;
             pattern.quantum_state = quantum::QuantumState{};
-            pattern.velocity = glm::vec4(0.0f);
-            pattern.attributes = glm::vec4(0.0f);
+            pattern.velocity = 0.0;
+            pattern.attributes = std::vector<double>{0.0, 0.0, 0.0, 0.0}; // Initialize with 4 zeros
             pattern.amplitude = {1.0f, 0.0f};
-            pattern.momentum = glm::vec3(0.0f);
+            pattern.momentum = 0.0; // momentum is double, not glm::vec3
             pattern.last_accessed = std::chrono::duration_cast<std::chrono::seconds>(current_time.time_since_epoch()).count();
             pattern.last_modified = std::chrono::duration_cast<std::chrono::seconds>(current_time.time_since_epoch()).count();
     
@@ -238,27 +235,31 @@ std::vector<quantum::Pattern> DataParser::parseBinary(const uint8_t* data, size_
 
     for (size_t i = 0; i < num_patterns; ++i) {
         quantum::Pattern pattern;
-        pattern.id = std::to_string(i);
+        pattern.id = static_cast<uint32_t>(i);
         auto current_time = std::chrono::system_clock::now();
         pattern.timestamp = std::chrono::duration_cast<std::chrono::seconds>(current_time.time_since_epoch()).count();
 
         size_t offset = i * floats_per_pattern;
-        pattern.position = glm::vec4(float_data[offset], float_data[offset + 1], float_data[offset + 2], float_data[offset + 3]);
+        pattern.position = float_data[offset];
 
-        // Derive coherence from variance
-        float mean = (pattern.position.x + pattern.position.y + pattern.position.z + pattern.position.w) / 4.0f;
-        float variance = ((pattern.position.x - mean) * (pattern.position.x - mean) +
-                          (pattern.position.y - mean) * (pattern.position.y - mean) +
-                          (pattern.position.z - mean) * (pattern.position.z - mean) +
-                          (pattern.position.w - mean) * (pattern.position.w - mean)) / 4.0f;
-        pattern.coherence = 1.0f / (1.0f + variance);
+        // Store remaining values in attributes vector
+        pattern.attributes.clear();
+        for (size_t j = 1; j < floats_per_pattern && offset + j < size / sizeof(float); ++j) {
+            pattern.attributes.push_back(float_data[offset + j]);
+        }
+
+        // Derive coherence from position and first few attributes
+        float mean = pattern.position;
+        if (!pattern.attributes.empty()) {
+            mean = (pattern.position + pattern.attributes[0]) / 2.0f;
+        }
+        pattern.coherence = 1.0 / (1.0 + std::abs(mean));
 
         pattern.generation = 0;
         pattern.quantum_state = quantum::QuantumState{};
-        pattern.velocity = glm::vec4(0.0f);
-        pattern.attributes = glm::vec4(0.0f);
-        pattern.amplitude = {1.0f, 0.0f};
-        pattern.momentum = glm::vec3(0.0f);
+        pattern.velocity = 0.0;
+        pattern.amplitude = {1.0, 0.0};
+        pattern.momentum = 0.0;
         pattern.last_accessed = std::chrono::duration_cast<std::chrono::seconds>(current_time.time_since_epoch()).count();
         pattern.last_modified = std::chrono::duration_cast<std::chrono::seconds>(current_time.time_since_epoch()).count();
         
@@ -278,8 +279,8 @@ std::vector<PinState> DataParser::toPinStates(
         PinState state;
 
         // Convert pattern data to uint64_t state
-        // Simple approach: use position.x as floating point bits
-        state.value = pattern.position.x;
+        // Simple approach: use position as floating point bits
+        state.value = pattern.position;
         state.coherence = pattern.coherence;
 
         // Could also combine multiple fields into the 64-bit state
@@ -298,18 +299,18 @@ DataFormat DataParser::detectFormat(const uint8_t* data, size_t size) const {
     // Check for JSON
     if (data[0] == '{' || data[0] == '[') {
         std::string str(reinterpret_cast<const char*>(data), std::min(size, size_t(100)));
-        // Check if the string contains "candles"
-        bool has_candles = false;
-        const char* candles_str = "candles";
-        size_t candles_len = 7;
-        if (str.size() >= candles_len)
+        // Check if the string contains "candleDatas"
+        bool has_candleDatas = false;
+        const char* candleDatas_str = "candleDatas";
+        size_t candleDatas_len = 7;
+        if (str.size() >= candleDatas_len)
         {
-            for (size_t i = 0; i <= str.size() - candles_len; ++i)
+            for (size_t i = 0; i <= str.size() - candleDatas_len; ++i)
             {
                 bool match = true;
-                for (size_t j = 0; j < candles_len; ++j)
+                for (size_t j = 0; j < candleDatas_len; ++j)
                 {
-                    if (str[i + j] != candles_str[j])
+                    if (str[i + j] != candleDatas_str[j])
                     {
                         match = false;
                         break;
@@ -317,12 +318,12 @@ DataFormat DataParser::detectFormat(const uint8_t* data, size_t size) const {
                 }
                 if (match)
                 {
-                    has_candles = true;
+                    has_candleDatas = true;
                     break;
                 }
             }
         }
-        if (has_candles)
+        if (has_candleDatas)
         {
             return DataFormat::CANDLE;
         }
@@ -388,14 +389,14 @@ DataFormat DataParser::detectFileFormat(const std::string& path) const
     return DataFormat::BINARY;
 }
 
-std::vector<sep::common::CandleData> DataParser::parseQuantJSON(const std::string& path)
+std::vector<sep::CandleData> DataParser::parseQuantJSON(const std::string& path)
 {
-    std::vector<sep::common::CandleData> candles;
+    std::vector<sep::CandleData> candleDatas;
     std::ifstream file(path.c_str());
 
     if (!file.is_open()) {
         std::cerr << "Error: Could not open JSON file: " << path << std::endl;
-        return candles;
+        return candleDatas;
     }
     
     try {
@@ -404,114 +405,114 @@ std::vector<sep::common::CandleData> DataParser::parseQuantJSON(const std::strin
         
         if (j.is_array()) {
             size_t index = 0;
-            for (const auto& candle_json : j) {
-                sep::common::CandleData candle;
+            for (const auto& candleData_json : j) {
+                sep::CandleData candleData;
 
                 bool valid = true;
 
-                if (candle_json.contains("time") && candle_json["time"].is_string()) {
-                    candle.timestamp = std::chrono::duration_cast<std::chrono::seconds>(sep::common::parseTimestamp(candle_json["time"].get<std::string>()).time_since_epoch()).count();
+                if (candleData_json.contains("time") && candleData_json["time"].is_string()) {
+                    candleData.timestamp = std::chrono::duration_cast<std::chrono::seconds>(sep::common::parseTimestamp(candleData_json["time"].get<std::string>()).time_since_epoch()).count();
                 } else {
                     std::cerr << "[DataParser] Missing time at index " << index << "\n";
                     valid = false;
                 }
 
-                if (candle_json.contains("volume") && candle_json["volume"].is_number()) {
-                    candle.volume = candle_json["volume"].get<uint64_t>();
+                if (candleData_json.contains("volume") && candleData_json["volume"].is_number()) {
+                    candleData.volume = candleData_json["volume"].get<uint64_t>();
                 } else {
-                    candle.volume = 0;
+                    candleData.volume = 0;
                 }
 
-                if (candle_json.contains("open") && candle_json["open"].is_number())
-                    candle.open = candle_json["open"].get<double>();
+                if (candleData_json.contains("open") && candleData_json["open"].is_number())
+                    candleData.open = candleData_json["open"].get<double>();
                 else
                     valid = false;
-                if (candle_json.contains("high") && candle_json["high"].is_number())
-                    candle.high = candle_json["high"].get<double>();
+                if (candleData_json.contains("high") && candleData_json["high"].is_number())
+                    candleData.high = candleData_json["high"].get<double>();
                 else
                     valid = false;
-                if (candle_json.contains("low") && candle_json["low"].is_number())
-                    candle.low = candle_json["low"].get<double>();
+                if (candleData_json.contains("low") && candleData_json["low"].is_number())
+                    candleData.low = candleData_json["low"].get<double>();
                 else
                     valid = false;
-                if (candle_json.contains("close") && candle_json["close"].is_number())
-                    candle.close = candle_json["close"].get<double>();
+                if (candleData_json.contains("close") && candleData_json["close"].is_number())
+                    candleData.close = candleData_json["close"].get<double>();
                 else
                     valid = false;
 
-                if (!candles.empty()) {
-                    auto prev_ts = candles.back().timestamp;
-                    auto cur_ts = candle.timestamp;
+                if (!candleDatas.empty()) {
+                    auto prev_ts = candleDatas.back().timestamp;
+                    auto cur_ts = candleData.timestamp;
                     if (cur_ts <= prev_ts) {
                         std::cerr << "[DataParser] Non-increasing timestamp at index " << index << "\n";
                         valid = false;
                     } else if (std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::seconds(cur_ts) - std::chrono::seconds(prev_ts)).count() != 60000) {
-                        std::cerr << "[DataParser] Missing candle between " << candles.size()-1
+                        std::cerr << "[DataParser] Missing candleData between " << candleDatas.size()-1
                                   << " and current" << "\n";
                     }
                 }
 
                 if (valid)
-                    candles.push_back(candle);
+                    candleDatas.push_back(candleData);
                 index++;
             }
         } else {
-            if (!j.contains("candles") || !j["candles"].is_array()) {
-                std::cerr << "Error: JSON file does not contain 'candles' array" << std::endl;
-                return candles;
+            if (!j.contains("candleDatas") || !j["candleDatas"].is_array()) {
+                std::cerr << "Error: JSON file does not contain 'candleDatas' array" << std::endl;
+                return candleDatas;
             }
 
             size_t index = 0;
-            for (const auto& candle_json : j["candles"]) {
-            sep::common::CandleData candle;
+            for (const auto& candleData_json : j["candleDatas"]) {
+            sep::CandleData candleData;
             
             // Parse time
-            if (candle_json.contains("time") && candle_json["time"].is_string()) {
-                candle.timestamp = std::chrono::duration_cast<std::chrono::seconds>(sep::common::parseTimestamp(candle_json["time"].get<std::string>()).time_since_epoch()).count();
+            if (candleData_json.contains("time") && candleData_json["time"].is_string()) {
+                candleData.timestamp = std::chrono::duration_cast<std::chrono::seconds>(sep::common::parseTimestamp(candleData_json["time"].get<std::string>()).time_since_epoch()).count();
             }
             
             // Parse volume
-            if (candle_json.contains("volume") && candle_json["volume"].is_number()) {
-                candle.volume = candle_json["volume"].get<uint64_t>();
+            if (candleData_json.contains("volume") && candleData_json["volume"].is_number()) {
+                candleData.volume = candleData_json["volume"].get<uint64_t>();
             }
             
             // Parse mid prices (OHLC)
-            if (candle_json.contains("mid") && candle_json["mid"].is_object()) {
-                const auto& mid = candle_json["mid"];
+            if (candleData_json.contains("mid") && candleData_json["mid"].is_object()) {
+                const auto& mid = candleData_json["mid"];
                 
                 if (mid.contains("o") && mid["o"].is_string()) {
-                    candle.open = std::stof(mid["o"].get<std::string>().c_str());
+                    candleData.open = std::stof(mid["o"].get<std::string>().c_str());
                 }
                 if (mid.contains("h") && mid["h"].is_string()) {
-                    candle.high = std::stof(mid["h"].get<std::string>().c_str());
+                    candleData.high = std::stof(mid["h"].get<std::string>().c_str());
                 }
                 if (mid.contains("l") && mid["l"].is_string()) {
-                    candle.low = std::stof(mid["l"].get<std::string>().c_str());
+                    candleData.low = std::stof(mid["l"].get<std::string>().c_str());
                 }
                 if (mid.contains("c") && mid["c"].is_string()) {
-                    candle.close = std::stof(mid["c"].get<std::string>().c_str());
+                    candleData.close = std::stof(mid["c"].get<std::string>().c_str());
                 }
             }
             
             bool valid_prices = true;
-            if (candle.high < candle.low ||
-                candle.open > candle.high || candle.open < candle.low ||
-                candle.close > candle.high || candle.close < candle.low)
+            if (candleData.high < candleData.low ||
+                candleData.open > candleData.high || candleData.open < candleData.low ||
+                candleData.close > candleData.high || candleData.close < candleData.low)
             {
                 std::cerr << "[DataParser] Invalid OHLC at index " << index << "\n";
                 valid_prices = false;
             }
 
-            if (!candles.empty()) {
-                auto prev_ts = candles.back().timestamp;
-                auto cur_ts = candle.timestamp;
+            if (!candleDatas.empty()) {
+                auto prev_ts = candleDatas.back().timestamp;
+                auto cur_ts = candleData.timestamp;
                 if (std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::seconds(cur_ts) - std::chrono::seconds(prev_ts)).count() != 60000) {
-                    std::cerr << "[DataParser] Missing candle between previous and current\n";
+                    std::cerr << "[DataParser] Missing candleData between previous and current\n";
                 }
             }
 
                 if (valid_prices)
-                    candles.push_back(candle);
+                    candleDatas.push_back(candleData);
                 index++;
             }
         }
@@ -521,31 +522,34 @@ std::vector<sep::common::CandleData> DataParser::parseQuantJSON(const std::strin
     }
     
     file.close();
-    return candles;
+    return candleDatas;
 }
 
 std::vector<quantum::Pattern> DataParser::candlesToPatterns(
-    const std::vector<sep::common::CandleData>& candles)
+    const std::vector<sep::CandleData>& candleDatas)
 {
     std::vector<sep::quantum::Pattern> patterns;
 
-    for (const auto& candle : candles) {
+    for (const auto& candleData : candleDatas) {
         quantum::Pattern pattern;
 
         // Use timestamp as unique ID
-        pattern.id = std::to_string(candle.timestamp);
+        pattern.id = std::hash<std::string>{}(std::to_string(candleData.timestamp));
 
-        // Map OHLC to position vector (raw data, no normalization)
-        pattern.position.x = candle.open;
-        pattern.position.y = candle.high;
-        pattern.position.z = candle.low;
-        pattern.position.w = candle.close;
+        // Map OHLC to position as average (position is now double, not vec4)
+        pattern.position = (candleData.open + candleData.high + candleData.low + candleData.close) / 4.0;
         
-        // Store volume in data vector
-        pattern.data.push_back(static_cast<float>(candle.volume));
+        // Store OHLC and volume in attributes vector
+        pattern.attributes = {
+            static_cast<double>(candleData.open),
+            static_cast<double>(candleData.high),
+            static_cast<double>(candleData.low),
+            static_cast<double>(candleData.close),
+            static_cast<double>(candleData.volume)
+        };
         
         // Set timestamp
-        auto tp = std::chrono::system_clock::from_time_t(static_cast<time_t>(candle.timestamp));
+        auto tp = std::chrono::system_clock::from_time_t(static_cast<time_t>(candleData.timestamp));
         pattern.timestamp = sep::common::time_point_to_nanoseconds(tp);
         pattern.last_accessed = sep::common::time_point_to_nanoseconds(tp);
         pattern.last_modified = sep::common::time_point_to_nanoseconds(tp);
@@ -555,11 +559,10 @@ std::vector<quantum::Pattern> DataParser::candlesToPatterns(
         pattern.coherence = 0.0f;  // Will be calculated by QBSA/QFH
         pattern.quantum_state = {};  // Default initialized
 
-        // Initialize other required fields with defaults
-        pattern.velocity = glm::vec4(0.0f);
-        pattern.attributes = glm::vec4(0.0f);
+        // Initialize other required fields with defaults (velocity and momentum are now double)
+        pattern.velocity = 0.0;  // velocity is now double
         pattern.amplitude = std::complex<float>(1.0f, 0.0f);
-        pattern.momentum = glm::vec3(0.0f);
+        pattern.momentum = 0.0;  // momentum is now double
         
         patterns.push_back(pattern);
     }
@@ -567,18 +570,18 @@ std::vector<quantum::Pattern> DataParser::candlesToPatterns(
     return patterns;
 }
 
-void DataParser::writeQuantJSON(const std::vector<sep::common::CandleData>& candles, const std::string& path) const
+void DataParser::writeQuantJSON(const std::vector<sep::CandleData>& candleDatas, const std::string& path) const
 {
     nlohmann::json j;
-    j["candles"] = nlohmann::json::array();
-    for (const auto& c : candles)
+    j["candleDatas"] = nlohmann::json::array();
+    for (const auto& c : candleDatas)
     {
         if (!std::isfinite(c.open) || !std::isfinite(c.high) || !std::isfinite(c.low) ||
             !std::isfinite(c.close) || c.high < c.low)
         {
             auto tp = std::chrono::system_clock::from_time_t(static_cast<time_t>(c.timestamp));
             std::time_t tt = std::chrono::system_clock::to_time_t(tp);
-            std::cerr << "[DataParser] Invalid candle data at " << std::ctime(&tt) << std::endl;
+            std::cerr << "[DataParser] Invalid candleData data at " << std::ctime(&tt) << std::endl;
             continue;
         }
 
@@ -595,7 +598,7 @@ void DataParser::writeQuantJSON(const std::vector<sep::common::CandleData>& cand
             {"l", std::to_string(c.low)},
             {"c", std::to_string(c.close)}
         };
-        j["candles"].push_back(cj);
+        j["candleDatas"].push_back(cj);
     }
 
     std::ofstream file(path);
@@ -605,24 +608,24 @@ void DataParser::writeQuantJSON(const std::vector<sep::common::CandleData>& cand
     }
 }
 
-bool DataParser::saveValidatedCandlesJSON(const std::vector<sep::common::CandleData>& candles,
+bool DataParser::saveValidatedCandlesJSON(const std::vector<sep::CandleData>& candleDatas,
                                           const std::string& path) const
 {
-    if (candles.empty()) {
+    if (candleDatas.empty()) {
         return false;
     }
 
     // Basic integrity checks and chronological ordering
-    for (size_t i = 0; i < candles.size(); ++i) {
-        const auto& c = candles[i];
+    for (size_t i = 0; i < candleDatas.size(); ++i) {
+        const auto& c = candleDatas[i];
         if (!std::isfinite(c.open) || !std::isfinite(c.high) || !std::isfinite(c.low) ||
             !std::isfinite(c.close) || c.high < c.low || c.volume < 0 ||
             c.open > c.high || c.open < c.low || c.close > c.high || c.close < c.low) {
-            std::cerr << "[DataParser] Invalid candle at index " << i << "\n";
+            std::cerr << "[DataParser] Invalid candleData at index " << i << "\n";
             return false;
         }
         if (i > 0) {
-            auto prev_ts = candles[i - 1].timestamp;
+            auto prev_ts = candleDatas[i - 1].timestamp;
             auto cur_ts = c.timestamp;
             if (cur_ts <= prev_ts) {
                 std::cerr << "[DataParser] Non-increasing timestamp at index " << i << "\n";
@@ -631,7 +634,7 @@ bool DataParser::saveValidatedCandlesJSON(const std::vector<sep::common::CandleD
         }
     }
 
-    writeQuantJSON(candles, path);
+    writeQuantJSON(candleDatas, path);
     return true;
 }
 

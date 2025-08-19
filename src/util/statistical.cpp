@@ -10,10 +10,10 @@ namespace dsl::stdlib {
 std::vector<double> extract_numbers(const std::vector<Value>& args) {
     std::vector<double> numbers;
     for (const auto& arg : args) {
-        if (arg.type != Value::NUMBER) {
+        if (!std::holds_alternative<double>(arg)) {
             throw std::runtime_error("Statistical functions require numeric arguments");
         }
-        numbers.push_back(arg.get<double>());
+        numbers.push_back(std::get<double>(arg));
     }
     return numbers;
 }
@@ -79,7 +79,7 @@ Value std_dev_func(const std::vector<Value>& args) {
     
     // Calculate variance first
     Value var_result = variance_func(args);
-    double variance = var_result.get<double>();
+    double variance = std::get<double>(var_result);
     
     return Value(std::sqrt(variance));
 }
@@ -172,11 +172,11 @@ Value percentile_func(const std::vector<Value>& args) {
         throw std::runtime_error("percentile() requires at least 2 arguments: percentile value followed by data");
     }
     
-    if (args[0].type != Value::NUMBER) {
+    if (!std::holds_alternative<double>(args[0])) {
         throw std::runtime_error("percentile() first argument must be the percentile value (0-100)");
     }
     
-    double p = args[0].get<double>();
+    double p = std::get<double>(args[0]);
     if (p < 0.0 || p > 100.0) {
         throw std::runtime_error("percentile() value must be between 0 and 100");
     }

@@ -537,6 +537,7 @@ void QuantumTrackerWindow::renderConfidenceBuckets() {
 }
 
 void QuantumTrackerWindow::renderRecentPredictions() {
+#ifdef SEP_USE_GUI
     ImGui::Text("📋 RECENT PREDICTIONS");
     
     if (ImGui::BeginTable("predictions", 6, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg)) {

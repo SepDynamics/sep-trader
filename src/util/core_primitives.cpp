@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <bitset>
 #include <sstream>
+#include <random>
 
 namespace dsl::stdlib {
 
@@ -24,7 +25,7 @@ void initialize_engine_components() {
     if (!g_qfh_processor) {
         sep::quantum::QFHOptions qfh_options;
         qfh_options.collapse_threshold = 0.3f;
-        qfh_options.flip_threshold = 0.7f;
+        qfh_options.collapse_threshold = 0.7f;
         g_qfh_processor = std::make_unique<sep::quantum::QFHBasedProcessor>(qfh_options);
     }
     
@@ -55,12 +56,12 @@ Value create_pattern(const std::vector<Value>& args) {
 }
 
 Value evolve_pattern(const std::vector<Value>& args) {
-    if (args.size() < 2 || args[0].type != Value::STRING || args[1].type != Value::NUMBER) {
+    if (args.size() < 2 || !std::holds_alternative<std::string>(args[0]) || !std::holds_alternative<double>(args[1])) {
         throw std::runtime_error("evolve_pattern requires pattern id and time step");
     }
 
-    std::string id = args[0].get<std::string>();
-    int steps = static_cast<int>(args[1].get<double>());
+    std::string id = std::get<std::string>(args[0]);
+    int steps = static_cast<int>(std::get<double>(args[1]));
     auto it = pattern_store.find(id);
     if (it == pattern_store.end()) {
         throw std::runtime_error("Unknown pattern id: " + id);
@@ -69,15 +70,15 @@ Value evolve_pattern(const std::vector<Value>& args) {
     Value data = it->second;
     std::string new_id = "pattern_" + std::to_string(next_pattern_id++);
 
-    if (data.type == Value::STRING) {
-        std::string bits = data.get<std::string>();
+    if (std::holds_alternative<std::string>(data)) {
+        std::string bits = std::get<std::string>(data);
         if (!bits.empty()) {
             steps = steps % static_cast<int>(bits.size());
             std::rotate(bits.begin(), bits.begin() + steps, bits.end());
         }
         pattern_store[new_id] = Value(bits);
-    } else if (data.type == Value::NUMBER) {
-        double v = data.get<double>();
+    } else if (std::holds_alternative<double>(data)) {
+        double v = std::get<double>(data);
         v += steps;
         pattern_store[new_id] = Value(v);
     } else {
@@ -89,21 +90,21 @@ Value evolve_pattern(const std::vector<Value>& args) {
 }
 
 Value merge_patterns(const std::vector<Value>& args) {
-    if (args.size() < 2 || args[0].type != Value::STRING || args[1].type != Value::STRING) {
+    if (args.size() < 2 || !std::holds_alternative<std::string>(args[0]) || !std::holds_alternative<std::string>(args[1])) {
         throw std::runtime_error("merge_patterns requires two pattern ids");
     }
 
-    auto it1 = pattern_store.find(args[0].get<std::string>());
-    auto it2 = pattern_store.find(args[1].get<std::string>());
+    auto it1 = pattern_store.find(std::get<std::string>(args[0]));
+    auto it2 = pattern_store.find(std::get<std::string>(args[1]));
     if (it1 == pattern_store.end() || it2 == pattern_store.end()) {
         throw std::runtime_error("merge_patterns unknown pattern id");
     }
 
     Value merged;
-    if (it1->second.type == Value::STRING && it2->second.type == Value::STRING) {
-        merged = Value(it1->second.get<std::string>() + it2->second.get<std::string>());
-    } else if (it1->second.type == Value::NUMBER && it2->second.type == Value::NUMBER) {
-        double avg = (it1->second.get<double>() + it2->second.get<double>()) / 2.0;
+    if (std::holds_alternative<std::string>(it1->second) && std::holds_alternative<std::string>(it2->second)) {
+        merged = Value(std::get<std::string>(it1->second) + std::get<std::string>(it2->second));
+    } else if (std::holds_alternative<double>(it1->second) && std::holds_alternative<double>(it2->second)) {
+        double avg = (std::get<double>(it1->second) + std::get<double>(it2->second)) / 2.0;
         merged = Value(avg);
     } else {
         merged = it1->second; // fallback to first pattern
@@ -111,23 +112,23 @@ Value merge_patterns(const std::vector<Value>& args) {
 
     std::string id = "pattern_" + std::to_string(next_pattern_id++);
     pattern_store[id] = merged;
-    pattern_tiers[id] = pattern_tiers[args[0].get<std::string>()];
+    pattern_tiers[id] = pattern_tiers[std::get<std::string>(args[0])];
     return Value(id);
 }
 
 static std::string get_pattern_bits(const std::string& id) {
     auto it = pattern_store.find(id);
-    if (it == pattern_store.end() || it->second.type != Value::STRING) {
+    if (it == pattern_store.end() || !std::holds_alternative<std::string>(it->second)) {
         throw std::runtime_error("pattern does not contain bitstring: " + id);
     }
-    return it->second.get<std::string>();
+    return std::get<std::string>(it->second);
 }
 
 Value measure_coherence(const std::vector<Value>& args) {
-    if (args.empty() || args[0].type != Value::STRING) {
+    if (args.empty() || !std::holds_alternative<std::string>(args[0])) {
         throw std::runtime_error("measure_coherence requires pattern id");
     }
-    std::string bits = get_pattern_bits(args[0].get<std::string>());
+    std::string bits = get_pattern_bits(std::get<std::string>(args[0]));
     if (bits.size() < 2) return Value(1.0);
     size_t matches = 0;
     for (size_t i = 1; i < bits.size(); ++i) {
@@ -138,10 +139,10 @@ Value measure_coherence(const std::vector<Value>& args) {
 }
 
 Value measure_stability(const std::vector<Value>& args) {
-    if (args.empty() || args[0].type != Value::STRING) {
+    if (args.empty() || !std::holds_alternative<std::string>(args[0])) {
         throw std::runtime_error("measure_stability requires pattern id");
     }
-    std::string bits = get_pattern_bits(args[0].get<std::string>());
+    std::string bits = get_pattern_bits(std::get<std::string>(args[0]));
     if (bits.empty()) return Value(0.0);
     double ones = std::count(bits.begin(), bits.end(), '1');
     double p = ones / bits.size();
@@ -150,10 +151,10 @@ Value measure_stability(const std::vector<Value>& args) {
 }
 
 Value measure_entropy(const std::vector<Value>& args) {
-    if (args.empty() || args[0].type != Value::STRING) {
+    if (args.empty() || !std::holds_alternative<std::string>(args[0])) {
         throw std::runtime_error("measure_entropy requires pattern id");
     }
-    std::string bits = get_pattern_bits(args[0].get<std::string>());
+    std::string bits = get_pattern_bits(std::get<std::string>(args[0]));
     if (bits.empty()) return Value(0.0);
     double ones = std::count(bits.begin(), bits.end(), '1');
     double p = ones / bits.size();
@@ -182,17 +183,17 @@ Value qfh_analyze(const std::vector<Value>& args) {
     // Call real QFH analysis
     auto result = g_qfh_processor->analyze(sample_bits);
     
-    return Value(result.coherence_score);
+    return Value(result.coherence);
 }
 
 Value qbsa_analyze(const std::vector<Value>& args) {
     std::string bits;
     if (!args.empty()) {
-        if (args[0].type == Value::STRING) {
-            const std::string& id_or_bits = args[0].get<std::string>();
+        if (std::holds_alternative<std::string>(args[0])) {
+            const std::string& id_or_bits = std::get<std::string>(args[0]);
             auto it = pattern_store.find(id_or_bits);
-            if (it != pattern_store.end() && it->second.type == Value::STRING) {
-                bits = it->second.get<std::string>();
+            if (it != pattern_store.end() && std::holds_alternative<std::string>(it->second)) {
+                bits = std::get<std::string>(it->second);
             } else {
                 bits = id_or_bits; // treat argument as raw bits
             }
@@ -223,10 +224,10 @@ Value manifold_optimize(const std::vector<Value>& args) {
 }
 
 Value detect_collapse(const std::vector<Value>& args) {
-    if (args.empty() || args[0].type != Value::STRING) {
+    if (args.empty() || !std::holds_alternative<std::string>(args[0])) {
         throw std::runtime_error("detect_collapse requires pattern id");
     }
-    std::string bits = get_pattern_bits(args[0].get<std::string>());
+    std::string bits = get_pattern_bits(std::get<std::string>(args[0]));
     // collapse if coherence is 1.0 (all bits identical)
     bool collapsed = std::all_of(bits.begin(), bits.end(), [&](char c) { return c == bits.front(); });
     return Value(collapsed);
@@ -240,8 +241,8 @@ Value store_pattern(const std::vector<Value>& args) {
     if (args.empty()) {
         throw std::runtime_error("store_pattern requires pattern data argument");
     }
-    std::string tier = (args.size() > 1 && args[1].type == Value::STRING)
-                           ? args[1].get<std::string>()
+    std::string tier = (args.size() > 1 && std::holds_alternative<std::string>(args[1]))
+                           ? std::get<std::string>(args[1])
                            : "HTM";
     std::string id = "pattern_" + std::to_string(next_pattern_id++);
     pattern_store[id] = args[0];
@@ -250,10 +251,10 @@ Value store_pattern(const std::vector<Value>& args) {
 }
 
 Value retrieve_pattern(const std::vector<Value>& args) {
-    if (args.empty() || args[0].type != Value::STRING) {
+    if (args.empty() || !std::holds_alternative<std::string>(args[0])) {
         throw std::runtime_error("retrieve_pattern requires pattern id");
     }
-    std::string id = args[0].get<std::string>();
+    std::string id = std::get<std::string>(args[0]);
     auto it = pattern_store.find(id);
     if (it == pattern_store.end()) {
         throw std::runtime_error("unknown pattern id: " + id);
@@ -262,12 +263,12 @@ Value retrieve_pattern(const std::vector<Value>& args) {
 }
 
 Value promote_pattern(const std::vector<Value>& args) {
-    if (args.empty() || args[0].type != Value::STRING) {
+    if (args.empty() || !std::holds_alternative<std::string>(args[0])) {
         throw std::runtime_error("promote_pattern requires pattern id");
     }
-    std::string id = args[0].get<std::string>();
-    std::string new_tier = (args.size() > 1 && args[1].type == Value::STRING)
-                               ? args[1].get<std::string>()
+    std::string id = std::get<std::string>(args[0]);
+    std::string new_tier = (args.size() > 1 && std::holds_alternative<std::string>(args[1]))
+                               ? std::get<std::string>(args[1])
                                : "LTM";
     auto it = pattern_store.find(id);
     if (it == pattern_store.end()) {
@@ -278,8 +279,8 @@ Value promote_pattern(const std::vector<Value>& args) {
 }
 
 Value query_patterns(const std::vector<Value>& args) {
-    if (!args.empty() && args[0].type == Value::STRING) {
-        std::string tier = args[0].get<std::string>();
+    if (!args.empty() && std::holds_alternative<std::string>(args[0])) {
+        std::string tier = std::get<std::string>(args[0]);
         size_t count = 0;
         for (const auto& p : pattern_tiers) {
             if (p.second == tier) count++;
@@ -298,17 +299,17 @@ Value extract_bits(const std::vector<Value>& args) {
         throw std::runtime_error("extract_bits requires an argument");
     }
 
-    if (args[0].type == Value::STRING) {
-        std::string id = args[0].get<std::string>();
+    if (std::holds_alternative<std::string>(args[0])) {
+        std::string id = std::get<std::string>(args[0]);
         auto it = pattern_store.find(id);
-        if (it != pattern_store.end() && it->second.type == Value::STRING) {
+        if (it != pattern_store.end() && std::holds_alternative<std::string>(it->second)) {
             return it->second;
         }
         return Value(id); // treat as raw bits
     }
 
-    if (args[0].type == Value::NUMBER) {
-        uint64_t num = static_cast<uint64_t>(args[0].get<double>());
+    if (std::holds_alternative<double>(args[0])) {
+        uint64_t num = static_cast<uint64_t>(std::get<double>(args[0]));
         std::bitset<64> bits(num);
         return Value(bits.to_string());
     }
@@ -323,11 +324,11 @@ Value weighted_sum(const std::vector<Value>& args) {
     double total = 0.0;
     double weights = 0.0;
     for (size_t i = 0; i < args.size(); i += 2) {
-        if (args[i].type != Value::NUMBER || args[i + 1].type != Value::NUMBER) {
+        if (!std::holds_alternative<double>(args[i]) || !std::holds_alternative<double>(args[i + 1])) {
             throw std::runtime_error("weighted_sum arguments must be numbers");
         }
-        double v = args[i].get<double>();
-        double w = args[i + 1].get<double>();
+        double v = std::get<double>(args[i]);
+        double w = std::get<double>(args[i + 1]);
         total += v * w;
         weights += w;
     }
@@ -336,8 +337,8 @@ Value weighted_sum(const std::vector<Value>& args) {
 
 Value generate_sine_wave(const std::vector<Value>& args) {
     double frequency = 10.0; // Default 10Hz
-    if (!args.empty() && args[0].type == Value::NUMBER) {
-        frequency = args[0].get<double>();
+    if (!args.empty() && std::holds_alternative<double>(args[0])) {
+        frequency = std::get<double>(args[0]);
     }
 
     std::ostringstream oss;
@@ -357,21 +358,21 @@ Value is_number(const std::vector<Value>& args) {
     if (args.empty()) {
         throw std::runtime_error("is_number() requires exactly 1 argument");
     }
-    return Value(args[0].type == Value::NUMBER);
+    return Value(std::holds_alternative<double>(args[0]));
 }
 
 Value is_string(const std::vector<Value>& args) {
     if (args.empty()) {
         throw std::runtime_error("is_string() requires exactly 1 argument");
     }
-    return Value(args[0].type == Value::STRING);
+    return Value(std::holds_alternative<std::string>(args[0]));
 }
 
 Value is_bool(const std::vector<Value>& args) {
     if (args.empty()) {
         throw std::runtime_error("is_bool() requires exactly 1 argument");
     }
-    return Value(args[0].type == Value::BOOLEAN);
+    return Value(std::holds_alternative<bool>(args[0]));
 }
 
 Value to_string(const std::vector<Value>& args) {
@@ -380,27 +381,22 @@ Value to_string(const std::vector<Value>& args) {
     }
     
     const Value& val = args[0];
-    switch (val.type) {
-        case Value::NUMBER:
-            return Value(std::to_string(val.get<double>()));
-        case Value::STRING:
-            return val; // Already a string
-        case Value::BOOLEAN:
-            return Value(val.get<bool>() ? "true" : "false");
-        case Value::PATTERN:
-            return Value("pattern:" + val.get<std::string>());
-        case Value::STREAM:
-            return Value("stream:" + val.get<std::string>());
-        default:
-            return Value("unknown");
+    if (std::holds_alternative<double>(val)) {
+        return Value(std::to_string(std::get<double>(val)));
+    } else if (std::holds_alternative<std::string>(val)) {
+        return val; // Already a string
+    } else if (std::holds_alternative<bool>(val)) {
+        return Value(std::get<bool>(val) ? "true" : "false");
+    } else {
+        return Value("unknown");
     }
 }
 
 Value get_env_var(const std::vector<Value>& args) {
-    if (args.empty() || args[0].type != Value::STRING) {
+    if (args.empty() || !std::holds_alternative<std::string>(args[0])) {
         throw std::runtime_error("get_env_var() requires a single string argument for the environment variable name");
     }
-    std::string env_var_name = args[0].get<std::string>();
+    std::string env_var_name = std::get<std::string>(args[0]);
     char* env_var_value = std::getenv(env_var_name.c_str());
     if (env_var_value == nullptr) {
         return Value(""); // Return empty string if not found
@@ -414,21 +410,19 @@ Value to_number(const std::vector<Value>& args) {
     }
     
     const Value& val = args[0];
-    switch (val.type) {
-        case Value::NUMBER:
-            return val; // Already a number
-        case Value::STRING: {
-            std::string str = val.get<std::string>();
-            try {
-                return Value(std::stod(str));
-            } catch (const std::exception&) {
-                throw std::runtime_error("Cannot convert string '" + str + "' to number");
-            }
+    if (std::holds_alternative<double>(val)) {
+        return val; // Already a number
+    } else if (std::holds_alternative<std::string>(val)) {
+        std::string str = std::get<std::string>(val);
+        try {
+            return Value(std::stod(str));
+        } catch (const std::exception&) {
+            throw std::runtime_error("Cannot convert string '" + str + "' to number");
         }
-        case Value::BOOLEAN:
-            return Value(val.get<bool>() ? 1.0 : 0.0);
-        default:
-            throw std::runtime_error("Cannot convert this type to number");
+    } else if (std::holds_alternative<bool>(val)) {
+        return Value(std::get<bool>(val) ? 1.0 : 0.0);
+    } else {
+        throw std::runtime_error("Cannot convert this type to number");
     }
 }
 

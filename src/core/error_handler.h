@@ -8,18 +8,7 @@
 
 namespace sep {
 
-// Error type for the SEP engine
-struct Error {
-    sep::SEPResult code{sep::SEPResult::SUCCESS};
-    std::string message;
-    std::string location;
-
-    Error() = default;
-    Error(sep::SEPResult code, const std::string &msg, const std::string &loc = "")
-        : code(code), message(msg), location(loc)
-    {
-    }
-};
+// Error type is now defined in result_types.h to avoid duplication
 
 namespace core {
 

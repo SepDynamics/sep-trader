@@ -10,6 +10,10 @@
 namespace sep_dsl {
 namespace bytecode {
 
+// Import types from dsl::compiler namespace
+using BytecodeProgram = dsl::compiler::BytecodeProgram;
+using Instruction = dsl::compiler::Instruction;
+
 /**
  * Runtime Value Types for Bytecode VM
  */

@@ -339,7 +339,8 @@ public:
 // Integration with existing SEP architecture
 class QuantumManifoldOptimizationEngine {
 public:
-  explicit QuantumManifoldOptimizationEngine(const ::sep::quantum::manifold::ManifoldConfig &config = {});
+  explicit QuantumManifoldOptimizationEngine(const ::sep::quantum::manifold::ManifoldConfig &config);
+  QuantumManifoldOptimizationEngine(); // Default constructor
 
   // Initialize all subsystems
   void initialize();

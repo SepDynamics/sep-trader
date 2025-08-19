@@ -86,8 +86,24 @@ namespace common {
 namespace config {
     struct SystemConfig;
     struct CudaConfig;
-    struct LogConfig;
-    struct AnalyticsConfig;
+    
+    struct LogConfig {
+        std::string level = "info";
+        std::string output_file = "";
+        bool enable_console = true;
+        bool enable_file = false;
+        size_t max_file_size = 1024 * 1024 * 10; // 10MB
+        size_t max_files = 5;
+    };
+    
+    struct AnalyticsConfig {
+        bool enable_metrics = true;
+        bool enable_tracing = false;
+        std::string metrics_endpoint = "";
+        std::string tracing_endpoint = "";
+        size_t buffer_size = 1000;
+        double sampling_rate = 1.0;
+    };
 }
 
 /**
@@ -103,6 +119,7 @@ struct QuantumThresholdConfig {
     double mtm_coherence_threshold = 0.75;
     int max_iterations = 1000;
     bool enable_adaptive_thresholds = true;
+    bool enable_processing = true;
     double adaptive_learning_rate = 0.01;
 };
 

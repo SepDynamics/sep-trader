@@ -139,7 +139,7 @@ inline float deterministicNoise(uint64_t& state)
                 child.attributes.resize(size);
                 for (size_t i = 0; i < size; ++i)
                 {
-                    child.data[i] = parent1.data[i] * (1.0f - alpha) + parent2.data[i] * alpha;
+                    child.attributes[i] = parent1.attributes[i] * (1.0f - alpha) + parent2.attributes[i] * alpha;
                 }
             }
 
@@ -158,10 +158,9 @@ inline float deterministicNoise(uint64_t& state)
                 state.stability + (nextFloat() * 2.0f - 1.0f) * sigma * 0.5f, 0.0, 1.0);
             state.phase += (nextFloat() * 2.0f - 1.0f) * sigma * static_cast<float>(M_PI);  // Add phase mutation
             state.entropy =
-                glm::clamp(state.entropy + (nextFloat() * 2.0f - 1.0f) * sigma * 2.0f, 0.0, 1.0);
+                glm::clamp(static_cast<float>(state.entropy + (nextFloat() * 2.0f - 1.0f) * sigma * 2.0f), 0.0f, 1.0f);
             mutated.position +=
-                glm::vec4((nextFloat() * 2.0f - 1.0f) * sigma, (nextFloat() * 2.0f - 1.0f) * sigma,
-                          (nextFloat() * 2.0f - 1.0f) * sigma, 0.0f);
+                (nextFloat() * 2.0f - 1.0f) * sigma;
 
             state.mutation_count++;
             return mutated;
@@ -173,7 +172,7 @@ inline float deterministicNoise(uint64_t& state)
             std::vector<std::pair<std::string, float>> fitness_scores;
             for (const auto& pattern : patterns)
             {
-                fitness_scores.push_back(std::make_pair(pattern.id, calculateFitness(pattern)));
+                fitness_scores.push_back(std::make_pair(std::to_string(pattern.id), calculateFitness(pattern)));
             }
             std::sort(fitness_scores.begin(), fitness_scores.end(),
                       [](const auto& a, const auto& b) { return a.second > b.second; });
@@ -199,7 +198,7 @@ inline float deterministicNoise(uint64_t& state)
                 for (size_t i = 0; i < tournament_size; ++i)
                 {
                     size_t idx = nextIndex(patterns.size());
-                    tournament.push_back(std::make_pair(patterns[idx].id, calculateFitness(patterns[idx])));
+                    tournament.push_back(std::make_pair(std::to_string(patterns[idx].id), calculateFitness(patterns[idx])));
                 }
                 auto winner = std::max_element(
                     tournament.begin(), tournament.end(),
@@ -234,7 +233,7 @@ inline float deterministicNoise(uint64_t& state)
                     cumulative += fitness_values[j];
                     if (cumulative >= value)
                     {
-                        selected.push_back(patterns[j].id);
+                        selected.push_back(std::to_string(patterns[j].id));
                         break;
                     }
                 }
@@ -253,7 +252,7 @@ inline float deterministicNoise(uint64_t& state)
             float fitness =
                 (coherence_fitness + stability_fitness + entropy_penalty + diversity_bonus) *
                 pressure_factor;
-            return glm::clamp(fitness, 0.0, 1.0);
+            return glm::clamp(fitness, 0.0f, 1.0f);
         }
 
         float calculateDiversity(const std::vector<Pattern>& patterns) const
@@ -419,13 +418,11 @@ inline float deterministicNoise(uint64_t& state)
             state.coherence =
                 glm::clamp(state.coherence + (rnd() * 2.0f - 1.0f) * sigma, 0.0, 1.0);
             state.stability =
-                glm::clamp(state.stability + (rnd() * 2.0f - 1.0f) * sigma * 0.5f, 0.0, 1.0);
+                glm::clamp(static_cast<float>(state.stability + (rnd() * 2.0f - 1.0f) * sigma * 0.5f), 0.0f, 1.0f);
             state.phase += (rnd() * 2.0f - 1.0f) * sigma * static_cast<float>(M_PI);  // Add phase mutation
             state.entropy =
-                glm::clamp(state.entropy + (rnd() * 2.0f - 1.0f) * sigma * 2.0f, 0.0, 1.0);
-            mutated.position +=
-                glm::vec4((rnd() * 2.0f - 1.0f) * sigma, (rnd() * 2.0f - 1.0f) * sigma,
-                          (rnd() * 2.0f - 1.0f) * sigma, 0.0f);
+                glm::clamp(static_cast<float>(state.entropy + (rnd() * 2.0f - 1.0f) * sigma * 2.0f), 0.0f, 1.0f);
+            mutated.position += (rnd() * 2.0f - 1.0f) * sigma;
             state.mutation_count++;
             return mutated;
         }
@@ -439,9 +436,10 @@ inline float deterministicNoise(uint64_t& state)
             if (rnd() < rate) state.coherence = rnd();
             if (rnd() < rate) state.stability = rnd();
             if (rnd() < rate) state.entropy = rnd();
-            for (int i = 0; i < 3; ++i)
+            // Fix array subscript error - attributes is a vector, not position
+            for (size_t i = 0; i < mutated.attributes.size() && i < 3; ++i)
             {
-                if (rnd() < rate) mutated.position[i] = rnd() * 2.0f - 1.0f;
+                if (rnd() < rate) mutated.attributes[i] = rnd() * 2.0f - 1.0f;
             }
             state.mutation_count++;
             return mutated;

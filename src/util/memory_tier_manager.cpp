@@ -692,10 +692,10 @@ sep::SEPResult MemoryTierManager::processMemoryBlocks(void *input_data, void *ou
     }
 
     // Cast config to expected type if provided
-    const sep::ProcessingConfig *proc_config = nullptr;
+    const sep::quantum::ProcessingConfig *proc_config = nullptr;
     if (config)
     {
-        proc_config = static_cast<const sep::ProcessingConfig *>(config);
+        proc_config = static_cast<const sep::quantum::ProcessingConfig *>(config);
     }
 
     try

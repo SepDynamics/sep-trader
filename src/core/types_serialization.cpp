@@ -122,9 +122,8 @@ void to_json(nlohmann::json& j, const QuantumState& state) {
         {"mutation_rate", state.mutation_rate},
         {"generation", state.generation},
         {"mutation_count", state.mutation_count},
-        {"memory_tier", static_cast<int>(state.memory_tier)}, 
         {"access_frequency", state.access_frequency},
-        {"state", static_cast<int>(state.state)}
+        {"status", static_cast<int>(state.status)}
     };
 }
 
@@ -135,21 +134,22 @@ void from_json(const nlohmann::json& j, QuantumState& state) {
     j.at("mutation_rate").get_to(state.mutation_rate);
     j.at("generation").get_to(state.generation);
     j.at("mutation_count").get_to(state.mutation_count);
-    state.memory_tier = static_cast<sep::memory::MemoryTierEnum>(j.value("memory_tier", 0)); 
     j.at("access_frequency").get_to(state.access_frequency);
-    state.state = static_cast<QuantumState::Status>(j.value("state", 0));
+    if (j.contains("status")) {
+        state.status = static_cast<QuantumState::Status>(j.at("status").get<int>());
+    }
 }
 
 void to_json(nlohmann::json& j, const PatternRelationship& rel) {
     j = nlohmann::json{
-        {"targetId", rel.targetId},
+        {"target_id", rel.target_id},
         {"strength", rel.strength},
         {"type", static_cast<int>(rel.type)}
     };
 }
 
 void from_json(const nlohmann::json& j, PatternRelationship& rel) {
-    j.at("targetId").get_to(rel.targetId);
+    j.at("target_id").get_to(rel.target_id);
     j.at("strength").get_to(rel.strength);
     rel.type = static_cast<RelationshipType>(j.value("type", 0));
 }
@@ -158,11 +158,11 @@ void from_json(const nlohmann::json& j, PatternRelationship& rel) {
 void to_json(nlohmann::json& j, const Pattern& pattern) {
     j = nlohmann::json::object();
     j["id"] = pattern.id;
-    j["position"] = {pattern.position.x, pattern.position.y, pattern.position.z, pattern.position.w};
-    j["momentum"] = {pattern.momentum.x, pattern.momentum.y, pattern.momentum.z};
+    j["position"] = pattern.position;
+    j["momentum"] = pattern.momentum;
     j["quantum_state"] = pattern.quantum_state;
     j["relationships"] = pattern.relationships;
-    j["data"] = pattern.data;
+    j["attributes"] = pattern.attributes;
     j["parent_ids"] = pattern.parent_ids;
     j["timestamp"] = pattern.timestamp;
     j["last_accessed"] = pattern.last_accessed;
@@ -171,16 +171,10 @@ void to_json(nlohmann::json& j, const Pattern& pattern) {
 
 void from_json(const nlohmann::json& j, Pattern& pattern) {
     j.at("id").get_to(pattern.id);
-    auto pos = j.at("position").get<std::vector<float>>();
-    pattern.position = glm::vec4(pos[0], pos[1], pos[2], pos[3]);
-    if (j.contains("momentum")) {
-        auto mom = j.at("momentum").get<std::vector<float>>();
-        pattern.momentum = glm::vec3(mom[0], mom[1], mom[2]);
-    } else {
-        pattern.momentum = glm::vec3(0.0f);
-    }
+    j.at("position").get_to(pattern.position);
+    j.at("momentum").get_to(pattern.momentum);
     j.at("relationships").get_to(pattern.relationships);
-    j.at("data").get_to(pattern.data);
+    j.at("attributes").get_to(pattern.attributes);
     j.at("parent_ids").get_to(pattern.parent_ids);
     j.at("timestamp").get_to(pattern.timestamp);
     j.at("last_accessed").get_to(pattern.last_accessed);

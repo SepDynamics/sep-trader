@@ -157,7 +157,8 @@ public:
             EntanglementNode node;
             node.pattern_id = pattern.id;
             node.coherence = pattern.quantum_state.coherence;
-            node.position = pattern.position;
+            // Convert double position to glm::vec4 (assuming 1D position maps to x-coordinate)
+            node.position = glm::vec4(static_cast<float>(pattern.position), 0.0f, 0.0f, 1.0f);
             graph.nodes.push_back(node);
         }
         
@@ -273,9 +274,9 @@ private:
     QuantumCoherenceManager::CoherenceMetrics metrics_;
     std::atomic<uint64_t> global_tick_;
     
-    // GPU buffers for coherence computation
-    std::unique_ptr<sep::cuda::DeviceMemory<float>> d_coherence_values_;
-    std::unique_ptr<sep::cuda::DeviceMemory<float>> d_stability_values_;
+    // GPU buffers for coherence computation (declared but not used in backtesting mode)
+    std::unique_ptr<std::vector<float>> d_coherence_values_;
+    std::unique_ptr<std::vector<float>> d_stability_values_;
     
     void initializeCoherenceTracking() {
         metrics_.global_coherence = 1.0f;
@@ -295,25 +296,29 @@ private:
     void allocateGPUBuffers() {
         if (cuda_core_) {
             size_t buffer_size = config_.max_patterns;
-            d_coherence_values_ = std::make_unique<sep::cuda::DeviceMemory<float>>(buffer_size);
-            d_stability_values_ = std::make_unique<sep::cuda::DeviceMemory<float>>(buffer_size);
+#ifdef SEP_USE_CUDA
+            d_coherence_values_ = std::make_unique<std::vector<float>>(buffer_size);
+            d_stability_values_ = std::make_unique<std::vector<float>>(buffer_size);
+#endif
         }
     }
     
     void updatePatternCoherence(const sep::quantum::Pattern& pattern) {
         CoherenceMap::accessor accessor;
         
-        if (coherence_map_.find(accessor, pattern.id)) {
+        if (coherence_map_.find(accessor, std::to_string(pattern.id))) {
             // Update existing pattern
             auto& data = accessor->second;
             
             // Apply QFH processing for coherence update
-            float new_coherence = qfh_processor_->processPattern(pattern.position);
+            // Convert double position to glm::vec3
+            glm::vec3 pos(static_cast<float>(pattern.position), 0.0f, 0.0f);
+            float new_coherence = qfh_processor_->processPattern(pos);
             
             // Exponential moving average for stability
             data.coherence = 0.7f * data.coherence + 0.3f * new_coherence;
             data.stability = qfh_processor_->calculateStability(
-                pattern.position,
+                pos,
                 data.stability,
                 pattern.quantum_state.generation,
                 static_cast<float>(data.access_count) / global_tick_
@@ -331,19 +336,21 @@ private:
             
             QuantumCoherenceManager::PatternCoherenceData new_data;
             new_data.pattern_id = pattern.id;
-            new_data.coherence = qfh_processor_->processPattern(pattern.position);
+            glm::vec3 pos(static_cast<float>(pattern.position), 0.0f, 0.0f);
+            new_data.coherence = qfh_processor_->processPattern(pos);
             new_data.stability = qfh_processor_->calculateStability(
-                pattern.position,
+                pos,
                 0.5f, // Start with neutral stability
                 pattern.quantum_state.generation,
                 0.0f
             );
             new_data.access_count = 1;
             new_data.last_access_tick = global_tick_;
-            new_data.current_tier = pattern.quantum_state.memory_tier;
+            // QuantumState doesn't have memory_tier field, use a default or derive from other properties
+            new_data.current_tier = static_cast<sep::memory::MemoryTierEnum>(pattern.quantum_state.status);
             new_data.fragmentation_score = 1.0f - new_data.stability;
             
-            coherence_map_.insert({pattern.id, new_data});
+            coherence_map_.insert({std::to_string(pattern.id), new_data});
         }
     }
     
@@ -421,7 +428,7 @@ private:
         for (const auto& pattern : patterns)
         {
             CoherenceMap::const_accessor accessor;
-            if (coherence_map_.find(accessor, pattern.id))
+            if (coherence_map_.find(accessor, std::to_string(pattern.id)))
             {
                 const auto& data = accessor->second;
 
@@ -516,12 +523,12 @@ private:
                     // Update both patterns
                     CoherenceMap::accessor accessor1, accessor2;
                     
-                    if (coherence_map_.find(accessor1, patterns[i].id)) {
-                        accessor1->second.entangled_patterns.push_back(patterns[j].id);
+                    if (coherence_map_.find(accessor1, std::to_string(patterns[i].id))) {
+                        accessor1->second.entangled_patterns.push_back(std::to_string(patterns[j].id));
                     }
-                    
-                    if (coherence_map_.find(accessor2, patterns[j].id)) {
-                        accessor2->second.entangled_patterns.push_back(patterns[i].id);
+
+                    if (coherence_map_.find(accessor2, std::to_string(patterns[j].id))) {
+                        accessor2->second.entangled_patterns.push_back(std::to_string(patterns[i].id));
                     }
                 }
             }

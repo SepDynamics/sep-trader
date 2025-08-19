@@ -38,8 +38,12 @@ namespace sep::config
     void ConfigManager::setConfig(const SystemConfig& cfg)
     {
         std::lock_guard<std::mutex> lock(mutex_);
-        impl_->mem_cfg = cfg.memory;
-        impl_->quantum_cfg = cfg.quantum;
+        // Convert SystemConfig nested structs to proper config types
+        impl_->mem_cfg.stm_size = cfg.memory.pool_size_mb * 1024 * 1024;
+        impl_->mem_cfg.use_unified_memory = cfg.memory.enable_caching;
+        
+        impl_->quantum_cfg.coherence_threshold = cfg.quantum.coherence_threshold;
+        impl_->quantum_cfg.enable_processing = cfg.quantum.enable_quantum_processing;
     }
     bool ConfigManager::loadFromFile(const std::string& filename)
     {

@@ -55,18 +55,18 @@ public:
     ~StreamingDataManager();
 
     // Lifecycle management
-    core::Result initialize();
-    core::Result shutdown();
+    core::Result<void> initialize();
+    core::Result<void> shutdown();
 
     // Stream management
-    core::Result createStream(const StreamConfiguration& config);
-    core::Result startStream(const std::string& stream_id);
-    core::Result stopStream(const std::string& stream_id);
-    core::Result deleteStream(const std::string& stream_id);
+    core::Result<void> createStream(const StreamConfiguration& config);
+    core::Result<void> startStream(const std::string& stream_id);
+    core::Result<void> stopStream(const std::string& stream_id);
+    core::Result<void> deleteStream(const std::string& stream_id);
 
     // Data ingestion
-    core::Result ingestData(const std::string& stream_id, const StreamDataPoint& data);
-    core::Result ingestBatch(const std::string& stream_id, const std::vector<StreamDataPoint>& batch);
+    core::Result<void> ingestData(const std::string& stream_id, const StreamDataPoint& data);
+    core::Result<void> ingestBatch(const std::string& stream_id, const std::vector<StreamDataPoint>& batch);
 
     // Real-time callbacks
     void setDataCallback(const std::string& stream_id, DataCallback callback);
@@ -82,9 +82,9 @@ public:
     std::vector<std::string> getActiveStreams() const;
 
     // Pattern analysis integration
-    core::Result analyzeStreamPattern(const std::string& stream_id, 
-                                     const std::vector<StreamDataPoint>& window,
-                                     core::Pattern& result);
+    core::Result<void> analyzeStreamPattern(const std::string& stream_id,
+                                           const std::vector<StreamDataPoint>& window,
+                                           core::Pattern& result);
 
     // Buffer management
     void setBufferSize(const std::string& stream_id, size_t size);

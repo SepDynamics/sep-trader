@@ -51,7 +51,7 @@ public:
     // Cache management
     void clearCache();
     void evictExpired();
-    core::Result configure(const PatternCacheConfig& config);
+    sep::Result<void> configure(const PatternCacheConfig& config);
     
     // Analytics
     struct CacheMetrics {
