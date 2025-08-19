@@ -1,6 +1,6 @@
 Quantum-Inspired Pattern Evolution System for Financial Trading: The SEP Engine
 ===============================================================================
-White Paper — v1.2 (Draft for Discussion)
+White Paper — v1.4 (Draft for Discussion)
 
 Authors: Alexander Nagy, SepDynamics Development Team
 Potential Co-Author: (pending collaboration)
@@ -21,14 +21,17 @@ The SEP Engine introduces a quantum-inspired framework that treats financial dat
 * **Manifold Optimizer (quantum-inspired):** Riemannian geometry–based optimization for non-linear financial spaces.
 * **Pattern Evolution System:** Evolutionary adaptation of trading patterns with generational tracking.
 
-These modules are patent-pending (priority Jan 27, 2025). Backed by over 1,600 git commits and proof-of-concept validations, the SEP Engine achieves a 65.0% hit rate and 0.84 pips expectancy after costs on EUR/USD tick data. This white paper details the theoretical foundations, implementation, and results, proposing extensions for multi-asset integration and machine learning enhancement.
+These modules are patent-pending (priority July 27, 2025). Backed by over 1,600 git commits and proof-of-concept validations, the SEP Engine achieves a 65.0% hit rate and 0.84 pips expectancy after costs on EUR/USD tick data. This white paper details the theoretical foundations, implementation, and results, proposing extensions for multi-asset integration and machine learning enhancement.
 
 1. Introduction
 ---------------
-### 1.1 The Challenge in Modern Financial Analysis
+### 1.1 Origin of the SEP Engine
+In February 2025, Alexander Nagy, a mechanical engineer exploring data scoring methods, discovered a Markov chain-inspired approach to evaluate financial bitstreams. This insight—assigning scores based on state transitions and damping future impacts—sparked rapid development over the subsequent seven months, evolving into the SEP Engine. From initial prototypes to patented algorithms, the system leverages quantum-inspired principles to address real-world trading challenges.
+
+### 1.2 The Challenge in Modern Financial Analysis
 Financial markets are inherently non-linear, chaotic systems influenced by global events, sentiment, and microstructure dynamics. Limitations of current systems include static pattern recognition, inefficient optimization trapped in local minima, reactive rather than predictive error detection, and lack of evolutionary learning.
 
-### 1.2 Quantum-Inspired Approach
+### 1.3 Quantum-Inspired Approach
 Inspired by quantum field theory and evolutionary biology, the SEP Engine models financial data as bit-state trajectories with heritable properties. Each data point’s value is the damped sum of future impacts, enabling confidence via historical path matching and adaptive evolution.
 
 \[
@@ -50,7 +53,9 @@ Inspired by quantum field theory and evolutionary biology, the SEP Engine models
 \end{aligned}
 \]
 
-### 1.3 Objectives of This Paper
+Example Simulation (via Python): For impacts [0.1, 0.2, -0.05, 0.3], entropy=0.4, coherence=0.6, k1=0.3, k2=0.2: λ=0.16, V=0.47 (damped sum).
+
+### 1.4 Objectives of This Paper
 * Detail the four patent-pending core algorithms.
 * Present experimental results and benchmarks.
 * Outline integration and future research.
@@ -143,6 +148,8 @@ Figure 2 compares Euclidean and Manifold optimizers (best objective vs wall‑
 
 6. Implementation & Integration
 -------------------------------
+Development spanned February to August 2025, aligning with rapid prototyping.
+
 ### 6.1 Codebase Overview
 Core quantum algorithms reside in `src/core/`. Application layers include OANDA integration and an ImGui dashboard.
 
@@ -171,7 +178,7 @@ Live trading uses a GPU-enabled local training machine synchronized to a CPU-onl
 Combines evolutionary computation, quantum field theory, and graph theory. Novelty lies in damped trajectory confidence and manifold optimization.
 
 ### 7.2 Patents
-QFH, QBSA, Manifold Optimizer, and Pattern Evolution are patent‑pending (US provisional filed Jan 27 2025). Public release before filing the non‑provisional may forfeit foreign rights; circulate under NDA or file the non‑provisional prior to disclosure. This draft is circulated under NDA; public distribution will follow non‑provisional filing.
+QFH, QBSA, Manifold Optimizer, and Pattern Evolution are patent‑pending (priority July 27 2025). Public release before filing the non‑provisional may forfeit foreign rights; circulate under NDA or file the non‑provisional prior to disclosure. This draft is circulated under NDA; public distribution will follow non‑provisional filing.
 
 8. Related Work
 ---------------
