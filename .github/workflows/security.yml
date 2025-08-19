@@ -1,0 +1,309 @@
+name: Security Audit
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+  schedule:
+    # Run security scans weekly on Sundays at 3 AM UTC
+    - cron: '0 3 * * 0'
+  workflow_dispatch:
+
+permissions:
+  actions: read
+  contents: read
+  security-events: write
+  pull-requests: write
+
+env:
+  CODEQL_LANGUAGES: 'cpp,javascript,python'
+
+jobs:
+  # Dependency vulnerability scanning
+  dependency-scan:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Cache vcpkg
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/vcpkg
+            vcpkg/buildtrees
+            vcpkg/packages
+          key: security-vcpkg-${{ hashFiles('vcpkg.json', 'CMakeLists.txt') }}
+
+      - name: Run Trivy filesystem scan
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          format: 'sarif'
+          output: 'trivy-fs-results.sarif'
+          severity: 'CRITICAL,HIGH,MEDIUM'
+
+      - name: Upload Trivy filesystem results
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: 'trivy-fs-results.sarif'
+          category: 'trivy-filesystem'
+
+      - name: Run Trivy config scan
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'config'
+          scan-ref: '.'
+          format: 'sarif'
+          output: 'trivy-config-results.sarif'
+
+      - name: Upload Trivy config results
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: 'trivy-config-results.sarif'
+          category: 'trivy-config'
+
+  # CodeQL analysis for C++ code
+  codeql-analysis:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 60
+    
+    strategy:
+      fail-fast: false
+      matrix:
+        language: [ 'cpp', 'javascript', 'python' ]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: ${{ matrix.language }}
+          config-file: ./.github/codeql/codeql-config.yml
+          queries: +security-and-quality
+
+      - name: Install C++ dependencies
+        if: matrix.language == 'cpp'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            g++-11 \
+            cmake \
+            ninja-build \
+            libcurl4-openssl-dev \
+            libyaml-cpp-dev \
+            libpqxx-dev \
+            libglm-dev \
+            libtbb-dev
+
+      - name: Build C++ project
+        if: matrix.language == 'cpp'
+        run: |
+          cmake -B build -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_CXX_COMPILER=g++-11 \
+            -DSEP_USE_CUDA=OFF \
+            -DSEP_USE_GUI=OFF \
+            -DSEP_USE_TBB=ON
+          cmake --build build --parallel 2  # Limited parallelism for CodeQL
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: "/language:${{ matrix.language }}"
+
+  # Static analysis with additional tools
+  static-analysis:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install static analysis tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            cppcheck \
+            clang-tidy \
+            clang-format \
+            flawfinder \
+            rats
+
+      - name: Run cppcheck
+        run: |
+          cppcheck --enable=all \
+            --inconclusive \
+            --xml \
+            --xml-version=2 \
+            --suppress=missingIncludeSystem \
+            --suppress=unusedFunction \
+            --suppress=unmatchedSuppression \
+            src/ 2> cppcheck-report.xml || true
+
+      - name: Run clang-tidy
+        run: |
+          find src/ -name "*.cpp" -o -name "*.hpp" | \
+          head -20 | \
+          xargs clang-tidy \
+            --checks='-*,clang-analyzer-*,cppcoreguidelines-*,modernize-*,performance-*,readability-*' \
+            --format-style=file \
+            --header-filter=".*" || true
+
+      - name: Run flawfinder
+        run: |
+          flawfinder --html --output=flawfinder-report.html src/ || true
+
+      - name: Upload static analysis reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: static-analysis-reports
+          path: |
+            cppcheck-report.xml
+            flawfinder-report.html
+          retention-days: 30
+
+  # Secret scanning
+  secret-scan:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Run TruffleHog
+        uses: trufflesecurity/trufflehog@main
+        with:
+          path: ./
+          base: main
+          head: HEAD
+          extra_args: --debug --only-verified
+
+  # Docker image scanning
+  docker-scan:
+    runs-on: ubuntu-22.04
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Build Docker image
+        run: |
+          docker build -f Dockerfile.sep-trader -t sep-trader:security-scan .
+
+      - name: Run Trivy Docker scan
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: 'sep-trader:security-scan'
+          format: 'sarif'
+          output: 'trivy-docker-results.sarif'
+
+      - name: Upload Trivy Docker results
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: 'trivy-docker-results.sarif'
+          category: 'trivy-docker'
+
+  # Security policy compliance
+  compliance-check:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Check for security files
+        run: |
+          echo "## Security Compliance Check" >> $GITHUB_STEP_SUMMARY
+          
+          if [[ -f SECURITY.md ]]; then
+            echo "✅ SECURITY.md found" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "⚠️ SECURITY.md missing" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          if [[ -f .github/SECURITY.md ]]; then
+            echo "✅ .github/SECURITY.md found" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "⚠️ .github/SECURITY.md missing" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          if [[ -f CODE_OF_CONDUCT.md ]]; then
+            echo "✅ CODE_OF_CONDUCT.md found" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "⚠️ CODE_OF_CONDUCT.md missing" >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: Check for vulnerable patterns
+        run: |
+          # Check for common security anti-patterns
+          echo "Checking for security anti-patterns..."
+          
+          # Check for hardcoded credentials patterns
+          if grep -r -i "password.*=" src/ || \
+             grep -r -i "secret.*=" src/ || \
+             grep -r -i "token.*=" src/ || \
+             grep -r -i "key.*=" src/; then
+            echo "⚠️ Potential hardcoded credentials found"
+            exit 1
+          fi
+          
+          # Check for SQL injection patterns
+          if grep -r "SELECT.*+.*" src/ || \
+             grep -r "INSERT.*+.*" src/ || \
+             grep -r "UPDATE.*+.*" src/; then
+            echo "⚠️ Potential SQL injection vulnerability found"
+            exit 1
+          fi
+          
+          echo "✅ No obvious security anti-patterns found"
+
+  # Generate security report
+  security-report:
+    needs: [dependency-scan, codeql-analysis, static-analysis, secret-scan]
+    runs-on: ubuntu-22.04
+    if: always()
+    
+    steps:
+      - name: Generate security summary
+        run: |
+          echo "## Security Audit Summary" >> $GITHUB_STEP_SUMMARY
+          echo "- **Dependency Scan**: ${{ needs.dependency-scan.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **CodeQL Analysis**: ${{ needs.codeql-analysis.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Static Analysis**: ${{ needs.static-analysis.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Secret Scan**: ${{ needs.secret-scan.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Audit Date**: $(date -u)" >> $GITHUB_STEP_SUMMARY
+          
+          if [[ "${{ needs.dependency-scan.result }}" == "failure" ]] || \
+             [[ "${{ needs.codeql-analysis.result }}" == "failure" ]] || \
+             [[ "${{ needs.static-analysis.result }}" == "failure" ]] || \
+             [[ "${{ needs.secret-scan.result }}" == "failure" ]]; then
+            echo "❌ **Security issues detected - review required**" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "✅ **No critical security issues detected**" >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: Create security issue
+        if: failure() && github.event_name == 'schedule'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `Security Audit Failed - ${new Date().toISOString().split('T')[0]}`,
+              body: `The scheduled security audit has detected issues that require attention.\n\n` +
+                    `Please review the workflow run: ${context.payload.repository.html_url}/actions/runs/${context.runId}`,
+              labels: ['security', 'bug', 'high-priority']
+            });

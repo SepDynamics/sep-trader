@@ -1,0 +1,76 @@
+name: "CodeQL Configuration"
+
+disable-default-queries: false
+
+queries:
+  - name: security-and-quality
+    uses: security-and-quality
+  - name: security-extended
+    uses: security-extended
+  - name: cpp-security
+    uses: ./.github/codeql/cpp-security.ql
+
+query-filters:
+  - exclude:
+      id:
+        - cpp/poorly-documented-function
+        - cpp/fixme-comment
+        - cpp/todo-comment
+
+paths-ignore:
+  - "third_party/**"
+  - "extern/**"
+  - "vcpkg/**"
+  - "build/**"
+  - "*.generated.*"
+  - "tests/data/**"
+
+paths:
+  - "src/**"
+  - "tests/**"
+
+# C++ specific configuration
+cpp:
+  # Specify additional include paths for better analysis
+  prepare:
+    add-build-mode: manual
+    
+  # Configure build commands
+  build-command: |
+    cmake -B build -G Ninja \
+      -DCMAKE_BUILD_TYPE=Release \
+      -DCMAKE_CXX_COMPILER=g++-11 \
+      -DSEP_USE_CUDA=OFF \
+      -DSEP_USE_GUI=OFF \
+      -DSEP_USE_TBB=ON \
+      -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
+    cmake --build build --parallel 2
+
+# JavaScript configuration (if any JS files exist)
+javascript:
+  # Include additional file extensions
+  extensions:
+    - .js
+    - .jsx
+    - .ts
+    - .tsx
+    - .vue
+
+# Python configuration (for scripts)
+python:
+  # Setup Python dependencies if needed
+  setup-python-dependencies: |
+    python -m pip install --upgrade pip
+    if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+    if [ -f scripts/requirements.txt ]; then pip install -r scripts/requirements.txt; fi
+
+# Custom queries configuration
+database:
+  # Specify database cleanup
+  cleanup: normal
+  
+  # Threading configuration
+  threads: 0  # Use all available cores
+  
+  # Memory configuration  
+  ram: 4096  # 4GB limit

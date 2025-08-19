@@ -1,44 +1,247 @@
-name: Deploy Website
+name: Deploy Website & Documentation
 
 on:
   push:
     branches: [ main ]
     paths:
+      - 'public/**'
+      - 'docs/**'
       - 'index.html'
       - 'investors.html'
       - 'script.js'
       - 'assets/**'
       - '.github/workflows/deploy.yml'
   workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Deployment environment'
+        required: true
+        default: 'production'
+        type: choice
+        options:
+        - production
+        - staging
+      force_rebuild:
+        description: 'Force rebuild documentation'
+        required: false
+        default: false
+        type: boolean
 
 permissions:
   contents: read
   pages: write
   id-token: write
+  actions: read
 
 concurrency:
-  group: "pages"
+  group: "pages-${{ github.ref }}"
   cancel-in-progress: false
 
+env:
+  NODE_VERSION: '18'
+  PYTHON_VERSION: '3.11'
+
 jobs:
-  deploy:
+  # Build documentation
+  build-docs:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          lfs: true
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: 'public/package-lock.json'
+
+      - name: Install Python dependencies
+        run: |
+          pip install --upgrade pip
+          pip install sphinx sphinx-rtd-theme myst-parser sphinx-copybutton
+
+      - name: Install Node.js dependencies
+        if: hashFiles('public/package.json') != ''
+        run: |
+          cd public
+          npm ci --only=production
+
+      - name: Install documentation dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y doxygen graphviz plantuml
+
+      - name: Generate API documentation
+        run: |
+          if [[ -f Doxyfile ]]; then
+            doxygen Doxyfile
+          fi
+
+      - name: Build documentation
+        run: |
+          # Generate consolidated documentation
+          if [[ -f consolidate_docs.ps1 ]]; then
+            pwsh consolidate_docs.ps1
+          fi
+          
+          # Build technical docs if Sphinx config exists
+          if [[ -f docs/conf.py ]]; then
+            cd docs
+            sphinx-build -b html . _build
+            cd ..
+          fi
+
+      - name: Prepare deployment package
+        run: |
+          mkdir -p deploy-staging
+          
+          # Copy website files
+          if [[ -d public ]]; then
+            cp -r public/* deploy-staging/ 2>/dev/null || true
+          fi
+          
+          # Copy root website files
+          for file in index.html investors.html script.js; do
+            if [[ -f $file ]]; then
+              cp $file deploy-staging/
+            fi
+          done
+          
+          # Copy assets
+          if [[ -d assets ]]; then
+            cp -r assets deploy-staging/
+          fi
+          
+          # Copy generated docs
+          if [[ -f consolidated_documentation.md ]]; then
+            cp consolidated_documentation.md deploy-staging/
+          fi
+          
+          if [[ -d docs/_build ]]; then
+            mkdir -p deploy-staging/technical-docs
+            cp -r docs/_build/* deploy-staging/technical-docs/
+          fi
+          
+          if [[ -d html ]]; then
+            mkdir -p deploy-staging/api-docs
+            cp -r html/* deploy-staging/api-docs/
+          fi
+
+      - name: Optimize assets
+        run: |
+          # Minify CSS and JS if tools are available
+          if command -v uglifyjs &> /dev/null && [[ -d deploy-staging/js ]]; then
+            find deploy-staging/js -name "*.js" -type f -exec sh -c 'uglifyjs "$1" -o "$1.tmp" && mv "$1.tmp" "$1"' _ {} \;
+          fi
+
+      - name: Generate deployment manifest
+        run: |
+          cat > deploy-staging/deployment-info.json << EOF
+          {
+            "build_time": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+            "git_commit": "${{ github.sha }}",
+            "git_branch": "${{ github.ref_name }}",
+            "workflow_run": "${{ github.run_number }}",
+            "environment": "${{ github.event.inputs.environment || 'production' }}"
+          }
+          EOF
+
+      - name: Upload deployment artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: website-deployment
+          path: deploy-staging/
+          retention-days: 30
+
+  # Deploy to GitHub Pages
+  deploy-pages:
+    needs: build-docs
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
+    
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        
+      - name: Download deployment artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: website-deployment
+          path: deployment
+
       - name: Setup Pages
-        uses: actions/configure-pages@v4
+        uses: actions/configure-pages@v5
         
-      - name: Upload artifact
+      - name: Upload to Pages
         uses: actions/upload-pages-artifact@v3
         with:
-          # Upload the root directory containing the website files
-          path: '.'
+          path: 'deployment'
           
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
+
+      - name: Verify deployment
+        run: |
+          sleep 30
+          curl -f "${{ steps.deployment.outputs.page_url }}" > /dev/null
+          echo "✅ Deployment verification successful"
+
+  # Health check and monitoring
+  post-deploy:
+    needs: deploy-pages
+    runs-on: ubuntu-22.04
+    if: always()
+    
+    steps:
+      - name: Health check
+        id: health
+        run: |
+          # Basic health check
+          response=$(curl -s -o /dev/null -w "%{http_code}" "${{ needs.deploy-pages.outputs.page_url }}" || echo "000")
+          
+          if [[ "$response" == "200" ]]; then
+            echo "status=healthy" >> $GITHUB_OUTPUT
+            echo "✅ Website is healthy (HTTP $response)"
+          else
+            echo "status=unhealthy" >> $GITHUB_OUTPUT
+            echo "❌ Website health check failed (HTTP $response)"
+          fi
+
+      - name: Performance audit
+        if: github.event.inputs.environment == 'production' || github.ref == 'refs/heads/main'
+        run: |
+          # Install Lighthouse CLI if available
+          if command -v npm &> /dev/null; then
+            npm install -g lighthouse
+            lighthouse "${{ needs.deploy-pages.outputs.page_url }}" \
+              --output=json \
+              --output-path=lighthouse-report.json \
+              --chrome-flags="--headless --no-sandbox" || true
+          fi
+
+      - name: Update deployment status
+        run: |
+          echo "## Deployment Summary" >> $GITHUB_STEP_SUMMARY
+          echo "- **Environment**: ${{ github.event.inputs.environment || 'production' }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **URL**: ${{ needs.deploy-pages.outputs.page_url }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Status**: ${{ steps.health.outputs.status }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Commit**: ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Build Time**: $(date -u)" >> $GITHUB_STEP_SUMMARY
+
+      - name: Upload performance report
+        if: hashFiles('lighthouse-report.json') != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: lighthouse-report
+          path: lighthouse-report.json
+          retention-days: 7

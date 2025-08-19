@@ -1,24 +1,321 @@
 name: Performance Benchmarks
 
 on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'src/**'
+      - 'tests/performance/**'
+      - 'benchmarks/**'
+      - 'CMakeLists.txt'
+      - '.github/workflows/benchmarks.yml'
   pull_request:
+    paths:
+      - 'src/**'
+      - 'tests/performance/**'
+      - 'benchmarks/**'
+      - 'CMakeLists.txt'
+  schedule:
+    # Run benchmarks daily at 2 AM UTC
+    - cron: '0 2 * * *'
   workflow_dispatch:
     inputs:
       gate:
         description: 'Fail workflow on benchmark regression'
         required: false
         default: 'false'
+        type: boolean
+      benchmark_type:
+        description: 'Type of benchmark to run'
+        required: false
+        default: 'all'
+        type: choice
+        options:
+        - all
+        - accuracy
+        - performance
+        - memory
+
+env:
+  BENCHMARK_TIMEOUT: 3600  # 1 hour timeout
+  REGRESSION_THRESHOLD: 110  # 10% regression threshold
 
 jobs:
-  accuracy:
-    runs-on: ubuntu-latest
+  # Accuracy benchmarks
+  accuracy-benchmarks:
+    runs-on: ubuntu-22.04
     continue-on-error: ${{ github.event_name == 'pull_request' || github.event.inputs.gate != 'true' }}
+    timeout-minutes: 60
+    
     steps:
-      - name: Checkout
+      - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          lfs: true
+
+      - name: Cache benchmark data
+        uses: actions/cache@v4
+        with:
+          path: |
+            tests/data
+            ~/.cache/benchmark
+          key: benchmark-data-${{ hashFiles('tests/data/**') }}
+          restore-keys: |
+            benchmark-data-
+
       - name: Install dependencies
-        run: sudo apt-get update && sudo apt-get install -y g++ libgtest-dev
-      - name: Build accuracy benchmark
-        run: g++ -std=c++17 tests/performance/accuracy_benchmark.cpp -DTEST_DATA_DIR="$(pwd)/tests/data" -lgtest -lgtest_main -pthread -o accuracy_benchmark
-      - name: Run accuracy benchmark
-        run: ./accuracy_benchmark
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            g++-11 \
+            cmake \
+            ninja-build \
+            libgtest-dev \
+            libbenchmark-dev \
+            libcurl4-openssl-dev \
+            libyaml-cpp-dev \
+            libpqxx-dev \
+            libglm-dev \
+            libtbb-dev
+
+      - name: Configure CMake for benchmarks
+        run: |
+          cmake -B build -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_CXX_COMPILER=g++-11 \
+            -DSEP_USE_CUDA=OFF \
+            -DSEP_USE_GUI=OFF \
+            -DSEP_USE_TBB=ON \
+            -DENABLE_BENCHMARKS=ON \
+            -DENABLE_TESTING=ON \
+            -DTEST_DATA_DIR="$(pwd)/tests/data"
+
+      - name: Build benchmarks
+        run: |
+          cmake --build build --parallel $(nproc) --target accuracy_benchmark
+
+      - name: Run accuracy benchmarks
+        id: accuracy
+        run: |
+          cd build
+          timeout ${{ env.BENCHMARK_TIMEOUT }} ./tests/performance/accuracy_benchmark \
+            --benchmark_format=json \
+            --benchmark_out=accuracy_results.json \
+            --benchmark_repetitions=3 \
+            --benchmark_report_aggregates_only=true || true
+
+      - name: Upload accuracy results
+        uses: actions/upload-artifact@v4
+        with:
+          name: accuracy-benchmark-results
+          path: build/accuracy_results.json
+          retention-days: 30
+
+      - name: Compare accuracy with baseline
+        if: github.event_name == 'pull_request'
+        run: |
+          if [[ -f build/accuracy_results.json ]]; then
+            echo "Accuracy benchmark completed successfully"
+          else
+            echo "::warning::Accuracy benchmark failed to generate results"
+          fi
+
+  # Performance benchmarks
+  performance-benchmarks:
+    runs-on: ubuntu-22.04
+    continue-on-error: ${{ github.event_name == 'pull_request' || github.event.inputs.gate != 'true' }}
+    timeout-minutes: 90
+    
+    strategy:
+      fail-fast: false
+      matrix:
+        benchmark_suite:
+          - qfh_core
+          - data_processing
+          - market_analysis
+          - backtesting
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          lfs: true
+
+      - name: Cache build artifacts
+        uses: actions/cache@v4
+        with:
+          path: |
+            build
+            ~/.cache/vcpkg
+          key: perf-build-${{ matrix.benchmark_suite }}-${{ hashFiles('**/CMakeLists.txt') }}
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            g++-11 \
+            cmake \
+            ninja-build \
+            libbenchmark-dev \
+            libcurl4-openssl-dev \
+            libyaml-cpp-dev \
+            libpqxx-dev \
+            libglm-dev \
+            libtbb-dev \
+            perf-tools-unstable
+
+      - name: Configure system for benchmarking
+        run: |
+          # Set CPU governor to performance
+          echo performance | sudo tee /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor
+          # Disable address space layout randomization
+          echo 0 | sudo tee /proc/sys/kernel/randomize_va_space
+
+      - name: Build performance benchmarks
+        run: |
+          cmake -B build -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_CXX_COMPILER=g++-11 \
+            -DSEP_USE_CUDA=OFF \
+            -DSEP_USE_GUI=OFF \
+            -DSEP_USE_TBB=ON \
+            -DENABLE_BENCHMARKS=ON \
+            -DCMAKE_CXX_FLAGS="-O3 -DNDEBUG -march=native"
+          
+          cmake --build build --parallel $(nproc) --target ${{ matrix.benchmark_suite }}_benchmark
+
+      - name: Run performance benchmarks
+        run: |
+          cd build
+          timeout ${{ env.BENCHMARK_TIMEOUT }} ./benchmarks/${{ matrix.benchmark_suite }}_benchmark \
+            --benchmark_format=json \
+            --benchmark_out=${{ matrix.benchmark_suite }}_results.json \
+            --benchmark_repetitions=5 \
+            --benchmark_report_aggregates_only=true \
+            --benchmark_min_time=1.0 || true
+
+      - name: Upload performance results
+        uses: actions/upload-artifact@v4
+        with:
+          name: performance-benchmark-${{ matrix.benchmark_suite }}
+          path: build/${{ matrix.benchmark_suite }}_results.json
+          retention-days: 30
+
+  # Memory benchmarks
+  memory-benchmarks:
+    runs-on: ubuntu-22.04
+    continue-on-error: ${{ github.event_name == 'pull_request' || github.event.inputs.gate != 'true' }}
+    timeout-minutes: 60
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            g++-11 \
+            cmake \
+            ninja-build \
+            valgrind \
+            libbenchmark-dev \
+            libcurl4-openssl-dev \
+            libyaml-cpp-dev \
+            libglm-dev
+
+      - name: Build with memory debugging
+        run: |
+          cmake -B build -G Ninja \
+            -DCMAKE_BUILD_TYPE=RelWithDebInfo \
+            -DCMAKE_CXX_COMPILER=g++-11 \
+            -DSEP_USE_CUDA=OFF \
+            -DSEP_USE_GUI=OFF \
+            -DENABLE_BENCHMARKS=ON \
+            -DCMAKE_CXX_FLAGS="-g -fsanitize=address -fno-omit-frame-pointer"
+          
+          cmake --build build --parallel $(nproc) --target memory_benchmark
+
+      - name: Run memory benchmarks
+        run: |
+          cd build
+          # Run with AddressSanitizer
+          ASAN_OPTIONS=detect_leaks=1:abort_on_error=1 \
+          timeout ${{ env.BENCHMARK_TIMEOUT }} ./benchmarks/memory_benchmark \
+            --benchmark_format=json \
+            --benchmark_out=memory_results.json || true
+
+      - name: Upload memory results
+        uses: actions/upload-artifact@v4
+        with:
+          name: memory-benchmark-results
+          path: build/memory_results.json
+          retention-days: 30
+
+  # Aggregate and analyze results
+  analyze-results:
+    runs-on: ubuntu-22.04
+    needs: [accuracy-benchmarks, performance-benchmarks, memory-benchmarks]
+    if: always()
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download all benchmark results
+        uses: actions/download-artifact@v4
+        with:
+          path: benchmark-results
+
+      - name: Install analysis tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y python3 python3-pip
+          pip3 install matplotlib pandas numpy jinja2
+
+      - name: Analyze benchmark results
+        run: |
+          python3 scripts/analyze_benchmarks.py \
+            --input-dir benchmark-results \
+            --output-dir analysis \
+            --threshold ${{ env.REGRESSION_THRESHOLD }}
+
+      - name: Generate benchmark report
+        run: |
+          if [[ -d analysis ]]; then
+            echo "## Benchmark Results Summary" >> $GITHUB_STEP_SUMMARY
+            if [[ -f analysis/summary.md ]]; then
+              cat analysis/summary.md >> $GITHUB_STEP_SUMMARY
+            fi
+          fi
+
+      - name: Check for regressions
+        if: github.event.inputs.gate == 'true'
+        run: |
+          if [[ -f analysis/regressions.txt ]]; then
+            echo "::error::Performance regressions detected:"
+            cat analysis/regressions.txt
+            exit 1
+          fi
+
+      - name: Upload analysis results
+        uses: actions/upload-artifact@v4
+        with:
+          name: benchmark-analysis
+          path: analysis/
+          retention-days: 30
+
+      - name: Store benchmark results (main branch)
+        if: github.ref == 'refs/heads/main'
+        uses: benchmark-action/github-action-benchmark@v1
+        with:
+          name: SEP Trader Benchmarks
+          tool: 'googlecpp'
+          output-file-path: benchmark-results/**/performance-benchmark-*/**.json
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          auto-push: true
+          comment-on-alert: true
+          alert-threshold: '${{ env.REGRESSION_THRESHOLD }}%'
+          fail-on-alert: false

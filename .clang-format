@@ -1,55 +1,94 @@
-# See https://clang.llvm.org/docs/ClangFormatStyleOptions.html
+---
+# SEP Trader C++ Code Style Configuration
+# Based on Google Style with modifications for financial software
+
 Language: Cpp
 BasedOnStyle: Google
 
-# General Formatting
-IndentWidth: 4
+# Basic formatting
 TabWidth: 4
+IndentWidth: 4
 UseTab: Never
 ColumnLimit: 100
 
 # Indentation
-AccessModifierOffset: -4
+AccessModifierOffset: -2
+ConstructorInitializerIndentWidth: 4
+ContinuationIndentWidth: 4
+IndentCaseLabels: true
+IndentPPDirectives: BeforeHash
+IndentWrappedFunctionNames: false
+
+# Alignment
 AlignAfterOpenBracket: Align
 AlignConsecutiveAssignments: false
 AlignConsecutiveDeclarations: false
-AlignEscapedNewlines: Right
-AlignOperands: Align
+AlignEscapedNewlines: Left
+AlignOperands: true
+AlignTrailingComments: true
 
-# Braces and Parentheses
-BreakBeforeBraces: Custom
-BraceWrapping:
-  AfterClass: true
-  AfterControlStatement: Always
-  AfterEnum: true
-  AfterFunction: true
-  AfterNamespace: true
-  AfterStruct: true
-  AfterUnion: true
-  AfterExternBlock: true
-  BeforeCatch: true
-  BeforeElse: true
-  IndentBraces: false
-  SplitEmptyFunction: true
-  SplitEmptyRecord: true
-  SplitEmptyNamespace: true
+# Allow putting parameters on next line
+AllowAllParametersOfDeclarationOnNextLine: true
+AllowShortBlocksOnASingleLine: false
+AllowShortCaseLabelsOnASingleLine: false
+AllowShortFunctionsOnASingleLine: Empty
+AllowShortIfStatementsOnASingleLine: false
+AllowShortLoopsOnASingleLine: false
+
+# Breaking
+AlwaysBreakAfterReturnType: None
+AlwaysBreakBeforeMultilineStrings: true
+AlwaysBreakTemplateDeclarations: true
+BinPackArguments: true
+BinPackParameters: true
+
+# Braces
+BreakBeforeBraces: Attach
+BreakBeforeTernaryOperators: true
+BreakConstructorInitializers: BeforeColon
+BreakInheritanceList: BeforeColon
+BreakStringLiterals: true
+
+# Spacing
+Cpp11BracedListStyle: true
+DerivePointerAlignment: false
+PointerAlignment: Left
+SpaceAfterCStyleCast: false
+SpaceAfterTemplateKeyword: true
+SpaceBeforeAssignmentOperators: true
+SpaceBeforeParens: ControlStatements
+SpaceInEmptyParentheses: false
+SpacesBeforeTrailingComments: 2
+SpacesInAngles: false
+SpacesInCStyleCastParentheses: false
+SpacesInContainerLiterals: true
+SpacesInParentheses: false
+SpacesInSquareBrackets: false
 
 # Includes
-IncludeBlocks: Regroup
-IncludeCategories:
-  - Regex:           '^<.*\.h>'
-    Priority:        1
-  - Regex:           '^<.*>'
-    Priority:        2
-  - Regex:           '.*'
-    Priority:        3
-IncludeIsMainRegex:  '(Test)?$'
-SortIncludes:      true
+IncludeBlocks: Preserve
+SortIncludes: true
 
-# Pointer Alignment
-PointerAlignment: Right
+# Comments
+ReflowComments: true
 
-# C++ Specific
-Cpp11BracedListStyle: true
+# Penalties (for line breaking decisions)
+PenaltyBreakAssignment: 2
+PenaltyBreakBeforeFirstCallParameter: 19
+PenaltyBreakComment: 300
+PenaltyBreakFirstLessLess: 120
+PenaltyBreakString: 1000
+PenaltyExcessCharacter: 1000000
+PenaltyReturnTypeOnItsOwnLine: 200
+
+# Other
+CompactNamespaces: false
 FixNamespaceComments: true
-NamespaceIndentation: All
+KeepEmptyLinesAtTheStartOfBlocks: false
+MaxEmptyLinesToKeep: 1
+NamespaceIndentation: None
+SortUsingDeclarations: true
+
+# Macros and preprocessor
+MacroBlockBegin: ''
+MacroBlockEnd: ''
