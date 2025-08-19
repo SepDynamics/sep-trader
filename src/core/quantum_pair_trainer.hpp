@@ -131,13 +131,13 @@ namespace sep::trading
         double validateTrainingResult(const std::string& pair_symbol,
                                       const std::vector<sep::connectors::MarketData>& test_data);
 
+        // Data preparation (moved from private for testing access)
+        std::vector<sep::connectors::MarketData> fetchTrainingData(const std::string& pair_symbol,
+                                                                   size_t hours_back);
+
     private:
         // Core training implementation
         sep::trading::PairTrainingResult performQuantumTraining(const std::string& pair_symbol);
-
-        // Data preparation
-        std::vector<sep::connectors::MarketData> fetchTrainingData(const std::string& pair_symbol,
-                                                                   size_t hours_back);
         std::vector<uint8_t> convertToBitstream(
             const std::vector<sep::connectors::MarketData>& market_data);
 

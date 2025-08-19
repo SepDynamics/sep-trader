@@ -98,8 +98,8 @@ if [ "$NATIVE_BUILD" = true ] || [ "$SKIP_DOCKER" = true ] || ! "$DOCKER_BIN" in
     # This avoids brittle LD_PRELOAD hacks and hardcoded compiler paths.
     cmake .. -G Ninja \
         -DCMAKE_BUILD_TYPE=Release \
-        -DCMAKE_CXX_COMPILER=g++-11 \
-        -DCMAKE_C_COMPILER=gcc-11 \
+        -DCMAKE_CXX_COMPILER=g++-14 \
+        -DCMAKE_C_COMPILER=gcc-14 \
         -DCMAKE_BUILD_WITH_INSTALL_RPATH=ON \
         -DCMAKE_EXPORT_COMPILE_COMMANDS=TRUE \
         -DSEP_USE_GUI=OFF -DCMAKE_CXX_STANDARD=20 \

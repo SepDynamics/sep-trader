@@ -1,52 +1,65 @@
 ---
-description: Defines pattern data models, relationships, coherence metrics, and evolution for quantum analysis
-globs: src/quantum/**/*,src/pattern/**/*,src/memory/**/*
-alwaysApply: false
+description: Specification for pattern data structures and modeling, focused on quantum field analysis and trading signal evolution
 ---
 
 
 # pattern-data-model
 
-Pattern Evolution System:
-- Core quantum pattern states: NULL_STATE, FLIP, RUPTURE 
-- Coherence calculation based on normalized manifold positions
-- Stability scoring using weighted factors:
-  * Historical stability (30%)
-  * Generation count (20%) 
-  * Coherence (40%)
-  * Access frequency (10%)
+## Pattern Structure
+- Base quantum bit string (64-bit) encodes market state transitions
+- Hierarchical pattern storage with confidence metrics
+- Evolution tracking through state matrices
+- Pattern coherence calculated via quantum field harmonics
 
-Pattern Relationships:
-- Multi-generational tracking with inheritance
-- Entanglement between related patterns using:
-  * Spatial proximity in quantum manifold
-  * Phase correlation between states
-  * Combined coherence product
-  * Minimum entanglement threshold (0.6)
+## Core Components
 
-Memory Tier Classification:
-- Three-tier architecture based on pattern metrics:
-  * LTM: coherence ≥0.9, stability ≥0.85, generations ≥100
-  * MTM: coherence ≥0.7, generations ≥5 
-  * STM: Default for new patterns
+### Pattern Evolution Engine
+Path: src/core/pattern_evolution.cpp
+Importance Score: 95/100
+- Tracks pattern lifecycle through quantum states:
+  - NULL_STATE: Initial pattern formation
+  - FLIP: Market direction change
+  - RUPTURE: Pattern breakdown
+- Manages pattern breeding and mutation
+- Implements coherence decay formula: λ = k1 * Entropy + k2 * (1 - Coherence)
 
-Coherence Evolution:
-- Dynamic decay rates based on entropy measurements
-- Amplification through successful pattern matches (5% boost)
-- Stability enhancement through generations (2% per generation)
-- Mutation effects on coherence based on stability index
+### Memory Tier Management
+Path: src/util/memory_tier_manager.cpp
+Importance Score: 85/100
+- Three-tier pattern storage (STM/MTM/LTM)
+- Pattern promotion based on coherence scores
+- Relationship strength tracking between patterns
+- Cross-timeframe pattern synchronization
 
-Pattern Data Structure:
-- Quantum state vector (coherence, phase, stability)
-- Relationship graph with strength metrics
-- Generation counter and mutation history
-- Memory tier classification
-- Access frequency tracking
+### Pattern Metrics Engine
+Path: src/core/pattern_metric_engine.cpp
+Importance Score: 90/100
+- Calculates core quantum metrics:
+  - Coherence: Market state alignment
+  - Stability: Pattern persistence
+  - Entropy: State disorder level
+- Implements confidence scoring: Score = (Coherence * 0.4 + Stability * 0.3 + (1-Entropy) * 0.3)
 
-Core Files:
-src/quantum/pattern_processor.hpp
-src/quantum/pattern_evolution.cpp
-src/memory/memory_tier_manager.hpp
+### Pattern Relationships
+Path: src/core/pattern_processor.cpp
+Importance Score: 80/100
+- Tracks pattern dependencies and correlations
+- Manages pattern breeding pools
+- Handles pattern inheritance across timeframes
+- Implements quantum entanglement detection
+
+## Data Model Evolution
+
+### State Transitions
+- Patterns evolve through quantum-inspired state changes
+- Transition probabilities tracked via coherence metrics
+- Pattern strength decays according to market entropy
+
+### Cross-Pattern Relationships
+- Hierarchical pattern dependencies
+- Timeframe synchronization (M1/M5/M15)
+- Pattern breeding based on success metrics
+- Quantum correlation tracking
 
 $END$
 

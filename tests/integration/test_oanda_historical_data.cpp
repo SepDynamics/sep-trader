@@ -1,9 +1,9 @@
 #include <gtest/gtest.h>
-#include "connectors/oanda_connector.h"
-#include <cstdlib>
 #include <chrono>
-#include <sstream>
+#include <cstdlib>
 #include <iomanip>
+#include <sstream>
+#include "io/oanda_connector.h"
 
 namespace sep {
 namespace tests {

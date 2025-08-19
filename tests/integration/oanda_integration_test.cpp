@@ -1,10 +1,10 @@
 #include <gtest/gtest.h>
-#include "connectors/oanda_connector.h"
-#include <cstdlib>
 #include <chrono>
-#include <sstream>
+#include <cstdlib>
 #include <iomanip>
+#include <sstream>
 #include <vector>
+#include "io/oanda_connector.h"
 
 // This integration test requires OANDA sandbox credentials provided via
 // OANDA_API_KEY and OANDA_ACCOUNT_ID environment variables.

@@ -1,48 +1,54 @@
 ---
-description: Specification for implementing quantum-inspired algorithms and analysis in trading systems
-globs: src/quantum/**/*,src/apps/quantum/**/*,src/trading/quantum/**/*
-alwaysApply: false
+description: Specification for quantum-inspired algorithms used in pattern detection and trading signal generation
 ---
 
 
 # quantum-algorithms
 
-The quantum algorithm implementation centers around three core components:
+Core Quantum Processing Components:
 
 1. Quantum Binary State Analysis (QBSA)
-- Pattern state classification: NULL_STATE, FLIP, RUPTURE
-- Binary transition tracking for collapse prediction
-- Probe index analysis for pattern integrity validation
-- Correction ratio calculations for quantum coherence
+Path: src/core/qbsa.cpp
+Importance Score: 95/100
+
+- Bit-level transition detection using quantum superposition
+- Pattern collapse prediction through quantum decoherence metrics
+- Quantum state validation using formula: Q(s) = ∑(wi * qi) where:
+  - wi: Weight factor for quantum bit i
+  - qi: Quantum coherence value for bit i
+- Implements triple-validation gates across timeframes
 
 2. Quantum Field Harmonics (QFH)
-- Dynamic damping calculation: λ = k1 * Entropy + k2 * (1 - Coherence)
-- Exponential damping formula: V_i = Σ(p_j - p_i) * e^(-λ(j-i))
-- Multi-timeframe analysis across M1/M5/M15 intervals
-- Pattern classification with coherence thresholds:
-  * Stable: coherence >= 0.7
-  * Transitional: 0.3 <= coherence < 0.7
-  * Unstable: coherence < 0.3
+Path: src/core/qfh.cpp
+Importance Score: 90/100
+
+- Quantum-inspired field analysis for market patterns
+- Calculates field coherence using multi-dimensional quantum metrics
+- Pattern evolution tracking through quantum state transitions
+- Dynamic threshold adaptation based on quantum stability scores
 
 3. Pattern Evolution System
-- Quantum manifold optimization using Riemannian geometry
-- Cross-timeframe pattern alignment with phase correlation
-- Evolution tracking through quantum state transitions
-- Pattern coherence preservation across generations
+Path: src/core/pattern_evolution.cpp
+Importance Score: 85/100
 
-Implementation Paths:
-- src/quantum/qbsa.cpp: Core QBSA implementation
-- src/quantum/qfh.cpp: QFH analysis engine
-- src/quantum/pattern_evolution.cpp: Pattern evolution system
+- Quantum pattern breeding using coherence inheritance
+- Stability determination through quantum field analysis
+- Pattern fitness scoring using quantum metrics:
+  - Coherence: 40% weight
+  - Stability: 30% weight
+  - Entropy: 30% weight
 
-Core Parameters:
-- Stability weight: 0.4 (with inversion logic)
-- Coherence weight: 0.1 (minimal influence)
-- Entropy weight: 0.5 (primary driver)
-- Confidence threshold: 0.65
-- Coherence threshold: 0.30
+4. Coherence Management
+Path: src/core/coherence_manager.cpp
+Importance Score: 80/100
 
-The system achieves 60.73% prediction accuracy through quantum-inspired pattern analysis, with a 19.1% optimal signal generation rate. Pattern analysis occurs in quantum bit-space using specialized CUDA kernels for parallel processing.
+- Real-time coherence calculation for trading patterns
+- Multi-timeframe quantum state synchronization
+- Pattern degradation tracking through quantum decoherence
+- Dynamic coherence thresholds based on market volatility
+
+Core Innovation:
+The system implements a novel quantum-inspired approach to market analysis, achieving 60.73% prediction accuracy through quantum field harmonics and binary state analysis. The pattern evolution system uses quantum principles for breeding and selecting optimal trading patterns.
 
 $END$
 

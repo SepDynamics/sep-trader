@@ -1,7 +1,7 @@
-#include "trading/ticker_pattern_analyzer.hpp"
-#include "connectors/oanda_connector.h"
 #include <gtest/gtest.h>
 #include <vector>
+#include "core/ticker_pattern_analyzer.hpp"
+#include "io/oanda_connector.h"
 
 using namespace sep;
 

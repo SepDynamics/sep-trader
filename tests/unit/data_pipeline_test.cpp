@@ -1,8 +1,8 @@
 #include <gtest/gtest.h>
-#include "nlohmann_json_safe.h"
 #include <fstream>
-#include <vector>
 #include <string>
+#include <vector>
+#include "util/nlohmann_json_safe.h"
 
 static std::vector<double> ingestPrices(const std::string& path)
 {

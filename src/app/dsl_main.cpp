@@ -1,25 +1,15 @@
 #include <array>
 #include <fstream>
 #include <iostream>
-
 #include <memory>
-
 #include <sstream>
-
 #include <string>
 
-
-
 #include "util/serializer.h"
-
 #include "util/result.h"
-
 #include "core/facade.h"
-
 #include "util/lexer.h"
-
 #include "util/parser.h"
-
 #include "util/interpreter.h"
 
 
@@ -268,7 +258,7 @@ int main(int argc, char* argv[]) {
 
         auto init_result = engine.initialize();
 
-        if (!sep::core::isSuccess(init_result)) {
+        if (!init_result.isSuccess()) {
 
             std::cerr << "Failed to initialize engine facade" << std::endl;
 

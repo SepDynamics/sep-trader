@@ -106,6 +106,9 @@ public:
     std::string getCachePathForPair(const std::string& pair_symbol) const;
     CacheQuality analyzeCacheQuality(const std::string& cache_path) const;
     bool cacheExistsForPair(const std::string& pair_symbol) const;
+    
+    // Method needed by tests - validates entry sources
+    bool validateEntrySources(const std::string& cache_path) const;
 
 private:
     class Impl;

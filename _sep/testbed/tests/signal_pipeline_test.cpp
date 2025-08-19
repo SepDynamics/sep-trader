@@ -1,10 +1,10 @@
 #define SEP_ENABLE_TRACE
-#include "../trace.hpp"
 #include "../../src/trading/signal_pipeline.hpp"
-#include "nlohmann_json_safe.h"
 #include <fstream>
-#include <vector>
 #include <string>
+#include <vector>
+#include "../trace.hpp"
+#include "util/nlohmann_json_safe.h"
 
 int main() {
     std::ifstream file("assets/test_data/eur_usd_m1_48h.json");

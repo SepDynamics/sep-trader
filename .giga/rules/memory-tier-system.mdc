@@ -1,59 +1,58 @@
 ---
-description: Specification for memory tier management system including pattern storage/retrieval, block allocation, and tier promotion/demotion logic
-globs: **/memory/**,**/cache/**,**/quantum/coherence_manager.*,**/memory_tier*
-alwaysApply: false
+description: Technical specification for memory tier system implementation including pattern storage/retrieval and promotion/demotion logic
 ---
 
 
 # memory-tier-system
 
-Memory Tier Architecture:
-- Three-tier memory hierarchy: STM (Short-term), MTM (Medium-term), LTM (Long-term)
-- Tier-specific coherence thresholds: LTM (0.8), MTM (0.5), STM (0.2)
-- Block migration based on coherence, stability and access patterns
+## Memory Tier Architecture
+Path: src/util/memory_tier.hpp, src/util/memory_tier_manager.hpp
 
-Pattern Management Logic:
-1. Pattern Classification
-- Coherence scoring (0.0-1.0) based on quantum state stability
-- Generation counting for pattern maturity tracking
-- Relationship strength calculation between patterns
+Three-tier memory organization for quantum pattern storage:
+- Short-Term Memory (STM): High-speed volatile pattern cache
+- Medium-Term Memory (MTM): Intermediate stability patterns 
+- Long-Term Memory (LTM): Stable, proven trading patterns
 
-2. Promotion/Demotion Rules
-- Promotion criteria:
-  * STM → MTM: coherence ≥ 0.5, 5+ generations
-  * MTM → LTM: coherence ≥ 0.8, 50+ generations 
-- Demotion triggers:
-  * Low coherence (below tier threshold)
-  * Memory pressure (>0.8 utilization)
-  * Pattern fragmentation
+## Pattern Promotion/Demotion Logic
+Path: src/util/memory_tier_manager.cpp
 
-3. Block Allocation Strategy 
-- Multi-factor scoring for placement:
-  * Coherence (40% weight)
-  * Stability (30% weight) 
-  * Access frequency (20% weight)
-  * Entanglement density (10% weight)
-- Hysteresis prevention using minimum residency periods
+Pattern lifecycle rules:
+- STM -> MTM promotion requires:
+  - Coherence score > 0.65
+  - Stability index > 0.45
+  - Minimum 100 trades
+- MTM -> LTM promotion requires:
+  - Coherence score > 0.85
+  - Stability index > 0.75
+  - Profit factor > 1.5
+  - Minimum 500 trades
 
-4. Pattern Storage Implementation
-- Quantum state preservation during tier transitions
-- Relationship graph maintenance across tiers
-- Entanglement tracking between related patterns
-- Phase correlation preservation during migrations
+Demotion triggers:
+- Coherence drop > 20%
+- Stability index below threshold
+- Negative profit factor over 50 trades
 
-5. Memory Pressure Optimization
-- Selective demotion of 20% lowest coherence patterns
-- Automatic defragmentation at 0.8 pressure threshold
-- Pattern compaction with relationship preservation
-- Minimum coherence floor (0.1) for persistence
+## Redis Integration
+Path: src/util/redis_manager.cpp
 
-Key Components:
-- src/memory/memory_tier_manager.cpp
-- src/memory/quantum_coherence_manager.cpp
-- src/memory/pattern_storage.cpp
-- src/cache/cache_validator.cpp
+Pattern persistence strategy:
+- STM patterns cached locally only
+- MTM patterns synced every 5 minutes
+- LTM patterns synced immediately on state change
+- Pattern serialization with quantum state preservation
+- Cross-node pattern sharing with coherence validation
 
-The system implements quantum-inspired memory management focused on pattern coherence and stability across different retention periods. The unique value lies in maintaining quantum properties while enabling efficient pattern evolution and relationship preservation.
+## Block Management
+Path: src/core/pattern_cache.cpp
+
+Memory allocation strategy:
+- Dynamic block sizing based on pattern complexity
+- Quantum state preservation during block transfers
+- Pattern relationship preservation across tiers
+- Block defragmentation with coherence maintenance
+- Lazy garbage collection for expired patterns
+
+Importance Score: 95/100
 
 $END$
 

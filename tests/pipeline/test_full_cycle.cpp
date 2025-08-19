@@ -2,11 +2,11 @@
 
 #include <chrono>
 #include <fstream>
-#include "nlohmann_json_safe.h"
 #include <vector>
+#include "util/nlohmann_json_safe.h"
 
-#include "apps/oanda_trader/candle_types.h"
-#include "apps/oanda_trader/realtime_aggregator.hpp"
+#include "app/candle_types.h"
+#include "app/realtime_aggregator.hpp"
 
 #if __has_include(<cuda_runtime.h>)
 #include <cuda_runtime.h>

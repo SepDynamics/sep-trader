@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
-#include "connectors/oanda_connector.h"
 #include <cstdlib>
 #include <string>
+#include "io/oanda_connector.h"
 
 // Live OANDA connector test using real API calls.
 // Only runs when OANDA_LIVE_TEST=1 is set to avoid accidental execution.

@@ -1,13 +1,22 @@
 cmake_minimum_required(VERSION 3.15)
 
 # CRITICAL: Set compilers BEFORE project() to avoid CMake loops
-# Only set specific compilers on Linux
+# Force GCC-11 for CUDA 12.9 compatibility (GCC-14+ causes unsupported compiler error)
 if(UNIX AND NOT APPLE)
     if(EXISTS "/usr/bin/gcc-11")
         set(CMAKE_C_COMPILER "/usr/bin/gcc-11")
         set(CMAKE_CXX_COMPILER "/usr/bin/g++-11")
         set(CMAKE_CUDA_HOST_COMPILER "/usr/bin/g++-11")
-        message(STATUS "Using GCC-11 on Linux")
+        message(STATUS "Using GCC-11 on Linux (CUDA 12.9 compatible)")
+    elseif(EXISTS "/usr/bin/gcc-12")
+        set(CMAKE_C_COMPILER "/usr/bin/gcc-12")
+        set(CMAKE_CXX_COMPILER "/usr/bin/g++-12")
+        set(CMAKE_CUDA_HOST_COMPILER "/usr/bin/g++-12")
+        message(STATUS "Using GCC-12 on Linux (CUDA 12.9 compatible)")
+    else()
+        # Fallback: Use unsupported compiler with override flag
+        set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} --allow-unsupported-compiler")
+        message(STATUS "Using auto-detected compiler with --allow-unsupported-compiler")
     endif()
 endif()
 
@@ -31,7 +40,6 @@ project(sep_engine VERSION 1.0.0 LANGUAGES CXX)
 
 # Ensure consistent C++17 standard
 set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D_GLIBCXX_USE_CXX11_ABI=0")
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
@@ -80,6 +88,7 @@ if(SEP_CPU_ONLY)
     set(SEP_USE_CUDA OFF CACHE BOOL "Disable CUDA when CPU-only" FORCE)
 endif()
 
+# CUDA ENABLED - Professional Trading System with GPU acceleration
 if(SEP_USE_CUDA)
     # First verify CUDA paths
     if(NOT DEFINED ENV{CUDA_HOME})
@@ -92,7 +101,7 @@ if(SEP_USE_CUDA)
     
     # Set CUDA paths and flags before enabling language
     set(CMAKE_CUDA_COMPILER "$ENV{CUDA_HOME}/bin/nvcc")
-    # Only set specific CUDA host compiler on Linux
+    # Only set specific CUDA host compiler on Linux - Force GCC-11 for compatibility
     if(UNIX AND NOT APPLE AND EXISTS "/usr/bin/g++-11")
         set(CMAKE_CUDA_HOST_COMPILER "/usr/bin/g++-11")
     endif()
@@ -109,6 +118,9 @@ if(SEP_USE_CUDA)
     # Global CUDA flags to suppress GCC extension warnings for all .cu files
     set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} --expt-relaxed-constexpr --extended-lambda")
     set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -Xcompiler -Wno-unknown-pragmas,-Wno-pedantic,-Wno-gnu-line-directive")
+    # Fix type traits and exception specification compatibility issues
+    set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -D_GLIBCXX_USE_BUILTIN_TRAIT=__has_builtin")
+    set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -Xcompiler -D_GLIBCXX_USE_NOEXCEPT_FUNCTION_TYPE=1")
     find_package(CUDAToolkit REQUIRED)
     # Removed force-include of array_protection.h for CUDA to avoid breaking standard library
     
@@ -162,6 +174,7 @@ add_compile_definitions(NLOHMANN_JSON_USE_GLOBAL_UDLS=0)
 # GLM configuration is included per-target in cmake template
 
 # Enable testing
+option(BUILD_TESTING "Enable building of tests" ON)
 enable_testing()
 
 # Find required packages

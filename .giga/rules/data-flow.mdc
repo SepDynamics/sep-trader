@@ -1,54 +1,76 @@
 ---
-description: Specification for analyzing data flow patterns, transformations and interactions between system components
-globs: src/**/*.{cpp,hpp,h,cu,cuh},src/quantum/**,src/trading/**,src/memory/**,src/api/**
-alwaysApply: false
+description: Analyzes data flow between system components including pattern processing, memory management, and quantum state transitions
 ---
 
 
 # data-flow
 
-The system implements a sophisticated data flow architecture across several key processing tiers:
+## Core Data Pipeline Components
 
-1. Pattern Processing Pipeline
-- Raw market data ingestion through OANDA connector
-- Conversion to quantum bit patterns via QFH analysis
-- Pattern coherence/stability calculation
-- Signal generation based on pattern metrics
-- Trading decision outputs
+### Pattern Processing Pipeline
+Location: src/core/pattern_processor.cpp
+Importance: 95/100
 
-2. Memory Tier Transitions
-- Short-term memory (STM): Initial pattern storage
-- Medium-term memory (MTM): Patterns meeting 0.7 coherence threshold
-- Long-term memory (LTM): Patterns exceeding 0.9 coherence and 0.85 stability
+Data flows through distinct phases:
+1. Raw market data ingestion
+2. Quantum bit-field transformation
+3. Pattern coherence calculation
+4. State transition analysis
+5. Signal generation
 
-3. Quantum State Transformations
-- Pattern state evolution tracking through quantum metrics:
-  * Coherence decay calculations 
-  * Stability assessments
-  * Entropy measurements
-  * Phase correlations
-- State collapse detection via rupture analysis
+Key transformations:
+- Market data -> 64-bit quantum states
+- States -> Pattern matrices
+- Matrices -> Coherence scores
+- Coherence -> Trading signals
 
-4. System Component Interactions
-- Cache health monitoring with 6-factor scoring
-- Weekly cache management with currency pair validation
-- Training coordination across distributed nodes
-- Remote synchronization of quantum patterns
-- Multi-timeframe signal aggregation
+### Memory Tier Transitions
+Location: src/util/memory_tier_manager.cpp
+Importance: 85/100
 
-5. Pattern Evolution Flow
-- Generation tracking through quantum states
-- Relationship strength calculations
-- Migration between memory tiers
-- Pattern fusion based on coherence metrics
+Pattern data flows between memory tiers:
+1. Short-term Memory (STM)
+- Volatile patterns
+- High coherence threshold
+- Rapid state transitions
 
-Key Data Paths:
-src/quantum/bitspace/qfh.cpp -> Pattern recognition
-src/memory/memory_tier_manager.cpp -> Memory transitions
-src/trading/quantum_pair_trainer.cpp -> Training pipeline
-src/api/server.cpp -> External interfaces
+2. Medium-term Memory (MTM) 
+- Semi-stable patterns
+- Moderate coherence
+- Periodic state evaluation
 
-The architecture emphasizes coherence-based data flow between components while maintaining quantum state properties throughout the processing pipeline.
+3. Long-term Memory (LTM)
+- Stable patterns
+- High stability score
+- Rare state changes
+
+### Quantum State Pipeline
+Location: src/quantum/qfh_processor.cpp
+Importance: 90/100
+
+State transformation sequence:
+1. Raw bit patterns -> Quantum states
+2. State evolution through harmonics analysis
+3. Coherence measurement and filtering
+4. Pattern collapse prediction
+5. Signal confidence scoring
+
+Data flows between states using:
+- Quantum Field Harmonics (QFH)
+- Bit Transition Harmonics (BTH)
+- Pattern Evolution Tracking (PET)
+
+### System Interaction Flow
+Location: src/apps/trader/signal_bridge.cpp
+Importance: 80/100
+
+Data path through trading system:
+1. Market data ingestion
+2. Pattern detection pipeline
+3. Memory tier management
+4. Quantum state analysis
+5. Signal generation
+6. Trade execution
 
 $END$
 
