@@ -135,11 +135,11 @@ public:
     
     CompiledProgram compile(const ast::Program& program);
     
-    std::function<void(Context&)> compile_stream_declaration(const dsl::ast::StreamDecl& stream);
-    std::function<void(Context&)> compile_pattern_declaration(const dsl::ast::PatternDecl& pattern);
-    std::function<void(Context&)> compile_signal_declaration(const dsl::ast::SignalDecl& signal);
-    std::function<void(Context&)> compile_memory_declaration(const dsl::ast::MemoryDecl& memory);
-    std::function<void(Context&)> compile_statement(const dsl::ast::Statement& stmt);
+    std::function<void(Context&)> compile_stream_declaration(const dsl::compiler::ast::StreamDecl& stream);
+    std::function<void(Context&)> compile_pattern_declaration(const dsl::compiler::ast::PatternDecl& pattern);
+    std::function<void(Context&)> compile_signal_declaration(const dsl::compiler::ast::SignalDecl& signal);
+    std::function<void(Context&)> compile_memory_declaration(const dsl::compiler::ast::MemoryDecl& memory);
+    std::function<void(Context&)> compile_statement(const dsl::compiler::ast::Statement& stmt);
     std::function<Value(Context&)> compile_expression(const dsl::ast::Expression& expr);
     
     void register_builtin_functions(Context& context);

@@ -126,31 +126,7 @@ bool TrainingCoordinator::initializeComponents()
                 }
             });
 
-        // Convert candles to string format for cache storage
-        std::vector<std::string> result;
-        for (const auto& candle : candles)
-        {
-            nlohmann::json candle_json;
-            candle_json["timestamp"] = candle.timestamp;
-            candle_json["open"] = candle.open;
-            candle_json["high"] = candle.high;
-            candle_json["low"] = candle.low;
-            candle_json["close"] = candle.close;
-            candle_json["volume"] = candle.volume;
-            result.push_back(candle_json.dump());
-        }
-
-        spdlog::info("Fetched {} candles for {} from OANDA", result.size(), pair_symbol);
-        return result;
-    }
-    catch (const std::exception& e)
-    {
-        spdlog::error("Error fetching OANDA data for cache: {}", e.what());
-        return {};
-    }
-});
-
-// Initialize weekly data fetcher
+        // Initialize weekly data fetcher
 data_fetcher_ = std::make_unique<WeeklyDataFetcher>();
 DataFetchConfig fetch_config;
 fetch_config.oanda_api_key = std::getenv("OANDA_API_KEY") ? std::getenv("OANDA_API_KEY") : "";

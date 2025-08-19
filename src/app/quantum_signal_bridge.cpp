@@ -159,7 +159,12 @@ QuantumIdentifiers QuantumSignalBridge::calculateIdentifiersWithConvergence(
     // Iterative convergence calculation
     for (int iteration = 0; iteration < max_iterations; ++iteration) {
         // Run QFH analysis on current bit window
-        sep::quantum::QFHBasedProcessor qfh_processor;
+        sep::quantum::QFHOptions qfh_options;
+        qfh_options.coherence_threshold = 0.7;
+        qfh_options.stability_threshold = 0.8;
+        qfh_options.collapse_threshold = 0.5;
+        qfh_options.max_iterations = 1000;
+        sep::quantum::QFHBasedProcessor qfh_processor(qfh_options);
         sep::quantum::QFHResult qfh_result = qfh_processor.analyze(forward_bits);
 
         // Generate probe/expectation for QBSA (using proper indices, not values)
@@ -211,7 +216,7 @@ QuantumIdentifiers QuantumSignalBridge::calculateIdentifiersWithConvergence(
                              qfh_result.coherence * damping_factor;
         
         // Stability: entropy-based with damping
-        float entropy_stability = std::clamp(1.0f - qfh_result.entropy, 0.0f, 1.0f);
+        float entropy_stability = std::clamp(1.0f - static_cast<float>(qfh_result.entropy), 0.0f, 1.0f);
         float new_stability = prev_stability * (1.0f - damping_factor) + 
                              entropy_stability * damping_factor;
         
@@ -530,8 +535,8 @@ void sep::trading::QuantumSignalBridge::loadPatterns() {
             for (const auto& pj : patterns_json) {
                 sep::quantum::Pattern p;
                 sep::quantum::from_json(pj, p);
-                active_patterns_[p.id] = p;
-                active_pattern_scores_[p.id] = p.quantum_state.stability;
+                active_patterns_[std::to_string(p.id)] = p;
+                active_pattern_scores_[std::to_string(p.id)] = p.quantum_state.stability;
             }
         }
         std::cout << "[QuantumSignal] Loaded patterns from " << patterns_file_path_ << std::endl;
@@ -562,7 +567,7 @@ void sep::trading::QuantumSignalBridge::evolvePatternsWithFeedback(const std::st
     auto it = active_patterns_.find(pattern_id);
     if (it == active_patterns_.end()) {
         sep::quantum::Pattern p;
-        p.id = pattern_id;
+        p.id = std::hash<std::string>{}(pattern_id);
         p.timestamp = std::chrono::duration_cast<std::chrono::milliseconds>(
             std::chrono::system_clock::now().time_since_epoch()).count();
         p.quantum_state.coherence = 0.5f;
@@ -586,7 +591,7 @@ void sep::trading::QuantumSignalBridge::evolvePatternsWithFeedback(const std::st
         auto result = evolver_->evolvePatterns(patterns, 1.0f);
         active_patterns_.clear();
         for (auto& p : result.evolved_patterns) {
-            active_patterns_[p.id] = p;
+            active_patterns_[std::to_string(p.id)] = p;
         }
     }
 

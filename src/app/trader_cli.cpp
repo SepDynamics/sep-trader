@@ -1076,7 +1076,6 @@ void TraderCLI::print_quantum_config_details() const {
         config.cuda_batch_size,
         config.cuda_threads_per_block
     );
-}
 
 }  // namespace cli
 } // namespace sep

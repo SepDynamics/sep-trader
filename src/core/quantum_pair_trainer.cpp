@@ -383,7 +383,9 @@ namespace sep::trading
         const std::vector<sep::connectors::MarketData>& data, const QuantumTrainingConfig& config)
     {
 #ifdef SEP_BACKTESTING
-        return 0.85f(data, config);
+        (void)data;
+        (void)config;
+        return 0.85f;
 #else
         (void)data;
         (void)config;
