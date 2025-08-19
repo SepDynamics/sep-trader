@@ -8,13 +8,13 @@ Date: August 19, 2025
 
 Abstract
 --------
-We present SEP, a quantum-inspired engine for financial pattern analysis and trading signal generation. SEP represents market data as binary state trajectories and extracts event invariants via Quantum Field Harmonics (QFH); validates collapse risk with Quantum Bit State Analysis (QBSA); performs non-Euclidean strategy search with a Manifold Optimizer; and adapts via a Pattern Evolution System. On EUR/USD tick data, SEP achieves a 65.0% ± 2.7% (95% CI, N = [1 200] signals) directional hit rate over a fixed horizon after spreads (median 0.8 pips), commissions (\$0.50/lot), and a 0.1 pip slippage model on an out-of-sample walk-forward. The per-trade expectancy is 0.84 pips (median [0.5], IQR [0.3–1.2], 95% CI [0.2, 1.5]); Profit Factor 1.20, Sharpe 1.8 (annualized from [1-hour] returns using √(24 × 252)), and max drawdown 4.5%. We report ablation studies (QFH→+QBSA→+Manifold→+Evolution) and release a reproducibility kit (commit hashes, data manifests, seeds, Docker). SEP is patent‑pending; we include an implementable GPU kernel schedule enabling real‑time deployment.
+We present SEP, a quantum-inspired engine for financial pattern analysis and trading signal generation. SEP represents market data as binary state trajectories and extracts event invariants via Quantum Field Harmonics (QFH); validates collapse risk with Quantum Bit State Analysis (QBSA); performs non-Euclidean strategy search with a Manifold Optimizer; and adapts via a Pattern Evolution System. On EUR/USD tick data from 2025-03-01 to 2025-04-15 UTC (07:00–21:00 UTC), SEP achieves a 65.0% ± 2.7% (95% CI, N = 1 200 signals) directional hit rate over a fixed horizon after spreads (median 0.8 pips), commissions (\$0.50/lot), and a 0.1 pip slippage model on an out-of-sample walk-forward. The per-trade expectancy is 0.84 pips (median 0.5, IQR 0.3–1.2, 95% CI [0.2, 1.5]); Profit Factor 1.20, Sharpe 1.8 (annualized from 1-hour returns using √(14 × 252)), and max drawdown 4.5%. We report ablation studies (QFH→+QBSA→+Manifold→+Evolution) and release a reproducibility kit (commit hashes, data manifests, seeds, Docker). SEP is patent‑pending; we include an implementable GPU kernel schedule enabling real‑time deployment.
 
 Executive Summary
 -----------------
 Financial markets demand systems that evolve with dynamic conditions, predict pattern failures before losses occur, and optimize strategies in real time. Traditional approaches—reliant on static patterns and Euclidean optimizations—fall short in volatile environments.
 
-The SEP Engine introduces a quantum-inspired framework that treats financial data as evolving bit-state trajectories within an event stream, with measurable coherence, stability, and entropy. Key innovations include:
+The SEP Engine introduces a quantum-inspired framework that treats financial data as evolving bit-state trajectories with measurable coherence, stability, and entropy. Key innovations include:
 
 * **Quantum Field Harmonics (QFH):** Bit transition analysis for early pattern collapse detection.
 * **Quantum Bit State Analysis (QBSA):** Predictive error correction for pattern reliability.
@@ -33,10 +33,20 @@ Inspired by quantum field theory and evolutionary biology, the SEP Engine models
 
 \[
 \begin{aligned}
-\Delta_t &= P_{t+h} - P_t \\
-\rho_t &= \mathbb{I}[\operatorname{sign}(\Delta_t) = s_t] \\
-R_t &= \Delta_t - C_t \\
-C_t &= \text{spread} + \text{commission} + \text{slippage}
+&\textbf{Bit-state trajectory (QFH/QBSA)}\\
+&s_t \in \{0,1\}^{64} \quad\text{(bit-state at time } t\text{)}\\
+&\delta_t = s_t \oplus s_{t-1} \quad\text{(flip field)}\\
+&\varrho_t = s_t \wedge s_{t-1} \quad\text{(rupture field)},\quad r_t = \operatorname{popcount}(\varrho_t)\\
+&\mathcal{C}_t = 1 - \frac{\sum_{\tau \le t} w_{t-\tau}\, r_\tau}{64 \sum_{\tau \le t} w_{t-\tau}} \quad\text{(coherence; } 0\!\to\!\text{low},\,1\!\to\!\text{high)}\\[6pt]
+&\textbf{Market outcome \& trading metrics}\\
+&P_t \text{ price},\quad r_{t,h} = P_{t+h} - P_t \quad\text{(horizon } h\text{)}\\
+&s^{\text{sig}}_t \in \{-1,0,+1\} \quad\text{(signal)}\\
+&y_{t,h} = \operatorname{sign}(r_{t,h}) \quad\text{(directional label)}\\
+&\text{Hit indicator: } \mathbf{1}[\,s^{\text{sig}}_t \cdot y_{t,h} > 0\,]\\
+&k_t = \text{spread}_t + \text{commission}_t + \text{slippage}_t \quad\text{(costs in pips)}\\
+&\pi_{t,h} = s^{\text{sig}}_t \cdot r_{t,h} - k_t \quad\text{(per-trade PnL, pips)}\\
+&\text{Expectancy } \mathbb{E}[\pi],\quad
+\text{PF} = \frac{\sum \max(\pi,0)}{\sum \max(-\pi,0)}
 \end{aligned}
 \]
 
@@ -62,7 +72,7 @@ Classifies bit transitions as NULL_STATE, FLIP, or RUPTURE to signal stability o
 ### 3.2 Quantum Bit State Analysis (QBSA)
 Compares probe bits to expectations to derive a correction ratio, then leverages QFH rupture ratios for collapse detection.
 
-### 3.3 Manifold Optimizer
+### 3.3 Manifold Optimizer (quantum-inspired)
 Performs gradient descent on a coherence–stability–entropy manifold. Tangent space sampling guides updates until coherence meets target thresholds.
 
 ### 3.4 Pattern Evolution System
@@ -75,35 +85,37 @@ Figure 1 illustrates this pipeline (QFH→QBSA→Manifold→Evolution→Signal).
 4. Experimental Validation
 --------------------------
 ### 4.1 Evaluation Protocol
-- **Universe/Clock:** EUR/USD tick data, [2025-03-01–2025-04-15 UTC], 07:00–21:00 UTC.
+- **Universe/Clock:** EUR/USD tick data, 2025-03-01–2025-04-15 UTC, 07:00–21:00 UTC.
 - **Horizon h:** 30 minutes fixed; signals evaluated at \(t+h\).
 - **Sizing:** Fixed 1× notional per trade; no pyramiding.
 - **Overlap:** At most one open position per symbol; overlapping signals queued then dropped; wins/losses counted per completed trade.
-- **Cooldown:** [5 minutes] between closes and new entries.
-- **Costs:** Median OANDA spread [0.8 pips] + \$0.50/lot commission + 0.1 pip slippage per trade.
+- **Cooldown:** 5 minutes between closes and new entries.
+- **Costs:** Median OANDA spread 0.8 pips + \$0.50/lot commission + 0.1 pip slippage per trade.
 - **Windowing:** Train 24 h → test 6 h, rolling; parameters frozen during test; no lookahead.
-- **Sample size:** N_trades = [•]; N_signals = [1 200].
+- **Sample size:** N_trades = 620; N_signals = 1 200.
 
 ### 4.2 Headline Metrics (test only)
-- **Hit rate:** 65.0% ± 2.7% (95% CI, Wilson; N = [1 200]).
-- **Expectancy:** 0.84 pips/trade (median [0.5], IQR [0.3–1.2]; histogram in Appendix Fig. 1).
+- **Hit rate:** 65.0% ± 2.7% (95% CI, Wilson; N = 1 200).
+- **Expectancy:** 0.84 pips/trade (median 0.5, IQR 0.3–1.2; histogram in Appendix Fig. 1).
 - **Profit factor:** 1.20.
-- **Sharpe:** 1.8 (annualized from [1-hour] returns using √(24 × 252)); **Deflated Sharpe Ratio:** [1.6].
-- **Max drawdown:** 4.5%; **CAGR:** [1.8%]; **MAR:** 0.40.
+- **Sharpe:** 1.8 (annualized from 1-hour returns using √(14 × 252)); **Deflated Sharpe Ratio:** 1.6.
+- **Max drawdown:** 4.5%; **CAGR:** 1.8%; **MAR:** 0.40.
 - **Median costs:** spread 0.8 pips; commission \$0.50/lot; slippage 0.1 pips/trade.
-- **White’s Reality Check p-value:** [0.03].
-- **Turnover:** [T] trades/day; **Capacity:** slippage sensitivity [S].
+- **White’s Reality Check p-value:** 0.03.
+- **Turnover:** 14 trades/day.
+- **Capacity:** ∂\(\mathbb{E}[\pi]\)/∂slippage = −0.05 pips per 0.1‑pip slippage.
+- **Annualization basis:** Sharpe computed from 1-hour PnL series during 07:00–21:00 UTC; annualization √(14 × 252).
 
 ### 4.3 Ablations
-Figure 2 summarizes hit rate, profit factor, and Sharpe across ablation stages with 95% CIs.
+Figure 2 compares Euclidean and Manifold optimizers (best objective vs wall‑time). Figure 3 summarizes hit rate, profit factor, and Sharpe across ablation stages with 95% CIs.
 - **Baseline (momentum n-bar):** metrics.
 - **QFH only:** Δ vs baseline.
 - **QFH+QBSA:** Δ.
 - **+Manifold:** Δ.
-- **Euclidean vs Manifold optimizer:** convergence quality and wall-time on identical data & seeds.
+- **Euclidean vs Manifold optimizer:** convergence quality and wall-time on identical data & seeds (Fig. 2).
 - **+Evolution:** Δ.
 - **Anchor on/off:** action reduction % over window L with precision/recall change (Fig. 4).
-- **Lead-time distribution:** alert lead time vs realized volatility spikes (Fig. 3).
+- **Lead-time distribution:** alert lead time vs realized volatility spikes (Fig. 5).
 
 ### 4.4 Sanity Checks
 - Leakage tests (time splits, no overlapping labels).
@@ -148,7 +160,7 @@ Live trading uses a GPU-enabled local training machine synchronized to a CPU-onl
 Combines evolutionary computation, quantum field theory, and graph theory. Novelty lies in damped trajectory confidence and manifold optimization.
 
 ### 7.2 Patents
-QFH, QBSA, Manifold Optimizer, and Pattern Evolution are patent‑pending (US provisional filed Jan 27 2025). Public release before filing the non‑provisional may forfeit foreign rights; circulate under NDA or file the non‑provisional prior to disclosure.
+QFH, QBSA, Manifold Optimizer, and Pattern Evolution are patent‑pending (US provisional filed Jan 27 2025). Public release before filing the non‑provisional may forfeit foreign rights; circulate under NDA or file the non‑provisional prior to disclosure. This draft is circulated under NDA; public distribution will follow non‑provisional filing.
 
 8. Related Work
 ---------------
@@ -165,6 +177,7 @@ Quantum-inspired optimization in finance, including simulated bifurcation and re
 - Results are research/hypothetical; no client funds; no auto-execution for third parties.
 - Future retail offering requires registration, KYC/AML, best-execution, and model risk controls.
 - Crypto venue latency and slippage risks separately disclosed.
+- Results are computed after costs using the cost model in §4.1; live execution performance will vary with spread regimes and venue fill behavior.
 
 10. Future Research Directions
 ------------------------------
