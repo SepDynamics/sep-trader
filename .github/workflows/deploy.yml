@@ -30,6 +30,46 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          submodules: false
+        
+      - name: Prepare website files
+        run: |
+          mkdir -p _site
+          
+          # Copy main website files if they exist
+          for file in index.html investors.html script.js; do
+            if [[ -f "$file" ]]; then
+              cp "$file" _site/
+            fi
+          done
+          
+          # Copy assets folder if it exists
+          if [[ -d assets ]]; then
+            cp -r assets _site/
+          fi
+          
+          # Copy public folder contents if it exists
+          if [[ -d public ]]; then
+            cp -r public/* _site/ 2>/dev/null || true
+          fi
+          
+          # Create a simple index.html if none exists
+          if [[ ! -f _site/index.html ]]; then
+            cat > _site/index.html << 'EOF'
+          <!DOCTYPE html>
+          <html>
+          <head>
+              <title>SEP Trader</title>
+              <meta charset="utf-8">
+          </head>
+          <body>
+              <h1>SEP Trader</h1>
+              <p>Website coming soon...</p>
+          </body>
+          </html>
+          EOF
+          fi
         
       - name: Setup Pages
         uses: actions/configure-pages@v4
@@ -37,7 +77,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: '.'
+          path: '_site'
           
       - name: Deploy to GitHub Pages
         id: deployment
