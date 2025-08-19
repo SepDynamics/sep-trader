@@ -16,7 +16,7 @@
 - **🆕 Database Support** - PostgreSQL, Redis, and HWLOC automatically installed
 
 ## Local PC Requirements (Training & Analysis)  
-- **CUDA 12.9+** - GPU acceleration for quantum processing
+- **CUDA 12.9+** - GPU acceleration for BTH processing
 - **16GB+ RAM** - Multi-pair model training
 - **Linux/Ubuntu** - Development environment
 - **✅ Working Build System** - Array issues now resolved!
@@ -105,7 +105,7 @@ python train_manager.py disable EUR_USD
 
 ```
 SEP Professional Trader-Bot
-├── Quantum Pattern Engine (src/quantum/)
+├── BTH Engine (src/quantum/)
 ├── OANDA Trading Integration (src/apps/oanda_trader/)
 ├── Training Manager (train_manager.py)
 ├── Configuration Management (config/)
@@ -119,16 +119,16 @@ SEP Professional Trader-Bot
 - **Hot-Swappable Configuration**: Add/remove pairs without system restart (roadmap)
 - **Professional State Management**: Enable/disable pairs with persistent state
 - **Comprehensive Cache System**: Automated weekly data retention and validation
-- **Patent-Pending QFH Technology**: 60.73% prediction accuracy in live trading
+- **Bit-Transition Harmonics (BTH) Technology**: 60.73% prediction accuracy in live trading
 
 ## ✅ Current System Capabilities
 
 **WORKING NOW:**
 - ✅ **trader-cli**: Professional CLI interface for system management
 - ✅ **oanda_trader**: Main trading application with OANDA integration
-- ✅ **quantum_tracker**: CUDA-accelerated quantum pattern analysis
+- ✅ **quantum_tracker**: CUDA-accelerated transition analysis
 - ✅ **Build System**: Docker compilation now works reliably
-- ✅ **CUDA Support**: GPU acceleration for quantum processing
+- ✅ **CUDA Support**: GPU acceleration for BTH processing
 
 **MINOR FIXES NEEDED (3 executables):**
 - 🔧 **data_downloader**: Historical data fetching (API fixes)
