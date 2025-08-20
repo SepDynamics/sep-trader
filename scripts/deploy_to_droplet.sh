@@ -273,6 +273,10 @@ http {
             proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         }
 
+        location /api/status {
+            proxy_pass http://sep_trader/api/status;
+        }
+
         location /health {
             proxy_pass http://sep_trader/health;
         }

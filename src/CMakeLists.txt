@@ -47,3 +47,4 @@ add_sep_executable(data_downloader SOURCES app/data_downloader.cpp DEPENDENCIES 
 add_sep_executable(sep_dsl_interpreter SOURCES app/dsl_main.cpp DEPENDENCIES sep_lib)
 add_sep_executable(quantum_tracker SOURCES app/quantum_tracker_main.cpp DEPENDENCIES sep_lib)
 add_sep_executable(sep_app SOURCES app/app_main.cpp DEPENDENCIES sep_lib)
+add_sep_executable(quantum_pair_trainer SOURCES core/quantum_pair_trainer.cpp DEPENDENCIES sep_lib)

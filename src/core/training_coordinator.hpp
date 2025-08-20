@@ -8,6 +8,7 @@
 #include <atomic>
 #include <chrono>
 #include <condition_variable>
+#include <deque>
 #include <map>
 #include <memory>
 #include <mutex>
@@ -16,47 +17,23 @@
 #include <thread>
 #include <vector>
 
-#include "core/dynamic_config_manager.hpp"
-#include "core/weekly_cache_manager.hpp"
-#include "remote_synchronizer.hpp"
-#include "weekly_data_fetcher.hpp"
+#include "training_types.h"  // Include the types from training_types.h
 
 namespace sep {
+
+// Forward declarations
+namespace config {
+    class DynamicConfigManager;
+}
+namespace cache {
+    class WeeklyCacheManager;
+}
+
 namespace training {
 
-enum class TrainingMode {
-    QUICK,          // Fast training for development
-    FULL,           // Complete training with optimization
-    LIVE_TUNE,      // Live parameter tuning for active trader
-    BATCH           // Batch processing for multiple pairs
-};
-
-enum class PatternQuality {
-    HIGH,           // >70% accuracy, ready for live trading
-    MEDIUM,         // 60-70% accuracy, suitable for testing
-    LOW,            // <60% accuracy, needs retraining
-    UNKNOWN         // Not yet evaluated
-};
-
-struct TrainingResult {
-    std::string pair;
-    double accuracy;
-    double stability_score;
-    double coherence_score;
-    double entropy_score;
-    PatternQuality quality;
-    std::chrono::system_clock::time_point trained_at;
-    std::string model_hash;
-    std::map<std::string, double> parameters;
-};
-
-struct RemoteTraderConfig {
-    std::string host;                   // Tailscale IP (100.85.55.105)
-    int port;                          // Remote API port
-    std::string auth_token;            // Authentication token
-    bool ssl_enabled;                  // HTTPS support
-    std::chrono::seconds sync_interval; // How often to sync patterns
-};
+// Forward declarations for training namespace
+class RemoteSynchronizer;
+class WeeklyDataFetcher;
 
 class TrainingCoordinator {
 public:
@@ -100,11 +77,11 @@ public:
     bool requestOptimalParameters(const std::string& pair);
     
 private:
-    // Core components
-    std::unique_ptr<config::DynamicConfigManager> config_manager_;
-    std::unique_ptr<cache::WeeklyCacheManager> cache_manager_;
-    std::unique_ptr<WeeklyDataFetcher> data_fetcher_;
-    std::unique_ptr<RemoteSynchronizer> remote_synchronizer_;
+    // Core components - using raw pointers with forward declarations
+    config::DynamicConfigManager* config_manager_;
+    cache::WeeklyCacheManager* cache_manager_;
+    WeeklyDataFetcher* data_fetcher_;
+    RemoteSynchronizer* remote_synchronizer_;
     
     // Training state
     std::map<std::string, TrainingResult> training_results_;

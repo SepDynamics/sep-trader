@@ -195,6 +195,6 @@ net start postgresql
 - [`CMakeLists.txt`](CMakeLists.txt:1) - Cross-platform build configuration
 - [`cmake/template.cmake`](cmake/template.cmake:1) - Updated for MSVC support
 
----
+--- 
 
 **Ready to build!** Run `install.bat` followed by `build.bat` to get started.

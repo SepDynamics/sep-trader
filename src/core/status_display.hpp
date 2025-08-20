@@ -6,6 +6,7 @@
 
 #include <string>
 #include <map>
+#include <vector>
 #include <chrono>
 #include "core/training_coordinator.hpp"
 
@@ -36,6 +37,7 @@ private:
     // Formatting utilities
     std::string formatAccuracy(double accuracy);
     std::string formatDuration(std::chrono::system_clock::time_point timestamp);
+    std::string formatDurationFromString(const std::string& timestamp);
     std::string formatQuality(PatternQuality quality);
     std::string getStatusIcon(bool status);
     std::string getQualityIcon(PatternQuality quality);

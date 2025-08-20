@@ -106,6 +106,8 @@ bool CLICommands::validateCache() {
     return true;
 }
 
+#include <filesystem>
+
 bool CLICommands::cleanupCache() {
     if (!confirmOperation("cache cleanup")) {
         return false;
@@ -113,10 +115,20 @@ bool CLICommands::cleanupCache() {
     
     std::cout << "🧹 Cleaning up old cache files..." << std::endl;
     
-    // Simulate cache cleanup
-    std::this_thread::sleep_for(std::chrono::milliseconds(300));
+    const std::string cache_path = "./cache/oanda";
     
-    std::cout << "✅ Cache cleanup completed" << std::endl;
+    if (!std::filesystem::exists(cache_path)) {
+        std::cout << "✅ Cache directory does not exist. Nothing to clean." << std::endl;
+        return true;
+    }
+    
+    int count = 0;
+    for (const auto& entry : std::filesystem::directory_iterator(cache_path)) {
+        std::filesystem::remove(entry.path());
+        count++;
+    }
+    
+    std::cout << "✅ Cache cleanup completed. Removed " << count << " files." << std::endl;
     return true;
 }
 
@@ -128,7 +140,7 @@ bool CLICommands::configureRemoteTrader(const std::string& remote_ip) {
     config.host = remote_ip;
     config.port = 8080;
     config.ssl_enabled = false;
-    config.sync_interval = std::chrono::seconds(300);
+    config.sync_interval_seconds = 300;  // 5 minutes
     
     return coordinator_.configureRemoteTrader(config);
 }

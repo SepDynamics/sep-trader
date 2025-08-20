@@ -1,0 +1,21 @@
+services:
+  sep-trader:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: sep-trader
+    volumes:
+      - .:/workspace
+    command: python3 /workspace/scripts/trading_service.py
+    ports:
+      - "8080:8080"
+
+  sep-nginx:
+    image: nginx:latest
+    container_name: sep-nginx
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - sep-trader

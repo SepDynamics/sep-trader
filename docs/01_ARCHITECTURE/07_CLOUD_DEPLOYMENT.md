@@ -21,7 +21,7 @@
 ## 🎯 Deployment Strategy
 
 ### Phase 1: Infrastructure Setup
-- **Digital Ocean Droplet**: 134.199.142.35 (public)
+- **Digital Ocean Droplet**: 165.227.109.187 (public)
 - **Tailscale Network**: 100.85.55.105 (private)
 - **Persistent Storage**: Cache database and trading logs
 - **Live Market Feed**: Real-time OANDA data streaming
@@ -125,7 +125,7 @@ CREATE TABLE system_config (
 ### 1. Droplet Setup
 ```bash
 # SSH to droplet
-ssh root@134.199.142.35
+ssh root@165.227.109.187
 
 # Install base dependencies
 apt update && apt install -y docker.io docker-compose nginx
@@ -143,7 +143,7 @@ mkdir -p /opt/sep-trader/{data,cache,logs,config}
 chown -R septrader:septrader /opt/sep-trader
 
 # Transfer OANDA credentials (secure)
-scp OANDA.env root@134.199.142.35:/opt/sep-trader/config/
+scp OANDA.env root@165.227.109.187:/opt/sep-trader/config/
 ```
 
 ### 3. Lightweight Trading Service
@@ -160,8 +160,8 @@ cd sep-trader
 ### 4. Data Synchronization
 ```bash
 # On local PC - sync computed data
-rsync -avz --progress ./metrics_output/ root@134.199.142.35:/opt/sep-trader/data/
-scp ./trading_signals.json root@134.199.142.35:/opt/sep-trader/data/
+rsync -avz --progress ./metrics_output/ root@165.227.109.187:/opt/sep-trader/data/
+scp ./trading_signals.json root@165.227.109.187:/opt/sep-trader/data/
 
 # Automated sync script
 ./scripts/sync_to_droplet.sh
@@ -212,10 +212,10 @@ ssh root@100.85.55.105  # Tailscale address
 ./sync_to_droplet.sh
 
 # 3. Droplet starts trading (if market open)
-ssh root@134.199.142.35 './start_trading.sh'
+ssh root@165.227.109.187 './start_trading.sh'
 
 # 4. Monitor performance
-curl http://134.199.142.35:8080/api/status
+curl http://165.227.109.187:8080/api/status
 ```
 
 ### Market Schedule Integration
@@ -229,18 +229,18 @@ curl http://134.199.142.35:8080/api/status
 ### Pair Management
 ```bash
 # Enable pairs for live trading (on droplet)
-curl -X POST http://134.199.142.35:8080/api/pairs/EUR_USD/enable
-curl -X POST http://134.199.142.35:8080/api/pairs/GBP_USD/enable
+curl -X POST http://165.227.109.187:8080/api/pairs/EUR_USD/enable
+curl -X POST http://165.227.109.187:8080/api/pairs/GBP_USD/enable
 
 # Check status
-curl http://134.199.142.35:8080/api/pairs/status
+curl http://165.227.109.187:8080/api/pairs/status
 ```
 
 ### Hot Configuration Updates
 ```bash
 # Update trading parameters without restart
-curl -X PUT http://134.199.142.35:8080/api/config/reload
-curl -X POST http://134.199.142.35:8080/api/sync/pull
+curl -X PUT http://165.227.109.187:8080/api/config/reload
+curl -X POST http://165.227.109.187:8080/api/sync/pull
 ```
 
 ## 🚨 Monitoring & Alerts

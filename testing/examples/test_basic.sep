@@ -1,0 +1,5 @@
+pattern test_basic {
+    print("DSL System Operational - Basic Test")
+    var x = 42
+    print("Variable test: " + x)
+}

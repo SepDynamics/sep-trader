@@ -15,21 +15,37 @@ from urllib.parse import urlparse
 import threading
 import signal
 
-# Allow importing risk controls
-sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'src'))
+# Allow importing risk controls from scripts directory
+sys.path.append(os.path.dirname(__file__))
 from trading.risk import RiskManager, RiskLimits  # noqa: E402
 from oanda_connector import OandaConnector  # noqa: E402
 
-# Setup logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(levelname)s - %(message)s',
-    handlers=[
-        logging.FileHandler('/app/logs/trading_service.log'),
-        logging.StreamHandler()
-    ]
-)
-logger = logging.getLogger(__name__)
+# Setup logging with environment-appropriate paths
+def setup_logging():
+    # Determine log directory based on environment
+    if os.path.exists('/app'):
+        # Docker/containerized environment
+        log_dir = '/app/logs'
+    else:
+        # Local development environment
+        log_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'logs')
+    
+    # Create logs directory if it doesn't exist
+    os.makedirs(log_dir, exist_ok=True)
+    
+    log_file = os.path.join(log_dir, 'trading_service.log')
+    
+    logging.basicConfig(
+        level=logging.INFO,
+        format='%(asctime)s - %(levelname)s - %(message)s',
+        handlers=[
+            logging.FileHandler(log_file),
+            logging.StreamHandler()
+        ]
+    )
+    return logging.getLogger(__name__)
+
+logger = setup_logging()
 
 class TradingService:
     def __init__(self):
@@ -188,6 +204,22 @@ class TradingAPIHandler(BaseHTTPRequestHandler):
     def __init__(self, trading_service, *args, **kwargs):
         self.trading_service = trading_service
         super().__init__(*args, **kwargs)
+
+    def do_HEAD(self):
+        """Handle HEAD requests - same as GET but without response body"""
+        logger.info(f"Handling HEAD request for {self.path}")
+        parsed_path = urlparse(self.path)
+        path = parsed_path.path
+
+        if path == '/health' or path == '/api/status':
+            self.send_response(200)
+            self.send_header('Content-type', 'application/json')
+            self.end_headers()
+            logger.info(f"Responded 200 to HEAD {self.path}")
+        else:
+            self.send_response(404)
+            self.end_headers()
+            logger.info(f"Responded 404 to HEAD {self.path}")
 
     def do_GET(self):
         """Handle GET requests"""

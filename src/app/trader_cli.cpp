@@ -746,7 +746,7 @@ void TraderCLI::print_quantum_training_usage() const {
 SEP Quantum Trading Training CLI - Professional Currency Pair Training System
 
 USAGE:
-    trader-cli trading train <pair> [OPTIONS]
+    trader_cli trading train <pair> [OPTIONS]
 
 COMMANDS:
     train <pair>                Train a specific currency pair (e.g., EUR_USD)
@@ -778,22 +778,22 @@ COMMANDS:
 
 EXAMPLES:
     # Train EUR/USD pair with quantum optimization
-    trader-cli trading train EUR_USD
+    trader_cli trading train EUR_USD
     
     # Batch train multiple major pairs
-    trader-cli trading train --batch EUR_USD GBP_USD USD_JPY
+    trader_cli trading train --batch EUR_USD GBP_USD USD_JPY
     
     # Analyze current market patterns
-    trader-cli trading analyze EUR_USD
+    trader_cli trading analyze EUR_USD
     
     # Show training status of all pairs
-    trader-cli trading status
+    trader_cli trading status
     
     # Enable pair for live trading after training
-    trader-cli trading enable EUR_USD
+    trader_cli trading enable EUR_USD
     
     # Start real-time monitoring
-    trader-cli trading monitor
+    trader_cli trading monitor
 
 NOTES:
     - All pairs must be successfully trained before enabling for trading
@@ -810,7 +810,7 @@ void TraderCLI::print_quantum_analysis_usage() const {
 SEP Quantum Trading Analysis CLI - Professional Currency Pair Analysis System
 
 USAGE:
-    trader-cli trading analyze <pair> [OPTIONS]
+    trader_cli trading analyze <pair> [OPTIONS]
 
 COMMANDS:
     analyze <pair>              Analyze pattern for a currency pair
@@ -821,13 +821,13 @@ COMMANDS:
 
 EXAMPLES:
     # Analyze current market patterns for EUR_USD
-    trader-cli trading analyze EUR_USD
+    trader_cli trading analyze EUR_USD
     
     # Analyze all configured pairs
-    trader-cli trading analyze --all
+    trader_cli trading analyze --all
     
     # Start real-time analysis for EUR_USD
-    trader-cli trading analyze --real-time EUR_USD
+    trader_cli trading analyze --real-time EUR_USD
 
 )";
 }
@@ -837,7 +837,7 @@ void TraderCLI::print_quantum_config_usage() const {
 SEP Quantum Training Configuration CLI
 
 USAGE:
-    trader-cli trading config <COMMAND> [OPTIONS]
+    trader_cli trading config <COMMAND> [OPTIONS]
 
 COMMANDS:
     config show                 Show current configuration
@@ -848,13 +848,13 @@ COMMANDS:
 
 EXAMPLES:
     # Show current quantum training configuration
-    trader-cli trading config show
+    trader_cli trading config show
     
     # Set a configuration parameter
-    trader-cli trading config set stability_weight 0.8
+    trader_cli trading config set stability_weight 0.8
     
     # Auto-optimize configuration for EUR_USD
-    trader-cli trading config optimize EUR_USD
+    trader_cli trading config optimize EUR_USD
 
 )";
 }
@@ -864,7 +864,7 @@ void TraderCLI::print_quantum_monitor_usage() const {
 SEP Quantum Training Monitor CLI
 
 USAGE:
-    trader-cli trading monitor [pair]
+    trader_cli trading monitor [pair]
 
 COMMANDS:
     monitor                     Start real-time system monitoring dashboard
@@ -874,10 +874,10 @@ COMMANDS:
 
 EXAMPLES:
     # Start real-time system monitoring
-    trader-cli trading monitor
+    trader_cli trading monitor
     
     # Monitor EUR_USD pair
-    trader-cli trading monitor EUR_USD
+    trader_cli trading monitor EUR_USD
 
 )";
 }
@@ -1101,7 +1101,7 @@ void sep::cli::TraderCLI::print_help() const {
 SEP Professional Trading System - Command Line Interface
 
 USAGE:
-    trader-cli [OPTIONS] <COMMAND> [ARGS...]
+    trader_cli [OPTIONS] <COMMAND> [ARGS...]
 
 OPTIONS:
     -h, --help      Show this help message
@@ -1122,13 +1122,13 @@ COMMANDS:
     quantum                   Quantum system controls
 
 EXAMPLES:
-    trader-cli start EURUSD
-    trader-cli status --detailed
-    trader-cli pairs list
-    trader-cli config set risk_level 0.02
+    trader_cli start EURUSD
+    trader_cli status --detailed
+    trader_cli pairs list
+    trader_cli config set risk_level 0.02
 
 For detailed help on specific commands, use:
-    trader-cli <command> --help
+    trader_cli <command> --help
 )";
 }
 

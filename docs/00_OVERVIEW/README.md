@@ -1,11 +1,34 @@
-
-# Gemini Code Assistant Configuration
+# SEP Professional Trader-Bot Overview
 
 ## Project Overview
 
 This project, SEP Professional Trader-Bot, is a sophisticated, production-ready autonomous trading platform. It leverages a patent-pending technology called Quantum Field Harmonics (QFH) for financial modeling and prediction. The system is designed with a hybrid architecture, separating the computationally intensive model training (local, CUDA-accelerated) from the lightweight trade execution (remote, CPU-only droplet).
 
 The core technology boasts a 60.73% prediction accuracy in live trading scenarios. The system is built with C++ for performance-critical components, Python for higher-level orchestration, and a suite of shell scripts for deployment and management.
+
+### Core Innovation: Quantum Field Harmonics (QFH) Engine
+
+**Patent Application #584961162ABX** - The system uses quantum-inspired financial modeling with:
+- **Bit-level Pattern Analysis** - Proprietary pattern collapse prediction
+- **Real-time Pattern Degradation Detection** - Eliminates traditional lag
+- **Multi-timeframe Quantum Analysis** - M1/M5/M15 synchronized processing
+- **Riemannian Evolutionary Optimization** - Advanced pattern adaptation
+
+### System Architecture: Hybrid Local/Remote Design
+
+```
+LOCAL CUDA MACHINE (Training)          REMOTE DROPLET (Execution)
+├── Quantum Pattern Analysis      →    ├── Trading Execution  
+├── CUDA-Accelerated Training     →    ├── Signal Processing
+├── Model Generation              →    ├── Market Monitoring
+└── Signal Synchronization        →    └── Performance Logging
+```
+
+**Key Design Principles:**
+- **Local Training**: GPU-accelerated quantum analysis requiring CUDA
+- **Remote Execution**: CPU-only cloud deployment on Digital Ocean  
+- **Data Pipeline**: Automated model/signal synchronization
+- **Enterprise Architecture**: PostgreSQL, Redis, Docker containerization
 
 ## Key Technologies
 
@@ -59,11 +82,3 @@ The main application is run via the `trader-cli` and various scripts.
 - `config/`: Configuration files for the application.
 - `docs/`: Project documentation.
 - `build/`: Build output directory.
-
-## How to Help
-
-1.  **Understand the Codebase:** Before making changes, familiarize yourself with the relevant parts of the C++ and Python code. The documentation in the `docs/` directory is a good starting point.
-2.  **Follow Existing Patterns:** The project uses a specific coding style. Adhere to it.
-3.  **Focus on Integration:** Many of the core components are already built in standalone executables. The main challenge is integrating them correctly.
-4.  **Prioritize Build Fixes:** The build system is complex and can be fragile. Ensure any changes you make don't break the build.
-5.  **Use the CLI:** The `trader-cli` is the primary way to interact with the system. Use it to test your changes.
