@@ -30,7 +30,7 @@ namespace sep::trading
         // Initialize quantum components
         sep::quantum::QFHOptions qfh_options;
         qfh_options.collapse_threshold = 0.3f;
-        qfh_options.collapse_threshold = 0.7f;
+        qfh_options.coherence_threshold = 0.7f;  // Fix: was setting collapse_threshold twice
         qfh_processor_ = std::make_unique<sep::quantum::QFHBasedProcessor>(qfh_options);
 
         // Initialize manifold optimizer
@@ -42,10 +42,24 @@ namespace sep::trading
         sep::quantum::PatternEvolutionBridge::Config evo_config;
         pattern_evolver_ = std::make_unique<sep::quantum::PatternEvolutionBridge>(evo_config);
 
-        // Initialize engine facade (singleton)
-        engine_facade_ = &sep::engine::EngineFacade::getInstance();
-        if (engine_facade_->initialize() != sep::core::Result<void>())
-        {
+        // Initialize engine facade (singleton) with retry logic for rapid successive calls
+        engine_facade_ = nullptr;
+        for (int retry = 0; retry < 3; ++retry) {
+            try {
+                engine_facade_ = &sep::engine::EngineFacade::getInstance();
+                if (engine_facade_) {
+                    break;
+                }
+            } catch (const std::exception& e) {
+                if (retry == 2) {
+                    throw std::runtime_error("Failed to initialize engine facade after 3 attempts: " + std::string(e.what()));
+                }
+                // Brief delay before retry to avoid race conditions
+                std::this_thread::sleep_for(std::chrono::milliseconds(50));
+            }
+        }
+
+        if (!engine_facade_) {
             throw std::runtime_error("Failed to initialize engine facade");
         }
 

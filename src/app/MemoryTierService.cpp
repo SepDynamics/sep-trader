@@ -160,9 +160,9 @@ public:
         return static_cast<float>(tierImpl.usedSize) / static_cast<float>(tierImpl.totalSize);
     }
 
-    float getTierFragmentationImpl(sep::memory::MemoryTierEnum tier) {
+    float getTierFragmentationImpl(sep::memory::MemoryTierEnum) {
         // Mock implementation
-        return 0.05f; // 5% fragmentation
+        return 0.0f; // No fragmentation in mock implementation
     }
 
     float getTotalUtilizationImpl() {
@@ -184,7 +184,7 @@ public:
         return 0.08f; // 8% fragmentation
     }
 
-    bool defragmentTierImpl(sep::memory::MemoryTierEnum tier) {
+    bool defragmentTierImpl(sep::memory::MemoryTierEnum) {
         // Mock implementation - just report success
         return true;
     }
@@ -294,14 +294,14 @@ public:
         return "{}";
     }
 
-    bool configureTierPoliciesImpl(const sep::memory::MemoryThresholdConfig& config) {
+    bool configureTierPoliciesImpl(const sep::memory::MemoryThresholdConfig&) {
         // Mock implementation - just report success
         return true;
     }
 
-    bool optimizeRedisIntegrationImpl(int optimizationLevel) {
+    bool optimizeRedisIntegrationImpl(int) {
         // Mock implementation - just report success
-        redisOptimized_ = (optimizationLevel > 0);
+        redisOptimized_ = true;
         return true;
     }
 
@@ -630,31 +630,31 @@ Result<void> MemoryTierService::optimizeRedisIntegration(int optimizationLevel) 
 #endif
 }
 
-Result<std::string> MemoryTierService::allocateBlock(uint64_t size, MemoryTierLevel tier, const std::string& contentType, const std::vector<uint8_t>& initialData, const std::map<std::string, std::string>& tags) {
+Result<std::string> MemoryTierService::allocateBlock(uint64_t, MemoryTierLevel, const std::string&, const std::vector<uint8_t>&, const std::map<std::string, std::string>&) {
     return Error(Error::Code::NotImplemented, "allocateBlock is not implemented");
 }
 
-Result<void> MemoryTierService::deallocateBlock(const std::string& blockId) {
+Result<void> MemoryTierService::deallocateBlock(const std::string&) {
     return Error(Error::Code::NotImplemented, "deallocateBlock is not implemented");
 }
 
-Result<void> MemoryTierService::storeData(const std::string& blockId, const std::vector<uint8_t>& data, uint64_t offset) {
+Result<void> MemoryTierService::storeData(const std::string&, const std::vector<uint8_t>&, uint64_t) {
     return Error(Error::Code::NotImplemented, "storeData is not implemented");
 }
 
-Result<std::vector<uint8_t>> MemoryTierService::retrieveData(const std::string& blockId, uint64_t size, uint64_t offset) {
+Result<std::vector<uint8_t>> MemoryTierService::retrieveData(const std::string&, uint64_t, uint64_t) {
     return Error(Error::Code::NotImplemented, "retrieveData is not implemented");
 }
 
-Result<MemoryBlockMetadata> MemoryTierService::getBlockMetadata(const std::string& blockId) {
+Result<MemoryBlockMetadata> MemoryTierService::getBlockMetadata(const std::string&) {
     return Error(Error::Code::NotImplemented, "getBlockMetadata is not implemented");
 }
 
-Result<void> MemoryTierService::moveBlockToTier(const std::string& blockId, MemoryTierLevel destinationTier, const std::string& reason) {
+Result<void> MemoryTierService::moveBlockToTier(const std::string&, MemoryTierLevel, const std::string&) {
     return Error(Error::Code::NotImplemented, "moveBlockToTier is not implemented");
 }
 
-Result<TierStatistics> MemoryTierService::getTierStatistics(MemoryTierLevel tier) {
+Result<TierStatistics> MemoryTierService::getTierStatistics(MemoryTierLevel) {
     return Error(Error::Code::NotImplemented, "getTierStatistics is not implemented");
 }
 
@@ -662,27 +662,27 @@ Result<std::map<MemoryTierLevel, TierStatistics>> MemoryTierService::getAllTierS
     return Error(Error::Code::NotImplemented, "getAllTierStatistics is not implemented");
 }
 
-Result<void> MemoryTierService::configureTier(MemoryTierLevel tier, uint64_t totalCapacity, const std::map<std::string, std::string>& policies) {
+Result<void> MemoryTierService::configureTier(MemoryTierLevel, uint64_t, const std::map<std::string, std::string>&) {
     return Error(Error::Code::NotImplemented, "configureTier is not implemented");
 }
 
-Result<void> MemoryTierService::optimizeTiers(bool aggressive) {
+Result<void> MemoryTierService::optimizeTiers(bool) {
     return Error(Error::Code::NotImplemented, "optimizeTiers(bool) is not implemented");
 }
 
-int MemoryTierService::registerTransitionCallback(std::function<void(const TierTransitionRecord&)> callback) {
+int MemoryTierService::registerTransitionCallback(std::function<void(const TierTransitionRecord&)>) {
     return -1; // Not implemented
 }
 
-Result<void> MemoryTierService::unregisterTransitionCallback(int subscriptionId) {
+Result<void> MemoryTierService::unregisterTransitionCallback(int) {
     return Error(Error::Code::NotImplemented, "unregisterTransitionCallback is not implemented");
 }
 
-Result<std::vector<TierTransitionRecord>> MemoryTierService::getTransitionHistory(int maxRecords) {
+Result<std::vector<TierTransitionRecord>> MemoryTierService::getTransitionHistory(int) {
     return Error(Error::Code::NotImplemented, "getTransitionHistory is not implemented");
 }
 
-Result<std::vector<MemoryAccessPattern>> MemoryTierService::getAccessPatterns(uint32_t minFrequency) {
+Result<std::vector<MemoryAccessPattern>> MemoryTierService::getAccessPatterns(uint32_t) {
     return Error(Error::Code::NotImplemented, "getAccessPatterns is not implemented");
 }
 

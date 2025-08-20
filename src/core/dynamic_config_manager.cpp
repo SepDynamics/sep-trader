@@ -22,22 +22,22 @@ DynamicConfigManager::~DynamicConfigManager() = default;
 // Template specializations need to be defined in the header or explicitly instantiated here
 // For simplicity, we'll use the non-template versions for this stub implementation
 
-std::string DynamicConfigManager::getStringValue(const std::string& key, const std::string& default_value) const {
+std::string DynamicConfigManager::getStringValue(const std::string&, const std::string& default_value) const {
     // This is a stub implementation
     return default_value;
 }
 
-int DynamicConfigManager::getIntValue(const std::string& key, int default_value) const {
+int DynamicConfigManager::getIntValue(const std::string&, int default_value) const {
     // This is a stub implementation
     return default_value;
 }
 
-double DynamicConfigManager::getDoubleValue(const std::string& key, double default_value) const {
+double DynamicConfigManager::getDoubleValue(const std::string&, double default_value) const {
     // This is a stub implementation
     return default_value;
 }
 
-bool DynamicConfigManager::getBoolValue(const std::string& key, bool default_value) const {
+bool DynamicConfigManager::getBoolValue(const std::string&, bool default_value) const {
     // This is a stub implementation
     return default_value;
 }
@@ -64,22 +64,22 @@ void DynamicConfigManager::clear() {
     impl_->config_sources.clear();
 }
 
-bool DynamicConfigManager::loadFromFile(const std::string& file_path) {
+bool DynamicConfigManager::loadFromFile(const std::string&) {
     // This is a stub implementation
     return false;
 }
 
-bool DynamicConfigManager::saveToFile(const std::string& file_path) const {
+bool DynamicConfigManager::saveToFile(const std::string&) const {
     // This is a stub implementation
     return false;
 }
 
-bool DynamicConfigManager::loadFromEnvironment(const std::string& prefix) {
+bool DynamicConfigManager::loadFromEnvironment(const std::string&) {
     // This is a stub implementation
     return false;
 }
 
-bool DynamicConfigManager::loadFromCommandLine(int argc, char** argv) {
+bool DynamicConfigManager::loadFromCommandLine(int, char**) {
     // This is a stub implementation
     return false;
 }
@@ -122,7 +122,7 @@ std::vector<std::string> DynamicConfigManager::getKeysByPrefix(const std::string
     return keys;
 }
 
-ConfigValueType DynamicConfigManager::getValueType(const std::string& key) const {
+ConfigValueType DynamicConfigManager::getValueType(const std::string&) const {
     // This is a stub implementation
     return ConfigValueType::NULL_VALUE;
 }

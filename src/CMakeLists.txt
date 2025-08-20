@@ -1,7 +1,6 @@
 cmake_minimum_required(VERSION 3.18)
 project(sep_trader)
 
-add_definitions(-DSEP_BACKTESTING)
 add_definitions(-DGLM_COMPILER=0)
 
 set(CMAKE_CXX_STANDARD 17)
