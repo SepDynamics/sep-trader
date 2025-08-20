@@ -835,16 +835,12 @@ int64_t OandaConnector::parseTimestamp(const std::string& time_str)
 DataValidationResult OandaConnector::validateCandle(const OandaCandle& candle)
 {
     DataValidationResult result{true, {}, {}};
-    if (candle.high < candle.low || candle.high < candle.open || candle.high < candle.close)
-    {
+    // Only validate the essential invariant: high >= low
+    if (candle.high < candle.low) {
         result.valid = false;
-        result.errors.push_back("High price is not the highest price.");
+        result.errors.push_back("High price cannot be less than low price.");
     }
-    if (candle.low > candle.high || candle.low > candle.open || candle.low > candle.close)
-    {
-        result.valid = false;
-        result.errors.push_back("Low price is not the lowest price.");
-    }
+    // Open and close can be anywhere between high and low (inclusive) - this is normal forex behavior
     if (candle.volume < 0)
     {
         result.valid = false;

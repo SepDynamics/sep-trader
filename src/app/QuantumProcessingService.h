@@ -2,6 +2,10 @@
 
 #include "app/ServiceBase.h"
 #include "IQuantumProcessingService.h"
+#include "core/result.h"
+#include "core/qfh.h"
+#include "core/quantum_processor_qfh.h"
+#include "core/quantum_types.h"
 #include <memory>
 #include <unordered_map>
 
@@ -12,7 +16,6 @@ namespace services {
  * Implementation of the Quantum Processing Service
  * Provides concrete implementations of quantum algorithms and processing
  */
-// Fix multiple inheritance issue by inheriting only from ServiceBase and implementing IQuantumProcessingService
 class QuantumProcessingService : public ServiceBase, public IQuantumProcessingService {
 public:
     /**
@@ -41,7 +44,7 @@ public:
         const QuantumState& state,
         const std::map<std::string, double>& evolutionParameters) override;
     Result<QuantumState> runQuantumPipeline(const QuantumState& state) override;
-    std::map<std::string, std::string> getAvailableAlgorithms() const override;
+    std::map<std::string, std::string> getAvailableAlgorithms() const;
 
 protected:
     // ServiceBase interface implementation
@@ -49,19 +52,31 @@ protected:
     Result<void> onShutdown() override;
 
 private:
-    // Algorithm implementations
-    BinaryStateVector performQBSA(const QuantumState& state);
-    std::vector<QuantumFourierComponent> performQFH(const QuantumState& state, int levels);
-    CoherenceMatrix computeCoherenceMatrix(const QuantumState& state);
-    StabilityMetrics computeStabilityMetrics(const QuantumState& state, const std::vector<QuantumState>& history);
-    QuantumState performEvolution(const QuantumState& state, const std::map<std::string, double>& params);
+    // Authentic algorithm implementations - Bit-Transition Harmonic Analysis
+    BinaryStateVector performAuthenticQBSA(const QuantumState& state);
+    std::vector<QuantumFourierComponent> performAuthenticQFH(const QuantumState& state, int levels);
+    CoherenceMatrix computeAuthenticCoherenceMatrix(const QuantumState& state);
+    StabilityMetrics computeAuthenticStabilityMetrics(const QuantumState& state, const std::vector<QuantumState>& history);
+    QuantumState performAuthenticEvolution(const QuantumState& state, const std::map<std::string, double>& params);
     
     // Cache for expensive computations
     std::unordered_map<std::string, BinaryStateVector> qbsaCache_;
     std::unordered_map<std::string, CoherenceMatrix> coherenceCache_;
     
     // Available algorithms mapping
-    std::map<std::string, std::string> algorithms_;
+    std::unordered_map<std::string, std::string> algorithms_;
+    
+    // Authentic quantum processor instances
+    std::unique_ptr<sep::quantum::QuantumProcessorQFH> qfh_processor_;
+    std::unique_ptr<sep::quantum::QFH> qfh_engine_;
+    
+    // Type conversion helpers between service layer and core quantum layer
+    glm::vec3 convertToGLMPattern(const QuantumState& serviceState);
+    QuantumState convertFromGLMPattern(const glm::vec3& pattern, const std::string& identifier);
+    BinaryStateVector convertFromBitVector(const std::vector<uint32_t>& bits);
+    std::vector<QuantumFourierComponent> convertFromQFHResult(const sep::quantum::QFHResult& qfhResult);
+    CoherenceMatrix buildCoherenceMatrixFromStability(double stability);
+    StabilityMetrics buildStabilityFromProcessing(double stability, double coherence);
 };
 
 } // namespace services

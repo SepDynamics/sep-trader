@@ -1691,7 +1691,7 @@ void Interpreter::register_builtins() {
             std::cout << stringify(args[i]);
         }
         std::cout << std::endl;
-        return 0.0; // Return dummy value
+        return 0.0; // Note: Print function returns success status, not data value
     };
 }
 

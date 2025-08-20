@@ -46,11 +46,12 @@ std::function<void(Context&)> Compiler::compile_stream_declaration(const ast::St
     return [stream](Context& context) {
         std::cout << "Creating stream: " << stream.name << " from " << stream.source << std::endl;
 
+// CRITICAL FIX: Eliminate ALL fake data - no backtesting placeholders allowed
 #ifdef SEP_BACKTESTING
-        // Backtesting placeholder: attach mock stream data
-        context.set_variable(stream.name, Value(std::string("stream_data")));
+        // ELIMINATED: No more mock stream data injection
+        throw std::runtime_error("CRITICAL: Backtesting mode disabled - no fake data allowed in production system!");
 #else
-        throw std::runtime_error("Stream creation requires production implementation");
+        throw std::runtime_error("Stream creation requires production implementation with real data source");
 #endif
     };
 }
