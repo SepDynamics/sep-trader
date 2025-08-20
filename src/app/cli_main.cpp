@@ -23,8 +23,8 @@ void printHeader() {
 }
 
 void printUsage() {
-    std::cout << "Usage: sep_training_cli [command] [options]\n\n";
-    
+    std::cout << "Usage: trader_cli [command] [options]\n\n";
+
     std::cout << "TRAINING COMMANDS:\n";
     std::cout << "  status                     - Show comprehensive system status\n";
     std::cout << "  train <pair>              - Train specific currency pair\n";
@@ -54,10 +54,10 @@ void printUsage() {
     std::cout << "  monitor [--duration=300]  - Real-time monitoring mode\n\n";
     
     std::cout << "Examples:\n";
-    std::cout << "  sep_training_cli train EUR_USD\n";
-    std::cout << "  sep_training_cli train-all --quick\n";
-    std::cout << "  sep_training_cli configure-remote 100.85.55.105\n";
-    std::cout << "  sep_training_cli start-tuning EUR_USD,GBP_USD,USD_JPY\n\n";
+    std::cout << "  trader_cli train EUR_USD\n";
+    std::cout << "  trader_cli train-all --quick\n";
+    std::cout << "  trader_cli configure-remote 100.85.55.105\n";
+    std::cout << "  trader_cli start-tuning EUR_USD,GBP_USD,USD_JPY\n\n";
 }
 
 int main(int argc, char* argv[]) {
@@ -100,7 +100,7 @@ int main(int argc, char* argv[]) {
         } else if (command == "train") {
             if (args.empty()) {
                 std::cout << "❌ Error: Missing currency pair\n";
-                std::cout << "Usage: sep_training_cli train <pair>\n";
+                std::cout << "Usage: trader_cli train <pair>\n";
                 return 1;
             }
             success = cli.trainPair(args[0]);
@@ -115,7 +115,7 @@ int main(int argc, char* argv[]) {
         } else if (command == "train-selected") {
             if (args.empty()) {
                 std::cout << "❌ Error: Missing currency pairs\n";
-                std::cout << "Usage: sep_training_cli train-selected <pairs>\n";
+                std::cout << "Usage: trader_cli train-selected <pairs>\n";
                 return 1;
             }
             success = cli.trainSelectedPairs(args[0]);
@@ -136,7 +136,7 @@ int main(int argc, char* argv[]) {
         } else if (command == "configure-remote") {
             if (args.empty()) {
                 std::cout << "❌ Error: Missing remote IP address\n";
-                std::cout << "Usage: sep_training_cli configure-remote <ip>\n";
+                std::cout << "Usage: trader_cli configure-remote <ip>\n";
                 return 1;
             }
             success = cli.configureRemoteTrader(args[0]);
@@ -153,7 +153,7 @@ int main(int argc, char* argv[]) {
         } else if (command == "start-tuning") {
             if (args.empty()) {
                 std::cout << "❌ Error: Missing currency pairs\n";
-                std::cout << "Usage: sep_training_cli start-tuning <pairs>\n";
+                std::cout << "Usage: trader_cli start-tuning <pairs>\n";
                 return 1;
             }
             success = cli.startLiveTuning(args[0]);

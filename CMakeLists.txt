@@ -90,6 +90,7 @@ endif()
 
 # CUDA ENABLED - Professional Trading System with GPU acceleration
 if(SEP_USE_CUDA)
+    add_compile_definitions(SEP_USE_CUDA)
     # First verify CUDA paths
     if(NOT DEFINED ENV{CUDA_HOME})
         message(FATAL_ERROR "CUDA_HOME environment variable not set")
@@ -105,7 +106,10 @@ if(SEP_USE_CUDA)
     if(UNIX AND NOT APPLE AND EXISTS "/usr/bin/g++-11")
         set(CMAKE_CUDA_HOST_COMPILER "/usr/bin/g++-11")
     endif()
-    set(CMAKE_CUDA_ARCHITECTURES "75;80;86" CACHE STRING "CUDA architectures")
+    # Set a default CUDA architecture.
+    # User has a GeForce 1070, which is Pascal architecture (compute capability 6.1).
+    # You can check your GPU's compute capability at: https://developer.nvidia.com/cuda-gpus
+    set(CMAKE_CUDA_ARCHITECTURES "61" CACHE STRING "CUDA architectures")
     
     # Configure CUDA standard
     set(CMAKE_CUDA_STANDARD 17)

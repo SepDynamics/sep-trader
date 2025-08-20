@@ -2,6 +2,10 @@
 #include "core/training_coordinator.hpp"
 #include "core/training_types.h"
 
+extern "C" void launch_quantum_training(const float* input_data, float* output_patterns, size_t data_size, int num_patterns);
+
+// SEP Professional Training Coordinator Implementation
+
 // SEP Professional Training Coordinator Implementation
 // Coordinates local CUDA training with remote trading deployment
 
@@ -207,7 +211,7 @@ TrainingResult TrainingCoordinator::executeCudaTraining(const std::string& pair,
     // Real CUDA training implementation - replaced simulation stub
     try
     {
-#ifdef __CUDACC__
+#ifdef SEP_USE_CUDA
         // Launch actual CUDA training kernels
         std::vector<float> training_data(1000, 1.0f);
         std::vector<float> results(1000, 0.0f);

@@ -41,7 +41,7 @@ add_sep_library(sep_lib SOURCES ${LIB_SOURCES} DEPENDENCIES sep_core_deps CUDA::
 target_include_directories(sep_lib PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/quantum/bitspace)
 
 # Create executables for each main file using add_sep_executable
-add_sep_executable(trader_cli SOURCES app/cli_main.cpp DEPENDENCIES sep_lib)
+add_sep_executable(trader_cli SOURCES app/cli_main.cpp cuda/quantum_training.cu DEPENDENCIES sep_lib)
 add_sep_executable(oanda_trader SOURCES app/oanda_trader_main.cpp DEPENDENCIES sep_lib)
 add_sep_executable(data_downloader SOURCES app/data_downloader.cpp DEPENDENCIES sep_lib)
 add_sep_executable(sep_dsl_interpreter SOURCES app/dsl_main.cpp DEPENDENCIES sep_lib)
