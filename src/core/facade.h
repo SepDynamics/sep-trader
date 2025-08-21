@@ -1,13 +1,12 @@
 #pragma once
 
+#include "core/standard_includes.h"
+#include "core/result_types.h"
+#include "core/types.h"
+
 #include "core/pattern.h"
 #include "candle_data.h"
-#include "util/result.h"
 #include "util/memory_tier_manager.hpp"
-#include "core/types.h"
-#include <vector>
-#include <string>
-#include <memory>
 
 // The Engine Facade - The Brain That the API Layer Observes
 // This is the clean measurement boundary between HTTP and core systems

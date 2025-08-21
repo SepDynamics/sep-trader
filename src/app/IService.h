@@ -1,8 +1,8 @@
 #pragma once
 
-#include "util/result.h"
-#include <string>
-#include <memory>
+#include "core/standard_includes.h"
+#include "core/result_types.h"
+#include "core/types.h"
 
 namespace sep {
 namespace services {
