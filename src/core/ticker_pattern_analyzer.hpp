@@ -10,9 +10,7 @@
 #include <mutex>
 #include <optional>
 #include <string>
-#include <string_view>
 #include <thread>
-#include <unordered_map>
 #include <utility>
 #include <variant>
 #include <vector>
@@ -171,7 +169,7 @@ class TradeExecutor {
   public:
     virtual ~TradeExecutor() = default;
     virtual sep::Result<std::string> submit(const OrderIntent& intent) = 0;
-    virtual sep::Result<void> cancel_all(const InstrumentId& instrument) = 0;
+    virtual sep::Results<void> cancel_all(const InstrumentId& instrument) = 0;
 };
 
 // ---------- Core feature & state snapshots ----------
@@ -372,25 +370,49 @@ class SepEngine {
     std::unique_ptr<GAO> gao_;
     std::unique_ptr<EvolutionEngine> evo_;
 
-    // realtime: one jthread per instrument
+    // realtime: one thread per instrument
     struct Session {
         SessionId id;
         InstrumentId instrument;
         Horizon horizon;
         CostModelPips costs;
-#if __cplusplus >= 202002L
-        std::jthread th;
-#else
-        sep_compat::jthread th;
-#endif
+        std::thread th;  // Use std::thread consistently
         std::atomic<bool> running{false};
-        
-        // Make Session movable but not copyable to handle atomic member
+
+        // Custom constructors to handle atomic member
         Session() = default;
+
+        // Delete copy operations due to atomic member
         Session(const Session&) = delete;
         Session& operator=(const Session&) = delete;
-        Session(Session&&) = default;
-        Session& operator=(Session&&) = default;
+
+        // Custom move constructor
+        Session(Session&& other) noexcept
+            : id(std::move(other.id)),
+              instrument(std::move(other.instrument)),
+              horizon(std::move(other.horizon)),
+              costs(std::move(other.costs)),
+              th(std::move(other.th)),
+              running(other.running.load()) {}
+
+        // Custom move assignment
+        Session& operator=(Session&& other) noexcept {
+            if (this != &other) {
+                // Stop and join current thread if active
+                if (running.load() && th.joinable()) {
+                    running.store(false);
+                    th.join();
+                }
+
+                id = std::move(other.id);
+                instrument = std::move(other.instrument);
+                horizon = std::move(other.horizon);
+                costs = std::move(other.costs);
+                th = std::move(other.th);
+                running.store(other.running.load());
+            }
+            return *this;
+        }
     };
     mutable std::mutex m_sessions_;
     std::unordered_map<std::string, Session> sessions_;  // key=instrument.symbol

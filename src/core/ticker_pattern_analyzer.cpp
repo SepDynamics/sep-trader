@@ -4,16 +4,6 @@
 // Only include absolutely essential headers to avoid namespace pollution
 #include <string>
 #include <sstream>
-#include <chrono>
-#include <thread>
-#include <mutex>
-#include <algorithm>
-#include <atomic>
-#include <iomanip>
-#include <memory>
-#include <optional>
-#include <random>
-#include <vector>
 
 namespace sep::engine {
 
@@ -114,7 +104,7 @@ SepEngine::~SepEngine() {
     for (auto& [instrument, session] : sessions_) {
         session.running.store(false);
         if (session.th.joinable()) {
-            session.th.request_stop();
+            // Remove C++20 request_stop() - not available in C++17
             session.th.join();
         }
     }
@@ -255,8 +245,9 @@ sep::Result<SepEngine::SessionId> SepEngine::start_session(const InstrumentId& i
     
     // Store session
     sessions_[instrument.symbol] = std::move(session);
-    
-    return sep::makeSuccess(session_id);
+
+    // Fix template binding by using copy instead of move
+    return sep::makeSuccess<SessionId>(SessionId{session_id.value});
 }
 
 sep::Result<void> SepEngine::stop_session(const SessionId& id) {
@@ -347,8 +338,9 @@ BitState64 SepEngine::make_bitstate64(const Tick& t) const {
     return state;
 }
 
-AnalysisResult SepEngine::pipeline_(const InstrumentId& instrument, std::span<const Tick> ticks,
-                                   const AnalysisRequest& req) {
+AnalysisResult SepEngine::pipeline_(const InstrumentId& instrument,
+                                    sep_compat::span<const Tick> ticks,
+                                    const AnalysisRequest& req) {
     (void)req;  // Suppress unused parameter warning
     
     AnalysisResult result;
