@@ -64,6 +64,7 @@ logs/
 !tests/CMakeLists.txt
 !tests/**/CMakeLists.txt
 !src/apps/oanda_trader/CMakeLists.txt
+!scripts/requirements.txt
 
 # Dependencies
 node_modules/
