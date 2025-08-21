@@ -3,16 +3,12 @@
 #ifndef SRC_APP_IMEMORYTIERSERVICE_MERGED_H
 #define SRC_APP_IMEMORYTIERSERVICE_MERGED_H
 
+#include "core/standard_includes.h"
+#include "core/result_types.h"
+#include "core/types.h"
+
 #include "IService.h"
 #include "MemoryTierTypes.h"
-#include "core/result_types.h"
-#include <array>
-#include <functional>
-#include <string>
-#include <vector>
-#include <memory>
-#include <cstddef>
-#include <cstdint>
 
 // Forward declarations
 namespace sep {

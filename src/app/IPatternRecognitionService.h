@@ -3,16 +3,13 @@
 #ifndef SRC_APP_IPATTERNRECOGNITIONSERVICE_MERGED_H
 #define SRC_APP_IPATTERNRECOGNITIONSERVICE_MERGED_H
 
+#include "core/standard_includes.h"
+#include "core/result_types.h"
+#include "core/types.h"
+
 #include "IService.h"
 #include "PatternTypes.h"
 #include "QuantumTypes.h"
-#include "core/result_types.h"
-#include <vector>
-#include <string>
-#include <memory>
-#include <array>
-#include <functional>
-#include <map>
 
 namespace sep {
 namespace services {

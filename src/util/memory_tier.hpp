@@ -1,15 +1,14 @@
 #pragma once
 
-// C++ Standard Library
-#include "core/result_types.h"
 #include "core/standard_includes.h"
+#include "core/result_types.h"
+#include "core/types.h"
 
 // Third-party headers
 #include <glm/vec3.hpp>
 
 // Project headers
 #include "util/persistent_pattern_data.hpp"
-#include "core/types.h"
 
 namespace sep {
 namespace memory {

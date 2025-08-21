@@ -1,16 +1,11 @@
 #pragma once
 
+#include "core/standard_includes.h"
+#include "core/result_types.h"
+#include "core/types.h"
+
 #include "core/pattern.h"
 #include "candle_data.h"
-#include "core/result_types.h"
-#include <vector>
-#include <string>
-#include "core/standard_includes.h"
-#include <atomic>
-#include <queue>
-#include <mutex>
-#include <condition_variable>
-#include <chrono>
 
 namespace sep::engine::streaming {
 

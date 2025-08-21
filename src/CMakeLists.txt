@@ -36,14 +36,50 @@ foreach(file ${ALL_SOURCES})
 endforeach()
 
 # Create a library from the non-main source files using add_sep_library
-add_sep_library(sep_lib SOURCES ${LIB_SOURCES} DEPENDENCIES sep_core_deps CUDA::cudart PCH_HEADER core/sep_precompiled.h)
+add_sep_library(sep_lib SOURCES ${LIB_SOURCES} PCH_HEADER core/sep_precompiled.h)
+target_link_libraries(sep_lib
+    PUBLIC
+        sep_core_deps
+        CUDA::cudart
+)
 target_include_directories(sep_lib PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/quantum/bitspace)
 
+# Collect public headers for installation
+file(GLOB_RECURSE SEP_LIB_PUBLIC_HEADERS
+    "app/*.h" "app/*.hpp"
+    "core/*.h" "core/*.hpp"
+    "cuda/*.h" "cuda/*.hpp"
+    "io/*.h" "io/*.hpp"
+    "quantum/bitspace/*.h" "quantum/bitspace/*.hpp"
+    "util/*.h" "util/*.hpp"
+)
+set_target_properties(sep_lib PROPERTIES PUBLIC_HEADER "${SEP_LIB_PUBLIC_HEADERS}")
+
+install(TARGETS sep_lib
+    PUBLIC_HEADER DESTINATION include/sep
+    ARCHIVE DESTINATION lib
+    LIBRARY DESTINATION lib
+    RUNTIME DESTINATION bin
+)
+
 # Create executables for each main file using add_sep_executable
-add_sep_executable(trader_cli SOURCES app/cli_main.cpp cuda/quantum_training.cu DEPENDENCIES sep_lib)
-add_sep_executable(oanda_trader SOURCES app/oanda_trader_main.cpp DEPENDENCIES sep_lib)
-add_sep_executable(data_downloader SOURCES app/data_downloader.cpp DEPENDENCIES sep_lib)
-add_sep_executable(sep_dsl_interpreter SOURCES app/dsl_main.cpp DEPENDENCIES sep_lib)
-add_sep_executable(quantum_tracker SOURCES app/quantum_tracker_main.cpp DEPENDENCIES sep_lib)
-add_sep_executable(sep_app SOURCES app/app_main.cpp DEPENDENCIES sep_lib)
-add_sep_executable(quantum_pair_trainer SOURCES core/quantum_pair_trainer.cpp DEPENDENCIES sep_lib)
+add_sep_executable(trader_cli SOURCES app/cli_main.cpp cuda/quantum_training.cu)
+target_link_libraries(trader_cli PRIVATE sep_lib)
+
+add_sep_executable(oanda_trader SOURCES app/oanda_trader_main.cpp)
+target_link_libraries(oanda_trader PRIVATE sep_lib)
+
+add_sep_executable(data_downloader SOURCES app/data_downloader.cpp)
+target_link_libraries(data_downloader PRIVATE sep_lib)
+
+add_sep_executable(sep_dsl_interpreter SOURCES app/dsl_main.cpp)
+target_link_libraries(sep_dsl_interpreter PRIVATE sep_lib)
+
+add_sep_executable(quantum_tracker SOURCES app/quantum_tracker_main.cpp)
+target_link_libraries(quantum_tracker PRIVATE sep_lib)
+
+add_sep_executable(sep_app SOURCES app/app_main.cpp)
+target_link_libraries(sep_app PRIVATE sep_lib)
+
+add_sep_executable(quantum_pair_trainer SOURCES core/quantum_pair_trainer.cpp)
+target_link_libraries(quantum_pair_trainer PRIVATE sep_lib)

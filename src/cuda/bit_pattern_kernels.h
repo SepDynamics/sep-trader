@@ -1,11 +1,10 @@
 #ifndef SEP_CUDA_PATTERN_BIT_PATTERN_KERNELS_H
 #define SEP_CUDA_PATTERN_BIT_PATTERN_KERNELS_H
 
-#include <cstdint>
-#include <cstddef>
-#include <cuda_runtime.h> // For cudaStream_t
-
+#include "core/standard_includes.h"
 #include "core/result_types.h"
+#include "core/types.h"
+#include <cuda_runtime.h> // For cudaStream_t
 
 #include "bit_pattern_types.cuh" // Include the new device types
 
