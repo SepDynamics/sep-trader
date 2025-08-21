@@ -14,48 +14,6 @@
 #include <iomanip>
 #include <algorithm>
 
-// Forward declarations to avoid problematic header includes
-namespace sep {
-    struct Error {
-        enum class Code {
-            Success, InvalidArgument, NotFound, ProcessingError, InternalError,
-            NotInitialized, CudaError, UnknownError, ResourceUnavailable, 
-            OperationFailed, NotImplemented, AlreadyExists, Internal = InternalError
-        };
-        Code code = Code::Success;
-        std::string message;
-        std::string location;
-        Error() = default;
-        Error(Code c, const std::string& msg = "") : code(c), message(msg) {}
-    };
-    
-    template<typename T>
-    class Result {
-    private:
-        std::variant<T, Error> data_;
-    public:
-        Result(const T& value) : data_(value) {}
-        Result(T&& value) : data_(std::move(value)) {}
-        Result(const Error& error) : data_(error) {}
-        Result(Error&& error) : data_(std::move(error)) {}
-        bool isSuccess() const { return std::holds_alternative<T>(data_); }
-        bool isError() const { return std::holds_alternative<Error>(data_); }
-        const T& value() const { return std::get<T>(data_); }
-        T& value() { return std::get<T>(data_); }
-        const Error& error() const { return std::get<Error>(data_); }
-        Error& error() { return std::get<Error>(data_); }
-    };
-    
-    template<typename T>
-    Result<T> makeSuccess(T&& value) { return Result<T>(std::forward<T>(value)); }
-    
-    template<typename T>  
-    Result<T> makeError(const Error& error) { return Result<T>(error); }
-
-}
-
-// Include only the specific variant header needed for Result
-#include <variant>
 
 namespace sep::engine {
 
