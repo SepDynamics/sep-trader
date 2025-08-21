@@ -1,9 +1,10 @@
 cmake_minimum_required(VERSION 3.18)
 
-# Create test executable using SEP test framework
-add_sep_test(sep_unit_tests
-    SOURCES
-        unit/coherence_manager_test.cpp
-    DEPENDENCIES
-        sep_lib
-)
+# Central test configuration for SEP
+include(CTest)
+include(${CMAKE_SOURCE_DIR}/cmake/gtest.cmake)
+
+# Organize tests by type
+add_subdirectory(unit)
+add_subdirectory(integration)
+add_subdirectory(performance)
