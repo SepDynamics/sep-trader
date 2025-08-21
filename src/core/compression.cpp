@@ -1,9 +1,9 @@
-#include "compression.h"
-
-#include "core/standard_includes.h"
 #include <algorithm>
 #include <cmath>
 #include <unordered_map>
+
+#include "compression.h"
+#include "core/standard_includes.h"
 
 namespace sep {
 namespace core {

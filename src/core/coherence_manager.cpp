@@ -1,27 +1,23 @@
-#include "coherence_manager.h"
-
-#include <cuda_runtime.h>
-
-#include "core/sep_precompiled.h"
-#include "core/cuda_types.hpp"
-
-#ifdef __CUDACC__
-#include <cuda_runtime.h>
-
-#endif
-#include <tbb/concurrent_hash_map.h>
-#include <tbb/parallel_for.h>
-
 #include <algorithm>
 #include <array>
 #include <atomic>
 #include <cmath>
+#include <cuda_runtime.h>
 #include <glm/vec4.hpp>
 #include <memory>
 #include <numeric>
 #include <string>
+#include <tbb/concurrent_hash_map.h>
+#include <tbb/parallel_for.h>
 #include <vector>
 
+#ifdef __CUDACC__
+#include <cuda_runtime.h>
+#endif
+
+#include "coherence_manager.h"
+#include "core/sep_precompiled.h"
+#include "core/cuda_types.hpp"
 #include "core/core.h"
 #include "cuda.h"
 #include "core/cuda_helpers.h"

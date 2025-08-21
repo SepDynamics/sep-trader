@@ -1,8 +1,8 @@
-#include "core/dag_graph.h"
-
 // Standard library includes
 #include <algorithm>
 #include <vector>
+
+#include "core/dag_graph.h"
 
 namespace sep {
 namespace dag {

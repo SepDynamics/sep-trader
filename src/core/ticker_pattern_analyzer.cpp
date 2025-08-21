@@ -1,64 +1,18 @@
-#include "core/ticker_pattern_analyzer.hpp"
-
-// Only include absolutely essential headers to avoid namespace pollution
-#include <string>
-#include <sstream>
-#include <chrono>
-#include <thread>
-#include <mutex>
+#include <algorithm>
 #include <atomic>
+#include <chrono>
+#include <iomanip>
 #include <memory>
-#include <vector>
+#include <mutex>
 #include <optional>
 #include <random>
-#include <iomanip>
-#include <algorithm>
+#include <sstream>
+#include <string>
+#include <thread>
+#include <vector>
 
-// Forward declarations to avoid problematic header includes
-namespace sep {
-    struct Error {
-        enum class Code {
-            Success, InvalidArgument, NotFound, ProcessingError, InternalError,
-            NotInitialized, CudaError, UnknownError, ResourceUnavailable, 
-            OperationFailed, NotImplemented, AlreadyExists, Internal = InternalError
-        };
-        Code code = Code::Success;
-        std::string message;
-        std::string location;
-        Error() = default;
-        Error(Code c, const std::string& msg = "") : code(c), message(msg) {}
-    };
-    
-    template<typename T>
-    class Result {
-    private:
-        std::variant<T, Error> data_;
-    public:
-        Result(const T& value) : data_(value) {}
-        Result(T&& value) : data_(std::move(value)) {}
-        Result(const Error& error) : data_(error) {}
-        Result(Error&& error) : data_(std::move(error)) {}
-        bool isSuccess() const { return std::holds_alternative<T>(data_); }
-        bool isError() const { return std::holds_alternative<Error>(data_); }
-        const T& value() const { return std::get<T>(data_); }
-        T& value() { return std::get<T>(data_); }
-        const Error& error() const { return std::get<Error>(data_); }
-        Error& error() { return std::get<Error>(data_); }
-    };
-    
-    template<typename T>
-    Result<T> makeSuccess(T&& value) { return Result<T>(std::forward<T>(value)); }
-    
-    template<typename T>  
-    Result<T> makeError(const Error& error) { return Result<T>(error); }
-
-    namespace engine {
-        enum class Timeframe { M1, M5, M15, H1, H4, D1 };
-    }
-}
-
-// Include only the specific variant header needed for Result
-#include <variant>
+#include "core/ticker_pattern_analyzer.hpp"
+#include "core/result_types.h"
 
 namespace sep::engine {
 

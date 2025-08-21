@@ -1,5 +1,3 @@
-#include "batch_processor.h"
-
 #include <algorithm>
 #include <chrono>
 #include <cstdlib>
@@ -7,6 +5,7 @@
 #include <mutex>
 #include <sstream>
 
+#include "batch_processor.h"
 #include "core/facade.h"
 
 namespace sep::engine::batch {
