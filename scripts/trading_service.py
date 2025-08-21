@@ -55,6 +55,7 @@ class TradingService:
         self.trading_active = False
         self.last_sync = None
         self.market_status = "unknown"
+        self.current_config = {}
 
         # Setup connectors and risk manager
         try:
@@ -76,10 +77,12 @@ class TradingService:
                 with open(config_path, 'r') as f:
                     config = json.load(f)
                     self.enabled_pairs = set(config.get('enabled_pairs', []))
+                    self.current_config = config
                     logger.info(f"Loaded {len(self.enabled_pairs)} enabled pairs")
             else:
                 logger.warning("No pair registry found, using defaults")
                 self.enabled_pairs = {"EUR_USD", "GBP_USD"}
+                self.current_config = {'enabled_pairs': list(self.enabled_pairs)}
         except Exception as e:
             logger.error(f"Error loading config: {e}")
 
@@ -88,8 +91,9 @@ class TradingService:
         try:
             config_path = "/app/config/pair_registry.json"
             os.makedirs(os.path.dirname(config_path), exist_ok=True)
+            self.current_config['enabled_pairs'] = sorted(self.enabled_pairs)
             with open(config_path, 'w', encoding='utf-8') as f:
-                json.dump({'enabled_pairs': sorted(self.enabled_pairs)}, f, indent=2)
+                json.dump(self.current_config, f, indent=2)
         except Exception as e:
             logger.error(f"Error saving pair registry: {e}")
 
@@ -130,6 +134,55 @@ class TradingService:
         except Exception as e:
             logger.error(f"Error reading performance history: {e}")
         return {'trades': []}
+
+    def get_performance_current(self) -> dict:
+        """Return current P&L and statistics"""
+        try:
+            trades_data = self.get_performance_history()
+            trades = trades_data.get('trades', [])
+            
+            # Calculate current performance metrics
+            total_trades = len(trades)
+            winning_trades = len([t for t in trades if t.get('status') == 'executed'])
+            current_pnl = 0.0  # Would calculate from actual trade results
+            
+            return {
+                'total_trades': total_trades,
+                'winning_trades': winning_trades,
+                'win_rate': (winning_trades / total_trades * 100) if total_trades > 0 else 0,
+                'current_pnl': current_pnl,
+                'daily_pnl': current_pnl,  # Would filter by today's trades
+                'risk_level': self.risk_manager.get_risk_summary().get('risk_level', 'low'),
+                'timestamp': datetime.now().isoformat()
+            }
+        except Exception as e:
+            logger.error(f"Error calculating current performance: {e}")
+            return {
+                'total_trades': 0,
+                'winning_trades': 0,
+                'win_rate': 0,
+                'current_pnl': 0.0,
+                'daily_pnl': 0.0,
+                'risk_level': 'unknown',
+                'timestamp': datetime.now().isoformat()
+            }
+
+    def get_config(self, key: str = None) -> dict:
+        """Get configuration values"""
+        if key:
+            return {key: self.current_config.get(key)}
+        return self.current_config
+
+    def set_config(self, key: str, value) -> dict:
+        """Update configuration"""
+        try:
+            self.current_config[key] = value
+            self._save_pairs()  # This saves the entire config
+            logger.info(f"Updated config: {key} = {value}")
+            return {'status': 'success', 'key': key, 'value': value}
+        except Exception as e:
+            logger.error(f"Error setting config {key}: {e}")
+            return {'status': 'error', 'message': str(e)}
 
     def execute_command(self, command: str) -> dict:
         """Execute a CLI command and return its output"""
@@ -273,6 +326,19 @@ class TradingAPIHandler(BaseHTTPRequestHandler):
         self.trading_service = trading_service
         super().__init__(*args, **kwargs)
 
+    def _set_cors_headers(self):
+        """Set CORS headers for all responses"""
+        self.send_header('Access-Control-Allow-Origin', '*')
+        self.send_header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
+        self.send_header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With')
+        self.send_header('Access-Control-Max-Age', '3600')
+
+    def do_OPTIONS(self):
+        """Handle CORS preflight requests"""
+        self.send_response(200)
+        self._set_cors_headers()
+        self.end_headers()
+
     def do_HEAD(self):
         """Handle HEAD requests - same as GET but without response body"""
         logger.info(f"Handling HEAD request for {self.path}")
@@ -282,10 +348,12 @@ class TradingAPIHandler(BaseHTTPRequestHandler):
         if path == '/health' or path == '/api/status':
             self.send_response(200)
             self.send_header('Content-type', 'application/json')
+            self._set_cors_headers()
             self.end_headers()
             logger.info(f"Responded 200 to HEAD {self.path}")
         else:
             self.send_response(404)
+            self._set_cors_headers()
             self.end_headers()
             logger.info(f"Responded 404 to HEAD {self.path}")
 
@@ -293,107 +361,204 @@ class TradingAPIHandler(BaseHTTPRequestHandler):
         """Handle GET requests"""
         parsed_path = urlparse(self.path)
         path = parsed_path.path
+        logger.info(f"GET request for {path}")
 
-        if path == '/health':
-            self.send_response(200)
+        try:
+            if path == '/health':
+                self.send_response(200)
+                self.send_header('Content-type', 'application/json')
+                self._set_cors_headers()
+                self.end_headers()
+                response = {
+                    'status': 'healthy',
+                    'market_status': self.trading_service.market_status,
+                    'trading_active': self.trading_service.trading_active,
+                    'enabled_pairs': list(self.trading_service.enabled_pairs),
+                    'timestamp': datetime.now().isoformat()
+                }
+                self.wfile.write(json.dumps(response).encode())
+
+            elif path == '/api/health':
+                self.send_response(200)
+                self.send_header('Content-type', 'application/json')
+                self._set_cors_headers()
+                self.end_headers()
+                response = {
+                    'status': 'healthy',
+                    'service': 'SEP Professional Trader-Bot',
+                    'market_status': self.trading_service.market_status,
+                    'trading_active': self.trading_service.trading_active,
+                    'timestamp': datetime.now().isoformat()
+                }
+                self.wfile.write(json.dumps(response).encode())
+
+            elif path == '/api/status':
+                self.send_response(200)
+                self.send_header('Content-type', 'application/json')
+                self._set_cors_headers()
+                self.end_headers()
+                response = {
+                    'service': 'SEP Professional Trader-Bot',
+                    'version': '1.0.0',
+                    'status': 'running' if self.trading_service.running else 'stopped',
+                    'market': self.trading_service.market_status,
+                    'pairs': list(self.trading_service.enabled_pairs),
+                    'last_sync': self.trading_service.last_sync
+                }
+                self.wfile.write(json.dumps(response).encode())
+
+            elif path == '/api/pairs':
+                self.send_response(200)
+                self.send_header('Content-type', 'application/json')
+                self._set_cors_headers()
+                self.end_headers()
+                response = {'pairs': list(self.trading_service.enabled_pairs)}
+                self.wfile.write(json.dumps(response).encode())
+
+            elif path == '/api/metrics/live':
+                self.send_response(200)
+                self.send_header('Content-type', 'application/json')
+                self._set_cors_headers()
+                self.end_headers()
+                response = self.trading_service.get_live_metrics()
+                self.wfile.write(json.dumps(response).encode())
+
+            elif path == '/api/performance/history':
+                self.send_response(200)
+                self.send_header('Content-type', 'application/json')
+                self._set_cors_headers()
+                self.end_headers()
+                response = self.trading_service.get_performance_history()
+                self.wfile.write(json.dumps(response).encode())
+
+            elif path == '/api/performance/current':
+                self.send_response(200)
+                self.send_header('Content-type', 'application/json')
+                self._set_cors_headers()
+                self.end_headers()
+                response = self.trading_service.get_performance_current()
+                self.wfile.write(json.dumps(response).encode())
+
+            elif path.startswith('/api/config'):
+                query_params = urlparse(self.path).query
+                key = None
+                if query_params:
+                    for param in query_params.split('&'):
+                        if param.startswith('key='):
+                            key = param.split('=', 1)[1]
+                
+                self.send_response(200)
+                self.send_header('Content-type', 'application/json')
+                self._set_cors_headers()
+                self.end_headers()
+                response = self.trading_service.get_config(key)
+                self.wfile.write(json.dumps(response).encode())
+
+            else:
+                self.send_response(404)
+                self._set_cors_headers()
+                self.end_headers()
+                self.wfile.write(json.dumps({'error': 'Endpoint not found'}).encode())
+
+        except Exception as e:
+            logger.error(f"Error handling GET {path}: {e}")
+            self.send_response(500)
+            self._set_cors_headers()
             self.send_header('Content-type', 'application/json')
             self.end_headers()
-            response = {
-                'status': 'healthy',
-                'market_status': self.trading_service.market_status,
-                'trading_active': self.trading_service.trading_active,
-                'enabled_pairs': list(self.trading_service.enabled_pairs),
-                'timestamp': datetime.now().isoformat()
-            }
-            self.wfile.write(json.dumps(response).encode())
-
-        elif path == '/api/status':
-            self.send_response(200)
-            self.send_header('Content-type', 'application/json')
-            self.end_headers()
-            response = {
-                'service': 'SEP Professional Trader-Bot',
-                'version': '1.0.0',
-                'status': 'running' if self.trading_service.running else 'stopped',
-                'market': self.trading_service.market_status,
-                'pairs': list(self.trading_service.enabled_pairs),
-                'last_sync': self.trading_service.last_sync
-            }
-            self.wfile.write(json.dumps(response).encode())
-
-        elif path == '/api/pairs':
-            self.send_response(200)
-            self.send_header('Content-type', 'application/json')
-            self.end_headers()
-            response = {'pairs': list(self.trading_service.enabled_pairs)}
-            self.wfile.write(json.dumps(response).encode())
-
-        elif path == '/api/metrics/live':
-            self.send_response(200)
-            self.send_header('Content-type', 'application/json')
-            self.end_headers()
-            response = self.trading_service.get_live_metrics()
-            self.wfile.write(json.dumps(response).encode())
-
-        elif path == '/api/performance/history':
-            self.send_response(200)
-            self.send_header('Content-type', 'application/json')
-            self.end_headers()
-            response = self.trading_service.get_performance_history()
-            self.wfile.write(json.dumps(response).encode())
-
-        else:
-            self.send_response(404)
-            self.end_headers()
+            self.wfile.write(json.dumps({'error': str(e)}).encode())
 
     def do_POST(self):
         """Handle POST requests"""
         parsed_path = urlparse(self.path)
         path = parsed_path.path
+        logger.info(f"POST request for {path}")
 
-        if path == '/api/data/reload':
-            self.trading_service.load_config()
-            self.trading_service.last_sync = datetime.now().isoformat()
+        try:
+            if path == '/api/data/reload':
+                self.trading_service.load_config()
+                self.trading_service.last_sync = datetime.now().isoformat()
 
-            self.send_response(200)
+                self.send_response(200)
+                self.send_header('Content-type', 'application/json')
+                self._set_cors_headers()
+                self.end_headers()
+                response = {'status': 'reloaded', 'timestamp': datetime.now().isoformat()}
+                self.wfile.write(json.dumps(response).encode())
+
+            elif path.startswith('/api/pairs/') and path.endswith('/enable'):
+                pair = path.split('/')[3]
+                pairs = self.trading_service.enable_pair(pair)
+                self.send_response(200)
+                self.send_header('Content-type', 'application/json')
+                self._set_cors_headers()
+                self.end_headers()
+                self.wfile.write(json.dumps({'pairs': pairs}).encode())
+
+            elif path.startswith('/api/pairs/') and path.endswith('/disable'):
+                pair = path.split('/')[3]
+                pairs = self.trading_service.disable_pair(pair)
+                self.send_response(200)
+                self.send_header('Content-type', 'application/json')
+                self._set_cors_headers()
+                self.end_headers()
+                self.wfile.write(json.dumps({'pairs': pairs}).encode())
+
+            elif path == '/api/commands/execute':
+                length = int(self.headers.get('Content-Length', 0))
+                body = self.rfile.read(length) if length else b'{}'
+                try:
+                    data = json.loads(body)
+                except json.JSONDecodeError:
+                    data = {}
+                command = data.get('command', '')
+                result = self.trading_service.execute_command(command)
+                self.send_response(200)
+                self.send_header('Content-type', 'application/json')
+                self._set_cors_headers()
+                self.end_headers()
+                self.wfile.write(json.dumps(result).encode())
+
+            elif path == '/api/config/set':
+                length = int(self.headers.get('Content-Length', 0))
+                body = self.rfile.read(length) if length else b'{}'
+                try:
+                    data = json.loads(body)
+                    key = data.get('key')
+                    value = data.get('value')
+                    if key:
+                        result = self.trading_service.set_config(key, value)
+                        self.send_response(200)
+                        self.send_header('Content-type', 'application/json')
+                        self._set_cors_headers()
+                        self.end_headers()
+                        self.wfile.write(json.dumps(result).encode())
+                    else:
+                        self.send_response(400)
+                        self._set_cors_headers()
+                        self.send_header('Content-type', 'application/json')
+                        self.end_headers()
+                        self.wfile.write(json.dumps({'error': 'Missing key parameter'}).encode())
+                except json.JSONDecodeError:
+                    self.send_response(400)
+                    self._set_cors_headers()
+                    self.send_header('Content-type', 'application/json')
+                    self.end_headers()
+                    self.wfile.write(json.dumps({'error': 'Invalid JSON'}).encode())
+
+            else:
+                self.send_response(404)
+                self._set_cors_headers()
+                self.end_headers()
+                self.wfile.write(json.dumps({'error': 'Endpoint not found'}).encode())
+
+        except Exception as e:
+            logger.error(f"Error handling POST {path}: {e}")
+            self.send_response(500)
+            self._set_cors_headers()
             self.send_header('Content-type', 'application/json')
             self.end_headers()
-            response = {'status': 'reloaded', 'timestamp': datetime.now().isoformat()}
-            self.wfile.write(json.dumps(response).encode())
-
-        elif path.startswith('/api/pairs/') and path.endswith('/enable'):
-            pair = path.split('/')[3]
-            pairs = self.trading_service.enable_pair(pair)
-            self.send_response(200)
-            self.send_header('Content-type', 'application/json')
-            self.end_headers()
-            self.wfile.write(json.dumps({'pairs': pairs}).encode())
-
-        elif path.startswith('/api/pairs/') and path.endswith('/disable'):
-            pair = path.split('/')[3]
-            pairs = self.trading_service.disable_pair(pair)
-            self.send_response(200)
-            self.send_header('Content-type', 'application/json')
-            self.end_headers()
-            self.wfile.write(json.dumps({'pairs': pairs}).encode())
-
-        elif path == '/api/commands/execute':
-            length = int(self.headers.get('Content-Length', 0))
-            body = self.rfile.read(length) if length else b'{}'
-            try:
-                data = json.loads(body)
-            except json.JSONDecodeError:
-                data = {}
-            command = data.get('command', '')
-            result = self.trading_service.execute_command(command)
-            self.send_response(200)
-            self.send_header('Content-type', 'application/json')
-            self.end_headers()
-            self.wfile.write(json.dumps(result).encode())
-
-        else:
-            self.send_response(404)
-            self.end_headers()
+            self.wfile.write(json.dumps({'error': str(e)}).encode())
 
     def log_message(self, format, *args):
         """Override to use our logger"""

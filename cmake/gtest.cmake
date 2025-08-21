@@ -17,8 +17,8 @@ if(BUILD_TESTING)
     FetchContent_MakeAvailable(googletest)
     
     # Alias to match system GTest targets
-    add_library(GTest::gtest ALIAS gtest)
-    add_library(GTest::gtest_main ALIAS gtest_main)
+    # add_library(GTest::gtest ALIAS gtest)
+    # add_library(GTest::gtest_main ALIAS gtest_main)
     
     # Include Google Test utilities
     include(GoogleTest)

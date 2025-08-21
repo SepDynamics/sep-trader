@@ -76,7 +76,7 @@ int TraderCLI::run(int argc, char* argv[]) {
 
 void TraderCLI::print_help() const {
     printf("SEP Professional Trading CLI v1.0\n");
-    printf("\nUsage: trader-cli <command> [options]\n\n");
+    printf("\nUsage: trader_cli <command> [options]\n\n");
     printf("Commands:\n");
     printf("  status       Show system status\n");
     printf("  pairs        Manage trading pairs\n");
@@ -92,11 +92,11 @@ void TraderCLI::print_help() const {
     printf("  -h, --help       Show help message\n");
     printf("      --version    Show version information\n\n");
     printf("Examples:\n");
-    printf("  trader-cli status\n");
-    printf("  trader-cli pairs list\n");
-    printf("  trader-cli config show\n");
-    printf("  trader-cli train start --pair EURUSD\n");
-    printf("  trader-cli daemon --foreground\n");
+    printf("  trader_cli status\n");
+    printf("  trader_cli pairs list\n");
+    printf("  trader_cli config show\n");
+    printf("  trader_cli train start --pair EURUSD\n");
+    printf("  trader_cli daemon --foreground\n");
 }
 
 void TraderCLI::print_version() const {
@@ -133,7 +133,7 @@ int TraderCLI::execute_command(const char* command) {
         return 0;
     } else {
         printf("Unknown command: %s\n", command);
-        printf("Use 'trader-cli help' for usage information.\n");
+        printf("Use 'trader_cli help' for usage information.\n");
         return 1;
     }
 }

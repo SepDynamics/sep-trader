@@ -200,7 +200,7 @@ int SimpleTraderCLI::handle_status() {
 void SimpleTraderCLI::print_help() {
     std::cout << "🚀 SEP Trading System CLI - Simple Version" << std::endl;
     std::cout << std::endl;
-    std::cout << "Usage: trader-cli [command] [options]" << std::endl;
+    std::cout << "Usage: trader_cli [command] [options]" << std::endl;
     std::cout << std::endl;
     std::cout << "Commands:" << std::endl;
     std::cout << "  start [daemon]    Start the trading system (daemon mode optional)" << std::endl;
@@ -212,8 +212,11 @@ void SimpleTraderCLI::print_help() {
     std::cout << "  --help, -h       Show this help" << std::endl;
     std::cout << std::endl;
     std::cout << "Examples:" << std::endl;
-    std::cout << "  trader-cli start daemon --verbose    # Start in daemon mode with verbose health monitoring" << std::endl;
-    std::cout << "  trader-cli status                     # Check system and cache health status" << std::endl;
+    std::cout << "  trader_cli start daemon --verbose    # Start in daemon mode with verbose "
+                 "health monitoring"
+              << std::endl;
+    std::cout << "  trader_cli status                     # Check system and cache health status"
+              << std::endl;
     std::cout << std::endl;
     std::cout << "Features:" << std::endl;
     std::cout << "  ✅ Integrated cache health monitoring" << std::endl;
