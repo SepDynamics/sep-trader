@@ -13,21 +13,21 @@ StreamingDataManager::~StreamingDataManager() {
     shutdown();
 }
 
-core::Result<void> StreamingDataManager::initialize() {
+sep::Result<void> StreamingDataManager::initialize() {
     if (initialized_.load()) {
-        return core::Result<void>(sep::Error(sep::Error::Code::AlreadyExists, "Already initialized"));
+        return sep::Result<void>(sep::Error(sep::Error::Code::AlreadyExists, "Already initialized"));
     }
     
     std::cout << "StreamingDataManager: Initializing real-time data processing" << std::endl;
     initialized_.store(true);
     shutdown_requested_.store(false);
     
-    return core::Result<void>();
+    return sep::Result<void>();
 }
 
-core::Result<void> StreamingDataManager::shutdown() {
+sep::Result<void> StreamingDataManager::shutdown() {
     if (!initialized_.load()) {
-        return core::Result<void>(sep::Error(sep::Error::Code::NotInitialized, "Not initialized"));
+        return sep::Result<void>(sep::Error(sep::Error::Code::NotInitialized, "Not initialized"));
     }
     
     std::cout << "StreamingDataManager: Shutting down streams..." << std::endl;
@@ -49,18 +49,18 @@ core::Result<void> StreamingDataManager::shutdown() {
     streams_.clear();
     initialized_.store(false);
     
-    return core::Result<void>();
+    return sep::Result<void>();
 }
 
-core::Result<void> StreamingDataManager::createStream(const StreamConfiguration& config) {
+sep::Result<void> StreamingDataManager::createStream(const StreamConfiguration& config) {
     if (!initialized_.load()) {
-        return core::Result<void>(sep::Error(sep::Error::Code::NotInitialized, "Not initialized"));
+        return sep::Result<void>(sep::Error(sep::Error::Code::NotInitialized, "Not initialized"));
     }
     
     std::lock_guard<std::mutex> lock(streams_mutex_);
     
     if (streams_.find(config.stream_id) != streams_.end()) {
-        return core::Result<void>(sep::Error(sep::Error::Code::OperationFailed, "ALREADY_EXISTS"));
+        return sep::Result<void>(sep::Error(sep::Error::Code::OperationFailed, "ALREADY_EXISTS"));
     }
     
     auto context = std::make_unique<StreamContext>();
@@ -72,20 +72,20 @@ core::Result<void> StreamingDataManager::createStream(const StreamConfiguration&
     
     streams_[config.stream_id] = std::move(context);
     
-    return core::Result<void>();
+    return sep::Result<void>();
 }
 
-core::Result<void> StreamingDataManager::startStream(const std::string& stream_id) {
+sep::Result<void> StreamingDataManager::startStream(const std::string& stream_id) {
     std::lock_guard<std::mutex> lock(streams_mutex_);
     
     auto it = streams_.find(stream_id);
     if (it == streams_.end()) {
-        return core::Result<void>(sep::Error(sep::Error::Code::OperationFailed, "NOT_FOUND"));
+        return sep::Result<void>(sep::Error(sep::Error::Code::OperationFailed, "NOT_FOUND"));
     }
     
     auto& context = it->second;
     if (context->active.load()) {
-        return core::Result<void>(sep::Error(sep::Error::Code::OperationFailed, "ALREADY_EXISTS"));
+        return sep::Result<void>(sep::Error(sep::Error::Code::OperationFailed, "ALREADY_EXISTS"));
     }
     
     context->active.store(true);
@@ -93,20 +93,20 @@ core::Result<void> StreamingDataManager::startStream(const std::string& stream_i
     
     std::cout << "StreamingDataManager: Started stream '" << stream_id << "'" << std::endl;
     
-    return core::Result<void>();
+    return sep::Result<void>();
 }
 
-core::Result<void> StreamingDataManager::stopStream(const std::string& stream_id) {
+sep::Result<void> StreamingDataManager::stopStream(const std::string& stream_id) {
     std::lock_guard<std::mutex> lock(streams_mutex_);
     
     auto it = streams_.find(stream_id);
     if (it == streams_.end()) {
-        return core::Result<void>(sep::Error(sep::Error::Code::OperationFailed, "NOT_FOUND"));
+        return sep::Result<void>(sep::Error(sep::Error::Code::OperationFailed, "NOT_FOUND"));
     }
     
     auto& context = it->second;
     if (!context->active.load()) {
-        return core::Result<void>(sep::Error(sep::Error::Code::OperationFailed, "NOT_FOUND"));
+        return sep::Result<void>(sep::Error(sep::Error::Code::OperationFailed, "NOT_FOUND"));
     }
     
     context->active.store(false);
@@ -118,10 +118,10 @@ core::Result<void> StreamingDataManager::stopStream(const std::string& stream_id
     
     std::cout << "StreamingDataManager: Stopped stream '" << stream_id << "'" << std::endl;
     
-    return core::Result<void>();
+    return sep::Result<void>();
 }
 
-core::Result<void> StreamingDataManager::deleteStream(const std::string& stream_id) {
+sep::Result<void> StreamingDataManager::deleteStream(const std::string& stream_id) {
     // First stop the stream if it's running
     stopStream(stream_id);
     
@@ -129,22 +129,22 @@ core::Result<void> StreamingDataManager::deleteStream(const std::string& stream_
     
     auto it = streams_.find(stream_id);
     if (it == streams_.end()) {
-        return core::Result<void>(sep::Error(sep::Error::Code::OperationFailed, "NOT_FOUND"));
+        return sep::Result<void>(sep::Error(sep::Error::Code::OperationFailed, "NOT_FOUND"));
     }
     
     streams_.erase(it);
     std::cout << "StreamingDataManager: Deleted stream '" << stream_id << "'" << std::endl;
     
-    return core::Result<void>();
+    return sep::Result<void>();
 }
 
-core::Result<void> StreamingDataManager::ingestData(const std::string& stream_id,
+sep::Result<void> StreamingDataManager::ingestData(const std::string& stream_id,
                                             const StreamDataPoint& data) {
     std::lock_guard<std::mutex> lock(streams_mutex_);
     
     auto it = streams_.find(stream_id);
     if (it == streams_.end()) {
-        return core::Result<void>(sep::Error(sep::Error::Code::OperationFailed, "NOT_FOUND"));
+        return sep::Result<void>(sep::Error(sep::Error::Code::OperationFailed, "NOT_FOUND"));
     }
     
     auto& context = it->second;
@@ -171,10 +171,10 @@ core::Result<void> StreamingDataManager::ingestData(const std::string& stream_id
         context->data_callback(data);
     }
     
-    return core::Result<void>();
+    return sep::Result<void>();
 }
 
-core::Result<void> StreamingDataManager::ingestBatch(const std::string& stream_id,
+sep::Result<void> StreamingDataManager::ingestBatch(const std::string& stream_id,
                                              const std::vector<StreamDataPoint>& batch) {
     for (const auto& data_point : batch) {
         auto result = ingestData(stream_id, data_point);
@@ -183,7 +183,7 @@ core::Result<void> StreamingDataManager::ingestBatch(const std::string& stream_i
         }
     }
     
-    return core::Result<void>();
+    return sep::Result<void>();
 }
 
 void StreamingDataManager::setDataCallback(const std::string& stream_id, DataCallback callback) {
@@ -238,8 +238,8 @@ std::vector<StreamDataPoint> StreamingDataManager::getRecentData(const std::stri
     return result;
 }
 
-std::vector<core::Pattern> StreamingDataManager::getRecentPatterns(const std::string& stream_id, 
-                                                                  size_t count) {
+std::vector<quantum::Pattern> StreamingDataManager::getRecentPatterns(const std::string& stream_id,
+                                                                      size_t count) {
     std::lock_guard<std::mutex> lock(streams_mutex_);
     
     auto it = streams_.find(stream_id);
@@ -252,11 +252,9 @@ std::vector<core::Pattern> StreamingDataManager::getRecentPatterns(const std::st
     
     size_t start_index = context->pattern_buffer.size() > count ? 
                         context->pattern_buffer.size() - count : 0;
-    
-    return std::vector<core::Pattern>(
-        context->pattern_buffer.begin() + start_index,
-        context->pattern_buffer.end()
-    );
+
+    return std::vector<quantum::Pattern>(context->pattern_buffer.begin() + start_index,
+                                         context->pattern_buffer.end());
 }
 
 StreamStats StreamingDataManager::getStreamStats(const std::string& stream_id) {
@@ -284,11 +282,11 @@ std::vector<std::string> StreamingDataManager::getActiveStreams() const {
     return active_streams;
 }
 
-core::Result<void> StreamingDataManager::analyzeStreamPattern(const std::string& stream_id,
-                                                       const std::vector<StreamDataPoint>& window,
-                                                       core::Pattern& result) {
+sep::Result<void> StreamingDataManager::analyzeStreamPattern(
+    const std::string& stream_id, const std::vector<StreamDataPoint>& window,
+    quantum::Pattern& result) {
     if (window.empty()) {
-        return core::Result<void>(sep::Error(sep::Error::Code::OperationFailed, "INVALID_ARGUMENT"));
+        return sep::Result<void>(sep::Error(sep::Error::Code::OperationFailed, "INVALID_ARGUMENT"));
     }
     
     // Combine all data streams into one bitstream for analysis
@@ -323,7 +321,7 @@ core::Result<void> StreamingDataManager::analyzeStreamPattern(const std::string&
     result.quantum_state.stability = 1.0f - qfh_response.rupture_ratio;
     result.quantum_state.entropy = qfh_response.entropy;
     
-    return core::Result<void>();
+    return sep::Result<void>();
 }
 
 void StreamingDataManager::processStreamData(StreamContext* context) {
@@ -376,7 +374,7 @@ void StreamingDataManager::analyzeDataWindow(StreamContext* context,
     }
     
     try {
-        core::Pattern pattern;
+        quantum::Pattern pattern;
         auto result = analyzeStreamPattern(context->config.stream_id, window, pattern);
         
         if (result.isSuccess()) {

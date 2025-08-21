@@ -13,7 +13,7 @@
 #include <atomic>
 
 namespace sep {
-namespace training {
+namespace train {
 
 struct DataFetchConfig {
     std::string oanda_api_key;
@@ -120,7 +120,7 @@ std::vector<std::string> getStandardGranularities();
 bool isMarketOpen();
 std::chrono::system_clock::time_point getLastMarketClose();
 
-} // namespace training
+} // namespace train
 } // namespace sep
 
 #endif // WEEKLY_DATA_FETCHER_HPP

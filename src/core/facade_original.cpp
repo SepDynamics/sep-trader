@@ -313,8 +313,8 @@ Result<void> EngineFacade::storePattern(const StorePatternRequest& request,
 
         // Allocate memory block in the determined tier
         auto block = impl_->memory_manager->allocate(
-            sizeof(core::Pattern),  // Size of pattern data
-            sep::memory::MemoryTierEnum::STM // Default to STM tier since getTierEnum doesn't exist
+            sizeof(quantum::Pattern),         // Size of pattern data
+            sep::memory::MemoryTierEnum::STM  // Default to STM tier since getTierEnum doesn't exist
         );
 
         if (!block) {
@@ -357,7 +357,7 @@ Result<void> EngineFacade::storePattern(const StorePatternRequest& request,
 // --- Memory and Health Methods ---
 
 Result<void> EngineFacade::queryMemory(const MemoryQueryRequest& request,
-                                      std::vector<core::Pattern>& results) {
+                                       std::vector<quantum::Pattern>& results) {
     if (!initialized_ || !impl_ || !impl_->memory_manager)
     {
         return Result<void>(sep::Error(sep::Error::Code::NotInitialized, "Not initialized"));

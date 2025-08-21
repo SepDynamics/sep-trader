@@ -71,4 +71,14 @@ struct RemoteTraderConfig {
 };
 
 } // namespace training
+
+// Namespace alias for backward compatibility with existing code that uses sep::train::Quality
+namespace train {
+    using Quality = training::PatternQuality;
+    using TrainingMode = training::TrainingMode;
+    using TrainingResult = training::TrainingResult;
+    using KeyValuePair = training::KeyValuePair;
+    using RemoteTraderConfig = training::RemoteTraderConfig;
+}
+
 } // namespace sep

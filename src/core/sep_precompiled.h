@@ -9,6 +9,9 @@
 
 #pragma once
 
+// C++20 compatibility for C++17 builds (must be first)
+#include "cpp20_compatibility.h"
+
 //==============================================================================
 // C++ Standard Library Headers
 //==============================================================================
@@ -46,11 +49,10 @@
 // SEP Foundation Headers
 //==============================================================================
 // Core stability and compatibility layers
+#include "core/cuda_compatibility.h"
 #include "util/stable_headers.h"
-#include "cuda_compatibility.h"
 
-// Safe third-party wrappers
-#include "util/nlohmann_json_safe.h"
+// NOTE: nlohmann_json_safe.h removed - already included in stable_headers.h
 
 //==============================================================================
 // SEP Core Data Types

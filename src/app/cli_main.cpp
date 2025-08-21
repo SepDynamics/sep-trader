@@ -9,11 +9,11 @@
 #include <chrono>
 #include <thread>
 
-#include "core/training_coordinator.hpp"
+#include "core/remote_data_manager.hpp"
 #include "core/cli_commands.hpp"
 #include "core/status_display.hpp"
 
-using namespace sep::training;
+// TrainingCoordinator is in global namespace, no using declaration needed
 
 void printHeader() {
     std::cout << "\n";

@@ -11,7 +11,7 @@
 #include <fstream>
 #include <sstream>
 
-using namespace sep::training;
+using namespace sep::train;
 
 // Callback function for libcurl to write response data
 static size_t WriteCallback(void *contents, size_t size, size_t nmemb, void *userp) {
@@ -238,17 +238,15 @@ std::string WeeklyDataFetcher::getCurrentOperation() const {
     return current_operation_;
 }
 
-namespace sep::training {
+namespace sep::train {
 
 std::vector<std::string> getStandardForexPairs() {
-    return {
-        "EUR_USD", "GBP_USD", "USD_JPY", "AUD_USD", "USD_CHF", "USD_CAD",
-        "NZD_USD", "EUR_GBP", "EUR_JPY", "GBP_JPY", "AUD_JPY", "EUR_CHF"
-    };
+    return {"EUR_USD", "GBP_USD", "USD_JPY", "AUD_USD", "USD_CHF", "USD_CAD",
+            "NZD_USD", "EUR_GBP", "EUR_JPY", "GBP_JPY", "AUD_JPY", "EUR_CHF"};
 }
 
 std::vector<std::string> getStandardGranularities() {
     return {"M1", "M5", "M15", "H1", "H4", "D"};
 }
 
-} // namespace sep::training
+}  // namespace sep::train

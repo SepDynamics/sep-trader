@@ -1,31 +1,10 @@
 {
-    "files.associations": {
-        "*.sep": "sep"
-    },
-    "workbench.iconTheme": "vs-seti",
-    "editor.tokenColorCustomizations": {
-        "textMateRules": [
-            {
-                "scope": "keyword.control.sep",
-                "settings": {
-                    "foreground": "#569cd6"
-                }
-            },
-            {
-                "scope": "entity.name.function.sep",
-                "settings": {
-                    "foreground": "#dcdcaa"
-                }
-            },
-            {
-                "scope": "string.quoted.double.sep",
-                "settings": {
-                    "foreground": "#ce9178"
-                }
-            }
-        ]
-    },
-    "files.iconAssociations": {
-        "*.sep": "../../assets/sep"
-    }
+  "kilocode.morphApiKey": "4e3NG+9yczeYzBfkOUNr",
+  "kilocode.enableFastApply": true,
+  "kilocode.morphFastApply": {
+    "enabled": true,
+    "provider": "morph",
+    "fallbackToOpenRouter": true
+  },
+  "kilocode.editMode": "morph-fast-apply"
 }

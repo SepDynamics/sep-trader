@@ -8,11 +8,10 @@
 using namespace sep::services;
 
 sep::Result<std::vector<TradingSignal>> TradingLogicService::generateSignalsFromPatterns(
-    const std::vector<std::shared_ptr<Pattern>>& patterns,
-    const MarketContext& context) {
-    
+    const std::vector<std::shared_ptr<Pattern>>& patterns, const MarketContext& context) {
     if (!isReady()) {
-        return sep::Result<std::vector<TradingSignal>>(sep::Error(sep::Error::Code::ResourceUnavailable, "Service not initialized"));
+        return sep::Result<std::vector<TradingSignal>>(
+            sep::Error(sep::Error::Code::ResourceUnavailable, "Service not initialized"));
     }
     
     std::vector<TradingSignal> signals;
@@ -73,6 +72,6 @@ sep::Result<std::vector<TradingSignal>> TradingLogicService::generateSignalsFrom
             // For now, we skip this callback notification
         }
     }
-    
+
     return sep::Result<std::vector<TradingSignal>>(signals);
 }

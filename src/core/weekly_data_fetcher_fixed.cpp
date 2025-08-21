@@ -2,9 +2,11 @@
 // Minimal stub implementation to satisfy interface requirements
 
 #include "weekly_data_fetcher.hpp"
+#include <mutex>
+#include <cstdlib>
 
 namespace sep {
-namespace training {
+namespace train {
 
 // Minimal WriteCallback for libcurl (satisfies unused function warning)
 static size_t WriteCallback(void* contents, size_t size, size_t nmemb, void* userp) {

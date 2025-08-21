@@ -1,0 +1,74 @@
+{
+  "scrapers": [
+    {
+      "name": "economic_calendar",
+      "url": "https://www.forexfactory.com/calendar",
+      "enabled": true,
+      "schedule": "hourly",
+      "timeout": 30,
+      "rate_limit": 2.0
+    },
+    {
+      "name": "market_sentiment",
+      "url": "https://www.dailyfx.com/sentiment",
+      "enabled": true,
+      "schedule": "daily",
+      "timeout": 30,
+      "rate_limit": 2.0
+    },
+    {
+      "name": "forex_news",
+      "url": "https://www.reuters.com/markets/currencies",
+      "enabled": true,
+      "schedule": "hourly",
+      "timeout": 45,
+      "rate_limit": 1.5
+    },
+    {
+      "name": "volatility_data",
+      "url": "https://www.cboe.com/tradable_products/vix",
+      "enabled": true,
+      "schedule": "daily",
+      "timeout": 30,
+      "rate_limit": 1.0
+    }
+  ],
+  "database": {
+    "path": "./data/scraped/scraped_data.sqlite",
+    "backup_enabled": true,
+    "backup_frequency": "daily"
+  },
+  "output": {
+    "format": "json",
+    "export_csv": true,
+    "export_path": "./data/scraped/exports/"
+  },
+  "rate_limiting": {
+    "global_rate_limit": 1.0,
+    "requests_per_minute": 30,
+    "concurrent_requests": 3
+  },
+  "headers": {
+    "user_agent": "SEP-TradingBot/1.0 (Professional Trading System)",
+    "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+    "accept_language": "en-US,en;q=0.5",
+    "connection": "keep-alive"
+  },
+  "logging": {
+    "level": "INFO",
+    "file": "./data/scraped/scraper.log",
+    "max_size": "10MB",
+    "backup_count": 5
+  },
+  "integration": {
+    "sep_system": true,
+    "quantum_analysis": true,
+    "signal_fusion": true,
+    "api_endpoints": [
+      "/api/scraped/recent",
+      "/api/scraped/economic",
+      "/api/scraped/sentiment",
+      "/api/scraped/news"
+    ]
+  }
+}

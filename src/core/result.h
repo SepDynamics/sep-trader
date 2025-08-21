@@ -1,17 +1,16 @@
 #pragma once
 
-// This header now just includes the canonical result_types.h to avoid duplicate definitions
-// All Result<T> functionality is defined in result_types.h
-
-#include "core/result_types.h"
+// Redirect to canonical Result implementation in result_types.h
+// This eliminates the namespace conflict between sep::core::Result and sep::Result
+#include "result_types.h"
 
 namespace sep {
-    // All Result types and functions are imported from result_types.h
-    // This header is kept for backward compatibility
-}
-
-// Legacy namespace compatibility
 namespace core {
-    using ::sep::Result;
-    using ::sep::Error;
-}
+    // Alias to canonical Result implementation
+    template<typename T>
+    using Result = sep::Result<T>;
+    
+    // Alias error type for backward compatibility
+    using Error = sep::Error;
+} // namespace core
+} // namespace sep

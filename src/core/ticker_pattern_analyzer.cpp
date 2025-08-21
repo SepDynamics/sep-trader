@@ -173,7 +173,6 @@ sep::Result<AnalysisResult> SepEngine::analyze(const AnalysisRequest& req) {
 
 std::vector<sep::Result<AnalysisResult>> SepEngine::analyze_many(
     const std::vector<AnalysisRequest>& requests) {
-    
     std::vector<sep::Result<AnalysisResult>> results;
     results.reserve(requests.size());
     
@@ -184,9 +183,8 @@ std::vector<sep::Result<AnalysisResult>> SepEngine::analyze_many(
     return results;
 }
 
-sep::Result<SepEngine::SessionId> SepEngine::start_session(
-    const InstrumentId& instrument, Horizon horizon, CostModelPips costs) {
-    
+sep::Result<SepEngine::SessionId> SepEngine::start_session(const InstrumentId& instrument,
+                                                           Horizon horizon, CostModelPips costs) {
     std::lock_guard<std::mutex> lock(m_sessions_);
     
     // Check if session already exists

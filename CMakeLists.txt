@@ -118,10 +118,11 @@ if(SEP_USE_CUDA)
     if(UNIX AND NOT APPLE AND EXISTS "/usr/bin/g++-11")
         set(CMAKE_CUDA_HOST_COMPILER "/usr/bin/g++-11")
     endif()
-    # Set a default CUDA architecture.
-    # User has a GeForce 1070, which is Pascal architecture (compute capability 6.1).
-    # You can check your GPU's compute capability at: https://developer.nvidia.com/cuda-gpus
-    set(CMAKE_CUDA_ARCHITECTURES "61" CACHE STRING "CUDA architectures")
+    # Set CUDA architectures for multiple GPU support
+    # GTX 1070: compute capability 6.1 (Pascal)
+    # RTX 3080 Ti: compute capability 8.6 (Ampere)
+    # RTX 4080 Mobile: compute capability 8.9 (Ada Lovelace)
+    set(CMAKE_CUDA_ARCHITECTURES "61;86;89" CACHE STRING "CUDA architectures for GTX 1070, RTX 3080 Ti, RTX 4080 Mobile")
     
     # Configure CUDA standard
     set(CMAKE_CUDA_STANDARD 17)
@@ -396,11 +397,11 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(spdlog)
 
+# Create two separate dependency targets:
+# 1. sep_core_deps - exportable dependencies (system/external packages only)
+# 2. sep_fetchcontent_deps - build-only FetchContent dependencies
+
 add_library(sep_core_deps INTERFACE)
-target_include_directories(sep_core_deps INTERFACE 
-    ${spdlog_SOURCE_DIR}/include
-    ${fmt_SOURCE_DIR}/include
-)
 target_link_libraries(sep_core_deps INTERFACE
     Threads::Threads
 #    benchmark::benchmark
@@ -409,13 +410,22 @@ target_link_libraries(sep_core_deps INTERFACE
     PostgreSQL::pqxx
     PostgreSQL::pq
     glm::glm
-    nlohmann_json::nlohmann_json
     YAML::yaml-cpp
     Redis::hiredis
     TBB::tbb
+    CURL::libcurl
+)
+
+# Separate interface library for FetchContent dependencies (build-only, not exported)
+add_library(sep_fetchcontent_deps INTERFACE)
+target_include_directories(sep_fetchcontent_deps INTERFACE
+    ${spdlog_SOURCE_DIR}/include
+    ${fmt_SOURCE_DIR}/include
+)
+target_link_libraries(sep_fetchcontent_deps INTERFACE
+    nlohmann_json::nlohmann_json
     fmt::fmt
     spdlog::spdlog
-    CURL::libcurl
 )
 
 
@@ -440,6 +450,10 @@ add_custom_target(generate_docs
 )
 
 add_subdirectory(src)
+
+# Add only sep_core_deps to the export set
+# Note: sep_fetchcontent_deps is build-only and cannot be exported due to build directory paths
+install(TARGETS sep_core_deps EXPORT sep_libTargets)
 
 install(EXPORT sep_libTargets
     FILE sep_libTargets.cmake

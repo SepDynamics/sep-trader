@@ -62,9 +62,11 @@ function(add_sep_library name)
     
     # Set include directories
     target_include_directories(${name} PUBLIC
-        ${CMAKE_CURRENT_SOURCE_DIR}
-        ${CMAKE_SOURCE_DIR}/src
-        ${CMAKE_SOURCE_DIR}
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/src>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}>
+        $<INSTALL_INTERFACE:include>
+        $<INSTALL_INTERFACE:include/sep>
     )
     
     # Add dependencies (filter out CUDA when disabled)
@@ -130,7 +132,7 @@ function(add_sep_executable name)
     )
     
     # Link required core dependencies and any additional libraries
-    target_link_libraries(${name} PRIVATE sep_core_deps)
+    target_link_libraries(${name} PRIVATE sep_core_deps sep_fetchcontent_deps)
     if(ARG_DEPENDENCIES)
         target_link_libraries(${name} PRIVATE ${ARG_DEPENDENCIES})
     endif()

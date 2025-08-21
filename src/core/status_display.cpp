@@ -8,8 +8,12 @@
 #include <thread>
 #include <chrono>
 #include <sstream>
+#include <vector>
 
-using namespace sep::training;
+// Note: StatusDisplay is in namespace sep, not sep::train
+// sep::train types are accessed with full qualification
+
+namespace sep {
 
 StatusDisplay::StatusDisplay(sep::train::Orchestrator& coordinator)
     : coordinator_(coordinator) {
@@ -163,7 +167,7 @@ void StatusDisplay::printPerformanceMetrics() {
     
     for (const auto& result : empty_results) {
         total_accuracy += result.accuracy;
-        if (result.quality == sep::train::Quality::HIGH) {
+        if (result.quality == sep::train::Quality::High) {
             high_quality_count++;
         }
     }
@@ -241,9 +245,9 @@ std::string StatusDisplay::formatDurationFromString(const std::string& /*timesta
 
 std::string StatusDisplay::formatQuality(sep::train::Quality quality) {
     switch (quality) {
-        case sep::train::Quality::HIGH: return "High";
-        case sep::train::Quality::MEDIUM: return "Medium";
-        case sep::train::Quality::LOW: return "Low";
+        case sep::train::Quality::High: return "High";
+        case sep::train::Quality::Medium: return "Medium";
+        case sep::train::Quality::Low: return "Low";
         default: return "Unknown";
     }
 }
@@ -254,9 +258,11 @@ std::string StatusDisplay::getStatusIcon(bool status) {
 
 std::string StatusDisplay::getQualityIcon(sep::train::Quality quality) {
     switch (quality) {
-        case sep::train::Quality::HIGH: return "🟢";
-        case sep::train::Quality::MEDIUM: return "🟡";
-        case sep::train::Quality::LOW: return "🔴";
+        case sep::train::Quality::High: return "🟢";
+        case sep::train::Quality::Medium: return "🟡";
+        case sep::train::Quality::Low: return "🔴";
         default: return "⚪";
     }
 }
+
+}  // namespace sep

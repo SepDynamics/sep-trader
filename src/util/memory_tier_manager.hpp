@@ -38,6 +38,8 @@
 
 #include "util/memory_tier.hpp"
 
+#include "util/memory_tier_manager_serialization.hpp"
+
 #include "util/persistent_pattern_data.hpp"
 
 #ifndef SEP_NO_REDIS

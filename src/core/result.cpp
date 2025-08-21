@@ -1,11 +1,14 @@
-#include "core/result_types.h"
-
-#include <cuda_runtime_api.h>
 #include <string>
+#include <iostream>
+#include <sstream>
+#include <stdexcept>
+#include <cuda_runtime_api.h>
+
+#include "core/result_types.h"
 
 namespace sep {
 
-std::string resultToString(SEPResult result) {
+::std::string resultToString(SEPResult result) {
     switch (result) {
         case SEPResult::SUCCESS: return "SUCCESS";
         case SEPResult::INVALID_ARGUMENT: return "INVALID_ARGUMENT";
@@ -37,7 +40,7 @@ std::string errorToString(const Error& error) {
         case Error::Code::OperationFailed: code_str = "OperationFailed"; break;
         case Error::Code::NotImplemented: code_str = "NotImplemented"; break;
         case Error::Code::AlreadyExists: code_str = "AlreadyExists"; break;
-        case Error::Code::Internal: code_str = "Internal"; break;
+        // Note: Internal is alias for InternalError (both value 4), so we don't need separate case
     }
     if (!error.message.empty()) {
         return code_str + ": " + error.message;
@@ -46,7 +49,7 @@ std::string errorToString(const Error& error) {
 }
 
 template<typename T>
-Result<T> fromSEPResult(SEPResult result, const std::string& message) {
+Result<T> fromSEPResult(SEPResult result, const ::std::string& message) {
     if (result == SEPResult::SUCCESS) {
         return makeSuccess(T{});
     }
@@ -54,7 +57,7 @@ Result<T> fromSEPResult(SEPResult result, const std::string& message) {
 }
 
 template<>
-Result<void> fromSEPResult<void>(SEPResult result, const std::string& message) {
+Result<void> fromSEPResult<void>(SEPResult result, const ::std::string& message) {
     if (result == SEPResult::SUCCESS) {
         return makeSuccess();
     }
@@ -84,7 +87,7 @@ Result<void> fromCudaError(cudaError_t err, const std::string& context) {
 }
 
 // Explicit template instantiations
-template Result<void> fromSEPResult<void>(SEPResult, const std::string&);
+template Result<void> fromSEPResult<void>(SEPResult, const ::std::string&);
 
 } // namespace sep
 

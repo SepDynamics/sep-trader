@@ -1,11 +1,23 @@
-#include "core/pattern.h"
+#include "core/quantum_types.h"
 #include <cstring>
 #include <algorithm>
+#include <cstdint>
+#include <complex>
 
 // Implementation of conversion functions between canonical and POD types
 
 namespace sep::core {
 
+// Forward declare the types we need from sep::quantum namespace
+using QuantumState = ::sep::quantum::QuantumState;
+using QuantumStatePOD = ::sep::quantum::QuantumStatePOD;
+using Pattern = ::sep::quantum::Pattern;
+using PatternPOD = ::sep::quantum::PatternPOD;
+using PatternRelationship = ::sep::quantum::PatternRelationship;
+using PatternRelationshipPOD = ::sep::quantum::PatternRelationshipPOD;
+using RelationshipType = ::sep::quantum::RelationshipType;
+
+// Use simplified type names with using directive
 void convertToPOD(const QuantumState& src, QuantumStatePOD& dst) {
     dst.coherence = src.coherence;
     dst.stability = src.stability;
@@ -18,7 +30,7 @@ void convertToPOD(const QuantumState& src, QuantumStatePOD& dst) {
     dst.generation = src.generation;
     dst.mutation_count = src.mutation_count;
     dst.access_frequency = src.access_frequency;
-    dst.status = static_cast<int>(src.status);
+    dst.status = static_cast<uint32_t>(src.status);
 }
 
 void convertFromPOD(const QuantumStatePOD& src, QuantumState& dst) {
@@ -68,7 +80,7 @@ void convertToPOD(const Pattern& src, PatternPOD& dst) {
     convertToPOD(src.quantum_state, dst.quantum_state);
     
     // Convert relationships (limited to array size)
-    dst.relationship_count = std::min(static_cast<int>(src.relationships.size()), 16);
+    dst.relationship_count = std::min(static_cast<int>(src.relationships.size()), 32);
     for (int i = 0; i < dst.relationship_count; ++i) {
         convertToPOD(src.relationships[i], dst.relationships[i]);
     }

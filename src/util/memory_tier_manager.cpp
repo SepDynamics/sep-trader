@@ -361,7 +361,7 @@ MemoryTierManager::MemoryTierManager(const Config &cfg)
 
             if (!out_block)
             {
-                return sep::SEPResult::OUT_OF_MEMORY;
+                return sep::SEPResult::RESOURCE_UNAVAILABLE;
             }
 
             // Copy data

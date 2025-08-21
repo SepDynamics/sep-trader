@@ -1,13 +1,14 @@
 #pragma once
 
-#include "core/pattern.h"
-#include "core/result.h"
-#include "core/result_types.h"
-#include <unordered_map>
-#include <string>
+#include <chrono>
 #include <memory>
 #include <mutex>
-#include <chrono>
+#include <string>
+#include <unordered_map>
+#include "core/pattern.h"
+#include "core/quantum_types.h"
+#include "core/result.h"
+#include "core/result_types.h"
 
 namespace sep::engine::cache {
 
@@ -21,13 +22,13 @@ struct PatternCacheConfig {
 
 /// Cached pattern entry with metadata
 struct CachedPatternEntry {
-    core::Pattern pattern;
+    sep::quantum::Pattern pattern;
     std::chrono::system_clock::time_point created_at;
     std::chrono::system_clock::time_point last_accessed;
     size_t access_count{0};
     float computation_time_ms{0.0f};       // Original computation time
-    
-    CachedPatternEntry(const core::Pattern& p, float comp_time = 0.0f)
+
+    CachedPatternEntry(const sep::quantum::Pattern& p, float comp_time = 0.0f)
         : pattern(p), computation_time_ms(comp_time) {
         auto now = std::chrono::system_clock::now();
         created_at = now;
@@ -43,16 +44,16 @@ public:
     ~PatternCache() = default;
 
     // Core cache operations
-    sep::Result<void> storePattern(const std::string& key, const core::Pattern& pattern,
-                             float computation_time_ms = 0.0f);
-    sep::Result<bool> retrievePattern(const std::string& key, core::Pattern& pattern);
+    sep::Result<void> storePattern(const std::string& key, const sep::quantum::Pattern& pattern,
+                                   float computation_time_ms = 0.0f);
+    sep::Result<bool> retrievePattern(const std::string& key, sep::quantum::Pattern& pattern);
     bool hasPattern(const std::string& key) const;
     
     // Cache management
     void clearCache();
     void evictExpired();
     sep::Result<void> configure(const PatternCacheConfig& config);
-    
+
     // Analytics
     struct CacheMetrics {
         size_t total_entries{0};
@@ -75,9 +76,9 @@ public:
 
 private:
     void evictLRU();
-    bool shouldCache(const core::Pattern& pattern) const;
-    std::string generateCacheKey(const core::Pattern& pattern) const;
-    
+    bool shouldCache(const sep::quantum::Pattern& pattern) const;
+    std::string generateCacheKey(const sep::quantum::Pattern& pattern) const;
+
     mutable std::mutex cache_mutex_;
     PatternCacheConfig config_;
     std::unordered_map<std::string, std::unique_ptr<CachedPatternEntry>> cache_;

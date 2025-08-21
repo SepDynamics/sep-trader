@@ -111,7 +111,7 @@ Result<void> EngineFacade::analyzePattern(const PatternAnalysisRequest& request,
         std::string cache_key = request.pattern_id + "_" + std::to_string(request.analysis_depth);
         
         // Check cache first
-        core::Pattern cached_pattern;
+        quantum::Pattern cached_pattern;
         if (impl_->pattern_cache->retrievePattern(cache_key, cached_pattern).isSuccess()) {
             // Cache hit - return cached result
             response.pattern = cached_pattern;
@@ -297,7 +297,7 @@ Result<void> EngineFacade::storePattern(const StorePatternRequest& request,
 }
 
 Result<void> EngineFacade::queryMemory(const MemoryQueryRequest& request,
-                                      std::vector<core::Pattern>& results) {
+                                      std::vector<quantum::Pattern>& results) {
     (void)request; // Suppress unused parameter warning
     (void)results; // Suppress unused parameter warning
     return Result<void>(sep::Error(sep::Error::Code::NotImplemented));

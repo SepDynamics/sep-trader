@@ -274,75 +274,70 @@ public:
     static EngineFacade& getInstance();
     ::sep::Result<void> initialize();
     ::sep::Result<void> shutdown();
-    
+
     // Core pattern operations
     ::sep::Result<void> processPatterns(const PatternProcessRequest& request,
-                                PatternProcessResponse& response);
-    
+                                        PatternProcessResponse& response);
+
     ::sep::Result<void> analyzePattern(const PatternAnalysisRequest& request,
-                               PatternAnalysisResponse& response);
+                                       PatternAnalysisResponse& response);
 
     ::sep::Result<void> qfhAnalyze(const QFHAnalysisRequest& request,
-                            QFHAnalysisResponse& response);
+                                   QFHAnalysisResponse& response);
 
     ::sep::Result<void> manifoldOptimize(const ManifoldOptimizationRequest& request,
-    ManifoldOptimizationResponse& response);
+                                         ManifoldOptimizationResponse& response);
 
     ::sep::Result<void> extractBits(const BitExtractionRequest& request,
-    BitExtractionResponse& response);
+                                    BitExtractionResponse& response);
 
     ::sep::Result<void> storePattern(const StorePatternRequest& request,
-                            StorePatternResponse& response);
-    
+                                     StorePatternResponse& response);
+
     ::sep::Result<void> processBatch(const BatchProcessRequest& request,
-                             PatternProcessResponse& response);
-    
+                                     PatternProcessResponse& response);
+
     // Advanced batch processing
     ::sep::Result<void> processAdvancedBatch(const AdvancedBatchRequest& request,
-                                     AdvancedBatchResponse& response);
-    
+                                             AdvancedBatchResponse& response);
+
     // Streaming data operations
-    ::sep::Result<void> createStream(const StreamCreateRequest& request,
-                             StreamResponse& response);
-    ::sep::Result<void> startStream(const std::string& stream_id,
-                            StreamResponse& response);
-    ::sep::Result<void> stopStream(const std::string& stream_id,
-                           StreamResponse& response);
-    ::sep::Result<void> deleteStream(const std::string& stream_id,
-                             StreamResponse& response);
+    ::sep::Result<void> createStream(const StreamCreateRequest& request, StreamResponse& response);
+    ::sep::Result<void> startStream(const std::string& stream_id, StreamResponse& response);
+    ::sep::Result<void> stopStream(const std::string& stream_id, StreamResponse& response);
+    ::sep::Result<void> deleteStream(const std::string& stream_id, StreamResponse& response);
     ::sep::Result<void> ingestStreamData(const StreamDataRequest& request,
-                                 StreamResponse& response);
+                                         StreamResponse& response);
     ::sep::Result<void> queryStream(const StreamQueryRequest& request,
-                            StreamDataResponse& response);
-    
+                                    StreamDataResponse& response);
+
     // Memory operations
     ::sep::Result<void> queryMemory(const MemoryQueryRequest& request,
-                            std::vector<::sep::quantum::Pattern>& results);
-    
+                                    std::vector<::sep::quantum::Pattern>& results);
+
     // System status
     ::sep::Result<void> getHealthStatus(HealthStatusResponse& response);
     ::sep::Result<void> getMemoryMetrics(MemoryMetricsResponse& response);
-    
+
     // Pattern cache operations
     ::sep::Result<void> clearPatternCache();
-    ::sep::Result<void> configurePatternCache(size_t max_size, int ttl_minutes, float coherence_threshold);
-    
+    ::sep::Result<void> configurePatternCache(size_t max_size, int ttl_minutes,
+                                              float coherence_threshold);
+
     // GPU memory operations
     ::sep::Result<void> allocateGPUMemory(const GPUMemoryAllocRequest& request,
-                                  GPUMemoryAllocResponse& response);
+                                          GPUMemoryAllocResponse& response);
     ::sep::Result<void> deallocateGPUMemory(const GPUMemoryDeallocRequest& request);
     ::sep::Result<void> configureGPUMemory(const GPUMemoryConfigRequest& request);
     ::sep::Result<void> defragmentGPUMemory();
     ::sep::Result<void> resetGPUMemoryStats();
-    
+
     // Engine configuration operations
-    ::sep::Result<void> setEngineConfig(const ConfigSetRequest& request,
-                                ConfigResponse& response);
-    ::sep::Result<void> getEngineConfig(const ConfigGetRequest& request,
-                                ConfigResponse& response);
+    ::sep::Result<void> setEngineConfig(const ConfigSetRequest& request, ConfigResponse& response);
+    ::sep::Result<void> getEngineConfig(const ConfigGetRequest& request, ConfigResponse& response);
     ::sep::Result<void> listEngineConfig(ConfigListResponse& response);
     ::sep::Result<void> resetEngineConfig(const std::string& category = "");  // Empty = reset all
-    
+
     // Prevent copying/moving
     EngineFacade(const EngineFacade&) = delete;
     EngineFacade& operator=(const EngineFacade&) = delete;

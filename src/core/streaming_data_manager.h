@@ -4,8 +4,13 @@
 #include "core/result_types.h"
 #include "core/types.h"
 
-#include "core/pattern.h"
+#include <chrono>
+#include <functional>
+#include <string>
+#include <vector>
 #include "candle_data.h"
+#include "core/pattern.h"
+#include "core/quantum_types.h"
 
 namespace sep::engine::streaming {
 
@@ -43,25 +48,26 @@ struct StreamStats {
 class StreamingDataManager {
 public:
     using DataCallback = std::function<void(const StreamDataPoint&)>;
-    using PatternCallback = std::function<void(const core::Pattern&)>;
+    using PatternCallback = std::function<void(const quantum::Pattern&)>;
     using ErrorCallback = std::function<void(const std::string&)>;
 
     StreamingDataManager();
     ~StreamingDataManager();
 
     // Lifecycle management
-    core::Result<void> initialize();
-    core::Result<void> shutdown();
+    sep::Result<void> initialize();
+    sep::Result<void> shutdown();
 
     // Stream management
-    core::Result<void> createStream(const StreamConfiguration& config);
-    core::Result<void> startStream(const std::string& stream_id);
-    core::Result<void> stopStream(const std::string& stream_id);
-    core::Result<void> deleteStream(const std::string& stream_id);
+    sep::Result<void> createStream(const StreamConfiguration& config);
+    sep::Result<void> startStream(const std::string& stream_id);
+    sep::Result<void> stopStream(const std::string& stream_id);
+    sep::Result<void> deleteStream(const std::string& stream_id);
 
     // Data ingestion
-    core::Result<void> ingestData(const std::string& stream_id, const StreamDataPoint& data);
-    core::Result<void> ingestBatch(const std::string& stream_id, const std::vector<StreamDataPoint>& batch);
+    sep::Result<void> ingestData(const std::string& stream_id, const StreamDataPoint& data);
+    sep::Result<void> ingestBatch(const std::string& stream_id,
+                                  const std::vector<StreamDataPoint>& batch);
 
     // Real-time callbacks
     void setDataCallback(const std::string& stream_id, DataCallback callback);
@@ -71,15 +77,15 @@ public:
     // Stream queries
     std::vector<StreamDataPoint> getRecentData(const std::string& stream_id, 
                                               size_t count = 100);
-    std::vector<core::Pattern> getRecentPatterns(const std::string& stream_id, 
-                                                size_t count = 10);
+    std::vector<quantum::Pattern> getRecentPatterns(const std::string& stream_id,
+                                                    size_t count = 10);
     StreamStats getStreamStats(const std::string& stream_id);
     std::vector<std::string> getActiveStreams() const;
 
     // Pattern analysis integration
-    core::Result<void> analyzeStreamPattern(const std::string& stream_id,
+    sep::Result<void> analyzeStreamPattern(const std::string& stream_id,
                                            const std::vector<StreamDataPoint>& window,
-                                           core::Pattern& result);
+                                           quantum::Pattern& result);
 
     // Buffer management
     void setBufferSize(const std::string& stream_id, size_t size);
@@ -94,7 +100,7 @@ private:
     struct StreamContext {
         StreamConfiguration config;
         std::queue<StreamDataPoint> data_buffer;
-        std::vector<core::Pattern> pattern_buffer;
+        std::vector<quantum::Pattern> pattern_buffer;
         StreamStats stats;
         std::atomic<bool> active{false};
         std::thread worker_thread;

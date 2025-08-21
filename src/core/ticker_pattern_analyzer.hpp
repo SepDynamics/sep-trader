@@ -272,7 +272,7 @@ struct AnalysisResult {
 class BTHEngine {
   public:
     virtual ~BTHEngine() = default;
-    virtual BTHSnapshot compute(std::span<const Tick> ticks, const BTHConfig& cfg) = 0;
+    virtual BTHSnapshot compute(const std::vector<Tick>& ticks, const BTHConfig& cfg) = 0;
 };
 
 class ReliabilityGate {
@@ -318,8 +318,8 @@ class SepEngine {
     struct SessionId {
         std::string value;
     };
-    sep::Result<SessionId> start_session(const InstrumentId& instrument,
-                                                            Horizon horizon, CostModelPips costs);
+    sep::Result<SessionId> start_session(const InstrumentId& instrument, Horizon horizon,
+                                         CostModelPips costs);
 
     sep::Result<void> stop_session(const SessionId& id);
 

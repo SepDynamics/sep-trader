@@ -21,8 +21,6 @@ file(GLOB_RECURSE ALL_SOURCES
     "cuda/*.cu"
     "io/*.cpp"
     "io/*.cu"
-    "quantum/bitspace/*.cpp"
-    "quantum/bitspace/*.cu"
     "util/*.cpp"
     "util/*.cu"
 )
@@ -41,17 +39,19 @@ target_link_libraries(sep_lib
     PUBLIC
         sep_core_deps
         CUDA::cudart
+    PRIVATE
+        sep_fetchcontent_deps
 )
-target_include_directories(sep_lib PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/quantum/bitspace)
+# Note: Include directories are handled by add_sep_library template with proper generator expressions
+# Note: sep_fetchcontent_deps is PRIVATE - available for building sep_lib but not part of export interface
 
 # Collect public headers for installation
 file(GLOB_RECURSE SEP_LIB_PUBLIC_HEADERS
-    "app/*.h" "app/*.hpp"
-    "core/*.h" "core/*.hpp"
-    "cuda/*.h" "cuda/*.hpp"
-    "io/*.h" "io/*.hpp"
-    "quantum/bitspace/*.h" "quantum/bitspace/*.hpp"
-    "util/*.h" "util/*.hpp"
+    "app/*.h" "app/*.hpp" "app/*.cuh"
+    "core/*.h" "core/*.hpp" "core/*.cuh"
+    "cuda/*.h" "cuda/*.hpp" "cuda/*.cuh"
+    "io/*.h" "io/*.hpp" "io/*.cuh"
+    "util/*.h" "util/*.hpp" "util/*.cuh"
 )
 set_target_properties(sep_lib PROPERTIES PUBLIC_HEADER "${SEP_LIB_PUBLIC_HEADERS}")
 

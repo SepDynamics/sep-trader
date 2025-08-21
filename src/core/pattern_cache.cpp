@@ -12,8 +12,9 @@ PatternCache::PatternCache(const PatternCacheConfig& config)
               << ", ttl=" << config_.ttl.count() << "min" << std::endl;
 }
 
-sep::Result<void> PatternCache::storePattern(const std::string& key, const sep::quantum::Pattern& pattern,
-                                       float computation_time_ms) {
+sep::Result<void> PatternCache::storePattern(const std::string& key,
+                                             const sep::quantum::Pattern& pattern,
+                                             float computation_time_ms) {
     std::lock_guard<std::mutex> lock(cache_mutex_);
     
     // Check if pattern meets caching criteria
@@ -39,7 +40,8 @@ sep::Result<void> PatternCache::storePattern(const std::string& key, const sep::
     return sep::makeSuccess();  // Success case for void
 }
 
-sep::Result<bool> PatternCache::retrievePattern(const std::string& key, sep::quantum::Pattern& pattern) {
+sep::Result<bool> PatternCache::retrievePattern(const std::string& key,
+                                                sep::quantum::Pattern& pattern) {
     std::lock_guard<std::mutex> lock(cache_mutex_);
     
     auto it = cache_.find(key);
@@ -70,7 +72,7 @@ sep::Result<bool> PatternCache::retrievePattern(const std::string& key, sep::qua
     
     std::cout << "PatternCache: Retrieved pattern '" << key << "' (cache hit, age="
               << age.count() << "min, access_count=" << entry->access_count << ")" << std::endl;
-    
+
     return sep::Result<bool>(true);
 }
 
@@ -172,12 +174,12 @@ void PatternCache::evictLRU() {
     evicted_entries_++;
 }
 
-bool PatternCache::shouldCache(const core::Pattern& pattern) const {
+bool PatternCache::shouldCache(const quantum::Pattern& pattern) const {
     // Only cache patterns with sufficient coherence
     return pattern.coherence >= config_.coherence_cache_threshold;
 }
 
-std::string PatternCache::generateCacheKey(const core::Pattern& pattern) const {
+std::string PatternCache::generateCacheKey(const quantum::Pattern& pattern) const {
     std::ostringstream oss;
     oss << pattern.id << "_" << pattern.coherence << "_" << pattern.quantum_state.coherence;
     return oss.str();

@@ -17,7 +17,6 @@ namespace sep::train {
 }
 
 namespace sep {
-namespace training {
 
 class StatusDisplay {
 public:
@@ -54,7 +53,6 @@ private:
     void printLiveMetrics();
 };
 
-} // namespace training
-} // namespace sep
+}  // namespace sep
 
-#endif // STATUS_DISPLAY_HPP
+#endif  // STATUS_DISPLAY_HPP
