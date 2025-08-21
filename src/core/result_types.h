@@ -170,9 +170,3 @@ namespace result {
 
 } // namespace sep
 
-// util namespace alias for backward compatibility
-namespace util {
-    // Two-parameter version matches ticker_pattern_analyzer usage
-    template <typename T, typename E>
-    using Result = ::sep::Result<T>;
-}
