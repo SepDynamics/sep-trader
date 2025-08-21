@@ -9,8 +9,6 @@
 #include <memory>
 #include <mutex>
 #include <optional>
-#include <span>
-#include <stop_token>
 #include <string>
 #include <string_view>
 #include <thread>
@@ -18,6 +16,14 @@
 #include <utility>
 #include <variant>
 #include <vector>
+
+// C++20 compatibility
+#if __cplusplus >= 202002L
+    #include <span>
+    #include <stop_token>
+#else
+    #include "core/cpp20_compatibility.h"
+#endif
 
 #include "core/qfh.h"                         // if you keep legacy QFH/QBSA interop
 #include "core/quantum_manifold_optimizer.h"  // GAO impl lives here or new header
@@ -332,19 +338,24 @@ class SepEngine {
     void update_config(const EngineConfig& cfg);
     EngineConfig config() const;
 
-    // Introspection
+    // Introspection - Non-atomic stats struct for return values
     struct Stats {
-        std::atomic<uint64_t> analyses{0};
-        std::atomic<uint64_t> ok{0};
-        std::atomic<uint64_t> cache_hits{0};
-        std::atomic<uint64_t> cache_misses{0};
+        uint64_t analyses = 0;
+        uint64_t ok = 0;
+        uint64_t cache_hits = 0;
+        uint64_t cache_misses = 0;
         std::chrono::system_clock::time_point last_reset{};
     };
     Stats stats() const;
     void reset_stats();
 
   private:
-    AnalysisResult pipeline_(const InstrumentId& instrument, std::span<const Tick> ticks,
+    AnalysisResult pipeline_(const InstrumentId& instrument,
+#if __cplusplus >= 202002L
+                            std::span<const Tick> ticks,
+#else
+                            sep_compat::span<const Tick> ticks,
+#endif
                              const AnalysisRequest& req);
 
     // helpers
@@ -366,8 +377,19 @@ class SepEngine {
         InstrumentId instrument;
         Horizon horizon;
         CostModelPips costs;
+#if __cplusplus >= 202002L
         std::jthread th;
+#else
+        sep_compat::jthread th;
+#endif
         std::atomic<bool> running{false};
+        
+        // Make Session movable but not copyable to handle atomic member
+        Session() = default;
+        Session(const Session&) = delete;
+        Session& operator=(const Session&) = delete;
+        Session(Session&&) = default;
+        Session& operator=(Session&&) = default;
     };
     mutable std::mutex m_sessions_;
     std::unordered_map<std::string, Session> sessions_;  // key=instrument.symbol
@@ -376,9 +398,16 @@ class SepEngine {
     mutable std::mutex m_latest_;
     std::unordered_map<std::string, AnalysisResult> latest_;  // key=instrument.symbol
 
-    // cache / stats
+    // cache / stats - use atomic members for thread safety
     mutable std::mutex m_stats_;
-    Stats stats_;
+    struct AtomicStats {
+        std::atomic<uint64_t> analyses{0};
+        std::atomic<uint64_t> ok{0};
+        std::atomic<uint64_t> cache_hits{0};
+        std::atomic<uint64_t> cache_misses{0};
+        std::chrono::system_clock::time_point last_reset{};
+    };
+    AtomicStats stats_;
 };
 
 }  // namespace sep::engine

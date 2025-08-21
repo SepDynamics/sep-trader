@@ -1,15 +1,64 @@
 #include "core/ticker_pattern_analyzer.hpp"
 
-#include <algorithm>
-#include <chrono>
-#include <iomanip>
-#include <random>
+// Only include absolutely essential headers to avoid namespace pollution
+#include <string>
 #include <sstream>
-// Removed uuid/uuid.h - using C++ standard library for UUID generation
+#include <chrono>
+#include <thread>
+#include <mutex>
+#include <atomic>
+#include <memory>
+#include <vector>
+#include <optional>
+#include <random>
+#include <iomanip>
+#include <algorithm>
 
-#include "core/sep_precompiled.h"
-#include "core/types.h"
-#include "core/result_types.h"
+// Forward declarations to avoid problematic header includes
+namespace sep {
+    struct Error {
+        enum class Code {
+            Success, InvalidArgument, NotFound, ProcessingError, InternalError,
+            NotInitialized, CudaError, UnknownError, ResourceUnavailable, 
+            OperationFailed, NotImplemented, AlreadyExists, Internal = InternalError
+        };
+        Code code = Code::Success;
+        std::string message;
+        std::string location;
+        Error() = default;
+        Error(Code c, const std::string& msg = "") : code(c), message(msg) {}
+    };
+    
+    template<typename T>
+    class Result {
+    private:
+        std::variant<T, Error> data_;
+    public:
+        Result(const T& value) : data_(value) {}
+        Result(T&& value) : data_(std::move(value)) {}
+        Result(const Error& error) : data_(error) {}
+        Result(Error&& error) : data_(std::move(error)) {}
+        bool isSuccess() const { return std::holds_alternative<T>(data_); }
+        bool isError() const { return std::holds_alternative<Error>(data_); }
+        const T& value() const { return std::get<T>(data_); }
+        T& value() { return std::get<T>(data_); }
+        const Error& error() const { return std::get<Error>(data_); }
+        Error& error() { return std::get<Error>(data_); }
+    };
+    
+    template<typename T>
+    Result<T> makeSuccess(T&& value) { return Result<T>(std::forward<T>(value)); }
+    
+    template<typename T>  
+    Result<T> makeError(const Error& error) { return Result<T>(error); }
+
+    namespace engine {
+        enum class Timeframe { M1, M5, M15, H1, H4, D1 };
+    }
+}
+
+// Include only the specific variant header needed for Result
+#include <variant>
 
 namespace sep::engine {
 
@@ -17,13 +66,13 @@ namespace sep::engine {
 
 std::string SepEngine::timeframe_str(Timeframe tf) {
     switch (tf) {
-        case Timeframe::M1: return "M1";
-        case Timeframe::M5: return "M5";
-        case Timeframe::M15: return "M15";
-        case Timeframe::H1: return "H1";
-        case Timeframe::H4: return "H4";
-        case Timeframe::D1: return "D1";
-        default: return "Unknown";
+        case Timeframe::M1: return std::string("M1");
+        case Timeframe::M5: return std::string("M5");
+        case Timeframe::M15: return std::string("M15");
+        case Timeframe::H1: return std::string("H1");
+        case Timeframe::H4: return std::string("H4");
+        case Timeframe::D1: return std::string("D1");
+        default: return std::string("Unknown");
     }
 }
 
@@ -31,7 +80,7 @@ static std::string generate_session_id() {
     // Generate UUID using C++ standard library
     static std::random_device rd;
     static std::mt19937 gen(rd());
-    static std::uniform_int_distribution<> dis(0, 15);
+    static std::uniform_int_distribution<int> dis(0, 15);
     
     std::ostringstream oss;
     oss << std::hex;
@@ -52,7 +101,7 @@ static std::string generate_run_id() {
     // Generate UUID using C++ standard library
     static std::random_device rd;
     static std::mt19937 gen(rd());
-    static std::uniform_int_distribution<> dis(0, 15);
+    static std::uniform_int_distribution<int> dis(0, 15);
     
     std::ostringstream oss;
     oss << std::hex;
@@ -205,9 +254,10 @@ sep::Result<SepEngine::SessionId> SepEngine::start_session(const InstrumentId& i
     session.costs = costs;
     session.running.store(true);
     
-    // Start realtime thread
-    session.th = std::jthread([this, instrument, horizon, costs](std::stop_token stop_token) {
-        while (!stop_token.stop_requested()) {
+    // Start realtime thread - simplified without jthread for now
+    session.th = std::thread([this, instrument, horizon, costs]() {
+        bool running = true;
+        while (running) {
             try {
                 // Create analysis request
                 AnalysisRequest req;
@@ -226,6 +276,17 @@ sep::Result<SepEngine::SessionId> SepEngine::start_session(const InstrumentId& i
                 
                 // Sleep for a period (could be configurable)
                 std::this_thread::sleep_for(std::chrono::seconds(1));
+                
+                // Check if we should stop (simplified)
+                {
+                    std::lock_guard<std::mutex> session_lock(m_sessions_);
+                    auto it = sessions_.find(instrument.symbol);
+                    if (it != sessions_.end()) {
+                        running = it->second.running.load();
+                    } else {
+                        running = false;
+                    }
+                }
                 
             } catch (const std::exception& e) {
                 // Log error but continue
@@ -248,15 +309,14 @@ sep::Result<void> SepEngine::stop_session(const SessionId& id) {
         if (it->second.id.value == id.value) {
             it->second.running.store(false);
             if (it->second.th.joinable()) {
-                it->second.th.request_stop();
                 it->second.th.join();
             }
             sessions_.erase(it);
-            return sep::makeSuccess();
+            return sep::makeSuccess<void>();
         }
     }
 
-    return sep::makeError(Error(Error::Code::NotFound, "Session not found: " + id.value));
+    return sep::makeError<void>(Error(Error::Code::NotFound, "Session not found: " + id.value));
 }
 
 std::optional<AnalysisResult> SepEngine::latest(const InstrumentId& instrument) const {
@@ -301,7 +361,13 @@ EngineConfig SepEngine::config() const {
 
 SepEngine::Stats SepEngine::stats() const {
     std::lock_guard<std::mutex> lock(m_stats_);
-    return stats_;
+    return Stats{
+        stats_.analyses.load(),
+        stats_.ok.load(),
+        stats_.cache_hits.load(),
+        stats_.cache_misses.load(),
+        stats_.last_reset
+    };
 }
 
 void SepEngine::reset_stats() {
