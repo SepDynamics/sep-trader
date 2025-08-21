@@ -1,7 +1,8 @@
 #pragma once
 
 #include "core/standard_includes.h"
-#include "util/result.h"
+#include "core/result_types.h"
+#include "core/types.h"
 
 #ifdef NDEBUG
 #define SEP_ASSERT(condition, message) ((void)0)
