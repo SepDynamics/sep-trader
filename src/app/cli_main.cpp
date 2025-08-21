@@ -1,6 +1,9 @@
 // SEP Professional Training CLI
 // Advanced interface for CUDA training coordination and remote sync
 
+// Guard against standard symbol redefinition
+#include "../common/namespace_protection.hpp"
+
 // Use C-style I/O to bypass macro pollution
 #include <cstdio>
 #include <vector>
@@ -11,16 +14,8 @@
 #include <random>
 #include <cstring>
 
-// Protect against macro pollution before including project headers
-#ifdef cout
-#undef cout
-#endif
-#ifdef string
-#undef string
-#endif
-#ifdef std
-#undef std
-#endif
+// Restore any previous macro definitions
+#include "../common/namespace_protection.hpp"
 
 void printHeader() {
     printf("\n");
