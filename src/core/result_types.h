@@ -176,9 +176,3 @@ using Result = sep::Result<T>;
 }
 
 } // namespace sep
-
-// Global namespace alias for backward compatibility
-namespace util {
-template <typename T, typename E>
-using Result = ::sep::Result<T>;
-}
