@@ -2,9 +2,8 @@
 
 namespace sep::dsl::stdlib {
 
-void register_data_transformation(Runtime& runtime) {
-    static_cast<void>(runtime);  // TODO: Register data transformation functions with runtime
+void register_data_transformation([[maybe_unused]] Runtime& runtime) {
     // Registration for data transformation functions will go here.
 }
 
-}
+}  // namespace sep::dsl::stdlib
