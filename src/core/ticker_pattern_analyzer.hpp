@@ -169,7 +169,7 @@ class TradeExecutor {
   public:
     virtual ~TradeExecutor() = default;
     virtual sep::Result<std::string> submit(const OrderIntent& intent) = 0;
-    virtual sep::Results<void> cancel_all(const InstrumentId& instrument) = 0;
+    virtual sep::Result<void> cancel_all(const InstrumentId& instrument) = 0;
 };
 
 // ---------- Core feature & state snapshots ----------

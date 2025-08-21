@@ -25,44 +25,22 @@ std::string SepEngine::timeframe_str(Timeframe tf) {
 }
 
 static std::string generate_session_id() {
-    // Generate UUID using C++ standard library
-    static std::random_device rd;
-    static std::mt19937 gen(rd());
-    static std::uniform_int_distribution<int> dis(0, 15);
+    // Generate deterministic session ID based on current time
+    auto now = std::chrono::system_clock::now();
+    auto timestamp = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()).count();
     
     std::ostringstream oss;
-    oss << std::hex;
-    for (int i = 0; i < 8; i++) oss << dis(gen);
-    oss << "-";
-    for (int i = 0; i < 4; i++) oss << dis(gen);
-    oss << "-4"; // Version 4 UUID
-    for (int i = 0; i < 3; i++) oss << dis(gen);
-    oss << "-";
-    oss << std::hex << (8 + (dis(gen) % 4)); // Variant bits
-    for (int i = 0; i < 3; i++) oss << dis(gen);
-    oss << "-";
-    for (int i = 0; i < 12; i++) oss << dis(gen);
+    oss << "session_" << timestamp;
     return oss.str();
 }
 
 static std::string generate_run_id() {
-    // Generate UUID using C++ standard library
-    static std::random_device rd;
-    static std::mt19937 gen(rd());
-    static std::uniform_int_distribution<int> dis(0, 15);
+    // Generate deterministic run ID based on current time and process info
+    auto now = std::chrono::system_clock::now();
+    auto timestamp = std::chrono::duration_cast<std::chrono::microseconds>(now.time_since_epoch()).count();
     
     std::ostringstream oss;
-    oss << std::hex;
-    for (int i = 0; i < 8; i++) oss << dis(gen);
-    oss << "-";
-    for (int i = 0; i < 4; i++) oss << dis(gen);
-    oss << "-4"; // Version 4 UUID
-    for (int i = 0; i < 3; i++) oss << dis(gen);
-    oss << "-";
-    oss << std::hex << (8 + (dis(gen) % 4)); // Variant bits
-    for (int i = 0; i < 3; i++) oss << dis(gen);
-    oss << "-";
-    for (int i = 0; i < 12; i++) oss << dis(gen);
+    oss << "run_" << timestamp;
     return oss.str();
 }
 
@@ -359,7 +337,9 @@ AnalysisResult SepEngine::pipeline_(const InstrumentId& instrument,
     try {
         // 1. BTH Analysis
         if (bth_) {
-            result.bth = bth_->compute(ticks, cfg_.bth);
+            // Convert span to vector for BTH compute method
+            std::vector<Tick> ticks_vector(ticks.begin(), ticks.end());
+            result.bth = bth_->compute(ticks_vector, cfg_.bth);
         } else {
             // Fallback implementation
             result.bth.C = 0.5;
