@@ -4,8 +4,8 @@
 #include <vector>
 #include <optional>
 #include <functional>
-#include "core/forward_window_result.h"
-#include "core/trajectory.h"
+#include "forward_window_result.h"
+#include "trajectory.h"
 
 namespace sep {
 namespace quantum {
@@ -15,6 +15,13 @@ struct QFHOptions;
 struct QFHResult;
 class QFHProcessor;
 class QFHBasedProcessor;
+struct QFHEvent;
+struct QFHAggregateEvent;
+
+// Forward declaration for DampedValue
+namespace bitspace {
+    struct DampedValue;
+}
 
 /**
  * QFH State enumeration
@@ -44,6 +51,20 @@ struct QFHEvent {
 };
 
 /**
+* Transform bitstream into rich QFH events
+* @param bits Input bitstream
+* @return Vector of QFH events representing bit transitions
+*/
+std::vector<QFHEvent> transform_rich(const std::vector<uint8_t>& bits);
+
+/**
+* Aggregate QFH events into grouped events
+* @param events Input QFH events
+* @return Vector of aggregated QFH events
+*/
+std::vector<QFHAggregateEvent> aggregate(const std::vector<QFHEvent>& events);
+
+/**
  * QFH Aggregate Event for event processing
  */
 struct QFHAggregateEvent {
@@ -53,7 +74,21 @@ struct QFHAggregateEvent {
 };
 
 /**
- * Configuration options for QFH processing
+* Transform bitstream into rich QFH events
+* @param bits Input bitstream
+* @return Vector of QFH events representing bit transitions
+*/
+std::vector<QFHEvent> transform_rich(const std::vector<uint8_t>& bits);
+
+/**
+* Aggregate QFH events into grouped events
+* @param events Input QFH events
+* @return Vector of aggregated QFH events
+*/
+std::vector<QFHAggregateEvent> aggregate(const std::vector<QFHEvent>& events);
+
+/**
+* Configuration options for QFH processing
  */
 struct QFHOptions {
     double coherence_threshold = 0.7;

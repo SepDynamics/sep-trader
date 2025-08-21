@@ -2,20 +2,13 @@
 // Advanced interface for CUDA training coordination and remote sync
 
 // Guard against standard symbol redefinition
-#include "../common/namespace_protection.hpp"
+#include "common/namespace_protection.hpp"
 
 // Use C-style I/O to bypass macro pollution
 #include <cstdio>
-#include <vector>
-#include <string>
-#include <map>
-#include <chrono>
-#include <thread>
-#include <random>
 #include <cstring>
-
-// Restore any previous macro definitions
-#include "../common/namespace_protection.hpp"
+#include <string>
+#include <vector>
 
 void printHeader() {
     printf("\n");
