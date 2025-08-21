@@ -28,12 +28,13 @@
 #include "core/qfh.h"                         // if you keep legacy QFH/QBSA interop
 #include "core/quantum_manifold_optimizer.h"  // GAO impl lives here or new header
 #include "core/result_types.h"                // sep::Result<T>
+#include "core/timeframe.h"
 
 namespace sep::engine {
 
 // ---------- Strong enums / IDs ----------
 
-enum class Timeframe : uint8_t { M1, M5, M15, H1, H4, D1 };
+using ::sep::Timeframe;
 enum class Side : uint8_t { Buy, Sell, Flat };
 enum class Strength : uint8_t { None, Weak, Moderate, Strong, VeryStrong };
 

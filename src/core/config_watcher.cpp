@@ -1,8 +1,9 @@
-#include "config_watcher.hpp"
-#include <iostream>
-#include <fstream>
 #include <algorithm>
 #include <filesystem>
+#include <fstream>
+#include <iostream>
+
+#include "config_watcher.hpp"
 
 namespace sep::config {
 

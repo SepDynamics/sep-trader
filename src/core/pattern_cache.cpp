@@ -1,8 +1,9 @@
+#include <algorithm>
+#include <iostream>
+#include <sstream>
+
 #include "pattern_cache.h"
 #include "core/result_types.h"
-#include <algorithm>
-#include <sstream>
-#include <iostream>
 
 namespace sep::engine::cache {
 
