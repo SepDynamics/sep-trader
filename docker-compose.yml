@@ -19,3 +19,15 @@ services:
       - ./nginx.conf:/etc/nginx/nginx.conf:ro
     depends_on:
       - sep-trader
+
+  sep-frontend:
+    build:
+      context: web-frontend
+      dockerfile: Dockerfile
+    container_name: sep-frontend
+    environment:
+      - REACT_APP_API_URL=http://sep-trader:8080
+    ports:
+      - "3000:3000"
+    depends_on:
+      - sep-trader
