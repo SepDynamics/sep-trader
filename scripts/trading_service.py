@@ -19,6 +19,7 @@ import signal
 sys.path.append(os.path.dirname(__file__))
 from trading.risk import RiskManager, RiskLimits  # noqa: E402
 from oanda_connector import OandaConnector  # noqa: E402
+from cli_bridge import CLIBridge  # noqa: E402
 
 # Setup logging with environment-appropriate paths
 def setup_logging():
@@ -271,6 +272,23 @@ class TradingAPIHandler(BaseHTTPRequestHandler):
             self.end_headers()
             response = {'status': 'reloaded', 'timestamp': datetime.now().isoformat()}
             self.wfile.write(json.dumps(response).encode())
+
+        elif path == '/api/commands/execute':
+            content_length = int(self.headers.get('Content-Length', 0))
+            payload = self.rfile.read(content_length) if content_length > 0 else b''
+            try:
+                data = json.loads(payload) if payload else {}
+                args = data.get('args', [])
+            except json.JSONDecodeError:
+                args = []
+
+            bridge = CLIBridge()
+            result = bridge.run(args)
+
+            self.send_response(200)
+            self.send_header('Content-type', 'application/json')
+            self.end_headers()
+            self.wfile.write(result.encode())
 
         else:
             self.send_response(404)
