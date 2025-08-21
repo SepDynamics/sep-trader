@@ -19,6 +19,7 @@ import signal
 sys.path.append(os.path.dirname(__file__))
 from trading.risk import RiskManager, RiskLimits  # noqa: E402
 from oanda_connector import OandaConnector  # noqa: E402
+from websocket_service import start_websocket_server  # noqa: E402
 
 # Setup logging with environment-appropriate paths
 def setup_logging():
@@ -308,6 +309,11 @@ if __name__ == "__main__":
     server_thread.start()
 
     logger.info(f"🌐 API server started on port {port}")
+
+    # Start WebSocket metrics server
+    ws_port = int(os.environ.get('WS_PORT', 8765))
+    start_websocket_server(ws_port)
+    logger.info(f"📡 WebSocket server started on port {ws_port}")
 
     try:
         # Start trading service (blocking)
