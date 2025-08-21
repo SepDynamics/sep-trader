@@ -38,6 +38,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON CACHE INTERNAL "")
 # Project declaration with initial C++ support
 project(sep_engine VERSION 1.0.0 LANGUAGES CXX)
 
+include(GNUInstallDirs)
 include_directories(src)
 
 
@@ -439,3 +440,9 @@ add_custom_target(generate_docs
 )
 
 add_subdirectory(src)
+
+install(EXPORT sep_libTargets
+    FILE sep_libTargets.cmake
+    NAMESPACE sep::
+    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/sep
+)
