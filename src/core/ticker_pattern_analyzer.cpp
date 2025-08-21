@@ -1,18 +1,19 @@
-#include <algorithm>
-#include <atomic>
-#include <chrono>
-#include <iomanip>
-#include <memory>
-#include <mutex>
-#include <optional>
-#include <random>
-#include <sstream>
-#include <string>
-#include <thread>
-#include <vector>
-
 #include "core/ticker_pattern_analyzer.hpp"
 #include "core/result_types.h"
+
+// Only include absolutely essential headers to avoid namespace pollution
+#include <string>
+#include <sstream>
+#include <chrono>
+#include <thread>
+#include <mutex>
+#include <algorithm>
+#include <atomic>
+#include <iomanip>
+#include <memory>
+#include <optional>
+#include <random>
+#include <vector>
 
 namespace sep::engine {
 
@@ -255,7 +256,7 @@ sep::Result<SepEngine::SessionId> SepEngine::start_session(const InstrumentId& i
     // Store session
     sessions_[instrument.symbol] = std::move(session);
     
-    return sep::makeSuccess<SessionId>(session_id);
+    return sep::makeSuccess(session_id);
 }
 
 sep::Result<void> SepEngine::stop_session(const SessionId& id) {
@@ -269,11 +270,12 @@ sep::Result<void> SepEngine::stop_session(const SessionId& id) {
                 it->second.th.join();
             }
             sessions_.erase(it);
-            return sep::makeSuccess<void>();
+            return sep::makeSuccess();
         }
     }
 
-    return sep::makeError<void>(Error(Error::Code::NotFound, "Session not found: " + id.value));
+    return sep::makeError<void>(sep::Error(sep::Error::Code::NotFound,
+                                          "Session not found: " + id.value));
 }
 
 std::optional<AnalysisResult> SepEngine::latest(const InstrumentId& instrument) const {
