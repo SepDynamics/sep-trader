@@ -19,6 +19,7 @@ import signal
 sys.path.append(os.path.dirname(__file__))
 from trading.risk import RiskManager, RiskLimits  # noqa: E402
 from oanda_connector import OandaConnector  # noqa: E402
+import subprocess
 
 # Setup logging with environment-appropriate paths
 def setup_logging():
@@ -81,6 +82,73 @@ class TradingService:
                 self.enabled_pairs = {"EUR_USD", "GBP_USD"}
         except Exception as e:
             logger.error(f"Error loading config: {e}")
+
+    def _save_pairs(self):
+        """Persist enabled pairs to registry"""
+        try:
+            config_path = "/app/config/pair_registry.json"
+            os.makedirs(os.path.dirname(config_path), exist_ok=True)
+            with open(config_path, 'w', encoding='utf-8') as f:
+                json.dump({'enabled_pairs': sorted(self.enabled_pairs)}, f, indent=2)
+        except Exception as e:
+            logger.error(f"Error saving pair registry: {e}")
+
+    # Pair management helpers
+    def enable_pair(self, pair: str) -> list:
+        """Enable a trading pair"""
+        self.enabled_pairs.add(pair)
+        self._save_pairs()
+        logger.info(f"Enabled pair {pair}")
+        return list(self.enabled_pairs)
+
+    def disable_pair(self, pair: str) -> list:
+        """Disable a trading pair"""
+        self.enabled_pairs.discard(pair)
+        self._save_pairs()
+        logger.info(f"Disabled pair {pair}")
+        return list(self.enabled_pairs)
+
+    # Metrics and performance helpers
+    def get_live_metrics(self) -> dict:
+        """Return current live trading metrics"""
+        metrics = {
+            'market_status': self.market_status,
+            'trading_active': self.trading_active,
+            'enabled_pairs': list(self.enabled_pairs),
+            'timestamp': datetime.now().isoformat(),
+            'risk': self.risk_manager.get_risk_summary(),
+        }
+        return metrics
+
+    def get_performance_history(self) -> dict:
+        """Return historical trade performance"""
+        log_file = "/app/logs/trades.json"
+        try:
+            if os.path.exists(log_file):
+                with open(log_file, 'r', encoding='utf-8') as f:
+                    return json.load(f)
+        except Exception as e:
+            logger.error(f"Error reading performance history: {e}")
+        return {'trades': []}
+
+    def execute_command(self, command: str) -> dict:
+        """Execute a CLI command and return its output"""
+        try:
+            result = subprocess.run(
+                command,
+                shell=True,
+                capture_output=True,
+                text=True,
+                timeout=60,
+            )
+            return {
+                'returncode': result.returncode,
+                'stdout': result.stdout,
+                'stderr': result.stderr,
+            }
+        except Exception as e:
+            logger.error(f"Command execution failed: {e}")
+            return {'returncode': -1, 'error': str(e)}
 
     def check_market_hours(self):
         """Check if forex market is currently open"""
@@ -253,6 +321,27 @@ class TradingAPIHandler(BaseHTTPRequestHandler):
             }
             self.wfile.write(json.dumps(response).encode())
 
+        elif path == '/api/pairs':
+            self.send_response(200)
+            self.send_header('Content-type', 'application/json')
+            self.end_headers()
+            response = {'pairs': list(self.trading_service.enabled_pairs)}
+            self.wfile.write(json.dumps(response).encode())
+
+        elif path == '/api/metrics/live':
+            self.send_response(200)
+            self.send_header('Content-type', 'application/json')
+            self.end_headers()
+            response = self.trading_service.get_live_metrics()
+            self.wfile.write(json.dumps(response).encode())
+
+        elif path == '/api/performance/history':
+            self.send_response(200)
+            self.send_header('Content-type', 'application/json')
+            self.end_headers()
+            response = self.trading_service.get_performance_history()
+            self.wfile.write(json.dumps(response).encode())
+
         else:
             self.send_response(404)
             self.end_headers()
@@ -271,6 +360,36 @@ class TradingAPIHandler(BaseHTTPRequestHandler):
             self.end_headers()
             response = {'status': 'reloaded', 'timestamp': datetime.now().isoformat()}
             self.wfile.write(json.dumps(response).encode())
+
+        elif path.startswith('/api/pairs/') and path.endswith('/enable'):
+            pair = path.split('/')[3]
+            pairs = self.trading_service.enable_pair(pair)
+            self.send_response(200)
+            self.send_header('Content-type', 'application/json')
+            self.end_headers()
+            self.wfile.write(json.dumps({'pairs': pairs}).encode())
+
+        elif path.startswith('/api/pairs/') and path.endswith('/disable'):
+            pair = path.split('/')[3]
+            pairs = self.trading_service.disable_pair(pair)
+            self.send_response(200)
+            self.send_header('Content-type', 'application/json')
+            self.end_headers()
+            self.wfile.write(json.dumps({'pairs': pairs}).encode())
+
+        elif path == '/api/commands/execute':
+            length = int(self.headers.get('Content-Length', 0))
+            body = self.rfile.read(length) if length else b'{}'
+            try:
+                data = json.loads(body)
+            except json.JSONDecodeError:
+                data = {}
+            command = data.get('command', '')
+            result = self.trading_service.execute_command(command)
+            self.send_response(200)
+            self.send_header('Content-type', 'application/json')
+            self.end_headers()
+            self.wfile.write(json.dumps(result).encode())
 
         else:
             self.send_response(404)
