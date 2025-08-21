@@ -3,13 +3,23 @@
 #include <variant>
 #include <optional>
 #include <string>
-#include "core/quantum_types.h"
-#include "io/qdrant_connector.h"
 
 namespace sep {
 
-// Type aliases for backward compatibility
-using SEPResult = connectors::SEPResult;
+// Forward declare SEPResult to avoid dependency issues
+enum class SEPResult {
+    SUCCESS = 0,
+    INVALID_ARGUMENT = 1,
+    NOT_FOUND = 2,
+    ALREADY_EXISTS = 3,
+    PROCESSING_ERROR = 4,
+    NOT_INITIALIZED = 5,
+    CUDA_ERROR = 6,
+    UNKNOWN_ERROR = 7,
+    RESOURCE_UNAVAILABLE = 8,
+    OPERATION_FAILED = 9,
+    NOT_IMPLEMENTED = 10
+};
 
 // Error struct definition
 struct Error {
@@ -33,11 +43,11 @@ struct Error {
     std::string message;
     std::string location;
     
-    Error() = default;
-    Error(Code c, const std::string& msg = "") : code(c), message(msg) {}
+    Error() : code(Code::Success), message(""), location("") {}
+    Error(Code c, const std::string& msg = std::string{}) : code(c), message(msg), location("") {}
     
     // Constructor for SEPResult compatibility
-    Error(SEPResult sep_code, const std::string& msg, const std::string& loc = "") : message(msg), location(loc) {
+    Error(SEPResult sep_code, const std::string& msg = std::string{}, const std::string& loc = std::string{}) : message(msg), location(loc) {
         // Map SEPResult to Error::Code
         switch(sep_code) {
             case SEPResult::SUCCESS: code = Code::Success; break;
@@ -148,44 +158,11 @@ namespace result {
     constexpr SEPResult NOT_FOUND = SEPResult::NOT_FOUND;
 }
 
-// Namespace aliases for backward compatibility
-namespace core {
-    // Template Result<T> for new code
-    template<typename T>
+// Add util namespace alias for backward compatibility
+namespace util {
+    // Two-parameter version matches ticker_pattern_analyzer usage
+    template<typename T, typename E>
     using Result = sep::Result<T>;
-    
-    // Import quantum types
-    using Pattern = sep::quantum::Pattern;
-    using QuantumState = sep::quantum::QuantumState;
-    using PatternRelationship = sep::quantum::PatternRelationship;
-    using RelationshipType = sep::quantum::RelationshipType;
-    
-    // POD types for conversions
-    using QuantumStatePOD = sep::quantum::QuantumStatePOD;
-    using PatternRelationshipPOD = sep::quantum::PatternRelationshipPOD;
-    using PatternPOD = sep::quantum::PatternPOD;
-    
-    // Utility function to convert SEPResult to string
-    inline std::string resultToString(const SEPResult& result) {
-        switch (result) {
-            case SEPResult::SUCCESS: return "SUCCESS";
-            case SEPResult::NETWORK_ERROR: return "NETWORK_ERROR";
-            case SEPResult::INVALID_ARGUMENT: return "INVALID_ARGUMENT";
-            case SEPResult::NOT_FOUND: return "NOT_FOUND";
-            case SEPResult::ALREADY_EXISTS: return "ALREADY_EXISTS";
-            case SEPResult::PROCESSING_ERROR: return "PROCESSING_ERROR";
-            case SEPResult::NOT_INITIALIZED: return "NOT_INITIALIZED";
-            case SEPResult::CUDA_ERROR: return "CUDA_ERROR";
-            case SEPResult::UNKNOWN_ERROR: return "UNKNOWN_ERROR";
-            case SEPResult::FAILURE: return "FAILURE";
-            case SEPResult::OUT_OF_MEMORY: return "OUT_OF_MEMORY";
-            case SEPResult::FILE_NOT_FOUND: return "FILE_NOT_FOUND";
-            case SEPResult::TIMEOUT: return "TIMEOUT";
-            case SEPResult::NOT_IMPLEMENTED: return "NOT_IMPLEMENTED";
-            case SEPResult::RUNTIME_ERROR: return "RUNTIME_ERROR";
-            default: return "UNKNOWN";
-        }
-    }
 }
 
 } // namespace sep

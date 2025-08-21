@@ -8,14 +8,20 @@
 #include <map>
 #include <vector>
 #include <chrono>
-#include "core/training_coordinator.hpp"
+
+// Forward declarations
+namespace sep::train {
+    class Orchestrator;
+    struct TrainResult;
+    enum class Quality : uint8_t;
+}
 
 namespace sep {
 namespace training {
 
 class StatusDisplay {
 public:
-    explicit StatusDisplay(TrainingCoordinator& coordinator);
+    explicit StatusDisplay(sep::train::Orchestrator& coordinator);
     
     // Status displays
     bool showSystemStatus();
@@ -24,12 +30,12 @@ public:
     bool startMonitoringMode(int duration_seconds);
     
 private:
-    TrainingCoordinator& coordinator_;
+    sep::train::Orchestrator& coordinator_;
     
     // Display utilities
     void printStatusHeader(const std::string& title);
     void printStatusLine(const std::string& label, const std::string& value, bool good = true);
-    void printTrainingTable(const std::vector<TrainingResult>& results);
+    void printTrainingTable(const std::vector<sep::train::TrainResult>& results);
     void printRemoteStatus();
     void printCacheStatus();
     void printPerformanceMetrics();
@@ -38,9 +44,9 @@ private:
     std::string formatAccuracy(double accuracy);
     std::string formatDuration(std::chrono::system_clock::time_point timestamp);
     std::string formatDurationFromString(const std::string& timestamp);
-    std::string formatQuality(PatternQuality quality);
+    std::string formatQuality(sep::train::Quality quality);
     std::string getStatusIcon(bool status);
-    std::string getQualityIcon(PatternQuality quality);
+    std::string getQualityIcon(sep::train::Quality quality);
     
     // Monitoring mode
     void monitoringLoop(int duration_seconds);

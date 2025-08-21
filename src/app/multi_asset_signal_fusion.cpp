@@ -6,8 +6,10 @@
 #include <algorithm>
 #include <cmath>
 #include <numeric>
+#include <random>
 
 #include "core/sep_precompiled.h"
+#include "candle_types.h"
 
 namespace sep {
 
@@ -132,36 +134,49 @@ CrossAssetCorrelation MultiAssetSignalFusion::calculateDynamicCorrelation(
             returns2.push_back(return2);
         }
         
-        // Calculate Pearson correlation coefficient
-        double correlation = 0.0;
-        if (returns1.size() > 10) {  // Need minimum data points
-            double mean1 = std::accumulate(returns1.begin(), returns1.end(), 0.0) / returns1.size();
-            double mean2 = std::accumulate(returns2.begin(), returns2.end(), 0.0) / returns2.size();
+        double best_correlation = 0.0;
+        int optimal_lag_periods = 0;
+        double stability_sum = 0.0;
+        int stability_count = 0;
+        
+        // Implement lag optimization: test lags from -20 to +20 periods
+        if (returns1.size() > 50) {  // Need sufficient data for lag analysis
+            const int MAX_LAG = 20;
             
-            double numerator = 0.0, denom1 = 0.0, denom2 = 0.0;
-            for (size_t i = 0; i < returns1.size(); ++i) {
-                double diff1 = returns1[i] - mean1;
-                double diff2 = returns2[i] - mean2;
-                numerator += diff1 * diff2;
-                denom1 += diff1 * diff1;
-                denom2 += diff2 * diff2;
+            for (int lag = -MAX_LAG; lag <= MAX_LAG; ++lag) {
+                double lagged_correlation = calculateLaggedCorrelation(returns1, returns2, lag);
+                
+                // Track best correlation by absolute value
+                if (std::abs(lagged_correlation) > std::abs(best_correlation)) {
+                    best_correlation = lagged_correlation;
+                    optimal_lag_periods = lag;
+                }
+                
+                // Accumulate for stability calculation
+                stability_sum += std::abs(lagged_correlation);
+                stability_count++;
             }
-            
-            if (denom1 > 0 && denom2 > 0) {
-                correlation = numerator / std::sqrt(denom1 * denom2);
-            }
+        } else {
+            // Fallback to basic correlation for insufficient data
+            best_correlation = calculateLaggedCorrelation(returns1, returns2, 0);
         }
         
+        // Calculate correlation stability as variance of lagged correlations
+        double stability = stability_count > 0 ? stability_sum / stability_count : std::abs(best_correlation);
+        
+        // Convert lag periods to milliseconds (assuming 1-minute candles)
+        auto optimal_lag_ms = std::chrono::milliseconds(optimal_lag_periods * 60 * 1000);
+        
         CrossAssetCorrelation result{
-            .strength = correlation,
-            .optimal_lag = std::chrono::milliseconds(0),  // TODO: Implement lag optimization
-            .stability = std::abs(correlation)  // Simple stability measure for now
+            .strength = best_correlation,
+            .optimal_lag = optimal_lag_ms,
+            .stability = stability
         };
         
         // Cache the result
         correlation_cache_[cache_key] = result;
-        spdlog::debug("Calculated correlation between {} and {}: {:.3f}", 
-                     asset1, asset2, correlation);
+        spdlog::debug("Calculated correlation between {} and {}: {:.3f}",
+                     asset1, asset2, result.strength);
         
         return result;
         
@@ -172,8 +187,65 @@ CrossAssetCorrelation MultiAssetSignalFusion::calculateDynamicCorrelation(
     }
 }
 
+double MultiAssetSignalFusion::calculateLaggedCorrelation(
+    const std::vector<double>& returns1,
+    const std::vector<double>& returns2,
+    int lag) {
+    
+    if (returns1.empty() || returns2.empty()) {
+        return 0.0;
+    }
+    
+    // Determine valid range for correlation calculation
+    size_t start1 = 0, start2 = 0;
+    size_t end1 = returns1.size(), end2 = returns2.size();
+    
+    if (lag > 0) {
+        // Positive lag: returns2 leads returns1
+        start2 = lag;
+        if (start2 >= returns2.size()) return 0.0;
+        end1 = std::min(end1, returns2.size() - lag);
+    } else if (lag < 0) {
+        // Negative lag: returns1 leads returns2
+        start1 = -lag;
+        if (start1 >= returns1.size()) return 0.0;
+        end2 = std::min(end2, returns1.size() + lag);
+    }
+    
+    // Need minimum data points for reliable correlation
+    size_t effective_size = std::min(end1 - start1, end2 - start2);
+    if (effective_size < 10) {
+        return 0.0;
+    }
+    
+    // Calculate means for the effective ranges
+    double sum1 = 0.0, sum2 = 0.0;
+    for (size_t i = 0; i < effective_size; ++i) {
+        sum1 += returns1[start1 + i];
+        sum2 += returns2[start2 + i];
+    }
+    double mean1 = sum1 / effective_size;
+    double mean2 = sum2 / effective_size;
+    
+    // Calculate Pearson correlation coefficient
+    double numerator = 0.0, denom1 = 0.0, denom2 = 0.0;
+    for (size_t i = 0; i < effective_size; ++i) {
+        double diff1 = returns1[start1 + i] - mean1;
+        double diff2 = returns2[start2 + i] - mean2;
+        numerator += diff1 * diff2;
+        denom1 += diff1 * diff1;
+        denom2 += diff2 * diff2;
+    }
+    
+    if (denom1 > 0 && denom2 > 0) {
+        return numerator / std::sqrt(denom1 * denom2);
+    }
+    
+    return 0.0;
+}
+
 double MultiAssetSignalFusion::calculateCrossAssetBoost(
-    const sep::trading::QuantumIdentifiers& signal, 
+    const sep::trading::QuantumIdentifiers& signal,
     const CrossAssetCorrelation& correlation) {
     
     // Base boost is proportional to correlation strength

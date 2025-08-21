@@ -7,6 +7,7 @@
 #include <unordered_map>
 #include "app/quantum_signal_bridge.hpp"
 #include "enhanced_market_model_cache.hpp"
+#include "candle_types.h"
 
 namespace sep {
 
@@ -85,6 +86,14 @@ public:
     // Debugging and analysis
     void logFusionDetails(const FusedSignal& signal);
     std::string serializeFusionResult(const FusedSignal& signal);
+
+private:
+    // Helper function for lag optimization
+    double calculateLaggedCorrelation(
+        const std::vector<double>& returns1,
+        const std::vector<double>& returns2,
+        int lag
+    );
 };
 
 } // namespace sep

@@ -1,283 +1,384 @@
 #pragma once
-#include "core/sep_precompiled.h"
-#include "io/oanda_connector.h"
-#include "util/result.h"
-#include "core/qfh.h"
-#include "core/quantum_manifold_optimizer.h"
 
-namespace sep::trading {
+#include <array>
+#include <atomic>
+#include <chrono>
+#include <cstdint>
+#include <future>
+#include <map>
+#include <memory>
+#include <mutex>
+#include <optional>
+#include <span>
+#include <stop_token>
+#include <string>
+#include <string_view>
+#include <thread>
+#include <unordered_map>
+#include <utility>
+#include <variant>
+#include <vector>
 
-/**
- * Advanced Ticker Pattern Analysis Results
- * Contains comprehensive pattern analysis for a single currency pair
- */
-struct TickerPatternAnalysis {
-    std::string ticker_symbol;
-    std::chrono::system_clock::time_point analysis_timestamp;
-    
-    // Core quantum metrics
-    double coherence_score = 0.0;        // Quantum field coherence (0-1)
-    double entropy_level = 0.0;          // Information entropy (0-1)  
-    double stability_index = 0.0;        // Pattern stability (0-1)
-    double rupture_probability = 0.0;    // QFH rupture likelihood (0-1)
-    
-    // Advanced pattern metrics
-    double trend_strength = 0.0;         // Directional trend strength
-    double volatility_factor = 0.0;      // Market volatility measure
-    double regime_confidence = 0.0;      // Market regime detection confidence
-    double correlation_index = 0.0;      // Cross-pair correlation strength
-    
-    // Multi-timeframe analysis
-    struct TimeframeAnalysis {
-        std::string timeframe;  // "M1", "M5", "M15", "H1", "H4", "D1"
-        double pattern_strength = 0.0;
-        double signal_quality = 0.0;
-        bool breakout_detected = false;
-        bool reversal_pattern = false;
-        double confidence_level = 0.0;
-    };
-    
-    std::vector<TimeframeAnalysis> timeframe_results;
-    
-    // Pattern classification
-    enum class PatternType {
-        TRENDING_UP,
-        TRENDING_DOWN, 
-        RANGING,
-        BREAKOUT_PENDING,
-        REVERSAL_FORMING,
-        HIGH_VOLATILITY,
-        CONSOLIDATION,
-        UNKNOWN
-    };
-    
-    PatternType dominant_pattern = PatternType::UNKNOWN;
-    std::vector<PatternType> secondary_patterns;
-    
-    // Trading signals
-    enum class SignalStrength { NONE, WEAK, MODERATE, STRONG, VERY_STRONG };
-    enum class SignalDirection { HOLD, BUY, SELL, UP, DOWN, NEUTRAL };
-    
-    SignalDirection primary_signal = SignalDirection::HOLD;
-    SignalStrength signal_strength = SignalStrength::NONE;
-    double signal_confidence = 0.0;
-    
-    // Risk assessment
-    double estimated_risk_level = 0.0;   // Risk assessment (0-1)
-    double maximum_drawdown_risk = 0.0;  // Potential drawdown estimate
-    double position_size_recommendation = 0.0;  // Recommended position size
-    
-    // Pattern evolution tracking
-    std::vector<std::string> pattern_evolution_path;  // Historical pattern progression
-    std::string predicted_next_pattern;              // AI prediction of next pattern
-    double evolution_confidence = 0.0;               // Confidence in evolution prediction
-    
-    // Metadata
-    size_t data_points_analyzed = 0;
-    std::chrono::milliseconds analysis_duration{0};
-    bool analysis_successful = true;
-    std::string error_message;
+#include "core/qfh.h"                         // if you keep legacy QFH/QBSA interop
+#include "core/quantum_manifold_optimizer.h"  // GAO impl lives here or new header
+#include "core/result_types.h"                // sep::util::Result<T,E>
+
+namespace sep::engine {
+
+// ---------- Strong enums / IDs ----------
+
+enum class Timeframe : uint8_t { M1, M5, M15, H1, H4, D1 };
+enum class Side : uint8_t { Buy, Sell, Flat };
+enum class Strength : uint8_t { None, Weak, Moderate, Strong, VeryStrong };
+
+struct InstrumentId {
+    std::string symbol;
+};  // "EUR/USD" etc.
+struct RunId {
+    std::string value;
+};  // UUID/sha
+struct CommitHash {
+    std::string value;
+};
+struct DockerSha {
+    std::string value;
 };
 
-/**
- * Comprehensive Pattern Analysis Configuration
- */
-struct PatternAnalysisConfig {
-    // Analysis depth settings
-    size_t lookback_hours = 24;          // How far back to analyze
-    size_t pattern_window_size = 50;     // Size of pattern analysis window
-    size_t quantum_analysis_depth = 100; // Depth of quantum field analysis
-    
-    // Multi-timeframe settings
-    std::vector<std::string> timeframes = {"M1", "M5", "M15", "H1"};
-    bool enable_cross_timeframe_validation = true;
-    double min_cross_timeframe_agreement = 0.60; // 60% agreement threshold
-    
-    // Signal generation parameters
-    double min_signal_confidence = 0.65;   // Minimum confidence for signal generation
-    double volatility_adjustment_factor = 1.0;  // Adjust for market volatility
-    bool enable_regime_detection = true;
-    
-    // Risk management
-    double max_risk_per_trade = 0.02;      // 2% max risk per trade
-    double correlation_risk_limit = 0.8;   // Max correlation with other pairs
-    bool enable_drawdown_protection = true;
-    
-    // Performance optimization
-    bool enable_cuda_acceleration = true;
-    size_t parallel_processing_threads = 8;
-    bool cache_intermediate_results = true;
-    
-    // Advanced features
-    bool enable_sentiment_analysis = false;  // Future feature
-    bool enable_news_integration = false;    // Future feature
-    bool enable_ai_pattern_prediction = true;
+// ---------- Cost & horizon models ----------
+
+struct CostModelPips {
+    // After-cost round-turn pips: spread + commission per-side *2 + slippage
+    double median_spread_pips = 0.8;
+    double commission_per_lot_per_side_usd = 0.50;  // not pips; convert at runtime if needed
+    double slippage_pips = 0.1;
+    double lot_size = 100'000.0;  // standard FX lot for conversions
 };
 
-/**
- * Advanced Ticker Pattern Analyzer
- * Provides comprehensive quantum-enhanced pattern analysis for currency pairs
- */
-class TickerPatternAnalyzer {
-public:
-    explicit TickerPatternAnalyzer(const sep::trading::PatternAnalysisConfig& config = {});
-    ~TickerPatternAnalyzer();
+struct Horizon {
+    std::chrono::minutes fixed = std::chrono::minutes{30};
+};
 
-    // Core analysis interface
-    sep::trading::TickerPatternAnalysis analyzeTicker(const std::string& ticker_symbol);
-    std::future<sep::trading::TickerPatternAnalysis> analyzeTickerAsync(const std::string& ticker_symbol);
+// ---------- Decay / weighting ----------
 
-    // Direct analysis of supplied market data (testbed/tracing)
-    sep::trading::TickerPatternAnalysis analyzeFromMarketData(
-        const std::string& ticker_symbol,
-        const std::vector<sep::connectors::MarketData>& market_data);
-    
-    // Batch analysis
-    std::vector<sep::trading::TickerPatternAnalysis> analyzeMultipleTickers(
-        const std::vector<std::string>& ticker_symbols);
-    std::future<std::vector<sep::trading::TickerPatternAnalysis>> analyzeMultipleTickersAsync(
-        const std::vector<std::string>& ticker_symbols);
-    
-    // Real-time analysis
-    void startRealTimeAnalysis(const std::string& ticker_symbol);
-    void stopRealTimeAnalysis(const std::string& ticker_symbol);
-    sep::trading::TickerPatternAnalysis getLatestAnalysis(const std::string& ticker_symbol) const;
-    
-    // Historical analysis
-    std::vector<sep::trading::TickerPatternAnalysis> getHistoricalAnalysis(
-        const std::string& ticker_symbol,
-        std::chrono::system_clock::time_point start_time,
-        std::chrono::system_clock::time_point end_time) const;
-    
-    // Configuration management
-    void updateConfig(const sep::trading::PatternAnalysisConfig& config);
-    sep::trading::PatternAnalysisConfig getCurrentConfig() const;
-    
-    // Pattern comparison and correlation
-    double calculatePatternSimilarity(const sep::trading::TickerPatternAnalysis& analysis1,
-                                     const sep::trading::TickerPatternAnalysis& analysis2);
-    std::vector<std::string> findSimilarPatterns(const std::string& ticker_symbol,
-                                                double similarity_threshold = 0.8);
-    
-    // Performance monitoring
-    struct AnalysisPerformanceStats {
-        std::atomic<size_t> total_analyses{0};
-        std::atomic<size_t> successful_analyses{0};
-        std::atomic<double> average_analysis_time_ms{0.0};
-        std::atomic<size_t> cache_hits{0};
-        std::atomic<size_t> cache_misses{0};
-        std::chrono::system_clock::time_point last_reset;
-        
-        // Copy constructor
-        AnalysisPerformanceStats(const AnalysisPerformanceStats& other) 
-            : total_analyses(other.total_analyses.load()),
-              successful_analyses(other.successful_analyses.load()),
-              average_analysis_time_ms(other.average_analysis_time_ms.load()),
-              cache_hits(other.cache_hits.load()),
-              cache_misses(other.cache_misses.load()),
-              last_reset(other.last_reset) {}
-              
-        // Move constructor  
-        AnalysisPerformanceStats(AnalysisPerformanceStats&& other) noexcept
-            : total_analyses(other.total_analyses.load()),
-              successful_analyses(other.successful_analyses.load()),
-              average_analysis_time_ms(other.average_analysis_time_ms.load()),
-              cache_hits(other.cache_hits.load()),
-              cache_misses(other.cache_misses.load()),
-              last_reset(std::move(other.last_reset)) {}
-              
-        // Assignment operator
-        AnalysisPerformanceStats& operator=(const AnalysisPerformanceStats& other) {
-            if (this != &other) {
-                total_analyses.store(other.total_analyses.load());
-                successful_analyses.store(other.successful_analyses.load());
-                average_analysis_time_ms.store(other.average_analysis_time_ms.load());
-                cache_hits.store(other.cache_hits.load());
-                cache_misses.store(other.cache_misses.load());
-                last_reset = other.last_reset;
-            }
-            return *this;
-        }
-        
-        // Default constructor
-        AnalysisPerformanceStats() = default;
+struct Decay {
+    // exponential kernel w_k = lambda * (1 - lambda)^k
+    double lambda = 0.10;    // 0<lambda<=1
+    double ema_beta = 0.10;  // for S/H estimates
+    int window_L = 64;       // FWHT window
+    int top_K = 8;           // FWHT bands surfaced
+};
+
+// ---------- BTH / BRS / GAO / Evolution configs ----------
+
+struct BTHConfig {
+    Decay decay{};
+    bool compute_fwht = true;
+};
+
+struct BRSConfig {
+    double tau = 0.85;  // reliability threshold on normalized Hamming similarity
+    bool calibrate_on_disjoint_split = true;
+    double max_ece = 0.02;  // bound Expected Calibration Error
+};
+
+struct GAOConfig {
+    // Riemannian-style diagonal metric: G(θ)=diag(gC,gS,gH), g•=ε+EMA[(∇•J)^2]
+    double lr = 0.02;
+    double epsilon = 1e-8;                         // ensure PD metric
+    std::array<double, 3> box_min{0.0, 0.0, 0.0};  // bounds for (C,S,H)
+    std::array<double, 3> box_max{1.0, 1.0, 1.0};
+    int max_iters = 64;
+};
+
+struct EvolutionConfig {
+    int pop_size = 16;
+    int elite_k = 4;
+    double mutation_sigma = 0.05;
+    int eval_minutes = 60;  // rolling evaluation window
+    bool online = true;     // evolve during session
+    uint64_t seed = 42;
+};
+
+// ---------- Analysis configuration (per-call overrides allowed) ----------
+
+struct EngineConfig {
+    // analysis
+    int lookback_hours = 24;
+    std::vector<Timeframe> timeframes{Timeframe::M1, Timeframe::M5, Timeframe::M15, Timeframe::H1};
+    bool cross_tf_validation = true;
+    double min_tf_agreement = 0.60;
+
+    // modules
+    BTHConfig bth{};
+    BRSConfig brs{};
+    GAOConfig gao{};
+    EvolutionConfig evo{};
+
+    // constraints & risk
+    double min_signal_confidence = 0.65;
+    double max_risk_per_trade = 0.02;
+    double max_pair_correlation = 0.80;  // cap exposure vs correlated instruments
+    bool drawdown_protection = true;
+
+    // perf
+    bool use_cuda = true;
+    int threads =
+        std::thread::hardware_concurrency() ? int(std::thread::hardware_concurrency()) : 8;
+    bool cache_intermediates = true;
+
+    // repro/meta
+    RunId run_id{"unset"};
+    CommitHash commit{"unset"};
+    DockerSha docker{"unset"};
+    uint64_t rng_seed = 1337;
+};
+
+// ---------- Data feed & execution ports ----------
+
+struct Tick {
+    std::chrono::system_clock::time_point ts;
+    double bid;
+    double ask;
+};
+
+class MarketDataFeed {
+  public:
+    virtual ~MarketDataFeed() = default;
+    virtual sep::util::Result<std::vector<Tick>, std::string> get_ticks(
+        const InstrumentId& instrument, std::chrono::system_clock::time_point start,
+        std::chrono::system_clock::time_point end) = 0;
+
+    virtual sep::util::Result<std::vector<Tick>, std::string> get_ticks_lookback(
+        const InstrumentId& instrument, std::chrono::system_clock::time_point end,
+        std::chrono::hours lookback) = 0;
+};
+
+struct OrderIntent {
+    InstrumentId instrument;
+    Side side = Side::Flat;
+    double quantity_lots = 1.0;
+    std::chrono::system_clock::time_point expires_at{};
+};
+
+class TradeExecutor {
+  public:
+    virtual ~TradeExecutor() = default;
+    virtual sep::util::Result<std::string, std::string> submit(const OrderIntent& intent) = 0;
+    virtual sep::util::Result<void, std::string> cancel_all(const InstrumentId& instrument) = 0;
+};
+
+// ---------- Core feature & state snapshots ----------
+
+struct BitState64 {
+    std::array<uint64_t, 1> w{};
+};  // 64 thresholded features packed
+
+struct BTHSnapshot {
+    double C;                       // coherence in [0,1]
+    double S;                       // stability in [0,1]
+    double H;                       // entropy  in [0,1]
+    double flip_rate;               // f_t in [0,1]
+    double rupture_rate;            // u_t in [0,1]
+    std::vector<double> fwht_topK;  // size K
+};
+
+struct ReliabilityReport {
+    double brs;      // normalized Hamming similarity
+    double ece;      // calibration error on held-out split
+    bool gate_pass;  // brs >= tau
+};
+
+struct Signal {
+    Side side = Side::Flat;
+    Strength strength = Strength::None;
+    double confidence = 0.0;
+    Horizon horizon{};
+    std::chrono::system_clock::time_point issued_at{};
+    std::chrono::system_clock::time_point expires_at{};
+    std::string reason;  // short reason code(s)
+};
+
+enum class PatternType : uint8_t {
+    TrendingUp,
+    TrendingDown,
+    Ranging,
+    BreakoutPending,
+    ReversalForming,
+    HighVolatility,
+    Consolidation,
+    Unknown
+};
+
+// ---------- Request/Result ----------
+
+struct AnalysisRequest {
+    InstrumentId instrument;
+    Horizon horizon{};
+    CostModelPips costs{};
+    EngineConfig overrides{};  // optional overrides (leave as defaults to use engine cfg)
+    std::optional<std::chrono::system_clock::time_point> asof;  // default=now
+};
+
+struct RiskMetrics {
+    double estimated_risk_0_1 = 0.0;
+    double drawdown_risk = 0.0;  // pips
+    double suggested_position_lots = 0.0;
+};
+
+struct PerformanceFootprint {
+    std::chrono::microseconds p50_latency{0};
+    std::chrono::microseconds p95_latency{0};
+    size_t states_processed = 0;
+};
+
+struct AnalysisResult {
+    InstrumentId instrument;
+    std::chrono::system_clock::time_point asof{};
+    bool success = true;
+    std::string error;
+
+    // Core metrics & features
+    BTHSnapshot bth{};
+    ReliabilityReport brs{};
+    PatternType dominant = PatternType::Unknown;
+    std::vector<PatternType> secondary;
+
+    // Signals (primary + per timeframe)
+    Signal primary{};
+    std::vector<std::pair<Timeframe, Signal>> by_timeframe;
+
+    // Risk & capacity
+    RiskMetrics risk{};
+    double capacity_slope_pips_per_0p1_slip = -0.05;
+
+    // Evolution lineage
+    struct EvolutionTag {
+        int generation = 0;
+        uint64_t parent_hash = 0;
+        uint64_t param_hash = 0;
     };
-    
-    AnalysisPerformanceStats getPerformanceStats() const;
-    void resetPerformanceStats();
-    
-    // Advanced pattern insights
-    std::vector<std::string> getPatternInsights(const std::string& ticker_symbol);
-    std::map<std::string, double> getPatternCorrelations(const std::string& ticker_symbol);
-    
-private:
-    // Core analysis implementation
-    sep::trading::TickerPatternAnalysis performQuantumAnalysis(const std::string& ticker_symbol);
-    
-    // Data acquisition
-    std::vector<sep::connectors::MarketData> fetchMarketData(
-        const std::string& ticker_symbol, size_t hours_back);
-    
-    // Quantum pattern processing
-    sep::quantum::QFHResult performQFHAnalysis(
-        const std::vector<sep::connectors::MarketData>& market_data);
-    std::vector<sep::quantum::Pattern> extractPatterns(
-        const std::vector<sep::connectors::MarketData>& market_data);
-    
-    // Multi-timeframe analysis
-    std::vector<sep::trading::TickerPatternAnalysis::TimeframeAnalysis> analyzeTimeframes(
-        const std::string& ticker_symbol);
-    bool validateCrossTimeframeSignals(
-        const std::vector<sep::trading::TickerPatternAnalysis::TimeframeAnalysis>& timeframe_analyses);
-    
-    // Pattern classification
-    sep::trading::TickerPatternAnalysis::PatternType classifyPattern(
-        const std::vector<sep::connectors::MarketData>& market_data,
-        const sep::quantum::QFHResult& qfh_result);
-    
-    // Signal generation
-    void generateTradingSignals(sep::trading::TickerPatternAnalysis& analysis);
-    double calculateSignalConfidence(const sep::trading::TickerPatternAnalysis& analysis);
-    
-    // Risk assessment
-    void performRiskAssessment(sep::trading::TickerPatternAnalysis& analysis);
-    double calculateDrawdownRisk(const std::vector<sep::connectors::MarketData>& market_data);
-    
-    // Pattern evolution prediction
-    void predictPatternEvolution(sep::trading::TickerPatternAnalysis& analysis);
-    std::string getNextPatternPrediction(const std::vector<std::string>& evolution_path);
-    
-    // Caching and persistence
-    std::string getCacheKey(const std::string& ticker_symbol) const;
-    void cacheAnalysisResult(const sep::trading::TickerPatternAnalysis& analysis);
-    std::optional<sep::trading::TickerPatternAnalysis> getCachedAnalysis(const std::string& cache_key) const;
-    
-    // Configuration and state
-    sep::trading::PatternAnalysisConfig config_;
-    mutable std::mutex config_mutex_;
-    
-    // Component instances
-    std::unique_ptr<sep::quantum::QFHBasedProcessor> qfh_processor_;
-    std::unique_ptr<sep::quantum::manifold::QuantumManifoldOptimizer> manifold_optimizer_;
-    std::unique_ptr<sep::connectors::OandaConnector> oanda_connector_;
-    
-    // Real-time analysis state
-    std::map<std::string, std::atomic<bool>> real_time_active_;
-    std::map<std::string, std::thread> real_time_threads_;
-    std::map<std::string, sep::trading::TickerPatternAnalysis> latest_analyses_;
-    mutable std::mutex real_time_mutex_;
-    
-    // Analysis cache
-    mutable std::map<std::string, sep::trading::TickerPatternAnalysis> analysis_cache_;
-    mutable std::mutex cache_mutex_;
-    
-    // Performance tracking
-    mutable AnalysisPerformanceStats performance_stats_;
-    mutable std::mutex stats_mutex_;
-    
-    // Pattern correlation matrix
-    std::map<std::pair<std::string, std::string>, double> pattern_correlations_;
-    mutable std::mutex correlations_mutex_;
+    EvolutionTag evo{};
+
+    // Diagnostics
+    size_t ticks_used = 0;
+    PerformanceFootprint perf{};
+    RunId run_id{"unset"};
+    CommitHash commit{"unset"};
+    DockerSha docker{"unset"};
 };
 
-} // namespace sep::trading
+// ---------- Subsystems (interfaces) ----------
+
+class BTHEngine {
+  public:
+    virtual ~BTHEngine() = default;
+    virtual BTHSnapshot compute(std::span<const Tick> ticks, const BTHConfig& cfg) = 0;
+};
+
+class ReliabilityGate {
+  public:
+    virtual ~ReliabilityGate() = default;
+    virtual ReliabilityReport score(const BitState64& predicted, const BitState64& observed,
+                                    const BRSConfig& cfg) = 0;
+};
+
+class GAO {
+  public:
+    virtual ~GAO() = default;
+    // Optimize (C,S,H) or other θ against objective J derived from BTHSnapshot / costs / horizon
+    virtual std::array<double, 3> optimize(std::array<double, 3> theta0, const GAOConfig& cfg) = 0;
+};
+
+class EvolutionEngine {
+  public:
+    virtual ~EvolutionEngine() = default;
+    virtual std::array<double, 3> step(std::array<double, 3> theta, const EvolutionConfig& cfg,
+                                       uint64_t seed_override = 0) = 0;
+};
+
+// ---------- Engine (orchestrator) ----------
+
+class SepEngine {
+  public:
+    explicit SepEngine(EngineConfig cfg, std::shared_ptr<MarketDataFeed> feed,
+                       std::shared_ptr<TradeExecutor> exec, std::unique_ptr<BTHEngine> bth,
+                       std::unique_ptr<ReliabilityGate> brs, std::unique_ptr<GAO> gao,
+                       std::unique_ptr<EvolutionEngine> evo);
+
+    ~SepEngine();
+
+    // Single-shot analysis (pure; no orders placed)
+    sep::util::Result<AnalysisResult, std::string> analyze(const AnalysisRequest& req);
+
+    // Batch
+    std::vector<sep::util::Result<AnalysisResult, std::string>> analyze_many(
+        const std::vector<AnalysisRequest>& requests);
+
+    // Realtime session (non-blocking)
+    struct SessionId {
+        std::string value;
+    };
+    sep::util::Result<SessionId, std::string> start_session(const InstrumentId& instrument,
+                                                            Horizon horizon, CostModelPips costs);
+
+    sep::util::Result<void, std::string> stop_session(const SessionId& id);
+
+    std::optional<AnalysisResult> latest(const InstrumentId& instrument) const;
+
+    // Execution (optional): convert signal → order intent via policy
+    sep::util::Result<std::string, std::string> act_on(const AnalysisResult& res, double lots);
+
+    // Config
+    void update_config(const EngineConfig& cfg);
+    EngineConfig config() const;
+
+    // Introspection
+    struct Stats {
+        std::atomic<uint64_t> analyses{0};
+        std::atomic<uint64_t> ok{0};
+        std::atomic<uint64_t> cache_hits{0};
+        std::atomic<uint64_t> cache_misses{0};
+        std::chrono::system_clock::time_point last_reset{};
+    };
+    Stats stats() const;
+    void reset_stats();
+
+  private:
+    AnalysisResult pipeline_(const InstrumentId& instrument, std::span<const Tick> ticks,
+                             const AnalysisRequest& req);
+
+    // helpers
+    static std::string timeframe_str(Timeframe tf);
+    BitState64 make_bitstate64(const Tick& t) const;  // your thresholding/feature map
+
+  private:
+    EngineConfig cfg_;
+    std::shared_ptr<MarketDataFeed> feed_;
+    std::shared_ptr<TradeExecutor> exec_;
+    std::unique_ptr<BTHEngine> bth_;
+    std::unique_ptr<ReliabilityGate> brs_;
+    std::unique_ptr<GAO> gao_;
+    std::unique_ptr<EvolutionEngine> evo_;
+
+    // realtime: one jthread per instrument
+    struct Session {
+        SessionId id;
+        InstrumentId instrument;
+        Horizon horizon;
+        CostModelPips costs;
+        std::jthread th;
+        std::atomic<bool> running{false};
+    };
+    mutable std::mutex m_sessions_;
+    std::unordered_map<std::string, Session> sessions_;  // key=instrument.symbol
+
+    // latest analyses
+    mutable std::mutex m_latest_;
+    std::unordered_map<std::string, AnalysisResult> latest_;  // key=instrument.symbol
+
+    // cache / stats
+    mutable std::mutex m_stats_;
+    Stats stats_;
+};
+
+}  // namespace sep::engine

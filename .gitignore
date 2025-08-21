@@ -45,6 +45,7 @@ qdrant_storage/
 data.sqlite
 data.sqlite-journal
 cache/
+ruby/
 
 # OS generated files
 .DS_Store

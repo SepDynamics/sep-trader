@@ -7,14 +7,31 @@
 #include <string>
 #include <vector>
 #include <memory>
+#include <cstdint>
 #include "core/training_coordinator.hpp"
+
+// Forward declarations
+namespace sep::train {
+    class Orchestrator;
+    struct TrainResult;
+    enum class Quality : uint8_t;
+    enum class Mode : uint8_t;
+}
 
 namespace sep {
 namespace training {
 
+// Legacy struct for compatibility
+struct RemoteTraderConfig {
+    std::string endpoint;
+    std::string auth_token;
+    int timeout_seconds = 30;
+    bool enabled = false;
+};
+
 class CLICommands {
 public:
-    explicit CLICommands(TrainingCoordinator& coordinator);
+    explicit CLICommands(sep::train::Orchestrator& coordinator);
     
     // Training operations
     bool trainPair(const std::string& pair);
@@ -23,7 +40,8 @@ public:
     bool retrainFailedPairs();
     
     // Data management
-    bool fetchWeeklyData(const std::string& pair = "");
+    bool fetchWeeklyData();
+    bool fetchWeeklyData(const std::string& pair);
     bool validateCache();
     bool cleanupCache();
     
@@ -41,12 +59,12 @@ public:
     bool runBenchmark();
     
 private:
-    TrainingCoordinator& coordinator_;
+    sep::train::Orchestrator& coordinator_;
     
     // Utility methods
     std::vector<std::string> parsePairsList(const std::string& pairs_csv);
     void printProgress(const std::string& operation, int current, int total);
-    void printTrainingResult(const std::string& pair, const TrainingResult& result);
+    void printTrainingResult(const std::string& pair, const sep::train::TrainResult& result);
     bool confirmOperation(const std::string& operation);
 };
 
