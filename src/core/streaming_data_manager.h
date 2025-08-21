@@ -2,7 +2,7 @@
 
 #include "core/pattern.h"
 #include "candle_data.h"
-#include "util/result.h"
+#include "core/result_types.h"
 #include <vector>
 #include <string>
 #include "core/standard_includes.h"

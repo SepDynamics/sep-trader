@@ -1,5 +1,5 @@
 #include "core/facade.h"
-#include "util/result.h"
+#include "core/result_types.h"
 #include "core/qfh.h"
 #include "core/quantum_manifold_optimizer.h"
 #include "streaming_data_manager.h"
@@ -34,9 +34,9 @@ EngineFacade& EngineFacade::getInstance() {
     return instance;
 }
 
-core::Result<void> EngineFacade::initialize() {
+Result<void> EngineFacade::initialize() {
     if (initialized_) {
-        return core::Result<void>(sep::Error(sep::Error::Code::InvalidArgument, "Already initialized"));
+        return Result<void>(sep::Error(sep::Error::Code::InvalidArgument, "Already initialized"));
     }
     
     impl_ = std::make_unique<Impl>();
@@ -86,23 +86,23 @@ core::Result<void> EngineFacade::initialize() {
     initialized_ = true;
     
     std::cout << "EngineFacade initialized with real engine components, streaming support, pattern caching, and GPU memory management" << std::endl;
-    return core::Result<void>();
+    return Result<void>();
 }
 
-core::Result<void> EngineFacade::shutdown() {
+Result<void> EngineFacade::shutdown() {
     if (!initialized_) {
-        return core::Result<void>(sep::Error(sep::Error::Code::NotInitialized, "Not initialized"));
+        return Result<void>(sep::Error(sep::Error::Code::NotInitialized, "Not initialized"));
     }
     
     impl_.reset();
     initialized_ = false;
-    return core::Result<void>();
+    return Result<void>();
 }
 
-core::Result<void> EngineFacade::analyzePattern(const PatternAnalysisRequest& request,
+Result<void> EngineFacade::analyzePattern(const PatternAnalysisRequest& request,
                                          PatternAnalysisResponse& response) {
     if (!initialized_ || !impl_ || !impl_->qfh_processor || !impl_->pattern_cache) {
-        return core::Result<void>(sep::Error(sep::Error::Code::NotInitialized, "Not initialized"));
+        return Result<void>(sep::Error(sep::Error::Code::NotInitialized, "Not initialized"));
     }
     
     std::cout << "DSL->Engine: Analyzing pattern '" << request.pattern_id << "'" << std::endl;
@@ -120,7 +120,7 @@ core::Result<void> EngineFacade::analyzePattern(const PatternAnalysisRequest& re
             response.entropy = 0.923064f; // Use reasonable default for cached patterns
             response.analysis_summary = "Cached analysis for: " + request.pattern_id;
             impl_->request_counter++;
-            return core::Result<void>();
+            return Result<void>();
         }
         
         // Cache miss - perform real computation
@@ -156,18 +156,18 @@ core::Result<void> EngineFacade::analyzePattern(const PatternAnalysisRequest& re
         impl_->pattern_cache->storePattern(cache_key, response.pattern, computation_time_ms);
         
         impl_->request_counter++;
-        return core::Result<void>();
+        return Result<void>();
         
     } catch (const std::exception& e) {
         std::cout << "Error in pattern analysis: " << e.what() << std::endl;
-        return core::Result<void>(sep::Error(sep::Error::Code::OperationFailed, "Processing error"));
+        return Result<void>(sep::Error(sep::Error::Code::OperationFailed, "Processing error"));
     }
 }
 
-core::Result<void> EngineFacade::qfhAnalyze(const QFHAnalysisRequest& request,
+Result<void> EngineFacade::qfhAnalyze(const QFHAnalysisRequest& request,
                                      QFHAnalysisResponse& response) {
     if (!initialized_ || !impl_ || !impl_->qfh_processor) {
-        return core::Result<void>(sep::Error(sep::Error::Code::NotInitialized, "Engine not initialized"));
+        return Result<void>(sep::Error(sep::Error::Code::NotInitialized, "Engine not initialized"));
     }
     
     std::cout << "DSL->Engine: QFH analyzing " << request.bitstream.size() << " bits" << std::endl;
@@ -187,18 +187,18 @@ core::Result<void> EngineFacade::qfhAnalyze(const QFHAnalysisRequest& request,
                   << ", Entropy: " << response.entropy << ", Collapse: " << response.collapse_detected << std::endl;
         
         impl_->request_counter++;
-        return core::Result<void>();
+        return Result<void>();
         
     } catch (const std::exception& e) {
         std::cout << "Error in QFH analysis: " << e.what() << std::endl;
-        return core::Result<void>(sep::Error(sep::Error::Code::OperationFailed, "Processing error"));
+        return Result<void>(sep::Error(sep::Error::Code::OperationFailed, "Processing error"));
     }
 }
 
-core::Result<void> EngineFacade::manifoldOptimize(const ManifoldOptimizationRequest& request,
+Result<void> EngineFacade::manifoldOptimize(const ManifoldOptimizationRequest& request,
                                           ManifoldOptimizationResponse& response) {
     if (!initialized_ || !impl_ || !impl_->manifold_optimizer) {
-        return core::Result<void>(sep::Error(sep::Error::Code::NotInitialized, "Engine not initialized"));
+        return Result<void>(sep::Error(sep::Error::Code::NotInitialized, "Engine not initialized"));
     }
     
     std::cout << "DSL->Engine: Optimizing manifold for pattern '" << request.pattern_id << "'" << std::endl;
@@ -233,19 +233,19 @@ core::Result<void> EngineFacade::manifoldOptimize(const ManifoldOptimizationRequ
         }
         
         impl_->request_counter++;
-        return core::Result<void>(sep::Error(sep::Error::Code::Success));
+        return Result<void>(sep::Error(sep::Error::Code::Success));
         
     } catch (const std::exception& e) {
         std::cout << "Error in manifold optimization: " << e.what() << std::endl;
         response.success = false;
-        return core::Result<void>(sep::Error(sep::Error::Code::OperationFailed));
+        return Result<void>(sep::Error(sep::Error::Code::OperationFailed));
     }
 }
 
-core::Result<void> EngineFacade::extractBits(const BitExtractionRequest& request,
+Result<void> EngineFacade::extractBits(const BitExtractionRequest& request,
                                       BitExtractionResponse& response) {
     if (!initialized_ || !impl_) {
-        return core::Result<void>(sep::Error(sep::Error::Code::NotInitialized));
+        return Result<void>(sep::Error(sep::Error::Code::NotInitialized));
     }
     
     std::cout << "DSL->Engine: Extracting bits from pattern '" << request.pattern_id << "'" << std::endl;
@@ -265,56 +265,56 @@ core::Result<void> EngineFacade::extractBits(const BitExtractionRequest& request
         std::cout << "Extracted " << response.bitstream.size() << " bits from pattern" << std::endl;
         
         impl_->request_counter++;
-        return core::Result<void>(sep::Error(sep::Error::Code::Success));
+        return Result<void>(sep::Error(sep::Error::Code::Success));
         
     } catch (const std::exception& e) {
         std::cout << "Error extracting bits: " << e.what() << std::endl;
         response.success = false;
         response.error_message = e.what();
-        return core::Result<void>(sep::Error(sep::Error::Code::OperationFailed));
+        return Result<void>(sep::Error(sep::Error::Code::OperationFailed));
     }
 }
 
 // Stub implementations for other methods to prevent link errors
-core::Result<void> EngineFacade::processPatterns(const PatternProcessRequest& request,
+Result<void> EngineFacade::processPatterns(const PatternProcessRequest& request,
                                          PatternProcessResponse& response) {
     (void)request;  // Suppress unused parameter warning
     (void)response; // Suppress unused parameter warning
-    return core::Result<void>(sep::Error(sep::Error::Code::NotImplemented));
+    return Result<void>(sep::Error(sep::Error::Code::NotImplemented));
 }
 
-core::Result<void> EngineFacade::processBatch(const BatchProcessRequest& request,
+Result<void> EngineFacade::processBatch(const BatchProcessRequest& request,
                                        PatternProcessResponse& response) {
     (void)request;  // Suppress unused parameter warning
     (void)response; // Suppress unused parameter warning
-    return core::Result<void>(sep::Error(sep::Error::Code::NotImplemented));
+    return Result<void>(sep::Error(sep::Error::Code::NotImplemented));
 }
 
-core::Result<void> EngineFacade::storePattern(const StorePatternRequest& request,
+Result<void> EngineFacade::storePattern(const StorePatternRequest& request,
                                        StorePatternResponse& response) {
     (void)request;  // Suppress unused parameter warning
     (void)response; // Suppress unused parameter warning
-    return core::Result<void>(sep::Error(sep::Error::Code::NotImplemented));
+    return Result<void>(sep::Error(sep::Error::Code::NotImplemented));
 }
 
-core::Result<void> EngineFacade::queryMemory(const MemoryQueryRequest& request,
+Result<void> EngineFacade::queryMemory(const MemoryQueryRequest& request,
                                       std::vector<core::Pattern>& results) {
     (void)request; // Suppress unused parameter warning
     (void)results; // Suppress unused parameter warning
-    return core::Result<void>(sep::Error(sep::Error::Code::NotImplemented));
+    return Result<void>(sep::Error(sep::Error::Code::NotImplemented));
 }
 
-core::Result<void> EngineFacade::getHealthStatus(HealthStatusResponse& response) {
+Result<void> EngineFacade::getHealthStatus(HealthStatusResponse& response) {
     response.engine_healthy = initialized_;
     response.quantum_systems_ready = initialized_;
     response.memory_systems_ready = initialized_;
     response.cpu_usage = 25.0f;
     response.memory_usage = 512.0f;
     response.status_message = initialized_ ? "DSL Engine operational" : "Engine not initialized";
-    return core::Result<void>(sep::Error(sep::Error::Code::Success));
+    return Result<void>(sep::Error(sep::Error::Code::Success));
 }
 
-core::Result<void> EngineFacade::getMemoryMetrics(MemoryMetricsResponse& response) {
+Result<void> EngineFacade::getMemoryMetrics(MemoryMetricsResponse& response) {
     response.stm_utilization = 0.3f;
     response.mtm_utilization = 0.6f;
     response.ltm_utilization = 0.8f;
@@ -342,16 +342,16 @@ core::Result<void> EngineFacade::getMemoryMetrics(MemoryMetricsResponse& respons
         response.gpu_deallocations = gpu_stats.num_deallocations;
     }
     
-    return core::Result<void>(sep::Error(sep::Error::Code::Success));
+    return Result<void>(sep::Error(sep::Error::Code::Success));
 }
 
 // Streaming data operations implementation
-core::Result<void> EngineFacade::createStream(const StreamCreateRequest& request,
+Result<void> EngineFacade::createStream(const StreamCreateRequest& request,
                                        StreamResponse& response) {
     if (!initialized_ || !impl_ || !impl_->streaming_manager) {
         response.success = false;
         response.error_message = "Engine not initialized";
-        return core::Result<void>(sep::Error(sep::Error::Code::NotInitialized));
+        return Result<void>(sep::Error(sep::Error::Code::NotInitialized));
     }
     
     // Convert request to internal format
@@ -377,12 +377,12 @@ core::Result<void> EngineFacade::createStream(const StreamCreateRequest& request
     return result;
 }
 
-core::Result<void> EngineFacade::startStream(const std::string& stream_id,
+Result<void> EngineFacade::startStream(const std::string& stream_id,
                                       StreamResponse& response) {
     if (!initialized_ || !impl_ || !impl_->streaming_manager) {
         response.success = false;
         response.error_message = "Engine not initialized";
-        return core::Result<void>(sep::Error(sep::Error::Code::NotInitialized));
+        return Result<void>(sep::Error(sep::Error::Code::NotInitialized));
     }
     
     auto result = impl_->streaming_manager->startStream(stream_id);
@@ -399,12 +399,12 @@ core::Result<void> EngineFacade::startStream(const std::string& stream_id,
     return result;
 }
 
-core::Result<void> EngineFacade::stopStream(const std::string& stream_id,
+Result<void> EngineFacade::stopStream(const std::string& stream_id,
                                      StreamResponse& response) {
     if (!initialized_ || !impl_ || !impl_->streaming_manager) {
         response.success = false;
         response.error_message = "Engine not initialized";
-        return core::Result<void>(sep::Error(sep::Error::Code::NotInitialized));
+        return Result<void>(sep::Error(sep::Error::Code::NotInitialized));
     }
     
     auto result = impl_->streaming_manager->stopStream(stream_id);
@@ -421,12 +421,12 @@ core::Result<void> EngineFacade::stopStream(const std::string& stream_id,
     return result;
 }
 
-core::Result<void> EngineFacade::deleteStream(const std::string& stream_id,
+Result<void> EngineFacade::deleteStream(const std::string& stream_id,
                                        StreamResponse& response) {
     if (!initialized_ || !impl_ || !impl_->streaming_manager) {
         response.success = false;
         response.error_message = "Engine not initialized";
-        return core::Result<void>(sep::Error(sep::Error::Code::NotInitialized));
+        return Result<void>(sep::Error(sep::Error::Code::NotInitialized));
     }
     
     auto result = impl_->streaming_manager->deleteStream(stream_id);
@@ -443,12 +443,12 @@ core::Result<void> EngineFacade::deleteStream(const std::string& stream_id,
     return result;
 }
 
-core::Result<void> EngineFacade::ingestStreamData(const StreamDataRequest& request,
+Result<void> EngineFacade::ingestStreamData(const StreamDataRequest& request,
                                           StreamResponse& response) {
     if (!initialized_ || !impl_ || !impl_->streaming_manager) {
         response.success = false;
         response.error_message = "Engine not initialized";
-        return core::Result<void>(sep::Error(sep::Error::Code::NotInitialized));
+        return Result<void>(sep::Error(sep::Error::Code::NotInitialized));
     }
     
     // Create stream data point
@@ -469,10 +469,10 @@ core::Result<void> EngineFacade::ingestStreamData(const StreamDataRequest& reque
     return result;
 }
 
-core::Result<void> EngineFacade::queryStream(const StreamQueryRequest& request,
+Result<void> EngineFacade::queryStream(const StreamQueryRequest& request,
                                       StreamDataResponse& response) {
     if (!initialized_ || !impl_ || !impl_->streaming_manager) {
-        return core::Result<void>(sep::Error(sep::Error::Code::NotInitialized));
+        return Result<void>(sep::Error(sep::Error::Code::NotInitialized));
     }
     
     auto stats = impl_->streaming_manager->getStreamStats(request.stream_id);
@@ -495,22 +495,22 @@ core::Result<void> EngineFacade::queryStream(const StreamQueryRequest& request,
                                    data_point.data_stream.end());
     }
     
-    return core::Result<void>(sep::Error(sep::Error::Code::Success));
+    return Result<void>(sep::Error(sep::Error::Code::Success));
 }
 
-core::Result<void> EngineFacade::clearPatternCache() {
+Result<void> EngineFacade::clearPatternCache() {
     if (!initialized_ || !impl_ || !impl_->pattern_cache) {
-        return core::Result<void>(sep::Error(sep::Error::Code::NotInitialized));
+        return Result<void>(sep::Error(sep::Error::Code::NotInitialized));
     }
     
     impl_->pattern_cache->clearCache();
     std::cout << "EngineFacade: Pattern cache cleared" << std::endl;
-    return core::Result<void>(sep::Error(sep::Error::Code::Success));
+    return Result<void>(sep::Error(sep::Error::Code::Success));
 }
 
-core::Result<void> EngineFacade::configurePatternCache(size_t max_size, int ttl_minutes, float coherence_threshold) {
+Result<void> EngineFacade::configurePatternCache(size_t max_size, int ttl_minutes, float coherence_threshold) {
     if (!initialized_ || !impl_ || !impl_->pattern_cache) {
-        return core::Result<void>(sep::Error(sep::Error::Code::NotInitialized));
+        return Result<void>(sep::Error(sep::Error::Code::NotInitialized));
     }
     
     sep::engine::cache::PatternCacheConfig config;
@@ -525,16 +525,16 @@ core::Result<void> EngineFacade::configurePatternCache(size_t max_size, int ttl_
     return result;
 }
 
-core::Result<void> EngineFacade::allocateGPUMemory(const GPUMemoryAllocRequest& request,
+Result<void> EngineFacade::allocateGPUMemory(const GPUMemoryAllocRequest& request,
                                            GPUMemoryAllocResponse& response) {
     if (!initialized_ || !impl_) {
-        return core::Result<void>(sep::Error(sep::Error::Code::NotInitialized));
+        return Result<void>(sep::Error(sep::Error::Code::NotInitialized));
     }
     
     if (!impl_->gpu_memory_pool) {
         response.success = false;
         response.error_message = "GPU memory pool not available";
-        return core::Result<void>(sep::Error(sep::Error::Code::OperationFailed));
+        return Result<void>(sep::Error(sep::Error::Code::OperationFailed));
     }
     
     try {
@@ -559,25 +559,25 @@ core::Result<void> EngineFacade::allocateGPUMemory(const GPUMemoryAllocRequest& 
         } else {
             response.success = false;
             response.error_message = "GPU memory allocation failed";
-            return core::Result<void>(sep::Error(sep::Error::Code::OperationFailed));
+            return Result<void>(sep::Error(sep::Error::Code::OperationFailed));
         }
     } catch (const std::exception& e) {
         response.success = false;
         response.error_message = std::string("GPU allocation error: ") + e.what();
-        return core::Result<void>(sep::Error(sep::Error::Code::OperationFailed));
+        return Result<void>(sep::Error(sep::Error::Code::OperationFailed));
     }
     
-    return core::Result<void>(sep::Error(sep::Error::Code::Success));
+    return Result<void>(sep::Error(sep::Error::Code::Success));
 }
 
-core::Result<void> EngineFacade::deallocateGPUMemory(const GPUMemoryDeallocRequest& request) {
+Result<void> EngineFacade::deallocateGPUMemory(const GPUMemoryDeallocRequest& request) {
     if (!initialized_ || !impl_ || !impl_->gpu_memory_pool) {
-        return core::Result<void>(sep::Error(sep::Error::Code::NotInitialized));
+        return Result<void>(sep::Error(sep::Error::Code::NotInitialized));
     }
     
     auto it = impl_->memory_handles.find(request.memory_handle);
     if (it == impl_->memory_handles.end()) {
-        return core::Result<void>(sep::Error(sep::Error::Code::NotFound));
+        return Result<void>(sep::Error(sep::Error::Code::NotFound));
     }
     
     try {
@@ -592,15 +592,15 @@ core::Result<void> EngineFacade::deallocateGPUMemory(const GPUMemoryDeallocReque
         std::cout << "GPU Memory deallocated (handle=" << request.memory_handle << ")" << std::endl;
     } catch (const std::exception& e) {
         std::cout << "GPU deallocation error: " << e.what() << std::endl;
-        return core::Result<void>(sep::Error(sep::Error::Code::OperationFailed));
+        return Result<void>(sep::Error(sep::Error::Code::OperationFailed));
     }
     
-    return core::Result<void>(sep::Error(sep::Error::Code::Success));
+    return Result<void>(sep::Error(sep::Error::Code::Success));
 }
 
-core::Result<void> EngineFacade::configureGPUMemory(const GPUMemoryConfigRequest& request) {
+Result<void> EngineFacade::configureGPUMemory(const GPUMemoryConfigRequest& request) {
     if (!initialized_ || !impl_ || !impl_->gpu_memory_pool) {
-        return core::Result<void>(sep::Error(sep::Error::Code::NotInitialized));
+        return Result<void>(sep::Error(sep::Error::Code::NotInitialized));
     }
     
     try {
@@ -615,15 +615,15 @@ core::Result<void> EngineFacade::configureGPUMemory(const GPUMemoryConfigRequest
                   << ", growth_factor=" << request.growth_factor << std::endl;
     } catch (const std::exception& e) {
         std::cout << "GPU memory configuration error: " << e.what() << std::endl;
-        return core::Result<void>(sep::Error(sep::Error::Code::OperationFailed));
+        return Result<void>(sep::Error(sep::Error::Code::OperationFailed));
     }
     
-    return core::Result<void>(sep::Error(sep::Error::Code::Success));
+    return Result<void>(sep::Error(sep::Error::Code::Success));
 }
 
-core::Result<void> EngineFacade::defragmentGPUMemory() {
+Result<void> EngineFacade::defragmentGPUMemory() {
     if (!initialized_ || !impl_ || !impl_->gpu_memory_pool) {
-        return core::Result<void>(sep::Error(sep::Error::Code::NotInitialized));
+        return Result<void>(sep::Error(sep::Error::Code::NotInitialized));
     }
     
     try {
@@ -631,15 +631,15 @@ core::Result<void> EngineFacade::defragmentGPUMemory() {
         std::cout << "GPU Memory Pool defragmentation completed" << std::endl;
     } catch (const std::exception& e) {
         std::cout << "GPU memory defragmentation error: " << e.what() << std::endl;
-        return core::Result<void>(sep::Error(sep::Error::Code::OperationFailed));
+        return Result<void>(sep::Error(sep::Error::Code::OperationFailed));
     }
     
-    return core::Result<void>(sep::Error(sep::Error::Code::Success));
+    return Result<void>(sep::Error(sep::Error::Code::Success));
 }
 
-core::Result<void> EngineFacade::resetGPUMemoryStats() {
+Result<void> EngineFacade::resetGPUMemoryStats() {
     if (!initialized_ || !impl_ || !impl_->gpu_memory_pool) {
-        return core::Result<void>(sep::Error(sep::Error::Code::NotInitialized));
+        return Result<void>(sep::Error(sep::Error::Code::NotInitialized));
     }
     
     try {
@@ -647,20 +647,20 @@ core::Result<void> EngineFacade::resetGPUMemoryStats() {
         std::cout << "GPU Memory Pool statistics reset" << std::endl;
     } catch (const std::exception& e) {
         std::cout << "GPU memory stats reset error: " << e.what() << std::endl;
-        return core::Result<void>(sep::Error(sep::Error::Code::OperationFailed));
+        return Result<void>(sep::Error(sep::Error::Code::OperationFailed));
     }
     
-    return core::Result<void>(sep::Error(sep::Error::Code::Success));
+    return Result<void>(sep::Error(sep::Error::Code::Success));
 }
 
-core::Result<void> EngineFacade::processAdvancedBatch(const AdvancedBatchRequest& request,
+Result<void> EngineFacade::processAdvancedBatch(const AdvancedBatchRequest& request,
                                                AdvancedBatchResponse& response) {
     if (!initialized_ || !impl_ || !impl_->batch_processor) {
-        return core::Result<void>(sep::Error(sep::Error::Code::NotInitialized));
+        return Result<void>(sep::Error(sep::Error::Code::NotInitialized));
     }
     
     if (request.pattern_codes.size() != request.pattern_ids.size()) {
-        return core::Result<void>(sep::Error(sep::Error::Code::InvalidArgument));
+        return Result<void>(sep::Error(sep::Error::Code::InvalidArgument));
     }
     
     try {
@@ -723,16 +723,16 @@ core::Result<void> EngineFacade::processAdvancedBatch(const AdvancedBatchRequest
         
     } catch (const std::exception& e) {
         std::cout << "Advanced batch processing error: " << e.what() << std::endl;
-        return core::Result<void>(sep::Error(sep::Error::Code::OperationFailed));
+        return Result<void>(sep::Error(sep::Error::Code::OperationFailed));
     }
     
-    return core::Result<void>(sep::Error(sep::Error::Code::Success));
+    return Result<void>(sep::Error(sep::Error::Code::Success));
 }
 
-core::Result<void> EngineFacade::setEngineConfig(const ConfigSetRequest& request,
+Result<void> EngineFacade::setEngineConfig(const ConfigSetRequest& request,
                                           ConfigResponse& response) {
     if (!initialized_ || !impl_ || !impl_->engine_config) {
-        return core::Result<void>(sep::Error(sep::Error::Code::NotInitialized));
+        return Result<void>(sep::Error(sep::Error::Code::NotInitialized));
     }
     
     try {
@@ -750,7 +750,7 @@ core::Result<void> EngineFacade::setEngineConfig(const ConfigSetRequest& request
         } else {
             response.success = false;
             response.error_message = "Invalid value type: " + request.value_type;
-            return core::Result<void>(sep::Error(sep::Error::Code::InvalidArgument));
+            return Result<void>(sep::Error(sep::Error::Code::InvalidArgument));
         }
         
         bool success = impl_->engine_config->set_config(request.parameter_name, config_value);
@@ -766,29 +766,29 @@ core::Result<void> EngineFacade::setEngineConfig(const ConfigSetRequest& request
         } else {
             response.success = false;
             response.error_message = "Failed to set config parameter (invalid name or value)";
-            return core::Result<void>(sep::Error(sep::Error::Code::InvalidArgument));
+            return Result<void>(sep::Error(sep::Error::Code::InvalidArgument));
         }
         
     } catch (const std::exception& e) {
         response.success = false;
         response.error_message = std::string("Config set error: ") + e.what();
-        return core::Result<void>(sep::Error(sep::Error::Code::OperationFailed));
+        return Result<void>(sep::Error(sep::Error::Code::OperationFailed));
     }
     
-    return core::Result<void>(sep::Error(sep::Error::Code::Success));
+    return Result<void>(sep::Error(sep::Error::Code::Success));
 }
 
-core::Result<void> EngineFacade::getEngineConfig(const ConfigGetRequest& request,
+Result<void> EngineFacade::getEngineConfig(const ConfigGetRequest& request,
                                           ConfigResponse& response) {
     if (!initialized_ || !impl_ || !impl_->engine_config) {
-        return core::Result<void>(sep::Error(sep::Error::Code::NotInitialized));
+        return Result<void>(sep::Error(sep::Error::Code::NotInitialized));
     }
     
     try {
         if (!impl_->engine_config->has_config(request.parameter_name)) {
             response.success = false;
             response.error_message = "Parameter not found: " + request.parameter_name;
-            return core::Result<void>(sep::Error(sep::Error::Code::NotFound));
+            return Result<void>(sep::Error(sep::Error::Code::NotFound));
         }
         
         auto config_value = impl_->engine_config->get_config(request.parameter_name);
@@ -816,15 +816,15 @@ core::Result<void> EngineFacade::getEngineConfig(const ConfigGetRequest& request
     } catch (const std::exception& e) {
         response.success = false;
         response.error_message = std::string("Config get error: ") + e.what();
-        return core::Result<void>(sep::Error(sep::Error::Code::OperationFailed));
+        return Result<void>(sep::Error(sep::Error::Code::OperationFailed));
     }
     
-    return core::Result<void>(sep::Error(sep::Error::Code::Success));
+    return Result<void>(sep::Error(sep::Error::Code::Success));
 }
 
-core::Result<void> EngineFacade::listEngineConfig(ConfigListResponse& response) {
+Result<void> EngineFacade::listEngineConfig(ConfigListResponse& response) {
     if (!initialized_ || !impl_ || !impl_->engine_config) {
-        return core::Result<void>(sep::Error(sep::Error::Code::NotInitialized));
+        return Result<void>(sep::Error(sep::Error::Code::NotInitialized));
     }
     
     try {
@@ -862,15 +862,15 @@ core::Result<void> EngineFacade::listEngineConfig(ConfigListResponse& response) 
     } catch (const std::exception& e) {
         response.success = false;
         response.error_message = std::string("Config list error: ") + e.what();
-        return core::Result<void>(sep::Error(sep::Error::Code::OperationFailed));
+        return Result<void>(sep::Error(sep::Error::Code::OperationFailed));
     }
     
-    return core::Result<void>(sep::Error(sep::Error::Code::Success));
+    return Result<void>(sep::Error(sep::Error::Code::Success));
 }
 
-core::Result<void> EngineFacade::resetEngineConfig(const std::string& category) {
+Result<void> EngineFacade::resetEngineConfig(const std::string& category) {
     if (!initialized_ || !impl_ || !impl_->engine_config) {
-        return core::Result<void>(sep::Error(sep::Error::Code::NotInitialized));
+        return Result<void>(sep::Error(sep::Error::Code::NotInitialized));
     }
     
     try {
@@ -889,7 +889,7 @@ core::Result<void> EngineFacade::resetEngineConfig(const std::string& category) 
             else if (category == "performance") config_category = sep::engine::config::ConfigCategory::PERFORMANCE;
             else if (category == "debug") config_category = sep::engine::config::ConfigCategory::DEBUG;
             else {
-                return core::Result<void>(sep::Error(sep::Error::Code::InvalidArgument));
+                return Result<void>(sep::Error(sep::Error::Code::InvalidArgument));
             }
             
             impl_->engine_config->reset_category_to_defaults(config_category);
@@ -898,10 +898,10 @@ core::Result<void> EngineFacade::resetEngineConfig(const std::string& category) 
         
     } catch (const std::exception& e) {
         std::cout << "Config reset error: " << e.what() << std::endl;
-        return core::Result<void>(sep::Error(sep::Error::Code::OperationFailed));
+        return Result<void>(sep::Error(sep::Error::Code::OperationFailed));
     }
     
-    return core::Result<void>(sep::Error(sep::Error::Code::Success));
+    return Result<void>(sep::Error(sep::Error::Code::Success));
 }
 
 } // namespace sep::engine

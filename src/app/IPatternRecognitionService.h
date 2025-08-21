@@ -6,7 +6,7 @@
 #include "IService.h"
 #include "PatternTypes.h"
 #include "QuantumTypes.h"
-#include "util/result.h"
+#include "core/result_types.h"
 #include <vector>
 #include <string>
 #include <memory>

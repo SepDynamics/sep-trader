@@ -6,7 +6,7 @@
 #include <string>
 
 #include "util/serializer.h"
-#include "util/result.h"
+#include "core/result_types.h"
 #include "core/facade.h"
 #include "util/lexer.h"
 #include "util/parser.h"

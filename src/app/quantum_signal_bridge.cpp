@@ -1,5 +1,6 @@
 #include "util/nlohmann_json_safe.h"
 #include "app/quantum_signal_bridge.hpp"
+#include "core/result_types.h"
 
 #include <cuda_runtime.h>
 #include <algorithm>
@@ -883,7 +884,7 @@ std::map<std::string, sep::trading::QuantumTradingSignal> sep::trading::MultiTim
                 cudaStreamDestroy(stream);
 
                 if (cuda_result != sep::SEPResult::SUCCESS) {
-                    std::cerr << "CUDA Kernel Launch Error: " << sep::core::resultToString(cuda_result) << std::endl;
+                    std::cerr << "CUDA Kernel Launch Error: " << sep::resultToString(cuda_result) << std::endl;
                     // For now, I'll set default values if CUDA fails.
                     d_result_host.coherence = 0.0f;
                     d_result_host.stability = 0.0f;

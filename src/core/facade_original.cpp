@@ -134,16 +134,16 @@ sep::Result<void> EngineFacade::initialize() {
     catch (const std::exception& e)
     {
         // In a real application, you'd log this error
-        return core::Result<void>(sep::Error(sep::Error::Code::OperationFailed, "Failed to initialize"));
+        return Result<void>(sep::Error(sep::Error::Code::OperationFailed, "Failed to initialize"));
     }
 
     initialized_ = true;
-    return core::Result<void>();
+    return Result<void>();
 }
 
-core::Result<void> EngineFacade::shutdown() {
+Result<void> EngineFacade::shutdown() {
     if (!initialized_) {
-        return core::Result<void>(sep::Error(sep::Error::Code::NotInitialized, "Not initialized"));
+        return Result<void>(sep::Error(sep::Error::Code::NotInitialized, "Not initialized"));
     }
 
     if (impl_->memory_manager)
@@ -153,16 +153,16 @@ core::Result<void> EngineFacade::shutdown() {
 
     impl_.reset();
     initialized_ = false;
-    return core::Result<void>();
+    return Result<void>();
 }
 
 // --- Core AGI/Computational Methods ---
 
-core::Result<void> EngineFacade::processPatterns(const PatternProcessRequest& request,
+Result<void> EngineFacade::processPatterns(const PatternProcessRequest& request,
                                                  PatternProcessResponse& response) {
     if (!initialized_ || !impl_)
     {
-        return core::Result<void>(sep::Error(sep::Error::Code::NotInitialized, "Not initialized"));
+        return Result<void>(sep::Error(sep::Error::Code::NotInitialized, "Not initialized"));
     }
 
     ++impl_->request_counter;
@@ -182,7 +182,7 @@ core::Result<void> EngineFacade::processPatterns(const PatternProcessRequest& re
     if (!batch_result.success)
     {
         response.processing_complete = false;
-        return core::Result<void>(sep::Error(sep::Error::Code::OperationFailed, "Processing error"));
+        return Result<void>(sep::Error(sep::Error::Code::OperationFailed, "Processing error"));
     }
 
     // Populate the response
@@ -192,14 +192,14 @@ core::Result<void> EngineFacade::processPatterns(const PatternProcessRequest& re
     }
     response.processing_complete = true;
     
-    return core::Result<void>();
+    return Result<void>();
 }
 
-core::Result<void> EngineFacade::analyzePattern(const PatternAnalysisRequest& request,
+Result<void> EngineFacade::analyzePattern(const PatternAnalysisRequest& request,
                                          PatternAnalysisResponse& response) {
     if (!initialized_ || !impl_)
     {
-        return core::Result<void>(sep::Error(sep::Error::Code::NotInitialized, "Not initialized"));
+        return Result<void>(sep::Error(sep::Error::Code::NotInitialized, "Not initialized"));
     }
 
     // Retrieve the target pattern
@@ -208,7 +208,7 @@ core::Result<void> EngineFacade::analyzePattern(const PatternAnalysisRequest& re
     {
         response.confidence_score = 0.0f;
         response.analysis_summary = "Pattern not found: " + request.pattern_id;
-        return core::Result<void>(sep::Error(sep::Error::Code::NotFound, "Pattern not found"));
+        return Result<void>(sep::Error(sep::Error::Code::NotFound, "Pattern not found"));
     }
 
     // Use the PatternMetricEngine to compute detailed metrics
@@ -226,7 +226,7 @@ core::Result<void> EngineFacade::analyzePattern(const PatternAnalysisRequest& re
     {
         response.confidence_score = 0.0f;
         response.analysis_summary = "Failed to compute metrics for pattern: " + request.pattern_id;
-        return core::Result<void>(sep::Error(sep::Error::Code::OperationFailed, "Processing error"));
+        return Result<void>(sep::Error(sep::Error::Code::OperationFailed, "Processing error"));
     }
 
     response.pattern = target_pattern;
@@ -234,14 +234,14 @@ core::Result<void> EngineFacade::analyzePattern(const PatternAnalysisRequest& re
     response.analysis_summary = "Metrics computed.";
     // You could add stability and entropy to the response struct as well
 
-    return core::Result<void>();
+    return Result<void>();
 }
 
-core::Result<void> EngineFacade::processBatch(const BatchProcessRequest& request,
+Result<void> EngineFacade::processBatch(const BatchProcessRequest& request,
                                        PatternProcessResponse& response) {
     if (!initialized_ || !impl_)
     {
-        return core::Result<void>(sep::Error(sep::Error::Code::NotInitialized, "Not initialized"));
+        return Result<void>(sep::Error(sep::Error::Code::NotInitialized, "Not initialized"));
     }
 
     ++impl_->request_counter;
@@ -261,7 +261,7 @@ core::Result<void> EngineFacade::processBatch(const BatchProcessRequest& request
     if (patterns.empty())
     {
         response.processing_complete = false;
-        return core::Result<void>(sep::Error(sep::Error::Code::InvalidArgument, "Invalid argument"));
+        return Result<void>(sep::Error(sep::Error::Code::InvalidArgument, "Invalid argument"));
     }
 
     // Step 2: Add all new patterns to the quantum processor's state
@@ -275,7 +275,7 @@ core::Result<void> EngineFacade::processBatch(const BatchProcessRequest& request
     if (!batch_result.success)
     {
         response.processing_complete = false;
-        return core::Result<void>(sep::Error(sep::Error::Code::OperationFailed, "Processing error"));
+        return Result<void>(sep::Error(sep::Error::Code::OperationFailed, "Processing error"));
     }
 
     response.processed_patterns.clear();
@@ -288,13 +288,13 @@ core::Result<void> EngineFacade::processBatch(const BatchProcessRequest& request
     response.correlation_id = "batch_" + std::to_string(impl_->request_counter);
     response.processing_complete = true;
     
-    return core::Result<void>();
+    return Result<void>();
 }
 
-core::Result<void> EngineFacade::storePattern(const StorePatternRequest& request,
+Result<void> EngineFacade::storePattern(const StorePatternRequest& request,
                                       StorePatternResponse& response) {
     if (!initialized_ || !impl_ || !impl_->memory_manager) {
-        return core::Result<void>(sep::Error(sep::Error::Code::NotInitialized, "Not initialized"));
+        return Result<void>(sep::Error(sep::Error::Code::NotInitialized, "Not initialized"));
     }
 
     try {
@@ -308,7 +308,7 @@ core::Result<void> EngineFacade::storePattern(const StorePatternRequest& request
         if (!target_tier) {
             response.success = false;
             response.error_message = "Failed to determine appropriate memory tier";
-            return core::Result<void>(sep::Error(sep::Error::Code::InvalidArgument, "Failed to determine appropriate memory tier"));
+            return Result<void>(sep::Error(sep::Error::Code::InvalidArgument, "Failed to determine appropriate memory tier"));
         }
 
         // Allocate memory block in the determined tier
@@ -320,7 +320,7 @@ core::Result<void> EngineFacade::storePattern(const StorePatternRequest& request
         if (!block) {
             response.success = false;
             response.error_message = "Failed to allocate memory block";
-            return core::Result<void>(sep::Error(sep::Error::Code::ResourceUnavailable, "Failed to allocate memory block"));
+            return Result<void>(sep::Error(sep::Error::Code::ResourceUnavailable, "Failed to allocate memory block"));
         }
 
         // Store pattern data and register it
@@ -341,26 +341,26 @@ core::Result<void> EngineFacade::storePattern(const StorePatternRequest& request
         if (!block) {
             response.success = false;
             response.error_message = "Failed to update block metrics";
-            return core::Result<void>(sep::Error(sep::Error::Code::OperationFailed, "Processing error"));
+            return Result<void>(sep::Error(sep::Error::Code::OperationFailed, "Processing error"));
         }
 
         response.success = true;
-        return core::Result<void>();
+        return Result<void>();
 
     } catch (const std::exception& e) {
         response.success = false;
         response.error_message = std::string("Exception during pattern storage: ") + e.what();
-        return core::Result<void>(sep::Error(sep::Error::Code::OperationFailed, std::string("Exception during pattern storage: ") + e.what()));
+        return Result<void>(sep::Error(sep::Error::Code::OperationFailed, std::string("Exception during pattern storage: ") + e.what()));
     }
 }
 
 // --- Memory and Health Methods ---
 
-core::Result<void> EngineFacade::queryMemory(const MemoryQueryRequest& request,
+Result<void> EngineFacade::queryMemory(const MemoryQueryRequest& request,
                                       std::vector<core::Pattern>& results) {
     if (!initialized_ || !impl_ || !impl_->memory_manager)
     {
-        return core::Result<void>(sep::Error(sep::Error::Code::NotInitialized, "Not initialized"));
+        return Result<void>(sep::Error(sep::Error::Code::NotInitialized, "Not initialized"));
     }
 
     // Use request parameters to filter results
@@ -403,10 +403,10 @@ core::Result<void> EngineFacade::queryMemory(const MemoryQueryRequest& request,
     results.insert(results.end(), mtm_patterns.begin(), mtm_patterns.end());
     results.insert(results.end(), ltm_patterns.begin(), ltm_patterns.end());
 
-    return core::Result<void>();
+    return Result<void>();
 }
 
-core::Result<void> EngineFacade::getHealthStatus(HealthStatusResponse& response) {
+Result<void> EngineFacade::getHealthStatus(HealthStatusResponse& response) {
     response.engine_healthy = initialized_;
     if (impl_)
     {
@@ -422,13 +422,13 @@ core::Result<void> EngineFacade::getHealthStatus(HealthStatusResponse& response)
     response.cpu_usage = 25.0f;
     response.memory_usage = 512.0f;  // in MB
 
-    return core::Result<void>();
+    return Result<void>();
 }
 
-core::Result<void> EngineFacade::getMemoryMetrics(MemoryMetricsResponse& response) {
+Result<void> EngineFacade::getMemoryMetrics(MemoryMetricsResponse& response) {
     if (!initialized_ || !impl_ || !impl_->memory_manager)
     {
-        return core::Result<void>(sep::Error(sep::Error::Code::NotInitialized, "Not initialized"));
+        return Result<void>(sep::Error(sep::Error::Code::NotInitialized, "Not initialized"));
     }
 
     response.stm_utilization =
@@ -443,14 +443,14 @@ core::Result<void> EngineFacade::getMemoryMetrics(MemoryMetricsResponse& respons
         impl_->quantum_processor->getPatternsByTier(sep::memory::MemoryTierEnum::MTM).size() +
         impl_->quantum_processor->getPatternsByTier(sep::memory::MemoryTierEnum::LTM).size();
 
-    return core::Result<void>();
+    return Result<void>();
 }
 
-core::Result<void> EngineFacade::qfhAnalyze(const QFHAnalysisRequest& request,
+Result<void> EngineFacade::qfhAnalyze(const QFHAnalysisRequest& request,
                                      QFHAnalysisResponse& response) {
     if (!initialized_ || !impl_)
     {
-        return core::Result<void>(sep::Error(sep::Error::Code::NotInitialized, "Not initialized"));
+        return Result<void>(sep::Error(sep::Error::Code::NotInitialized, "Not initialized"));
     }
 
     try {
@@ -486,21 +486,21 @@ core::Result<void> EngineFacade::qfhAnalyze(const QFHAnalysisRequest& request,
             response.collapse_detected = false;
         }
         
-        return core::Result<void>();
+        return Result<void>();
         
     } catch (const std::exception& e) {
         response.rupture_ratio = 0.0f;
         response.flip_ratio = 0.0f;
         response.collapse_detected = false;
-        return core::Result<void>(sep::Error(sep::Error::Code::OperationFailed, "Processing error"));
+        return Result<void>(sep::Error(sep::Error::Code::OperationFailed, "Processing error"));
     }
 }
 
-core::Result<void> EngineFacade::manifoldOptimize(const ManifoldOptimizationRequest& request,
+Result<void> EngineFacade::manifoldOptimize(const ManifoldOptimizationRequest& request,
                                           ManifoldOptimizationResponse& response) {
     if (!initialized_ || !impl_)
     {
-        return core::Result<void>(sep::Error(sep::Error::Code::NotInitialized, "Not initialized"));
+        return Result<void>(sep::Error(sep::Error::Code::NotInitialized, "Not initialized"));
     }
 
     try {
@@ -510,7 +510,7 @@ core::Result<void> EngineFacade::manifoldOptimize(const ManifoldOptimizationRequ
         {
             response.success = false;
             response.pattern_id = request.pattern_id;
-            return core::Result<void>(sep::Error(sep::Error::Code::NotFound, "Pattern not found"));
+            return Result<void>(sep::Error(sep::Error::Code::NotFound, "Pattern not found"));
         }
 
         // optimizePattern method does not exist, use fallback approach
@@ -522,14 +522,14 @@ core::Result<void> EngineFacade::manifoldOptimize(const ManifoldOptimizationRequ
         response.optimized_coherence = target_pattern.coherence;
         response.optimized_stability = target_pattern.quantum_state.stability;
         
-        return core::Result<void>();
+        return Result<void>();
         
     } catch (const std::exception& e) {
         response.success = false;
         response.pattern_id = request.pattern_id;
         response.optimized_coherence = 0.0f;
         response.optimized_stability = 0.0f;
-        return core::Result<void>(sep::Error(sep::Error::Code::OperationFailed, "Processing error"));
+        return Result<void>(sep::Error(sep::Error::Code::OperationFailed, "Processing error"));
     }
 }
 

@@ -3,6 +3,7 @@
 #include <variant>
 #include <optional>
 #include <string>
+#include <cuda_runtime_api.h>
 
 namespace sep {
 
@@ -149,6 +150,15 @@ inline Result<void> makeError(const Error& error) {
 inline Result<void> makeError(Error::Code code, const std::string& message) {
     return Result<void>(Error(code, message));
 }
+
+// Utility helpers
+std::string resultToString(SEPResult result);
+std::string errorToString(const Error& error);
+
+template<typename T>
+Result<T> fromSEPResult(SEPResult result, const std::string& message = "");
+
+Result<void> fromCudaError(cudaError_t err, const std::string& context = "");
 
 // Additional result utilities for enum-based results
 namespace result {

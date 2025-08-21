@@ -21,7 +21,7 @@
 
 #include "core/qfh.h"                         // if you keep legacy QFH/QBSA interop
 #include "core/quantum_manifold_optimizer.h"  // GAO impl lives here or new header
-#include "core/result_types.h"                // sep::util::Result<T,E>
+#include "core/result_types.h"                // sep::Result<T>
 
 namespace sep::engine {
 
@@ -144,11 +144,11 @@ struct Tick {
 class MarketDataFeed {
   public:
     virtual ~MarketDataFeed() = default;
-    virtual sep::util::Result<std::vector<Tick>, std::string> get_ticks(
+    virtual sep::Result<std::vector<Tick>> get_ticks(
         const InstrumentId& instrument, std::chrono::system_clock::time_point start,
         std::chrono::system_clock::time_point end) = 0;
 
-    virtual sep::util::Result<std::vector<Tick>, std::string> get_ticks_lookback(
+    virtual sep::Result<std::vector<Tick>> get_ticks_lookback(
         const InstrumentId& instrument, std::chrono::system_clock::time_point end,
         std::chrono::hours lookback) = 0;
 };
@@ -163,8 +163,8 @@ struct OrderIntent {
 class TradeExecutor {
   public:
     virtual ~TradeExecutor() = default;
-    virtual sep::util::Result<std::string, std::string> submit(const OrderIntent& intent) = 0;
-    virtual sep::util::Result<void, std::string> cancel_all(const InstrumentId& instrument) = 0;
+    virtual sep::Result<std::string> submit(const OrderIntent& intent) = 0;
+    virtual sep::Result<void> cancel_all(const InstrumentId& instrument) = 0;
 };
 
 // ---------- Core feature & state snapshots ----------
@@ -308,25 +308,25 @@ class SepEngine {
     ~SepEngine();
 
     // Single-shot analysis (pure; no orders placed)
-    sep::util::Result<AnalysisResult, std::string> analyze(const AnalysisRequest& req);
+    sep::Result<AnalysisResult> analyze(const AnalysisRequest& req);
 
     // Batch
-    std::vector<sep::util::Result<AnalysisResult, std::string>> analyze_many(
+    std::vector<sep::Result<AnalysisResult>> analyze_many(
         const std::vector<AnalysisRequest>& requests);
 
     // Realtime session (non-blocking)
     struct SessionId {
         std::string value;
     };
-    sep::util::Result<SessionId, std::string> start_session(const InstrumentId& instrument,
+    sep::Result<SessionId> start_session(const InstrumentId& instrument,
                                                             Horizon horizon, CostModelPips costs);
 
-    sep::util::Result<void, std::string> stop_session(const SessionId& id);
+    sep::Result<void> stop_session(const SessionId& id);
 
     std::optional<AnalysisResult> latest(const InstrumentId& instrument) const;
 
     // Execution (optional): convert signal → order intent via policy
-    sep::util::Result<std::string, std::string> act_on(const AnalysisResult& res, double lots);
+    sep::Result<std::string> act_on(const AnalysisResult& res, double lots);
 
     // Config
     void update_config(const EngineConfig& cfg);
