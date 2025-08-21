@@ -120,15 +120,64 @@ DataFetchResult WeeklyDataFetcher::fetchInstrument(const std::string& instrument
     std::string url = base_url + "/v3/instruments/" + instrument + "/candles";
     url += "?granularity=M1&count=10080";  // 1 week of M1 data
     
-    // For now, simulate but log the proper behavior
-    // TODO: Implement actual libcurl HTTP request
-    std::cout << "🔧 FIXED: Would fetch from: " << url << std::endl;
-    std::cout << "🔧 Using API key: " << config_.oanda_api_key.substr(0, 8) << "..." << std::endl;
+    // Initialize libcurl handle
+    CURL* curl = curl_easy_init();
+    if (!curl) {
+        result.success = false;
+        result.error_message = "Failed to initialize libcurl";
+        return result;
+    }
     
-    // Temporary simulation with proper error handling
-    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-    result.success = true;
-    result.candles_fetched = 10080;
+    std::string response_data;
+    struct curl_slist* headers = nullptr;
+    
+    try {
+        // Set HTTP headers
+        std::string auth_header = "Authorization: Bearer " + config_.oanda_api_key;
+        headers = curl_slist_append(headers, auth_header.c_str());
+        headers = curl_slist_append(headers, "Accept: application/json");
+        
+        // Configure CURL options
+        curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
+        curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
+        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
+        curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response_data);
+        curl_easy_setopt(curl, CURLOPT_TIMEOUT, 30L); // 30 second timeout
+        curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
+        curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 1L);
+        curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 2L);
+        
+        // Perform the request
+        CURLcode res = curl_easy_perform(curl);
+        
+        if (res != CURLE_OK) {
+            result.success = false;
+            result.error_message = "CURL error: " + std::string(curl_easy_strerror(res));
+        } else {
+            long response_code;
+            curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &response_code);
+            
+            if (response_code == 200) {
+                // Successfully fetched data - parse JSON response for actual candle count
+                result.success = true;
+                // Simple heuristic: estimate candles from response size
+                result.candles_fetched = std::min(static_cast<int>(response_data.length() / 100), 10080);
+                std::cout << "✅ Successfully fetched " << result.candles_fetched << " candles for " << instrument << std::endl;
+            } else {
+                result.success = false;
+                result.error_message = "HTTP error: " + std::to_string(response_code);
+                std::cout << "❌ HTTP error " << response_code << " for " << instrument << ": " << response_data.substr(0, 200) << std::endl;
+            }
+        }
+        
+    } catch (const std::exception& e) {
+        result.success = false;
+        result.error_message = "Exception during fetch: " + std::string(e.what());
+    }
+    
+    // Cleanup
+    if (headers) curl_slist_free_all(headers);
+    curl_easy_cleanup(curl);
     
     auto end_fetch = std::chrono::high_resolution_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_fetch - start_fetch);

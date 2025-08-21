@@ -55,6 +55,11 @@ struct ValidationMetrics {
     std::vector<std::string> validation_warnings;
     std::vector<std::string> validation_errors;
     
+    // Cache-specific metrics that the implementation expects
+    size_t cache_size_bytes{0};           // Size of cache file in bytes
+    std::time_t last_validation_time{0};  // Last validation timestamp
+    bool validation_success{false};        // Overall validation success status
+    
     ValidationMetrics() = default;
 };
 

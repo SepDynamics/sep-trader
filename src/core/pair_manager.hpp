@@ -52,6 +52,7 @@ public:
     bool startTrading(const std::string& symbol);
     bool stopTrading(const std::string& symbol);
     bool isTrading(const std::string& symbol) const;
+    bool isPairActive(const std::string& symbol) const;
     
     // Model management
     bool updateModel(const std::string& symbol, const std::string& model_path, double accuracy);

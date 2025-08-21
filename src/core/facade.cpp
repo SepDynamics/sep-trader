@@ -276,23 +276,31 @@ core::Result<void> EngineFacade::extractBits(const BitExtractionRequest& request
 }
 
 // Stub implementations for other methods to prevent link errors
-core::Result<void> EngineFacade::processPatterns(const PatternProcessRequest& request, 
+core::Result<void> EngineFacade::processPatterns(const PatternProcessRequest& request,
                                          PatternProcessResponse& response) {
+    (void)request;  // Suppress unused parameter warning
+    (void)response; // Suppress unused parameter warning
     return core::Result<void>(sep::Error(sep::Error::Code::NotImplemented));
 }
 
 core::Result<void> EngineFacade::processBatch(const BatchProcessRequest& request,
                                        PatternProcessResponse& response) {
+    (void)request;  // Suppress unused parameter warning
+    (void)response; // Suppress unused parameter warning
     return core::Result<void>(sep::Error(sep::Error::Code::NotImplemented));
 }
 
 core::Result<void> EngineFacade::storePattern(const StorePatternRequest& request,
                                        StorePatternResponse& response) {
+    (void)request;  // Suppress unused parameter warning
+    (void)response; // Suppress unused parameter warning
     return core::Result<void>(sep::Error(sep::Error::Code::NotImplemented));
 }
 
 core::Result<void> EngineFacade::queryMemory(const MemoryQueryRequest& request,
                                       std::vector<core::Pattern>& results) {
+    (void)request; // Suppress unused parameter warning
+    (void)results; // Suppress unused parameter warning
     return core::Result<void>(sep::Error(sep::Error::Code::NotImplemented));
 }
 

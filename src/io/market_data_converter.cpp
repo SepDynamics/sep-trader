@@ -1,8 +1,12 @@
 #include "io/market_data_converter.h"
+#include <vector>
+#include <cstdint>
+#include <string>
 #include <cstring>
 #include <cmath>
 #include <numeric>
 #include <algorithm>
+#include <functional>
 
 namespace sep {
 namespace connectors {
@@ -10,90 +14,79 @@ namespace connectors {
 std::vector<uint8_t> MarketDataConverter::candlesToByteStream(const std::vector<OandaCandle>& candles) {
     std::vector<uint8_t> stream;
     
-    // Reserve space for efficiency
-    stream.reserve(candles.size() * (sizeof(double) * 5 + 32)); // OHLCV + timestamp estimate
+    // Reserve space for efficient memory allocation
+    stream.reserve(candles.size() * 64); // Estimate 64 bytes per candle
     
+    // Extract price vectors for normalization
+    std::vector<double> opens, highs, lows, closes, volumes;
     for (const auto& candle : candles) {
-        // Encode timestamp
-        appendTimestamp(stream, candle.time);
+        opens.push_back(candle.open);
+        highs.push_back(candle.high);
+        lows.push_back(candle.low);
+        closes.push_back(candle.close);
+        volumes.push_back(static_cast<double>(candle.volume));
         
-        // Encode OHLCV data
+        appendTimestamp(stream, candle.time);  // Use 'time' field which is the primary timestamp field
         appendDouble(stream, candle.open);
         appendDouble(stream, candle.high);
         appendDouble(stream, candle.low);
         appendDouble(stream, candle.close);
-        appendDouble(stream, static_cast<double>(candle.volume));
-        
-        // Add spread information if we had bid/ask data
-        double spread = (candle.high - candle.low) / candle.close;
-        appendDouble(stream, spread);
+        appendUint64(stream, static_cast<uint64_t>(candle.volume));
     }
     
     return stream;
 }
 
 std::vector<uint8_t> MarketDataConverter::convertToBitstream(const std::vector<double>& prices) {
-    std::vector<uint8_t> stream;
-    
-    if (prices.empty()) return stream;
-    
-    // Normalize prices to [0,1] range
-    auto minmax = std::minmax_element(prices.begin(), prices.end());
-    double min_price = *minmax.first;
-    double max_price = *minmax.second;
-    double range = max_price - min_price;
-    
-    if (range == 0.0) {
-        // All prices are the same, return zero stream
-        stream.resize((prices.size() + 7) / 8, 0);
-        return stream;
+    if (prices.empty()) {
+        return {};
     }
     
-    // Convert each price to a normalized value and then to bits
-    for (size_t i = 0; i < prices.size(); ++i) {
-        double normalized = (prices[i] - min_price) / range;
+    // Calculate statistics for normalization
+    auto [mean, std] = calculateMeanStd(prices);
+    
+    std::vector<uint8_t> bitstream;
+    bitstream.reserve(prices.size() * 8); // Each double -> 8 bytes
+    
+    // Convert each price to normalized binary representation
+    for (double price : prices) {
+        double normalized = normalizeValue(price, mean, std);
         
-        // Convert to 8-bit value
-        uint8_t byte_val = static_cast<uint8_t>(normalized * 255.0);
-        stream.push_back(byte_val);
+        // Convert to bit representation using IEEE 754 double precision
+        uint64_t bits = *reinterpret_cast<const uint64_t*>(&normalized);
         
-        // Also add price movement direction as bit pattern
-        if (i > 0) {
-            bool up_move = prices[i] > prices[i-1];
-            if (stream.size() % 2 == 0) {
-                stream.push_back(up_move ? 0xFF : 0x00);
-            }
+        // Store as 8 bytes (64 bits)
+        for (int i = 0; i < 8; ++i) {
+            bitstream.push_back(static_cast<uint8_t>((bits >> (i * 8)) & 0xFF));
         }
     }
     
-    return stream;
+    return bitstream;
 }
 
 std::vector<uint8_t> MarketDataConverter::orderBookToByteStream(
     const std::vector<std::pair<double, double>>& bid_book,
-    const std::vector<std::pair<double, double>>& ask_book) {
-    
+    const std::vector<std::pair<double, double>>& ask_book
+) {
     std::vector<uint8_t> stream;
     
-    // Encode book imbalance for pattern detection
-    double total_bid_volume = 0;
-    double total_ask_volume = 0;
+    // Encode bid book size
+    appendUint64(stream, bid_book.size());
     
+    // Encode bid book (price, volume pairs)
     for (const auto& [price, volume] : bid_book) {
-        total_bid_volume += volume;
         appendDouble(stream, price);
         appendDouble(stream, volume);
     }
     
+    // Encode ask book size
+    appendUint64(stream, ask_book.size());
+    
+    // Encode ask book (price, volume pairs)
     for (const auto& [price, volume] : ask_book) {
-        total_ask_volume += volume;
         appendDouble(stream, price);
         appendDouble(stream, volume);
     }
-    
-    // Encode order book imbalance
-    double imbalance = (total_bid_volume - total_ask_volume) / (total_bid_volume + total_ask_volume);
-    appendDouble(stream, imbalance);
     
     return stream;
 }
@@ -101,41 +94,52 @@ std::vector<uint8_t> MarketDataConverter::orderBookToByteStream(
 std::vector<uint8_t> MarketDataConverter::createCompositeStream(
     const std::vector<OandaCandle>& candles,
     const MarketData& market_data,
-    size_t window_size) {
-    
+    size_t window_size
+) {
     std::vector<uint8_t> stream;
     
-    // Use recent candles for context
+    // Limit candles to window size
     size_t start_idx = candles.size() > window_size ? candles.size() - window_size : 0;
-    std::vector<OandaCandle> recent_candles(candles.begin() + start_idx, candles.end());
+    std::vector<OandaCandle> windowed_candles(candles.begin() + start_idx, candles.end());
     
-    // Combine historical and real-time data
-    auto candle_stream = candlesToByteStream(recent_candles);
-    auto market_stream = std::vector<uint8_t>();
-    
-    // Merge streams
+    // Convert candle data
+    auto candle_stream = candlesToByteStream(windowed_candles);
     stream.insert(stream.end(), candle_stream.begin(), candle_stream.end());
-    stream.insert(stream.end(), market_stream.begin(), market_stream.end());
     
-    // Add market regime indicators
-    if (!recent_candles.empty()) {
-        // Calculate simple volatility measure
-        std::vector<double> returns;
-        for (size_t i = 1; i < recent_candles.size(); ++i) {
-            double ret = (recent_candles[i].close - recent_candles[i-1].close) / recent_candles[i-1].close;
-            returns.push_back(ret);
+    // Add market data
+    appendDouble(stream, market_data.bid);
+    appendDouble(stream, market_data.ask);
+    appendDouble(stream, market_data.mid);
+    appendDouble(stream, market_data.volume);
+    appendUint64(stream, market_data.timestamp);
+    
+    // Add technical indicators
+    appendDouble(stream, market_data.atr);
+    appendUint64(stream, static_cast<uint64_t>(market_data.volatility_level));
+    appendDouble(stream, market_data.spread);
+    appendDouble(stream, market_data.daily_change);
+    
+    // Add order book data if available
+    if (!market_data.bid_book.empty() && !market_data.ask_book.empty()) {
+        // Convert flat vectors to price/volume pairs (assuming alternating price/volume)
+        std::vector<std::pair<double, double>> bid_pairs, ask_pairs;
+        
+        for (size_t i = 0; i + 1 < market_data.bid_book.size(); i += 2) {
+            bid_pairs.emplace_back(market_data.bid_book[i], market_data.bid_book[i + 1]);
         }
         
-        auto [mean, std] = calculateMeanStd(returns);
-        appendDouble(stream, std); // Volatility indicator
+        for (size_t i = 0; i + 1 < market_data.ask_book.size(); i += 2) {
+            ask_pairs.emplace_back(market_data.ask_book[i], market_data.ask_book[i + 1]);
+        }
         
-        // Trend indicator
-        double trend = (recent_candles.back().close - recent_candles.front().close) / recent_candles.front().close;
-        appendDouble(stream, trend);
+        auto orderbook_stream = orderBookToByteStream(bid_pairs, ask_pairs);
+        stream.insert(stream.end(), orderbook_stream.begin(), orderbook_stream.end());
     }
     
     return stream;
 }
+
+// Private helper methods
 
 void MarketDataConverter::appendDouble(std::vector<uint8_t>& stream, double value) {
     const uint8_t* bytes = reinterpret_cast<const uint8_t*>(&value);
@@ -148,29 +152,29 @@ void MarketDataConverter::appendUint64(std::vector<uint8_t>& stream, uint64_t va
 }
 
 void MarketDataConverter::appendTimestamp(std::vector<uint8_t>& stream, const std::string& timestamp) {
-    // Convert ISO timestamp to epoch for consistent encoding
-    // For now, use a hash of the timestamp
-    std::hash<std::string> hasher;
-    uint64_t time_hash = hasher(timestamp);
-    appendUint64(stream, time_hash);
+    // Convert timestamp string to Unix timestamp (simplified)
+    uint64_t unix_time = std::hash<std::string>{}(timestamp) % 1000000000; // Simplified hash
+    appendUint64(stream, unix_time);
 }
 
 std::pair<double, double> MarketDataConverter::calculateMeanStd(const std::vector<double>& values) {
-    if (values.empty()) return {0.0, 0.0};
+    if (values.empty()) {
+        return {0.0, 1.0};
+    }
     
     double mean = std::accumulate(values.begin(), values.end(), 0.0) / values.size();
     
-    double sq_sum = 0.0;
-    for (double val : values) {
-        sq_sum += (val - mean) * (val - mean);
+    double variance = 0.0;
+    for (double value : values) {
+        variance += (value - mean) * (value - mean);
     }
+    variance /= values.size();
     
-    double std = std::sqrt(sq_sum / values.size());
-    return {mean, std};
+    double std_dev = std::sqrt(variance);
+    return {mean, std_dev == 0.0 ? 1.0 : std_dev};
 }
 
 double MarketDataConverter::normalizeValue(double value, double mean, double std) {
-    if (std == 0.0) return 0.0;
     return (value - mean) / std;
 }
 

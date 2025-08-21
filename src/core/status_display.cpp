@@ -101,9 +101,9 @@ bool StatusDisplay::startMonitoringMode(int duration_seconds) {
 
 void StatusDisplay::printStatusHeader(const std::string& title) {
     std::cout << "\n";
-    std::cout << "================================================================" << std::endl;
+    std::cout << "=================================================================" << std::endl;
     std::cout << "  " << title << std::endl;
-    std::cout << "================================================================" << std::endl;
+    std::cout << "=================================================================" << std::endl;
 }
 
 void StatusDisplay::printStatusLine(const std::string& label, const std::string& value, bool good) {
@@ -243,7 +243,7 @@ std::string StatusDisplay::formatDuration(std::chrono::system_clock::time_point 
     }
 }
 
-std::string StatusDisplay::formatDurationFromString(const std::string& timestamp) {
+std::string StatusDisplay::formatDurationFromString(const std::string& /*timestamp*/) {
     // For now, just return a simplified version
     // In production, you would parse the ISO 8601 timestamp
     return "< 1h ago";

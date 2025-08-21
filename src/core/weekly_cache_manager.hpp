@@ -1,10 +1,10 @@
 #pragma once
 
-#include <chrono>
-#include <memory>
 #include <string>
-#include <unordered_map>
+#include <functional>
+#include <chrono>
 #include <vector>
+#include <unordered_map>
 
 namespace sep::cache {
 
@@ -17,75 +17,79 @@ enum class WeeklyCacheStatus {
     ERROR           // Error accessing or building cache
 };
 
-enum class UpdatePriority {
-    LOW,
-    NORMAL,
-    HIGH,
-    CRITICAL
-};
-
-struct WeeklyCacheRequirement {
-    std::chrono::hours min_coverage{168}; // 7 days * 24 hours
-    double min_data_quality{0.85}; // Minimum quality score
-    bool require_current_week{true}; // Must include current week data
-    bool require_complete_days{true}; // Must have complete trading days
-    std::chrono::hours update_frequency{24}; // Check every 24 hours
-    std::chrono::hours rebuild_threshold{48}; // Rebuild if data older than 48h
-    
-    WeeklyCacheRequirement() = default;
-};
-
-struct CacheOperationResult {
-    bool success;
-    WeeklyCacheStatus status;
-    std::string message;
-    std::chrono::duration<double> operation_time;
-    size_t records_processed;
-    std::vector<std::string> warnings;
-    
-    CacheOperationResult() : success(false), status(WeeklyCacheStatus::ERROR), 
-                           operation_time(std::chrono::duration<double>::zero()), 
-                           records_processed(0) {}
-};
-
 class WeeklyCacheManager {
 public:
-    WeeklyCacheManager();
-    ~WeeklyCacheManager();
+    WeeklyCacheManager() = default;
+    ~WeeklyCacheManager() = default;
     
-    // Core functionality
-    WeeklyCacheStatus checkWeeklyCacheStatus(const std::string& pair_symbol) const;
-    CacheOperationResult ensureWeeklyCache(const std::string& pair_symbol, UpdatePriority priority = UpdatePriority::NORMAL);
-    CacheOperationResult forceRebuildCache(const std::string& pair_symbol);
-    std::unordered_map<std::string, WeeklyCacheStatus> checkAllWeeklyCaches() const;
-    std::vector<CacheOperationResult> ensureAllWeeklyCaches(UpdatePriority priority = UpdatePriority::NORMAL);
+    // Data source provider setup
+    void setDataSourceProvider(
+        std::function<std::vector<std::string>(
+            const std::string& pair_symbol,
+            std::chrono::system_clock::time_point from,
+            std::chrono::system_clock::time_point to
+        )> provider) {
+        // Store the provider function for data source integration
+        data_source_provider_ = std::move(provider);
+    }
     
-    // Configuration
-    void setWeeklyCacheRequirement(const WeeklyCacheRequirement& requirement);
-    WeeklyCacheRequirement getWeeklyCacheRequirement() const;
-    void setCustomRequirementForPair(const std::string& pair, const WeeklyCacheRequirement& requirement);
+    // Check cache status for specific pair symbol
+    WeeklyCacheStatus getCacheStatus(const std::string& pair_symbol) {
+        // Check if pair symbol is in our cache map
+        auto it = cache_status_map_.find(pair_symbol);
+        if (it == cache_status_map_.end()) {
+            // Check if we have valid data source
+            if (data_source_provider_) {
+                // Try to get data to determine status using simple time points
+                try {
+                    auto now = std::chrono::system_clock::now();
+                    // Use time_t for simpler arithmetic - 7 days in seconds
+                    auto now_time_t = std::chrono::system_clock::to_time_t(now);
+                    auto week_ago_time_t = now_time_t - (7 * 24 * 3600); // 7 days in seconds
+                    auto week_ago = std::chrono::system_clock::from_time_t(week_ago_time_t);
+                    
+                    auto data = data_source_provider_(pair_symbol, week_ago, now);
+                    
+                    if (data.empty()) {
+                        cache_status_map_[pair_symbol] = WeeklyCacheStatus::MISSING;
+                        return WeeklyCacheStatus::MISSING;
+                    } else if (data.size() < 100) { // Heuristic for partial data
+                        cache_status_map_[pair_symbol] = WeeklyCacheStatus::PARTIAL;
+                        return WeeklyCacheStatus::PARTIAL;
+                    } else {
+                        cache_status_map_[pair_symbol] = WeeklyCacheStatus::CURRENT;
+                        return WeeklyCacheStatus::CURRENT;
+                    }
+                } catch (const std::exception&) {
+                    cache_status_map_[pair_symbol] = WeeklyCacheStatus::ERROR;
+                    return WeeklyCacheStatus::ERROR;
+                }
+            }
+            // Default to missing if no data source
+            return WeeklyCacheStatus::MISSING;
+        }
+        
+        return it->second;
+    }
     
-    // Data source provider
-    using DataSourceProvider = std::function<std::vector<std::string>(
-        const std::string& pair_symbol,
-        std::chrono::system_clock::time_point from,
-        std::chrono::system_clock::time_point to)>;
-    void setDataSourceProvider(const DataSourceProvider& provider);
+    bool isValidCache(const std::string& pair_symbol) {
+        WeeklyCacheStatus status = getCacheStatus(pair_symbol);
+        return status == WeeklyCacheStatus::CURRENT || status == WeeklyCacheStatus::PARTIAL;
+    }
     
-    // Implementation
-    CacheOperationResult buildWeeklyCache(const std::string& pair_symbol, bool force_rebuild = false);
-    CacheOperationResult fetchAndCacheWeeklyData(const std::string& pair_symbol);
-    CacheOperationResult updateIncrementalCache(const std::string& pair_symbol);
+    int getManagedPairCount() {
+        return static_cast<int>(cache_status_map_.size());
+    }
 
 private:
-    class Impl;
-    std::unique_ptr<Impl> impl_;
+    std::function<std::vector<std::string>(
+        const std::string&,
+        std::chrono::system_clock::time_point,
+        std::chrono::system_clock::time_point
+    )> data_source_provider_;
+    
+    // In-memory cache status tracking
+    std::unordered_map<std::string, WeeklyCacheStatus> cache_status_map_;
 };
-
-// Helper functions
-std::string weeklyCacheStatusToString(WeeklyCacheStatus status);
-WeeklyCacheStatus stringToWeeklyCacheStatus(const std::string& status_str);
-bool isWeeklyCacheReady(WeeklyCacheStatus status);
-UpdatePriority calculateUpdatePriority(const std::string& pair_symbol, WeeklyCacheStatus status);
 
 } // namespace sep::cache

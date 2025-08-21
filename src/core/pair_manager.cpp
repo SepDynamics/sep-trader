@@ -282,6 +282,20 @@ namespace sep::core
         return it->second->trading_active.load();
     }
 
+    bool PairManager::isPairActive(const std::string& symbol) const
+    {
+        std::shared_lock<std::shared_mutex> lock(pairs_mutex_);
+
+        auto it = pairs_.find(symbol);
+        if (it == pairs_.end())
+        {
+            return false;
+        }
+
+        // Pair is active if it's enabled and not in error state
+        return it->second->enabled && it->second->status != PairStatus::ERROR;
+    }
+
     bool PairManager::updateModel(const std::string& symbol, const std::string& model_path,
                                   double accuracy)
     {

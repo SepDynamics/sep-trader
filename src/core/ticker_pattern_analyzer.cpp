@@ -250,12 +250,19 @@ TickerPatternAnalysis TickerPatternAnalyzer::analyzeFromMarketData(
     analysis.dominant_pattern = classifyPattern(market_data, qfh_result);
 
     generateTradingSignals(analysis);
+#ifdef SEP_BACKTESTING
     const char* signal_dir = "HOLD";
     if (analysis.primary_signal == TickerPatternAnalysis::SignalDirection::BUY)
         signal_dir = "BUY";
     else if (analysis.primary_signal == TickerPatternAnalysis::SignalDirection::SELL)
         signal_dir = "SELL";
-#ifdef SEP_BACKTESTING
+    else if (analysis.primary_signal == TickerPatternAnalysis::SignalDirection::UP)
+        signal_dir = "UP";
+    else if (analysis.primary_signal == TickerPatternAnalysis::SignalDirection::DOWN)
+        signal_dir = "DOWN";
+    else if (analysis.primary_signal == TickerPatternAnalysis::SignalDirection::NEUTRAL)
+        signal_dir = "NEUTRAL";
+    // HOLD case is already handled by the default initialization
     sep::testbed::trace("signal emission", signal_dir);
 #endif
 

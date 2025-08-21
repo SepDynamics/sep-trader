@@ -38,6 +38,9 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON CACHE INTERNAL "")
 # Project declaration with initial C++ support
 project(sep_engine VERSION 1.0.0 LANGUAGES CXX)
 
+include_directories(src)
+
+
 # Ensure consistent C++17 standard
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -80,6 +83,7 @@ endif()
 option(SEP_CPU_ONLY "Build without CUDA and enable backtesting stubs" OFF)
 option(SEP_USE_CUDA "Enable CUDA support" ON)
 option(SEP_USE_GUI "Enable GUI support (ImGui)" OFF)
+option(SEP_ENABLE_REAL_TRAINING "Enable real training algorithms instead of simulation (works with CUDA)" ON)
 # Force GUI to be completely disabled for professional CLI system
 set(SEP_USE_GUI OFF CACHE BOOL "GUI disabled for professional CLI trading system" FORCE)
 
@@ -88,9 +92,16 @@ if(SEP_CPU_ONLY)
     set(SEP_USE_CUDA OFF CACHE BOOL "Disable CUDA when CPU-only" FORCE)
 endif()
 
+# Enable real training algorithms for CUDA builds
+if(SEP_ENABLE_REAL_TRAINING)
+    add_compile_definitions(SEP_BACKTESTING)
+    message(STATUS "Real training algorithms enabled (SEP_BACKTESTING)")
+endif()
+
 # CUDA ENABLED - Professional Trading System with GPU acceleration
 if(SEP_USE_CUDA)
     add_compile_definitions(SEP_USE_CUDA)
+    add_compile_definitions(SEP_ENGINE_HAS_CUDA)
     # First verify CUDA paths
     if(NOT DEFINED ENV{CUDA_HOME})
         message(FATAL_ERROR "CUDA_HOME environment variable not set")
@@ -147,6 +158,7 @@ if(SEP_USE_CUDA)
     set(CUDA_LIBRARIES
         CUDA::cudart
         CUDA::cuda_driver
+        CUDA::cufft
     )
     
     # Print CUDA configuration for debugging
@@ -427,7 +439,3 @@ add_custom_target(generate_docs
 )
 
 add_subdirectory(src)
-
-#if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/tests)
-#    add_subdirectory(tests)
-#endif()

@@ -4,6 +4,8 @@
 namespace sep::trading {
 
 bool PatternEvolutionTrainer::evolvePatterns(const std::string& pair) {
+    // Suppress unused parameter warning in stub implementation
+    (void)pair;
     // Stub implementation
     return true;
 }

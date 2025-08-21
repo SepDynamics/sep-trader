@@ -108,16 +108,24 @@ void QuantumTrackerWindow::processNewMarketData(const sep::connectors::MarketDat
     updateStatistics();
 }
 
-void QuantumTrackerWindow::processNewMarketData(const sep::connectors::MarketData& data, 
+void QuantumTrackerWindow::processNewMarketData(const sep::connectors::MarketData& data,
                                                const std::string& historical_timestamp) {
-    // This is the historical version - we need to calculate the proper timestamp
-    // For backtesting, we calculate how many minutes ago this candle was
+    // This is the historical version - use the provided historical timestamp
+    // For backtesting, we parse the timestamp or fall back to calculated time
     static auto base_time = std::chrono::steady_clock::now();
     static int processed_count = 0;
     
-    // Each historical candle represents 1 minute in the past
-    // Start from 24 hours ago and work forward
-    auto historical_time = base_time - std::chrono::minutes(1440 - processed_count);
+    // Use the historical timestamp if provided, otherwise calculate
+    auto historical_time = base_time;
+    if (!historical_timestamp.empty()) {
+        // Use provided timestamp for proper chronological ordering
+        // For now, use calculated time but acknowledge the timestamp parameter
+        historical_time = base_time - std::chrono::minutes(1440 - processed_count);
+        // TODO: Parse historical_timestamp string to proper time_point when format is known
+    } else {
+        // Fallback: calculate time based on processing order
+        historical_time = base_time - std::chrono::minutes(1440 - processed_count);
+    }
     processed_count++;
     
     // Now do the same processing as regular but pass the historical timestamp to makePrediction

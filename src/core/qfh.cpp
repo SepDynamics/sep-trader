@@ -6,6 +6,7 @@
 #include <iostream>
 #include <numeric>
 #include <vector>
+#include <optional>
 
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
@@ -106,9 +107,16 @@ bitspace::DampedValue QFHBasedProcessor::integrateFutureTrajectories(const std::
     if (!local_events.empty()) {
         // Simple entropy calculation without recursion
         int null_count = 0, flip_count = 0, rupture_count = 0;
+        int stable_count = 0, unstable_count = 0, collapsing_count = 0;
+        int collapsed_count = 0, recovering_count = 0;
         for (const auto& event : local_events) {
             switch (event.state) {
                 case QFHState::NULL_STATE: null_count++; break;
+                case QFHState::STABLE: stable_count++; break;
+                case QFHState::UNSTABLE: unstable_count++; break;
+                case QFHState::COLLAPSING: collapsing_count++; break;
+                case QFHState::COLLAPSED: collapsed_count++; break;
+                case QFHState::RECOVERING: recovering_count++; break;
                 case QFHState::FLIP: flip_count++; break;
                 case QFHState::RUPTURE: rupture_count++; break;
             }
@@ -118,9 +126,17 @@ bitspace::DampedValue QFHBasedProcessor::integrateFutureTrajectories(const std::
         float null_ratio = null_count / total;
         float flip_ratio = flip_count / total;
         float rupture_ratio = rupture_count / total;
+        float stable_ratio = stable_count / total;
+        float unstable_ratio = unstable_count / total;
+        float collapsing_ratio = collapsing_count / total;
+        float collapsed_ratio = collapsed_count / total;
+        float recovering_ratio = recovering_count / total;
         
         auto safe_log2 = [](float x) -> float { return (x > 0.0f) ? std::log2(x) : 0.0f; };
-        local_entropy = -(null_ratio * safe_log2(null_ratio) + flip_ratio * safe_log2(flip_ratio) + rupture_ratio * safe_log2(rupture_ratio));
+        local_entropy = -(null_ratio * safe_log2(null_ratio) + flip_ratio * safe_log2(flip_ratio) + rupture_ratio * safe_log2(rupture_ratio) +
+                         stable_ratio * safe_log2(stable_ratio) + unstable_ratio * safe_log2(unstable_ratio) +
+                         collapsing_ratio * safe_log2(collapsing_ratio) + collapsed_ratio * safe_log2(collapsed_ratio) +
+                         recovering_ratio * safe_log2(recovering_ratio));
         local_entropy = std::fmax(0.05, std::fmin(1.0, local_entropy / 1.585));
         local_coherence = 1.0 - local_entropy;
     }
@@ -271,6 +287,21 @@ sep::quantum::QFHResult sep::quantum::QFHBasedProcessor::analyze(const std::vect
         switch (event.state) {
             case sep::quantum::QFHState::NULL_STATE:
                 result.null_state_count++;
+                break;
+            case sep::quantum::QFHState::STABLE:
+                // Track stable events (no counter in QFHResult yet, but handle the case)
+                break;
+            case sep::quantum::QFHState::UNSTABLE:
+                // Track unstable events (no counter in QFHResult yet, but handle the case)
+                break;
+            case sep::quantum::QFHState::COLLAPSING:
+                // Track collapsing events (no counter in QFHResult yet, but handle the case)
+                break;
+            case sep::quantum::QFHState::COLLAPSED:
+                // Track collapsed events (no counter in QFHResult yet, but handle the case)
+                break;
+            case sep::quantum::QFHState::RECOVERING:
+                // Track recovering events (no counter in QFHResult yet, but handle the case)
                 break;
             case sep::quantum::QFHState::FLIP:
                 result.flip_count++;

@@ -253,7 +253,55 @@ Result<std::vector<std::map<std::string, std::any>>> DataAccessService::queryObj
         }
     }
     
-    // TODO: Implement sorting based on sortSpecs
+    // Implement sorting based on sortSpecs
+    if (!sortSpecs.empty()) {
+        std::sort(results.begin(), results.end(), [&sortSpecs](const std::map<std::string, std::any>& a, const std::map<std::string, std::any>& b) {
+            for (const auto& sortSpec : sortSpecs) {
+                auto aIt = a.find(sortSpec.field);
+                auto bIt = b.find(sortSpec.field);
+                
+                // Handle missing fields - put them at the end
+                if (aIt == a.end() && bIt == b.end()) continue;
+                if (aIt == a.end()) return false;
+                if (bIt == b.end()) return true;
+                
+                // Try to compare as strings first (safe fallback)
+                try {
+                    std::string aStr = std::any_cast<std::string>(aIt->second);
+                    std::string bStr = std::any_cast<std::string>(bIt->second);
+                    
+                    int comparison = aStr.compare(bStr);
+                    if (comparison != 0) {
+                        return sortSpec.ascending ? (comparison < 0) : (comparison > 0);
+                    }
+                } catch (const std::bad_any_cast&) {
+                    // Try numeric comparison for doubles
+                    try {
+                        double aVal = std::any_cast<double>(aIt->second);
+                        double bVal = std::any_cast<double>(bIt->second);
+                        
+                        if (aVal != bVal) {
+                            return sortSpec.ascending ? (aVal < bVal) : (aVal > bVal);
+                        }
+                    } catch (const std::bad_any_cast&) {
+                        // Try numeric comparison for integers
+                        try {
+                            int aVal = std::any_cast<int>(aIt->second);
+                            int bVal = std::any_cast<int>(bIt->second);
+                            
+                            if (aVal != bVal) {
+                                return sortSpec.ascending ? (aVal < bVal) : (aVal > bVal);
+                            }
+                        } catch (const std::bad_any_cast&) {
+                            // If all else fails, treat as equal for this field
+                            continue;
+                        }
+                    }
+                }
+            }
+            return false; // All sort fields are equal
+        });
+    }
     
     // Apply pagination
     std::vector<std::map<std::string, std::any>> paginatedResults;

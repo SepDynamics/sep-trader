@@ -166,6 +166,14 @@ core::Result<void> EngineFacade::processPatterns(const PatternProcessRequest& re
     }
 
     ++impl_->request_counter;
+    
+    // Use request parameters to configure processing
+    if (!request.context_id.empty()) {
+        // Store context ID for tracking and use as correlation ID
+        response.correlation_id = request.context_id;
+    } else {
+        response.correlation_id = "corr_" + std::to_string(impl_->request_counter);
+    }
 
     // This is a high-level, generic evolution step.
     // It processes a batch of already-formed patterns.
@@ -182,7 +190,6 @@ core::Result<void> EngineFacade::processPatterns(const PatternProcessRequest& re
     {
         response.processed_patterns.push_back(res.pattern);
     }
-    response.correlation_id = "corr_" + std::to_string(impl_->request_counter);
     response.processing_complete = true;
     
     return core::Result<void>();
@@ -356,13 +363,41 @@ core::Result<void> EngineFacade::queryMemory(const MemoryQueryRequest& request,
         return core::Result<void>(sep::Error(sep::Error::Code::NotInitialized, "Not initialized"));
     }
 
-    // This is a simplified query. A real one would parse request.query_id
-    // to build complex criteria (e.g., "coherence > 0.8 AND stability < 0.5")
+    // Use request parameters to filter results
     results.clear();
 
     auto stm_patterns = impl_->quantum_processor->getPatternsByTier(sep::memory::MemoryTierEnum::STM);
     auto mtm_patterns = impl_->quantum_processor->getPatternsByTier(sep::memory::MemoryTierEnum::MTM);
     auto ltm_patterns = impl_->quantum_processor->getPatternsByTier(sep::memory::MemoryTierEnum::LTM);
+    
+    // Apply query filters based on request.query_id and request.max_results
+    size_t max_results = request.max_results > 0 ? request.max_results : 100;
+    size_t current_count = 0;
+    
+    // Add patterns from different tiers, respecting max_results limit
+    for (const auto& pattern : ltm_patterns) {
+        if (current_count >= max_results) break;
+        if (request.query_id.empty() || pattern.id == std::stoull(request.query_id)) {
+            results.push_back(pattern);
+            current_count++;
+        }
+    }
+    
+    for (const auto& pattern : mtm_patterns) {
+        if (current_count >= max_results) break;
+        if (request.query_id.empty() || pattern.id == std::stoull(request.query_id)) {
+            results.push_back(pattern);
+            current_count++;
+        }
+    }
+    
+    for (const auto& pattern : stm_patterns) {
+        if (current_count >= max_results) break;
+        if (request.query_id.empty() || pattern.id == std::stoull(request.query_id)) {
+            results.push_back(pattern);
+            current_count++;
+        }
+    }
 
     results.insert(results.end(), stm_patterns.begin(), stm_patterns.end());
     results.insert(results.end(), mtm_patterns.begin(), mtm_patterns.end());

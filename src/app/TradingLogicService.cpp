@@ -29,23 +29,40 @@ sep::Result<std::vector<TradingSignal>> TradingLogicService::generateSignalsFrom
             signal.patternId = pattern->id;
             
             // Mock logic to determine action type based on pattern attributes
-            // Since Pattern doesn't have an 'evolution' property, we'll use other attributes
-            
-            // Analyze pattern attributes to determine direction
-            // For simplicity, we'll use the first attribute value if available, or fallback to coherence comparison
+            // Enhanced with market context information
             bool bullishSignal = false;
             
             if (!pattern->attributeScores.empty()) {
                 bullishSignal = pattern->attributeScores[0] > 0;
             } else {
-                // Arbitrary logic for demo purposes - in a real system this would be more sophisticated
-                bullishSignal = pattern->coherence > pattern->stability;
+                // Use market indicators from context if available
+                if (!context.indicators.empty() && context.indicators.find("trend") != context.indicators.end()) {
+                    bullishSignal = context.indicators.at("trend") > 0;
+                } else {
+                    // Fallback to pattern attributes
+                    bullishSignal = pattern->coherence > pattern->stability;
+                }
             }
             
             signal.actionType = bullishSignal ? TradingActionType::Buy : TradingActionType::Sell;
             
-            // Set other signal properties
-            signal.confidence = pattern->coherence * pattern->stability;
+            // Enhance confidence calculation with market context
+            double marketConfidenceModifier = 1.0;
+            if (!context.marketMetrics.empty() && context.marketMetrics.find("volatility") != context.marketMetrics.end()) {
+                double volatility = context.marketMetrics.at("volatility");
+                // Lower confidence in high volatility markets
+                marketConfidenceModifier = std::max(0.5, 1.0 - volatility);
+            }
+            
+            // Set signal confidence enhanced by market context
+            signal.confidence = pattern->coherence * pattern->stability * marketConfidenceModifier;
+            
+            // Use context to set symbol if available
+            if (!context.currentPrices.empty()) {
+                signal.symbol = context.currentPrices.begin()->first;
+            }
+            
+            // Set timing
             signal.generatedTime = std::chrono::system_clock::now();
             signal.expirationTime = signal.generatedTime + std::chrono::hours(24);
             

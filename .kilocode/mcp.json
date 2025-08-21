@@ -2,7 +2,11 @@
   "mcpServers": {
     "context7": {
       "type": "streamable-http",
-      "url": "https://mcp.context7.com/mcp"
+      "url": "https://mcp.context7.com/mcp",
+      "alwaysAllow": [
+        "resolve-library-id",
+        "get-library-docs"
+      ]
     },
     "memory": {
       "command": "docker",
@@ -13,6 +17,31 @@
         "claude-memory:/app/dist",
         "--rm",
         "mcp/memory"
+      ],
+      "alwaysAllow": [
+        "create_entities",
+        "create_relations",
+        "delete_observations",
+        "delete_entities",
+        "add_observations",
+        "delete_relations",
+        "read_graph",
+        "search_nodes",
+        "open_nodes"
+      ]
+    },
+    "qdrant": {
+      "command": "/home/ajn/.local/bin/mcp-server-qdrant",
+      "args": [],
+      "env": {
+        "QDRANT_URL": "https://14078592-0e60-4aa2-8e5b-eba64bdb8eb4.us-east4-0.gcp.cloud.qdrant.io:6333",
+        "QDRANT_API_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhY2Nlc3MiOlt7ImNvbGxlY3Rpb24iOiJzZXAtdHJhZGVyIiwiYWNjZXNzIjoicncifV19.noTToqFWXRNZ4YyTTw4dnJe5lWq7e2PfUTNvrQqncmw",
+        "COLLECTION_NAME": "sep-trader",
+        "EMBEDDING_MODEL": "BAAI/bge-small-en-v1.5"
+      },
+      "alwaysAllow": [
+        "qdrant-store",
+        "qdrant-find"
       ]
     }
   },

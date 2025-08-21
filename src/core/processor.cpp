@@ -102,6 +102,8 @@ public:
 
     std::vector<Pattern> getPatternsByTier(::sep::memory::MemoryTierEnum tier) const
     {
+        // Suppress unused parameter warning until tier-based filtering is implemented
+        (void)tier;
         std::lock_guard<std::mutex> lock(mutex_);
         std::vector<Pattern> result;
         for (const auto& pattern : patterns_) {

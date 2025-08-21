@@ -2,12 +2,24 @@
 
 #include "app/ServiceBase.h"
 #include "IQuantumProcessingService.h"
-#include "core/result.h"
+#include "core/result_types.h"
 #include "core/qfh.h"
 #include "core/quantum_processor_qfh.h"
 #include "core/quantum_types.h"
 #include <memory>
 #include <unordered_map>
+#include <cstdint>
+#include <glm/glm.hpp>
+#include <glm/vec3.hpp>
+
+// Forward declarations from core quantum namespace
+namespace sep {
+namespace quantum {
+class QuantumProcessorQFH;
+class QFH;
+struct QFHResult;
+}
+}
 
 namespace sep {
 namespace services {
@@ -67,14 +79,14 @@ private:
     std::unordered_map<std::string, std::string> algorithms_;
     
     // Authentic quantum processor instances
-    std::unique_ptr<sep::quantum::QuantumProcessorQFH> qfh_processor_;
-    std::unique_ptr<sep::quantum::QFH> qfh_engine_;
+    std::unique_ptr<::sep::quantum::QuantumProcessorQFH> qfh_processor_;
+    std::unique_ptr<::sep::quantum::QFHBasedProcessor> qfh_engine_;
     
     // Type conversion helpers between service layer and core quantum layer
     glm::vec3 convertToGLMPattern(const QuantumState& serviceState);
     QuantumState convertFromGLMPattern(const glm::vec3& pattern, const std::string& identifier);
-    BinaryStateVector convertFromBitVector(const std::vector<uint32_t>& bits);
-    std::vector<QuantumFourierComponent> convertFromQFHResult(const sep::quantum::QFHResult& qfhResult);
+    BinaryStateVector convertFromBitVector(const std::vector<std::uint32_t>& bits);
+    std::vector<QuantumFourierComponent> convertFromQFHResult(const ::sep::quantum::QFHResult& qfhResult);
     CoherenceMatrix buildCoherenceMatrixFromStability(double stability);
     StabilityMetrics buildStabilityFromProcessing(double stability, double coherence);
 };

@@ -473,6 +473,7 @@ bool DynamicPairManager::validatePairSymbolFormat(const std::string& symbol) con
 }
 
 bool DynamicPairManager::validateResourceRequirements(const DynamicPairConfig& config) const {
+    static_cast<void>(config);  // TODO: Implement resource requirement validation based on config
     ResourceAllocation current = calculateCurrentUsage();
     
     // Check if adding this pair would exceed limits

@@ -19,8 +19,18 @@ namespace memory_internal {
         float coherence;
         float stability;
         uint32_t generation;
-        float contextScore;
-        float promotionScore;
+        float contextScore;     // Context-aware scoring for block relevance
+        float promotionScore;   // Promotion readiness metric for tier advancement
+        
+        // Constructor to initialize scoring parameters
+        MemoryBlockImpl() : ptr(nullptr), size(0), tier(TierType::STM),
+                           coherence(0.0f), stability(0.0f), generation(0),
+                           contextScore(0.0f), promotionScore(0.0f) {}
+        
+        // Calculate combined priority score using both context and promotion metrics
+        float calculatePriorityScore() const {
+            return (contextScore * 0.6f) + (promotionScore * 0.4f) + (coherence * 0.2f);
+        }
     };
 
     // Simplified memory tier structure

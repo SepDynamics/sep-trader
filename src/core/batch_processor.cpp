@@ -132,8 +132,6 @@ BatchResult BatchProcessor::process_single_pattern(const BatchPattern& pattern) 
         // For now, simulate execution with basic coherence analysis
         // In a real implementation, this would use the DSL interpreter
         
-        auto& engine = sep::engine::EngineFacade::getInstance();
-        
         // Extract a simple metric from the pattern code
         // This is a simplified implementation - real version would parse and execute DSL
         double coherence_value = 0.0;
