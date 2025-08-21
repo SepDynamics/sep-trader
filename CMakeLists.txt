@@ -442,6 +442,11 @@ if(ENABLE_MEMORY_TESTING)
     add_subdirectory(tests/memory)
 endif()
 
+# Add tests subdirectory
+if(BUILD_TESTING)
+    add_subdirectory(tests)
+endif()
+
 # Custom command to generate documentation
 add_custom_target(generate_docs
     COMMAND python3 ${CMAKE_CURRENT_SOURCE_DIR}/parse_docs.py
