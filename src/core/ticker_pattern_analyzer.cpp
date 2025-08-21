@@ -9,6 +9,7 @@
 
 #include "core/sep_precompiled.h"
 #include "core/types.h"
+#include "core/result_types.h"
 
 namespace sep::engine {
 
@@ -113,7 +114,7 @@ SepEngine::~SepEngine() {
     sessions_.clear();
 }
 
-sep::util::Result<AnalysisResult, std::string> SepEngine::analyze(const AnalysisRequest& req) {
+sep::Result<AnalysisResult> SepEngine::analyze(const AnalysisRequest& req) {
     auto start_time = std::chrono::high_resolution_clock::now();
     
     // Increment analysis counter
@@ -130,15 +131,17 @@ sep::util::Result<AnalysisResult, std::string> SepEngine::analyze(const Analysis
         
         // Fetch market data
         auto ticks_result = feed_->get_ticks(req.instrument, start_time_data, asof);
-        if (!ticks_result) {
-            return sep::util::Result<AnalysisResult, std::string>::error(
-                "Failed to fetch market data: " + ticks_result.error());
+        if (ticks_result.isError()) {
+            return sep::makeError<AnalysisResult>(
+                sep::Error(sep::Error::Code::OperationFailed,
+                          "Failed to fetch market data: " + ticks_result.error().message));
         }
-        
+
         auto& ticks = ticks_result.value();
         if (ticks.empty()) {
-            return sep::util::Result<AnalysisResult, std::string>::error(
-                "No market data available for " + req.instrument.symbol);
+            return sep::makeError<AnalysisResult>(
+                sep::Error(sep::Error::Code::NotFound,
+                           "No market data available for " + req.instrument.symbol));
         }
         
         // Run analysis pipeline
@@ -159,18 +162,19 @@ sep::util::Result<AnalysisResult, std::string> SepEngine::analyze(const Analysis
             stats_.ok.fetch_add(1);
         }
         
-        return sep::util::Result<AnalysisResult, std::string>::ok(std::move(result));
-        
+        return sep::makeSuccess<AnalysisResult>(std::move(result));
+
     } catch (const std::exception& e) {
-        return sep::util::Result<AnalysisResult, std::string>::error(
-            "Analysis failed: " + std::string(e.what()));
+        return sep::makeError<AnalysisResult>(
+            sep::Error(sep::Error::Code::ProcessingError,
+                       "Analysis failed: " + std::string(e.what())));
     }
 }
 
-std::vector<sep::util::Result<AnalysisResult, std::string>> SepEngine::analyze_many(
+std::vector<sep::Result<AnalysisResult>> SepEngine::analyze_many(
     const std::vector<AnalysisRequest>& requests) {
     
-    std::vector<sep::util::Result<AnalysisResult, std::string>> results;
+    std::vector<sep::Result<AnalysisResult>> results;
     results.reserve(requests.size());
     
     for (const auto& req : requests) {
@@ -180,7 +184,7 @@ std::vector<sep::util::Result<AnalysisResult, std::string>> SepEngine::analyze_m
     return results;
 }
 
-sep::util::Result<SepEngine::SessionId, std::string> SepEngine::start_session(
+sep::Result<SepEngine::SessionId> SepEngine::start_session(
     const InstrumentId& instrument, Horizon horizon, CostModelPips costs) {
     
     std::lock_guard<std::mutex> lock(m_sessions_);
@@ -188,8 +192,9 @@ sep::util::Result<SepEngine::SessionId, std::string> SepEngine::start_session(
     // Check if session already exists
     auto it = sessions_.find(instrument.symbol);
     if (it != sessions_.end() && it->second.running.load()) {
-        return sep::util::Result<SessionId, std::string>::error(
-            "Session already active for " + instrument.symbol);
+        return sep::makeError<SessionId>(
+            sep::Error(sep::Error::Code::AlreadyExists,
+                       "Session already active for " + instrument.symbol));
     }
     
     // Create new session
@@ -215,7 +220,7 @@ sep::util::Result<SepEngine::SessionId, std::string> SepEngine::start_session(
                 
                 // Perform analysis
                 auto result = analyze(req);
-                if (result) {
+                if (result.isSuccess()) {
                     // Store latest result
                     std::lock_guard<std::mutex> latest_lock(m_latest_);
                     latest_[instrument.symbol] = result.value();
@@ -234,10 +239,10 @@ sep::util::Result<SepEngine::SessionId, std::string> SepEngine::start_session(
     // Store session
     sessions_[instrument.symbol] = std::move(session);
     
-    return sep::util::Result<SessionId, std::string>::ok(session_id);
+    return sep::makeSuccess<SessionId>(session_id);
 }
 
-sep::util::Result<void, std::string> SepEngine::stop_session(const SessionId& id) {
+sep::Result<void> SepEngine::stop_session(const SessionId& id) {
     std::lock_guard<std::mutex> lock(m_sessions_);
     
     // Find session by ID
@@ -249,11 +254,11 @@ sep::util::Result<void, std::string> SepEngine::stop_session(const SessionId& id
                 it->second.th.join();
             }
             sessions_.erase(it);
-            return sep::util::Result<void, std::string>::ok();
+            return sep::makeSuccess();
         }
     }
-    
-    return sep::util::Result<void, std::string>::error("Session not found: " + id.value);
+
+    return sep::makeError(Error(Error::Code::NotFound, "Session not found: " + id.value));
 }
 
 std::optional<AnalysisResult> SepEngine::latest(const InstrumentId& instrument) const {
@@ -265,16 +270,18 @@ std::optional<AnalysisResult> SepEngine::latest(const InstrumentId& instrument) 
     return std::nullopt;
 }
 
-sep::util::Result<std::string, std::string> SepEngine::act_on(const AnalysisResult& res, double lots) {
+sep::Result<std::string> SepEngine::act_on(const AnalysisResult& res, double lots) {
     (void)lots;  // Suppress unused parameter warning
     
     if (!exec_) {
-        return sep::util::Result<std::string, std::string>::error("No trade executor configured");
+        return sep::makeError<std::string>(
+            sep::Error(sep::Error::Code::NotInitialized, "No trade executor configured"));
     }
-    
+
     // Convert signal to order intent
     if (res.primary.side == Side::Flat || res.primary.confidence < cfg_.min_signal_confidence) {
-        return sep::util::Result<std::string, std::string>::error("Signal not actionable");
+        return sep::makeError<std::string>(
+            sep::Error(sep::Error::Code::OperationFailed, "Signal not actionable"));
     }
     
     OrderIntent intent;

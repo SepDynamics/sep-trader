@@ -1,6 +1,5 @@
 #pragma once
 
-// Core headers
 #include "core/standard_includes.h"
 #include "core/result_types.h"
 #include "core/types.h"
