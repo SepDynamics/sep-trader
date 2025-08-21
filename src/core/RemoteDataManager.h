@@ -5,6 +5,7 @@
 #include <memory>
 #include <pqxx/pqxx>
 #include <hiredis/hiredis.h>
+#include "core/timeframe.h"
 
 namespace sep {
 namespace trading {
@@ -24,9 +25,7 @@ struct TrainingData {
     std::string timestamp;
 };
 
-enum class Timeframe {
-    M1, M5, M15, M30, H1, H4, D1
-};
+using ::sep::Timeframe;
 
 class RemoteDataManager {
 public:

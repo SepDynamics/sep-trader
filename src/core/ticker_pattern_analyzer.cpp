@@ -19,11 +19,14 @@ namespace sep::engine {
 
 // ---------- Helper functions ----------
 
+using ::sep::Timeframe;
+
 std::string SepEngine::timeframe_str(Timeframe tf) {
     switch (tf) {
         case Timeframe::M1: return std::string("M1");
         case Timeframe::M5: return std::string("M5");
         case Timeframe::M15: return std::string("M15");
+        case Timeframe::M30: return std::string("M30");
         case Timeframe::H1: return std::string("H1");
         case Timeframe::H4: return std::string("H4");
         case Timeframe::D1: return std::string("D1");
