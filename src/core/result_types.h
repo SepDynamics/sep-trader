@@ -168,11 +168,5 @@ namespace result {
     constexpr SEPResult NOT_FOUND = SEPResult::NOT_FOUND;
 }
 
-// Add util namespace alias for backward compatibility
-namespace util {
-    // Two-parameter version matches ticker_pattern_analyzer usage
-template <typename T, typename E>
-using Result = sep::Result<T>;
-}
-
 } // namespace sep
+
