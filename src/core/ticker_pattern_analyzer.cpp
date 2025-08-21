@@ -1,19 +1,18 @@
-#include "core/ticker_pattern_analyzer.hpp"
-
-// Only include absolutely essential headers to avoid namespace pollution
-#include <string>
-#include <sstream>
-#include <chrono>
-#include <thread>
-#include <mutex>
+#include <algorithm>
 #include <atomic>
+#include <chrono>
+#include <iomanip>
 #include <memory>
-#include <vector>
+#include <mutex>
 #include <optional>
 #include <random>
-#include <iomanip>
-#include <algorithm>
+#include <sstream>
+#include <string>
+#include <thread>
+#include <vector>
 
+#include "core/ticker_pattern_analyzer.hpp"
+#include "core/result_types.h"
 
 namespace sep::engine {
 
