@@ -46,100 +46,16 @@ setup_ssl() {
     fi
 }
 
-# Function to update nginx configuration for SSL
-update_nginx_ssl() {
-    echo "🌐 Updating nginx configuration for SSL..."
+# Function to verify SSL configuration exists
+check_ssl_config() {
+    echo "🌐 Checking SSL nginx configuration..."
     
-    # Create the nginx SSL config with proper permissions
-    cat > /tmp/nginx-ssl.conf << 'EOF'
-server {
-    listen 80;
-    server_name mxbikes.xyz www.mxbikes.xyz;
+    if [ ! -f "frontend/nginx-ssl.conf" ]; then
+        echo "❌ SSL nginx configuration not found at frontend/nginx-ssl.conf"
+        exit 1
+    fi
     
-    # Redirect HTTP to HTTPS
-    return 301 https://$server_name$request_uri;
-}
-
-server {
-    listen 443 ssl http2;
-    server_name mxbikes.xyz www.mxbikes.xyz;
-    
-    # SSL Configuration
-    ssl_certificate /etc/ssl/certs/sep/nginx.crt;
-    ssl_certificate_key /etc/ssl/certs/sep/nginx.key;
-    ssl_session_cache shared:SSL:1m;
-    ssl_session_timeout 10m;
-    ssl_ciphers HIGH:!aNULL:!MD5;
-    ssl_prefer_server_ciphers on;
-    
-    root /usr/share/nginx/html;
-    index index.html index.htm;
-    
-    # Security headers
-    add_header X-Frame-Options "SAMEORIGIN" always;
-    add_header X-Content-Type-Options "nosniff" always;
-    add_header X-XSS-Protection "1; mode=block" always;
-    add_header Referrer-Policy "no-referrer-when-downgrade" always;
-    add_header Content-Security-Policy "default-src 'self' https: data: blob: 'unsafe-inline'" always;
-    
-    # Gzip compression
-    gzip on;
-    gzip_vary on;
-    gzip_min_length 1024;
-    gzip_proxied expired no-cache no-store private auth;
-    gzip_types text/plain text/css text/xml text/javascript application/x-javascript application/xml+rss application/javascript;
-    
-    # Cache static assets
-    location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg)$ {
-        expires 1y;
-        add_header Cache-Control "public, immutable";
-    }
-    
-    # API proxy to backend
-    location /api/ {
-        proxy_pass http://trading-backend:5000;
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection 'upgrade';
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-        proxy_cache_bypass $http_upgrade;
-        proxy_read_timeout 300;
-        proxy_connect_timeout 300;
-        proxy_send_timeout 300;
-    }
-    
-    # WebSocket proxy
-    location /ws/ {
-        proxy_pass http://websocket-service:8765;
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection "Upgrade";
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-    }
-    
-    # React Router support - serve index.html for all routes
-    location / {
-        try_files $uri $uri/ /index.html;
-    }
-    
-    # Health check endpoint
-    location /health {
-        access_log off;
-        return 200 "healthy\n";
-        add_header Content-Type text/plain;
-    }
-}
-EOF
-    
-    # Move the file to the frontend directory
-    sudo mv /tmp/nginx-ssl.conf frontend/nginx-ssl.conf
-    sudo chown $USER:$USER frontend/nginx-ssl.conf
+    echo "✅ SSL nginx configuration found"
 }
 
 # Function to start services
@@ -204,8 +120,8 @@ main() {
     # Setup SSL certificates
     setup_ssl
     
-    # Update nginx configuration
-    update_nginx_ssl
+    # Check SSL configuration
+    check_ssl_config
     
     # Start services
     start_services
