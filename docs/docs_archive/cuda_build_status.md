@@ -13,7 +13,7 @@ The refactoring initiative for the SEP Engine's compute fabric has successfully 
 - Fixed source file path resolution issues in `src/cuda/CMakeLists.txt`
 - Corrected source file globbing and target definitions
 - Created the `sep_cuda` CUDA library target with proper configuration
-- Set up C++17 standard and position-independent code for compatibility
+- Set up C standard and position-independent code for compatibility
 - Established proper installation rules for library and header files
 
 ### Kernel Migration

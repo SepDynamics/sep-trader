@@ -107,7 +107,7 @@ function(add_sep_library name)
             /W3
             /O2
             /EHsc
-            /std:c++17
+            /std:c
             /bigobj
         )
     endif()
@@ -137,7 +137,7 @@ function(add_sep_executable name)
         target_link_libraries(${name} PRIVATE ${ARG_DEPENDENCIES})
     endif()
     
-    # Set C++17 standard
+    # Set C standard
     target_compile_features(${name} PUBLIC cxx_std_17)
     
     # Common compile options
@@ -153,7 +153,7 @@ function(add_sep_executable name)
             /W3
             /O2
             /EHsc
-            /std:c++17
+            /std:c
             /bigobj
         )
     endif()

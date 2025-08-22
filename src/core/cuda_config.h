@@ -1,6 +1,3 @@
-#ifndef SEP_COMPAT_CUDA_CONFIG_H
-#define SEP_COMPAT_CUDA_CONFIG_H
-
 // Basic configuration flags for CUDA support
 #ifndef SEP_ENGINE_HAS_CUDA
 #define SEP_ENGINE_HAS_CUDA 0
@@ -23,5 +20,3 @@
 #define SEP_HD
 #define SEP_CUDA_EXPORT
 #endif
-
-#endif // SEP_COMPAT_CUDA_CONFIG_H

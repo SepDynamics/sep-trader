@@ -9,7 +9,7 @@
 
 #pragma once
 
-// C++20 compatibility for C++17 builds (must be first)
+// C++20 compatibility for C builds (must be first)
 #include "common/namespace_protection.hpp"
 
 //==============================================================================

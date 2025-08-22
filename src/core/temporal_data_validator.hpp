@@ -1,13 +1,11 @@
 #pragma once
 
-#include "core/sep_precompiled.h"
-#include "io/oanda_connector.h"
-#include "core/quantum_pair_trainer.hpp"
+#include <atomic>
 #include <chrono>
 #include <future>
 #include <mutex>
-#include <atomic>
-#include <thread>
+#include "core/quantum_pair_trainer.hpp"
+#include "io/oanda_connector.h"
 
 namespace sep::validation
 {

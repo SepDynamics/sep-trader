@@ -18,7 +18,7 @@ jobs:
       - name: Build Test
         run: |
           if [[ -f tests/unit/data_pipeline_test.cpp ]]; then
-            g++-11 -std=c++17 tests/unit/data_pipeline_test.cpp -lgtest -lgtest_main -lpthread -o unit_test
+            g++-11 -std=c tests/unit/data_pipeline_test.cpp -lgtest -lgtest_main -lpthread -o unit_test
           else
             echo "No test file found, creating dummy test"
             echo 'int main() { return 0; }' > dummy_test.cpp

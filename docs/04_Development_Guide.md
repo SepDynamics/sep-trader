@@ -8,7 +8,7 @@ The project uses a unified build system for both Linux and Windows, orchestrated
 
 ### System Requirements
 
-*   **Compiler:** C++17 compliant (GCC 11.4+, Clang 14.0+, MSVC 2022+)
+*   **Compiler:** C compliant (GCC 11.4+, Clang 14.0+, MSVC 2022+)
 *   **CUDA:** For local training, NVIDIA Driver 550+ and CUDA Toolkit 12.9+ are required.
 *   **Dependencies:** CMake 3.25+, Boost 1.71+, OpenSSL 3.0+, and others, which are managed by the `install` scripts.
 

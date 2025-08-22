@@ -21,7 +21,7 @@ jobs:
       - name: Build accuracy benchmark
         run: |
           if [[ -f tests/performance/accuracy_benchmark.cpp ]]; then
-            g++ -std=c++17 tests/performance/accuracy_benchmark.cpp -DTEST_DATA_DIR="$(pwd)/tests/data" -lgtest -lgtest_main -pthread -o accuracy_benchmark
+            g++ -std=c tests/performance/accuracy_benchmark.cpp -DTEST_DATA_DIR="$(pwd)/tests/data" -lgtest -lgtest_main -pthread -o accuracy_benchmark
           else
             echo "No benchmark file found, creating dummy benchmark"
             echo 'int main() { return 0; }' > dummy_benchmark.cpp

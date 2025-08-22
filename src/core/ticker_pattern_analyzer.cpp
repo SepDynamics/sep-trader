@@ -316,7 +316,7 @@ BitState64 SepEngine::make_bitstate64(const Tick& t) const {
 }
 
 AnalysisResult SepEngine::pipeline_(const InstrumentId& instrument,
-                                    sep_compat::span<const Tick> ticks,
+                                    std::span<const Tick> ticks,
                                     const AnalysisRequest& req) {
     (void)req;  // Suppress unused parameter warning
     

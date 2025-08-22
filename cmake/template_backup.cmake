@@ -46,7 +46,7 @@ function(add_sep_library name)
         target_link_libraries(${name} PUBLIC ${ARG_DEPENDENCIES})
     endif()
     
-    # Set C++17 standard
+    # Set C standard
     target_compile_features(${name} PUBLIC cxx_std_17)
     
     # Common compile options
@@ -87,7 +87,7 @@ function(add_sep_executable name)
         target_link_libraries(${name} PRIVATE ${ARG_DEPENDENCIES})
     endif()
     
-    # Set C++17 standard
+    # Set C standard
     target_compile_features(${name} PUBLIC cxx_std_17)
     
     # Common compile options

@@ -109,9 +109,19 @@ if(SEP_USE_CUDA)
     set(CMAKE_CUDA_ARCHITECTURES "61;86;89" CACHE STRING "CUDA architectures for GTX 1070, RTX 3080 Ti, RTX 4080 Mobile")
     
     # Configure CUDA standard
+    # Use CUDA 20 for better compatibility
     set(CMAKE_CUDA_STANDARD 20)
     set(CMAKE_CUDA_STANDARD_REQUIRED ON)
     set(CMAKE_CUDA_EXTENSIONS OFF)
+    
+    # Explicitly set CUDA flags for CUDA 20 support
+    set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -std=c++20")
+    
+    # Additional flags to suppress math function exception specification errors
+    set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -Xcompiler -D__cpp_exceptions=0")
+    set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -Xcompiler -D_GLIBCXX_USE_C99_MATH=0")
+    set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -Xcompiler -Wno-deprecated-declarations")
+    set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -Xcompiler -Wno-deprecated-copy")
     
     # Enable CUDA language and find toolkit
     enable_language(CUDA)
@@ -125,7 +135,13 @@ if(SEP_USE_CUDA)
     set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -diag-suppress 20011")
     set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -diag-suppress 20013")
     
-
+    # ADDITIONAL FIX: Suppress math function exception specification errors
+    set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -Xcompiler -D__cpp_exceptions=0 -Xcompiler -D_GLIBCXX_USE_C99_MATH=0")
+    
+    # Additional flags to suppress fpclassify and traits errors
+    set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -Xcompiler -D_DISABLE_EXTENDED_ALIGNED_STORAGE")
+    set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -Xcompiler -D__CUDACC__=1")
+ 
     find_package(CUDAToolkit REQUIRED)
     
     message(STATUS "Found CUDAToolkit")
@@ -160,7 +176,7 @@ set(SPDLOG_FMT_EXTERNAL ON CACHE BOOL "Use external fmt library")
 include(cmake/template.cmake)
 
 # Set C++ standard
-set(CMAKE_CXX_STANDARD 17 CACHE STRING "C++ standard")
+set(CMAKE_CXX_STANDARD 20 CACHE STRING "C++ standard")
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 

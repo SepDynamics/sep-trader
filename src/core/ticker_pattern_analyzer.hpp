@@ -349,7 +349,7 @@ class SepEngine {
 #if __cplusplus >= 202002L
                             std::span<const Tick> ticks,
 #else
-                            sep_compat::span<const Tick> ticks,
+                            std::span<const Tick> ticks,
 #endif
                              const AnalysisRequest& req);
 
