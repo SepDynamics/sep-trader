@@ -50,7 +50,8 @@ setup_ssl() {
 update_nginx_ssl() {
     echo "🌐 Updating nginx configuration for SSL..."
     
-    cat > frontend/nginx-ssl.conf << 'EOF'
+    # Create the nginx SSL config with proper permissions
+    cat > /tmp/nginx-ssl.conf << 'EOF'
 server {
     listen 80;
     server_name mxbikes.xyz www.mxbikes.xyz;
@@ -135,6 +136,10 @@ server {
     }
 }
 EOF
+    
+    # Move the file to the frontend directory
+    sudo mv /tmp/nginx-ssl.conf frontend/nginx-ssl.conf
+    sudo chown $USER:$USER frontend/nginx-ssl.conf
 }
 
 # Function to start services
