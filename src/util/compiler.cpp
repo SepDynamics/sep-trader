@@ -44,6 +44,7 @@ CompiledProgram Compiler::compile(const ast::Program& program) {
 
 std::function<void(Context&)> Compiler::compile_stream_declaration(const ast::StreamDecl& stream) {
     return [stream](Context& context) {
+        (void)context; // Suppress unused parameter warning
         std::cout << "Creating stream: " << stream.name << " from " << stream.source << std::endl;
 
 // CRITICAL FIX: Eliminate ALL fake data - no backtesting placeholders allowed
@@ -283,6 +284,7 @@ std::function<Value(Context&)> Compiler::compile_expression(const dsl::ast::Expr
     
     // Default case
     return [](Context& context) -> Value {
+        (void)context; // Suppress unused parameter warning
         return Value(0.0);
     };
 }

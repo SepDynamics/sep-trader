@@ -12,10 +12,7 @@ namespace dsl::stdlib {
 using dsl::compiler::Value;
 using dsl::compiler::Context;
 
-// Real SEP engine components for DSL integration
-extern std::unique_ptr<sep::quantum::QFHBasedProcessor> g_qfh_processor;
-extern std::unique_ptr<sep::quantum::manifold::QuantumManifoldOptimizer> g_manifold_optimizer;
-extern std::unique_ptr<sep::quantum::PatternEvolutionBridge> g_pattern_evolver;
+// Component management moved to EngineFacade to eliminate global variables
 
 // Initialize the DSL engine components
 void initialize_engine_components();

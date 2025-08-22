@@ -2,6 +2,8 @@
 #include "quantum_tracker_app.hpp"
 
 int main(int argc, char* argv[]) {
+    (void)argc; // Suppress unused parameter warning
+    (void)argv; // Suppress unused parameter warning
     // Initialize quantum tracker in historical simulation mode
     sep::apps::QuantumTrackerApp app(true); // Historical simulation mode
     

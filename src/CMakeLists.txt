@@ -25,6 +25,9 @@ file(GLOB_RECURSE ALL_SOURCES
     "util/*.cu"
 )
 
+# Exclude facade_original.cpp from the list of sources
+list(FILTER ALL_SOURCES EXCLUDE REGEX ".*/facade_original\\.cpp$")
+
 # Separate main files from library source files
 set(LIB_SOURCES)
 foreach(file ${ALL_SOURCES})

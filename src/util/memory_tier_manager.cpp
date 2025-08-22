@@ -643,6 +643,7 @@ void MemoryTierManager::loadDataFromPersistence()
 void MemoryTierManager::storeDataToPersistence(
     const void *data, const sep::persistence::PersistentPatternData &metadata)
 {
+    (void)data; // Suppress unused parameter warning
     try
     {
         nlohmann::json j;
