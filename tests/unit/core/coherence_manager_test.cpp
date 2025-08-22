@@ -161,8 +161,14 @@ TEST_F(CoherenceManagerTest, OptimizeMemoryLayout) {
     
     auto migrations = coherence_manager_->optimizeMemoryLayout();
     
-    // We don't expect migrations with default settings and simple patterns
-    EXPECT_TRUE(migrations.empty());
+    // With coherence = 0.5, patterns should be migrated from STM to MTM
+    EXPECT_FALSE(migrations.empty());
+    
+    // Check that all migrations are from STM to MTM
+    for (const auto& migration : migrations) {
+        EXPECT_EQ(migration.from_tier, sep::memory::MemoryTierEnum::STM);
+        EXPECT_EQ(migration.to_tier, sep::memory::MemoryTierEnum::MTM);
+    }
 }
 
 // Test computeEntanglementGraph
