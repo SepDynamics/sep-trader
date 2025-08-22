@@ -56,7 +56,11 @@ const HomeDashboard = () => {
 
   // API base URL from environment or default
   const API_URL = window._env_?.REACT_APP_API_URL || 'http://localhost:5000';
-  const WS_URL = window._env_?.REACT_APP_WS_URL || 'ws://localhost:8765';
+  const WS_URL = window._env_?.REACT_APP_WS_URL || (
+    window.location.hostname === 'localhost' ?
+    'ws://localhost:8765' :
+    `wss://${window.location.host}/ws/`
+  );
 
   // Initialize WebSocket connection
   const connectWebSocket = useCallback(() => {
