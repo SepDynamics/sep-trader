@@ -4,7 +4,7 @@
 set -e
 
 # Configuration
-DROPLET_IP="165.227.109.187"
+DROPLET_IP="159.203.131.149"
 DEPLOY_USER="root"
 APP_DIR="/opt/sep-trader"
 

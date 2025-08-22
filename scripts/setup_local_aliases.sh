@@ -16,7 +16,7 @@ cp "$ALIAS_FILE" "${ALIAS_FILE}.backup.$(date +%Y%m%d)"
 cat >> "$ALIAS_FILE" << 'EOF'
 
 # SEP Professional Trader-Bot Aliases
-export SEP_DROPLET_IP="165.227.109.187"
+export SEP_DROPLET_IP="159.203.131.149"
 export SEP_DROPLET_USER="root"
 
 # Quick access

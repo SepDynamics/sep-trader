@@ -5,7 +5,7 @@
 
 set -e
 
-DROPLET_IP="165.227.109.187"
+DROPLET_IP="159.203.131.149"
 DROPLET_USER="root"
 
 echo "🚀 Starting complete SEP droplet deployment..."
