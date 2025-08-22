@@ -69,9 +69,9 @@ build_services() {
     log_info "Building Docker services..."
     
     if command -v docker-compose &> /dev/null; then
-        docker-compose -p "$PROJECT_NAME" build --no-cache
+        docker-compose -p "$PROJECT_NAME" build
     else
-        docker compose -p "$PROJECT_NAME" build --no-cache
+        docker compose -p "$PROJECT_NAME" build
     fi
     
     log_success "All services built successfully"

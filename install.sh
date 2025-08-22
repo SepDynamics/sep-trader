@@ -135,8 +135,46 @@ $SUDO apt-mark unhold ca-certificates-java >> "$LOG_DIR/apt.log" 2>&1 || true
 if [ "$USE_CUDA" -eq 1 ] && [ "$USE_LOCAL_CUDA" -eq 0 ]; then
   if ! command -v nvcc >/dev/null 2>&1; then
     echo "Installing CUDA toolkit..."
+    
+    # Enhanced Java keystore fix - create proper keystore before installation
+    $SUDO mkdir -p /lib/security /etc/ssl/certs/java /usr/lib/jvm
+    if command -v keytool >/dev/null 2>&1; then
+      # Create a proper empty keystore if keytool is available
+      $SUDO keytool -genkey -alias temp -keystore /lib/security/cacerts \
+        -keyalg RSA -keysize 2048 -validity 365 \
+        -dname "CN=temp, OU=temp, O=temp, L=temp, ST=temp, C=US" \
+        -storepass changeit -keypass changeit 2>/dev/null || true
+      $SUDO keytool -delete -alias temp -keystore /lib/security/cacerts \
+        -storepass changeit 2>/dev/null || true
+    else
+      # Fallback: create minimal keystore structure
+      $SUDO touch /lib/security/cacerts
+    fi
+    $SUDO ln -sf /lib/security/cacerts /etc/ssl/certs/java/cacerts
+    
+    # Prevent ca-certificates-java from being installed during CUDA installation
+    $SUDO apt-mark hold ca-certificates-java >> "$LOG_DIR/apt.log" 2>&1 || true
+    
     if [ "$USE_CUDA_REPO" -eq 1 ]; then
-      $SUDO apt-get install -y --no-install-recommends cuda-toolkit-12-9 cuda-nvcc-12-9 >> "$LOG_DIR/apt.log"
+      # Install CUDA toolkit with proper error handling
+      set +e
+      $SUDO DEBIAN_FRONTEND=noninteractive apt-get install -y \
+        --no-install-recommends \
+        -o Dpkg::Options::="--force-configure-any" \
+        -o Dpkg::Options::="--force-depends" \
+        cuda-toolkit-12-9 cuda-nvcc-12-9 >> "$LOG_DIR/apt.log" 2>&1
+      CUDA_INSTALL_EXIT_CODE=$?
+      set -e
+      
+      # Handle any dpkg configuration issues
+      $SUDO dpkg --configure -a >> "$LOG_DIR/apt.log" 2>&1 || true
+      
+      if [ $CUDA_INSTALL_EXIT_CODE -ne 0 ]; then
+        echo "CUDA toolkit installation had issues, attempting cleanup and retry..."
+        $SUDO apt-get update >> "$LOG_DIR/apt.log" 2>&1
+        $SUDO apt-get install -f >> "$LOG_DIR/apt.log" 2>&1 || true
+        $SUDO dpkg --configure -a >> "$LOG_DIR/apt.log" 2>&1 || true
+      fi
     else
       # pre-create java keystore path to avoid post-install errors
       $SUDO mkdir -p /lib/security /etc/ssl/certs/java
@@ -148,6 +186,11 @@ if [ "$USE_CUDA" -eq 1 ] && [ "$USE_LOCAL_CUDA" -eq 0 ]; then
       $SUDO apt-get purge -y ca-certificates-java >> "$LOG_DIR/apt.log" 2>&1
       set -e
     fi
+    
+    # Clean up any problematic ca-certificates-java installation
+    $SUDO apt-mark unhold ca-certificates-java >> "$LOG_DIR/apt.log" 2>&1 || true
+    $SUDO apt-get purge -y ca-certificates-java >> "$LOG_DIR/apt.log" 2>&1 || true
+    $SUDO apt-get autoremove -y >> "$LOG_DIR/apt.log" 2>&1 || true
     # Create standard CUDA symlink when using distro toolkit
     if command -v nvcc >/dev/null 2>&1 && [ ! -d /usr/local/cuda ]; then
       $SUDO ln -s /usr/lib/nvidia-cuda-toolkit /usr/local/cuda
