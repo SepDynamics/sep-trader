@@ -12,6 +12,7 @@ export const WebSocketProvider = ({ children }) => {
   const [systemStatus, setSystemStatus] = useState({});
   const [tradingSignals, setTradingSignals] = useState([]);
   const [performanceData, setPerformanceData] = useState({});
+  const reconnectTimeoutRef = useRef(null);
 
   const connect = () => {
     try {
