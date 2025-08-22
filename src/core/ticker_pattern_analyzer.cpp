@@ -82,7 +82,6 @@ SepEngine::~SepEngine() {
     for (auto& [instrument, session] : sessions_) {
         session.running.store(false);
         if (session.th.joinable()) {
-            // Remove C++20 request_stop() - not available in C++17
             session.th.join();
         }
     }

@@ -15,13 +15,9 @@
 #include <variant>
 #include <vector>
 
-// C++20 compatibility
-#if __cplusplus >= 202002L
-    #include <span>
-    #include <stop_token>
-#else
-    #include "core/cpp20_compatibility.h"
-#endif
+// C++20 features
+#include <span>
+#include <stop_token>
 
 #include "core/qfh.h"                         // if you keep legacy QFH/QBSA interop
 #include "core/quantum_manifold_optimizer.h"  // GAO impl lives here or new header

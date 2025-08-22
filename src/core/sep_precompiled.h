@@ -11,7 +11,6 @@
 
 // C++20 compatibility for C++17 builds (must be first)
 #include "common/namespace_protection.hpp"
-#include "cpp20_compatibility.h"
 
 //==============================================================================
 // C++ Standard Library Headers

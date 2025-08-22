@@ -55,8 +55,8 @@ if(BUILD_TESTING)
             TEST_DATA_DIR="${CMAKE_SOURCE_DIR}/tests/data"
         )
         
-        # Set C++17 standard
-        target_compile_features(${name} PUBLIC cxx_std_17)
+        # Set C++20 standard
+        target_compile_features(${name} PUBLIC cxx_std_20)
         
         # Set RPATH to include the directory where TBB is built
         set_target_properties(${name} PROPERTIES

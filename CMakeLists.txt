@@ -42,8 +42,8 @@ include(GNUInstallDirs)
 include_directories(src)
 
 
-# Ensure consistent C++17 standard
-set(CMAKE_CXX_STANDARD 17)
+# Ensure consistent C++20 standard
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
@@ -109,7 +109,7 @@ if(SEP_USE_CUDA)
     set(CMAKE_CUDA_ARCHITECTURES "61;86;89" CACHE STRING "CUDA architectures for GTX 1070, RTX 3080 Ti, RTX 4080 Mobile")
     
     # Configure CUDA standard
-    set(CMAKE_CUDA_STANDARD 17)
+    set(CMAKE_CUDA_STANDARD 20)
     set(CMAKE_CUDA_STANDARD_REQUIRED ON)
     set(CMAKE_CUDA_EXTENSIONS OFF)
     

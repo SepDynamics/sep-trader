@@ -12,8 +12,6 @@
 // CUDA sources are not built with NVCC.
 #if defined(__CUDACC__)
 #  define SEP_ENGINE_HAS_CUDA 1
-#else
-#  define SEP_ENGINE_HAS_CUDA 0
 #endif
 #include <sys/socket.h>
 
