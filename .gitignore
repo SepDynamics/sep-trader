@@ -288,3 +288,4 @@ config/OANDA.env
 !_sep/
 !_sep/testbed/
 !_sep/**
+!libsep_lib.a
