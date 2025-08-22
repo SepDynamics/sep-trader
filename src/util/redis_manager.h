@@ -85,7 +85,7 @@ private:
 };
 
 // Factory function to create RedisManager instances
-std::shared_ptr<::sep::persistence::IRedisManager> createRedisManager(const std::string& host = "localhost",
-                                                  int port = 6379);
+std::shared_ptr<::sep::persistence::IRedisManager> createRedisManager(
+    const std::string& host = "localhost", int port = 6380);
 
 } // namespace sep::persistence

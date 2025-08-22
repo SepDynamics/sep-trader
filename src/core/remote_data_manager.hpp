@@ -16,7 +16,7 @@ struct DataSyncConfig {
     int remote_port = 5432;
     std::string db_name = "sep_trading";
     std::string redis_host = "localhost";
-    int redis_port = 6379;
+    int redis_port = 6380;
     std::string data_path = "/opt/sep-data";
     
     // Local cache settings

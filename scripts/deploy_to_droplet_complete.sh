@@ -77,7 +77,7 @@ DB_PASSWORD=sep_password
 
 # Redis Configuration
 REDIS_HOST=localhost
-REDIS_PORT=6379
+REDIS_PORT=6380
 REDIS_PASSWORD=sep_redis_password
 
 # OANDA Configuration (replace with your credentials)

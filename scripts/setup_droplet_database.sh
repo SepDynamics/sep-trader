@@ -134,7 +134,7 @@ systemctl enable redis-server
 
 # Configure firewall
 ufw allow 5432/tcp  # PostgreSQL
-ufw allow 6379/tcp  # Redis
+ufw allow 6380/tcp  # Redis
 
 echo "✅ Database setup complete!"
 echo "🐘 PostgreSQL: sep_trading database with TimescaleDB"

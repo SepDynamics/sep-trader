@@ -7,7 +7,7 @@ namespace core_types {
 
 struct RedisConfig {
     std::string host = "localhost";
-    int port = 6379;
+    int port = 6380;
     std::string password = "";
 };
 
