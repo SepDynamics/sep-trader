@@ -3,10 +3,9 @@
 #include <vector>
 
 #include "core/coherence_manager.h"
-#include "core/quantum_types.h"
 #include "core/types.h"
 
-using namespace sep::quantum;
+// using namespace sep::quantum;
 
 class CoherenceManagerTest : public ::testing::Test {
 protected:
@@ -15,16 +14,16 @@ protected:
         config.max_patterns = 100;
         config.anomaly_threshold = 0.1f;
         config.enable_cuda = false;
-        
+
         coherence_manager_ = std::make_unique<sep::quantum::CoherenceManager>(config);
     }
     
     void TearDown() override {
         coherence_manager_.reset();
     }
-    
+
     std::unique_ptr<sep::quantum::CoherenceManager> coherence_manager_;
-    
+
     // Helper function to create test patterns
     std::vector<sep::quantum::Pattern> createTestPatterns(int count) {
         std::vector<sep::quantum::Pattern> patterns;
@@ -35,14 +34,14 @@ protected:
             pattern.id = i;
             pattern.position = static_cast<double>(i);
             pattern.coherence = 0.5;
-            
+
             // Set up quantum state
             pattern.quantum_state.coherence = 0.5;
             pattern.quantum_state.stability = 0.7;
             pattern.quantum_state.entropy = 0.3;
             pattern.quantum_state.status = sep::quantum::QuantumState::Status::ACTIVE;
-            
-            patterns.push_back(pattern);
+
+            patterns.push_back(std::move(pattern));
         }
         
         return patterns;
@@ -163,7 +162,7 @@ TEST_F(CoherenceManagerTest, OptimizeMemoryLayout) {
     auto migrations = coherence_manager_->optimizeMemoryLayout();
     
     // We don't expect migrations with default settings and simple patterns
-    EXPECT_TRUE(migrations.empty() || migrations.size() >= 0);
+    EXPECT_TRUE(migrations.empty());
 }
 
 // Test computeEntanglementGraph
@@ -192,7 +191,7 @@ TEST_F(CoherenceManagerTest, SnapshotAndRestore) {
     config.max_patterns = 100;
     config.anomaly_threshold = 0.1f;
     config.enable_cuda = false;
-    
+
     auto new_manager = std::make_unique<sep::quantum::CoherenceManager>(config);
     bool restored = new_manager->restoreFromSnapshot(snapshot);
     

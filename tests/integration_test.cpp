@@ -2,6 +2,10 @@
 #include "curl/curl.h"
 #include <string>
 #include <nlohmann/json.hpp>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <unistd.h>
 
 using json = nlohmann::json;
 

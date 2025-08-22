@@ -59,22 +59,6 @@ add_compile_definitions(
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wpedantic -O3")
 
-# CRITICAL FIX: Force include array header for all compilation units
-# This ensures std::array is available for nlohmann_json and all dependencies
-# set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -include array") # Removed to avoid conflicts with std::array
-
-# Add the C++ standard library include path to the global flags (Linux only)
-if(UNIX AND NOT APPLE)
-    if(EXISTS "/usr/include/c++/11")
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -isystem /usr/include/c++/11")
-        set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -isystem /usr/include/c++/11")
-    endif()
-endif()
-
-
-# Removed force-include of array_protection.h to avoid breaking standard library dependencies
-
-
 if(SEP_USE_TBB)
     add_compile_definitions(PSTL_USE_TBB)
 endif()
@@ -133,13 +117,7 @@ if(SEP_USE_CUDA)
     enable_language(CUDA)
     
     # AGGRESSIVE WARNING SUPPRESSION - Kill all the annoying CUDA warnings
-    set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} --expt-relaxed-constexpr --extended-lambda")
-    
-    # Suppress ALL warnings from NVCC itself
-    set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -w")
-    
-    # Suppress ALL warnings from the host compiler (GCC/G++)
-    set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -Xcompiler -w")
+    set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} --expt-relaxed-constexpr --extended-lambda -Xcompiler -w -D_GLIBCXX_USE_NOEXCEPT_FUNCTION_TYPE=1 -D_GLIBCXX_USE_BUILTIN_TRAIT=__has_builtin")
     
     # Suppress specific CUDA diagnostic codes that cause noise
     set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -diag-suppress 20012")
@@ -147,11 +125,8 @@ if(SEP_USE_CUDA)
     set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -diag-suppress 20011")
     set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -diag-suppress 20013")
     
-    # Fix type traits and exception specification compatibility issues
-    set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -D_GLIBCXX_USE_BUILTIN_TRAIT=__has_builtin")
-    set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -Xcompiler -D_GLIBCXX_USE_NOEXCEPT_FUNCTION_TYPE=1")
+
     find_package(CUDAToolkit REQUIRED)
-    # Removed force-include of array_protection.h for CUDA to avoid breaking standard library
     
     message(STATUS "Found CUDAToolkit")
     message(STATUS "CUDA Libraries: ${CUDAToolkit_LIBRARY_DIR}")
@@ -188,20 +163,13 @@ include(cmake/template.cmake)
 set(CMAKE_CXX_STANDARD 17 CACHE STRING "C++ standard")
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# C++ compilation flags with forced std headers for nlohmann compatibility
 
-
-# The following global include is problematic and has been removed.
 # Include directories should be added on a per-target basis.
 include_directories(${CMAKE_SOURCE_DIR}/src)
 
 # Disable nlohmann global UDLs to prevent conflicts
 add_compile_definitions(NLOHMANN_JSON_USE_GLOBAL_UDLS=0)
 
-# Force compiler selection before project() call - move this to top
-# This must be set before project() declaration to avoid CMake loops
-
-# GLM configuration is included per-target in cmake template
 
 # Enable testing
 option(BUILD_TESTING "Enable building of tests" ON)
@@ -254,8 +222,6 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(nlohmann_json)
 
-# Apply surgical fix for std::array visibility to nlohmann_json
-# Use the base target, not the alias
 # Suppress warnings from external dependency
 get_target_property(nlohmann_json_include_dirs nlohmann_json INTERFACE_INCLUDE_DIRECTORIES)
 if(nlohmann_json_include_dirs)
@@ -404,9 +370,9 @@ FetchContent_MakeAvailable(spdlog)
 add_library(sep_core_deps INTERFACE)
 target_link_libraries(sep_core_deps INTERFACE
     Threads::Threads
-#    benchmark::benchmark
-#    GTest::gtest
-#    GTest::gmock
+    benchmark::benchmark
+    GTest::gtest
+    GTest::gmock
     PostgreSQL::pqxx
     PostgreSQL::pq
     glm::glm

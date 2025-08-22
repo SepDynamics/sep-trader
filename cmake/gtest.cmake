@@ -34,11 +34,13 @@ if(BUILD_TESTING)
         # Create test executable
         add_executable(${name} ${ARG_SOURCES})
         
-        # Link with GTest
+        # Link with GTest and other dependencies
         target_link_libraries(${name} PRIVATE
             GTest::gtest_main
             GTest::gtest
             spdlog::spdlog
+            sep_core_deps
+            sep_fetchcontent_deps
             ${ARG_DEPENDENCIES}
         )
         
@@ -55,6 +57,13 @@ if(BUILD_TESTING)
         
         # Set C++17 standard
         target_compile_features(${name} PUBLIC cxx_std_17)
+        
+        # Set RPATH to include the directory where TBB is built
+        set_target_properties(${name} PROPERTIES
+            BUILD_WITH_INSTALL_RPATH TRUE
+            INSTALL_RPATH "$ORIGIN/../../../gnu_11.4_cxx20_64_release"
+            INSTALL_RPATH_USE_LINK_PATH TRUE
+        )
         
         # Discover tests
         gtest_discover_tests(${name})

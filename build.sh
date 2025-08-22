@@ -98,8 +98,8 @@ if [ "$NATIVE_BUILD" = true ] || [ "$SKIP_DOCKER" = true ] || ! "$DOCKER_BIN" in
     # This avoids brittle LD_PRELOAD hacks and hardcoded compiler paths.
     cmake .. -G Ninja \
         -DCMAKE_BUILD_TYPE=Release \
-        -DCMAKE_CXX_COMPILER=g++-14 \
-        -DCMAKE_C_COMPILER=gcc-14 \
+        -DCMAKE_CXX_COMPILER=g++-11 \
+        -DCMAKE_C_COMPILER=gcc-11 \
         -DCMAKE_BUILD_WITH_INSTALL_RPATH=ON \
         -DCMAKE_EXPORT_COMPILE_COMMANDS=TRUE \
         -DSEP_USE_GUI=OFF -DCMAKE_CXX_STANDARD=20 \
@@ -144,7 +144,7 @@ echo "Mounting local directory $(pwd) to ${SEP_WORKSPACE_PATH} in the container.
         -DCMAKE_EXPORT_COMPILE_COMMANDS=TRUE \
         -DSEP_USE_CUDA=ON \
         -DSEP_USE_GUI=OFF \
-        -DCMAKE_CXX_FLAGS="-Wno-pedantic -Wno-invalid-source-encoding -D_GLIBCXX_USE_CXX11_ABI=0" -DCMAKE_CXX_STANDARD=20 -DCMAKE_CUDA_FLAGS="-Wno-deprecated-gpu-targets -Xcompiler -Wno-pedantic -D_GLIBCXX_USE_CXX11_ABI=0"
+        -DCMAKE_CXX_FLAGS="-Wno-pedantic -D_GLIBCXX_USE_CXX11_ABI=0" -DCMAKE_CXX_STANDARD=20 -DCMAKE_CUDA_FLAGS="-Wno-deprecated-gpu-targets -Xcompiler -Wno-pedantic -D_GLIBCXX_USE_CXX11_ABI=0"
     
     ninja -k 0 2>&1 | tee ${SEP_WORKSPACE_PATH}/output/build_log.txt
     
