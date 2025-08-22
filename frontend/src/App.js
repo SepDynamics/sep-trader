@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { WebSocketProvider } from './hooks/useWebSocket';
-import Dashboard from './components/Dashboard';
+import HomeDashboard from './components/HomeDashboard';
 import TradingPanel from './components/TradingPanel';
 import SystemStatus from './components/SystemStatus';
 import PerformanceMetrics from './components/PerformanceMetrics';
@@ -43,7 +43,7 @@ const App = () => {
   const renderActiveComponent = () => {
     switch (activeTab) {
       case 'dashboard':
-        return <Dashboard />;
+        return <HomeDashboard />;
       case 'trading':
         return <TradingPanel />;
       case 'market':
@@ -57,7 +57,7 @@ const App = () => {
       case 'config':
         return <ConfigurationPanel />;
       default:
-        return <Dashboard />;
+        return <HomeDashboard />;
     }
   };
 

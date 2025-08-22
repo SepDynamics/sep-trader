@@ -1,383 +1,344 @@
-# TODO.md - SEP Professional Trading System Web GUI Implementation
+# SEP Home Dashboard Integration TODO
 
-## 🎯 Project Goal
-Transform the existing CLI-based SEP trading system into a professional web-based trading platform with real-time monitoring, control, and analytics.
+## ✅ What You Already Have Working
+- Backend API on port 5000 with endpoints
+- WebSocket service on port 8765 
+- Docker containers running (redis, trading-backend, websocket-service, frontend)
+- Basic frontend structure with Dashboard.js, useWebSocket hook, and api.js
 
----
+## 🔧 Integration Steps
 
-## 📋 PHASE 1: Backend API Extensions (Priority: CRITICAL)
+### 1. Frontend File Updates
 
-### 1.1 Extend Trading Service API
-- [ ] **File**: `scripts/trading_service.py`
-- [ ] Add `/api/pairs` endpoint - List all trading pairs with status
-- [ ] Add `/api/pairs/{pair}/enable` - Enable specific pair
-- [ ] Add `/api/pairs/{pair}/disable` - Disable specific pair
-- [ ] Add `/api/metrics/live` - Stream real-time quantum metrics
-- [ ] Add `/api/performance/history` - Historical performance data
-- [ ] Add `/api/performance/current` - Current P&L and statistics
-- [ ] Add `/api/commands/execute` - Execute CLI commands
-- [ ] Add `/api/config/get` - Get configuration values
-- [ ] Add `/api/config/set` - Update configuration
-- [ ] Add authentication middleware (JWT tokens)
-- [ ] Add CORS headers for frontend access
-- [ ] Add request logging and error handling
-- [ ] Create API documentation (OpenAPI/Swagger)
+#### A. Replace/Update HomeDashboard Component
+```bash
+# Copy the new HomeDashboard.jsx to your frontend
+cp HomeDashboard.jsx frontend/src/components/HomeDashboard.jsx
 
-### 1.2 Create CLI Bridge
-- [ ] **File**: `scripts/cli_bridge.py`
-- [ ] Create CLIBridge class with subprocess management
-- [ ] Implement command execution with timeout handling
-- [ ] Add output parsing to JSON format
-- [ ] Implement command whitelist for security
-- [ ] Add async execution for long-running commands
-- [ ] Create command queue system
-- [ ] Add result caching for frequent commands
-- [ ] Implement error handling and retry logic
+# Update imports in App.js to use HomeDashboard
+# In frontend/src/App.js, change:
+import Dashboard from './components/Dashboard';
+# To:
+import HomeDashboard from './components/HomeDashboard';
+```
 
-### 1.3 Implement WebSocket Service
-- [ ] **File**: `scripts/websocket_service.py`
-- [ ] Create WebSocket server using asyncio
-- [ ] Implement real-time metric streaming
-- [ ] Add pub/sub pattern for multiple clients
-- [ ] Create channels for different data types:
-  - [ ] `/ws/metrics` - Quantum metrics stream
-  - [ ] `/ws/prices` - Live price updates
-  - [ ] `/ws/signals` - Trading signals
-  - [ ] `/ws/logs` - System logs
-- [ ] Add connection management and heartbeat
-- [ ] Implement reconnection logic
-- [ ] Add message compression for bandwidth
+#### B. Install Missing Dependencies
+```bash
+cd frontend
+npm install lucide-react
+```
 
-### 1.4 Data Extraction from C++ Components
-- [ ] Create JSON export in quantum_tracker executable
-- [ ] Add file-based IPC for metric sharing
-- [ ] Implement shared memory for real-time data
-- [ ] Create metric aggregation service
-- [ ] Add performance data collection
+#### C. Update App.js Router
+```javascript
+// In frontend/src/App.js, update the dashboard route:
+case 'dashboard':
+  return <HomeDashboard />;
+```
 
----
+### 2. Backend API Extensions Needed
 
-## 📋 PHASE 2: Frontend Development (Priority: CRITICAL)
+#### A. Add Missing Endpoints to `scripts/trading_service.py`
 
-### 2.1 Initialize React Application
-- [ ] **Directory**: `web-frontend/`
-- [ ] Run `npx create-react-app web-frontend --template typescript`
-- [ ] Install core dependencies:
-  ```json
-  {
-    "react": "^18.2.0",
-    "typescript": "^5.0.0",
-    "axios": "^1.6.0",
-    "socket.io-client": "^4.6.0",
-    "tailwindcss": "^3.4.0",
-    "chart.js": "^4.4.0",
-    "react-chartjs-2": "^5.2.0",
-    "date-fns": "^3.0.0",
-    "react-query": "^3.39.0"
-  }
-  ```
-- [ ] Setup project structure:
-  ```
-  src/
-  ├── components/
-  ├── pages/
-  ├── hooks/
-  ├── services/
-  ├── utils/
-  └── types/
-  ```
-- [ ] Configure TypeScript with strict mode
-- [ ] Setup Tailwind CSS
-- [ ] Configure ESLint and Prettier
-- [ ] Setup environment variables (.env)
+```python
+# Add these endpoints to your TradingAPIHandler class:
 
-### 2.2 Build Core Components
+def get_live_metrics(self):
+    """Return live QFH metrics"""
+    return {
+        'confidence': self.get_metric('confidence', 0),
+        'coherence': self.get_metric('coherence', 0),
+        'stability': self.get_metric('stability', 0),
+        'flip_ratio': self.get_metric('flip_ratio', 0),
+        'rupture_ratio': self.get_metric('rupture_ratio', 0),
+        'entropy': self.get_metric('entropy', 0)
+    }
 
-#### Dashboard Page
-- [ ] **File**: `src/pages/Dashboard.tsx`
-- [ ] System status overview widget
-- [ ] Active pairs grid with enable/disable
-- [ ] Live P&L display with sparkline
-- [ ] Market status indicator (open/closed)
-- [ ] Quick actions panel
-- [ ] Recent signals feed
-- [ ] System health metrics
+def get_performance_history(self):
+    """Return historical performance data"""
+    # Read from your data files or database
+    return {
+        'data_points': [],  # Fill with actual historical data
+        'summary': {}
+    }
 
-#### Quantum Diagnostics Page
-- [ ] **File**: `src/pages/QuantumDiagnostics.tsx`
-- [ ] Real-time confidence gauge (0-100%)
-- [ ] Coherence meter with threshold line
-- [ ] Stability indicator with history
-- [ ] Quantum collapse warning system
-- [ ] QFH metrics visualization:
-  - [ ] Flip ratio chart
-  - [ ] Rupture ratio timeline
-  - [ ] Entropy heatmap
-- [ ] Pattern analysis grid
-- [ ] Signal strength meter
+def get_performance_current(self):
+    """Return current performance metrics"""
+    return {
+        'current_pnl': 0,  # Calculate from positions
+        'daily_pnl': 0,    # Calculate from today's trades
+        'total_return': 0,  # Calculate from all trades
+        'daily_return': 0,  # Today's return percentage
+        'sharpe_ratio': 0,  # Calculate Sharpe ratio
+        'max_drawdown': 0,  # Calculate max drawdown
+        'win_rate': 0,      # Calculate win rate
+        'trades_count': 0   # Count total trades
+    }
 
-#### Trading Pairs Management
-- [ ] **File**: `src/pages/TradingPairs.tsx`
-- [ ] Pairs table with search/filter
-- [ ] Enable/disable toggle switches
-- [ ] Training status indicators
-- [ ] Performance metrics per pair
-- [ ] Configuration editor modal
-- [ ] Batch operations toolbar
-- [ ] Import/export configurations
+def execute_command(self, command):
+    """Execute CLI command safely"""
+    # Implement command execution with safety checks
+    import subprocess
+    allowed_commands = ['status', 'pairs', 'config']  # Whitelist
+    
+    if command.split()[0] in allowed_commands:
+        result = subprocess.run(
+            f'./bin/trader-cli {command}',
+            shell=True,
+            capture_output=True,
+            text=True
+        )
+        return {
+            'output': result.stdout,
+            'error': result.stderr,
+            'return_code': result.returncode
+        }
+    return {'error': 'Command not allowed'}
 
-#### Performance Analytics
-- [ ] **File**: `src/pages/Performance.tsx`
-- [ ] P&L chart (daily/weekly/monthly)
-- [ ] Sharpe ratio visualization
-- [ ] Maximum drawdown analysis
-- [ ] Win/loss distribution
-- [ ] Trade history table with filters
-- [ ] Export reports (PDF/CSV)
-- [ ] Comparison charts
+def enable_pair(self, pair):
+    """Enable a trading pair"""
+    if pair not in self.enabled_pairs:
+        self.enabled_pairs.add(pair)
+    return list(self.enabled_pairs)
 
-#### System Control Panel
-- [ ] **File**: `src/pages/SystemControl.tsx`
-- [ ] CLI command terminal UI
-- [ ] Command history with replay
-- [ ] System logs viewer with filters
-- [ ] Configuration editor
-- [ ] Service health monitors
-- [ ] Backup/restore interface
-- [ ] Update management
+def disable_pair(self, pair):
+    """Disable a trading pair"""
+    self.enabled_pairs.discard(pair)
+    return list(self.enabled_pairs)
+```
 
-### 2.3 Create Shared Components
-- [ ] **Directory**: `src/components/`
-- [ ] `MetricCard.tsx` - Reusable metric display
-- [ ] `StatusIndicator.tsx` - Online/offline/warning states
-- [ ] `CommandTerminal.tsx` - CLI interface component
-- [ ] `ChartWrapper.tsx` - Standardized chart container
-- [ ] `LoadingSpinner.tsx` - Loading states
-- [ ] `ErrorBoundary.tsx` - Error handling
-- [ ] `Notification.tsx` - Toast notifications
-- [ ] `Modal.tsx` - Reusable modal wrapper
-- [ ] `Table.tsx` - Data table with sorting/pagination
-- [ ] `Sidebar.tsx` - Navigation sidebar
-- [ ] `Header.tsx` - Top navigation bar
+### 3. WebSocket Service Updates
 
-### 2.4 Implement Hooks & Services
+#### A. Update `scripts/websocket_service.py` for Real Data
 
-#### Custom Hooks
-- [ ] **Directory**: `src/hooks/`
-- [ ] `useWebSocket.ts` - WebSocket connection management
-- [ ] `useApiClient.ts` - HTTP API wrapper
-- [ ] `useMetrics.ts` - Real-time metrics subscription
-- [ ] `useTrading.ts` - Trading operations
-- [ ] `useConfig.ts` - Configuration management
-- [ ] `useAuth.ts` - Authentication state
-- [ ] `useNotification.ts` - Toast notifications
+Replace the DataSimulator with real data connections:
 
-#### API Services
-- [ ] **Directory**: `src/services/`
-- [ ] `api.ts` - Axios instance configuration
-- [ ] `tradingService.ts` - Trading API calls
-- [ ] `metricsService.ts` - Metrics fetching
-- [ ] `configService.ts` - Configuration API
-- [ ] `commandService.ts` - CLI command execution
-- [ ] `authService.ts` - Authentication
+```python
+class RealDataProvider:
+    """Connect to actual trading engine for real data"""
+    
+    def __init__(self, websocket_manager):
+        self.ws_manager = websocket_manager
+        self.redis_client = redis.Redis(host='redis', port=6380)
+        
+    async def start_streaming(self):
+        """Start streaming real data from Redis/Files"""
+        await asyncio.gather(
+            self.stream_market_data(),
+            self.stream_system_status(),
+            self.stream_trading_signals(),
+            self.stream_performance_updates()
+        )
+    
+    async def stream_market_data(self):
+        """Read market data from your data files"""
+        while True:
+            try:
+                # Read from data/OANDA_*.csv or Redis
+                market_data = self.read_market_data()
+                await self.ws_manager.broadcast_to_channel('market', {
+                    'type': 'market_update',
+                    'data': market_data
+                })
+                await asyncio.sleep(1)
+            except Exception as e:
+                logger.error(f"Market data error: {e}")
+                
+    async def stream_trading_signals(self):
+        """Read signals from output directory"""
+        while True:
+            try:
+                # Read from output/*.json files
+                signals = self.read_latest_signals()
+                for signal in signals:
+                    await self.ws_manager.broadcast_to_channel('signals', {
+                        'type': 'trading_signal',
+                        'data': signal
+                    })
+                await asyncio.sleep(5)
+            except Exception as e:
+                logger.error(f"Signal streaming error: {e}")
+```
 
-### 2.5 State Management
-- [ ] Setup React Context for global state
-- [ ] Or implement Redux Toolkit if needed
-- [ ] Create stores for:
-  - [ ] User preferences
-  - [ ] System status
-  - [ ] Trading pairs
-  - [ ] Metrics cache
-  - [ ] WebSocket connections
+### 4. Docker Configuration Updates
 
----
+#### A. Update `docker-compose.yml`
 
-## 📋 PHASE 3: Integration & Testing (Priority: HIGH)
+Ensure environment variables are set:
 
-### 3.1 Docker Configuration
+```yaml
+frontend:
+  environment:
+    - REACT_APP_API_URL=http://trading-backend:5000
+    - REACT_APP_WS_URL=ws://websocket-service:8765
+```
 
-#### Frontend Container
-- [ ] **File**: `web-frontend/Dockerfile`
-- [ ] Multi-stage build for optimization
-- [ ] Nginx for serving static files
-- [ ] Environment variable injection
-- [ ] Health check endpoint
+#### B. Update Nginx Configuration
 
-#### Docker Compose Update
-- [ ] **File**: `docker-compose.yml`
-- [ ] Add frontend service
-- [ ] Configure network links
-- [ ] Setup volume mounts
-- [ ] Add environment variables
+In `frontend/nginx.conf`, add WebSocket proxy support:
 
-### 3.2 Nginx Configuration
-- [ ] **File**: `nginx.conf`
-- [ ] Route `/` to frontend container
-- [ ] Route `/api/*` to backend service
-- [ ] Configure WebSocket proxying
-- [ ] Add SSL/TLS configuration
-- [ ] Setup compression and caching
-- [ ] Add security headers
+```nginx
+location /ws {
+    proxy_pass http://websocket-service:8765;
+    proxy_http_version 1.1;
+    proxy_set_header Upgrade $http_upgrade;
+    proxy_set_header Connection "upgrade";
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+}
+```
 
-### 3.3 Testing
+### 5. Data Integration
 
-#### Unit Tests
-- [ ] Backend API endpoint tests
-- [ ] CLI bridge command tests
-- [ ] Frontend component tests
-- [ ] Hook and service tests
+#### A. Connect to C++ Engine Output
 
-#### Integration Tests
-- [ ] API integration tests
-- [ ] WebSocket connection tests
-- [ ] End-to-end user flows
-- [ ] Performance tests
+Create a file watcher to monitor the C++ engine output:
 
-#### Manual Testing Checklist
-- [ ] Dashboard loads correctly
-- [ ] Real-time data updates work
+```python
+# In scripts/file_watcher.py
+import watchdog.observers
+import watchdog.events
+
+class SignalFileHandler(watchdog.events.FileSystemEventHandler):
+    def on_created(self, event):
+        if event.src_path.endswith('.json'):
+            # Parse and broadcast via WebSocket
+            with open(event.src_path) as f:
+                signal = json.load(f)
+                # Send to WebSocket service
+```
+
+#### B. Read QFH Metrics from Shared Memory/Files
+
+```python
+# In scripts/metrics_reader.py
+def read_qfh_metrics():
+    """Read metrics from quantum_tracker output"""
+    metrics_file = 'output/qfh_metrics.json'
+    if os.path.exists(metrics_file):
+        with open(metrics_file) as f:
+            return json.load(f)
+    return default_metrics
+```
+
+### 6. CLI Bridge Implementation
+
+Create `scripts/cli_bridge.py`:
+
+```python
+#!/usr/bin/env python3
+import subprocess
+import json
+import asyncio
+from typing import Dict, Any
+
+class CLIBridge:
+    """Bridge between web API and CLI commands"""
+    
+    def __init__(self):
+        self.cli_path = './bin/trader-cli'
+        
+    async def execute_command(self, command: str, args: list = None) -> Dict[str, Any]:
+        """Execute CLI command asynchronously"""
+        cmd = [self.cli_path, command]
+        if args:
+            cmd.extend(args)
+            
+        process = await asyncio.create_subprocess_exec(
+            *cmd,
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE
+        )
+        
+        stdout, stderr = await process.communicate()
+        
+        return {
+            'success': process.returncode == 0,
+            'output': stdout.decode(),
+            'error': stderr.decode(),
+            'command': ' '.join(cmd)
+        }
+```
+
+### 7. Testing Steps
+
+```bash
+# 1. Verify all services are running
+docker-compose ps
+
+# 2. Test API endpoints
+curl http://localhost:5000/api/status
+curl http://localhost:5000/api/metrics/live
+curl http://localhost:5000/api/performance/current
+
+# 3. Test WebSocket connection
+wscat -c ws://localhost:8765
+> {"type": "subscribe", "channels": ["market", "signals"]}
+
+# 4. Access the dashboard
+open http://localhost:3000
+
+# 5. Check logs for errors
+docker-compose logs -f trading-backend
+docker-compose logs -f websocket-service
+docker-compose logs -f frontend
+```
+
+### 8. Production Deployment
+
+```bash
+# 1. Build production images
+docker-compose -f docker-compose.production.yml build
+
+# 2. Deploy to droplet
+./scripts/deploy_to_droplet_complete.sh
+
+# 3. Configure SSL (optional)
+certbot --nginx -d your-domain.com
+
+# 4. Monitor production
+ssh sep-trader "docker-compose logs -f"
+```
+
+## 📋 Priority Order
+
+1. **HIGH**: Update `trading_service.py` with missing endpoints
+2. **HIGH**: Replace DataSimulator with real data in `websocket_service.py`
+3. **MEDIUM**: Implement CLI bridge for command execution
+4. **MEDIUM**: Connect to C++ engine output files
+5. **LOW**: Add SSL and production optimizations
+
+## 🚨 Important Notes
+
+- The dashboard expects real data from your backend - no mock data
+- Ensure your C++ engine is writing output files that can be read
+- WebSocket channels must match between frontend and backend
+- All API endpoints must return proper JSON responses
+- CORS must be configured correctly for cross-origin requests
+
+## 🔍 Debugging Tips
+
+If the dashboard doesn't show data:
+1. Check browser console for errors (F12)
+2. Verify WebSocket connection in Network tab
+3. Check API responses in Network tab
+4. Ensure Docker containers can communicate
+5. Check backend logs for errors
+
+## 📊 Expected Data Flow
+
+```
+C++ Engine → Output Files → Python Services → API/WebSocket → React Dashboard
+     ↓           ↓              ↓                  ↓              ↓
+ QFH Metrics  Signals.json  trading_service   Port 5000/8765   Browser
+```
+
+## ✅ Success Criteria
+
+- [ ] Dashboard displays real system status
+- [ ] WebSocket shows live updates
 - [ ] Trading pairs can be enabled/disabled
-- [ ] CLI commands execute properly
-- [ ] WebSocket reconnection works
-- [ ] Mobile responsive design
-- [ ] Cross-browser compatibility
-
----
-
-## 📋 PHASE 4: Deployment (Priority: HIGH)
-
-### 4.1 Local Development
-- [ ] Setup development environment documentation
-- [ ] Create `.env.example` file
-- [ ] Add development Docker compose file
-- [ ] Setup hot reload for frontend
-- [ ] Create development data fixtures
-
-### 4.2 Production Deployment
-- [ ] Update deployment scripts
-- [ ] Configure production environment variables
-- [ ] Setup SSL certificates (Let's Encrypt)
-- [ ] Configure firewall rules
-- [ ] Setup monitoring (Prometheus/Grafana)
-- [ ] Configure backup strategy
-- [ ] Create deployment documentation
-
-### 4.3 CI/CD Pipeline
-- [ ] Setup GitHub Actions workflow
-- [ ] Automated testing on push
-- [ ] Build and push Docker images
-- [ ] Automated deployment to droplet
-- [ ] Rollback strategy
-
----
-
-## 📋 PHASE 5: Enhancement & Optimization (Priority: MEDIUM)
-
-### 5.1 Performance Optimization
-- [ ] Implement frontend code splitting
-- [ ] Add service worker for offline support
-- [ ] Optimize WebSocket message batching
-- [ ] Add Redis caching layer
-- [ ] Implement database query optimization
-- [ ] Add CDN for static assets
-
-### 5.2 Advanced Features
-- [ ] Multi-user support with roles
-- [ ] Trading strategy backtesting UI
-- [ ] Advanced charting with TradingView
-- [ ] Alert system with notifications
-- [ ] Mobile app (React Native)
-- [ ] API rate limiting and quotas
-- [ ] Audit logging system
-
-### 5.3 Security Enhancements
-- [ ] Implement OAuth2 authentication
-- [ ] Add two-factor authentication
-- [ ] Setup API key management
-- [ ] Implement request signing
-- [ ] Add intrusion detection
-- [ ] Regular security audits
-
----
-
-## 📋 PHASE 6: Documentation (Priority: MEDIUM)
-
-### 6.1 User Documentation
-- [ ] User manual for web interface
-- [ ] Video tutorials
-- [ ] FAQ section
-- [ ] Troubleshooting guide
-
-### 6.2 Developer Documentation
-- [ ] API documentation (Swagger/OpenAPI)
-- [ ] Component library documentation
-- [ ] Architecture diagrams
-- [ ] Deployment guide
-- [ ] Contributing guidelines
-
-### 6.3 Operations Documentation
-- [ ] System administration guide
-- [ ] Monitoring and alerting setup
-- [ ] Backup and recovery procedures
-- [ ] Scaling guidelines
-- [ ] Incident response playbook
-
----
-
-## 🚧 Current Blockers
-
-1. **No Frontend Codebase** - Entire React application needs to be created
-2. **Limited API Endpoints** - Backend API needs significant extension
-3. **No Real-time Infrastructure** - WebSocket service not implemented
-4. **Missing CLI Integration** - No bridge between web and CLI
-
----
-
-## 📊 Progress Tracking
-
-### Overall Progress: **10%** ████░░░░░░░░░░░░░░░░ 
-
-| Phase | Status | Progress | Est. Days |
-|-------|--------|----------|-----------|
-| Backend API | 🟡 Started | 30% | 2 |
-| Frontend Dev | 🔴 Not Started | 0% | 4 |
-| Integration | 🔴 Not Started | 0% | 2 |
-| Deployment | 🟡 Partial | 40% | 1 |
-| Enhancement | 🔴 Not Started | 0% | 5 |
-| Documentation | 🔴 Not Started | 0% | 2 |
-
----
-
-## 🎯 Next Immediate Actions
-
-1. **TODAY**: Extend `trading_service.py` with missing endpoints
-2. **TOMORROW**: Create `cli_bridge.py` for command execution
-3. **DAY 3**: Initialize React application and setup structure
-4. **DAY 4**: Build Dashboard and core components
-5. **DAY 5**: Implement WebSocket service and real-time updates
-
----
-
-## 📝 Notes
-
-- The system's C++ core and CLI are solid foundations
-- Focus should be on web layer, not rebuilding existing functionality
-- Leverage the quantum_tracker's existing GUI logic for web metrics
-- Consider using the ImGui visualizations as reference for web components
-- The 90% backend ready claim is optimistic - significant API work needed
-- Real-time WebSocket implementation is critical for user experience
-
----
-
-## 🔗 Related Documents
-
-- Original Implementation Report: `SEP Professional Trading System - Web GUI Implementation Report`
-- System Architecture: `docs/01_ARCHITECTURE/`
-- API Specification: `docs/API_SPECIFICATION.md` (to be created)
-- Deployment Guide: `docs/DEPLOYMENT_GUIDE.md` (to be created)
-
----
-
-*Last Updated: August 2025*
-*Version: 1.0.0*
+- [ ] Performance metrics update in real-time
+- [ ] CLI commands execute from terminal tab
+- [ ] QFH metrics display actual engine values
+- [ ] Trading signals appear when generated
+- [ ] Start/Stop trading works correctly
