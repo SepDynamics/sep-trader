@@ -596,7 +596,8 @@ if __name__ == "__main__":
 
     # Start WebSocket metrics server
     ws_port = int(os.environ.get('WS_PORT', 8765))
-    start_websocket_server(ws_port)
+    backend_url = f"http://localhost:{port}"
+    start_websocket_server(ws_port, backend_url)
     logger.info(f"📡 WebSocket server started on port {ws_port}")
 
     try:

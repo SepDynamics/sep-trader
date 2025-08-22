@@ -5,15 +5,15 @@ import '../styles/TradingPanel.css';
 
 const TradingPanel = () => {
   const { connected, marketData, tradingSignals } = useWebSocket();
-  const [selectedSymbol, setSelectedSymbol] = useState('AAPL');
+  const [selectedSymbol, setSelectedSymbol] = useState('EUR/USD');
   const [orderType, setOrderType] = useState('market');
-  const [quantity, setQuantity] = useState(100);
+  const [quantity, setQuantity] = useState(10000);
   const [price, setPrice] = useState('');
   const [side, setSide] = useState('buy');
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
 
-  const symbols = ['AAPL', 'GOOGL', 'MSFT', 'AMZN', 'TSLA', 'NVDA'];
+  const symbols = ['EUR/USD', 'GBP/USD', 'USD/JPY', 'USD/CHF', 'AUD/USD', 'USD/CAD', 'NZD/USD', 'EUR/GBP'];
 
   const handleSubmitOrder = async (e) => {
     e.preventDefault();
@@ -48,8 +48,9 @@ const TradingPanel = () => {
 
   const formatCurrency = (value) => {
     return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD'
+      style: 'decimal',
+      minimumFractionDigits: 4,
+      maximumFractionDigits: 5
     }).format(value);
   };
 
@@ -126,13 +127,14 @@ const TradingPanel = () => {
                     </select>
                   </div>
                   <div className="form-group">
-                    <label>Quantity</label>
+                    <label>Quantity (Units)</label>
                     <input
                       type="number"
                       value={quantity}
                       onChange={(e) => setQuantity(e.target.value)}
                       className="form-control"
-                      min="1"
+                      min="1000"
+                      step="1000"
                       required
                     />
                   </div>
@@ -199,7 +201,7 @@ const TradingPanel = () => {
                       {formatCurrency(marketData[selectedSymbol].price)}
                     </div>
                     <div className={`price-change ${marketData[selectedSymbol].change >= 0 ? 'positive' : 'negative'}`}>
-                      {marketData[selectedSymbol].change >= 0 ? '+' : ''}{marketData[selectedSymbol].change?.toFixed(2) || '0.00'}
+                      {marketData[selectedSymbol].change >= 0 ? '+' : ''}{marketData[selectedSymbol].change?.toFixed(5) || '0.00000'}
                       ({((marketData[selectedSymbol].change / marketData[selectedSymbol].price) * 100).toFixed(2)}%)
                     </div>
                   </div>

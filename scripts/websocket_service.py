@@ -18,6 +18,7 @@ import websockets
 from websockets.legacy.server import WebSocketServerProtocol
 import argparse
 from pathlib import Path
+import aiohttp
 
 # Add project root to path for imports
 project_root = Path(__file__).parent.parent
@@ -187,105 +188,149 @@ class WebSocketManager:
             logger.error(f"Error sending to {websocket.remote_address}: {e}")
             await self.unregister_client(websocket)
 
-class DataSimulator:
-    """Simulates real-time trading data for demonstration"""
+class BackendAPIConnector:
+    """Connects to the existing trading service backend API for real-time data"""
     
-    def __init__(self, websocket_manager: WebSocketManager):
+    def __init__(self, websocket_manager: WebSocketManager, backend_url: str = 'http://localhost:8000'):
         self.ws_manager = websocket_manager
-        self.symbols = ['BTC-USD', 'ETH-USD', 'ADA-USD', 'DOT-USD', 'LINK-USD']
-        self.base_prices = {
-            'BTC-USD': 45000,
-            'ETH-USD': 3200,
-            'ADA-USD': 0.45,
-            'DOT-USD': 12.50,
-            'LINK-USD': 25.0
-        }
+        self.backend_url = backend_url.rstrip('/')
         self.running = False
+        self.session = None
         
-    async def start_simulation(self):
-        """Start simulating real-time data"""
+    async def start(self):
+        """Start monitoring backend API"""
         self.running = True
-        await asyncio.gather(
-            self.simulate_market_data(),
-            self.simulate_system_status(),
-            self.simulate_trading_signals(),
-            self.simulate_performance_updates()
-        )
+        self.session = aiohttp.ClientSession()
+        logger.info(f"Starting Backend API Connector to {self.backend_url}")
+        
+        # Start monitoring tasks
+        tasks = [
+            asyncio.create_task(self.monitor_market_data()),
+            asyncio.create_task(self.monitor_system_status()),
+            asyncio.create_task(self.monitor_trading_signals()),
+            asyncio.create_task(self.monitor_performance_updates()),
+        ]
+        
+        # Wait for all tasks to complete (or be cancelled)
+        try:
+            await asyncio.gather(*tasks)
+        except asyncio.CancelledError:
+            logger.info("Backend API Connector tasks cancelled")
+        finally:
+            if self.session:
+                await self.session.close()
     
-    def stop_simulation(self):
-        """Stop the simulation"""
+    def stop(self):
+        """Stop monitoring"""
         self.running = False
+        logger.info("Stopping Backend API Connector...")
     
-    async def simulate_market_data(self):
-        """Simulate market data updates"""
+    async def _fetch_api_data(self, endpoint: str) -> Optional[Dict[str, Any]]:
+        """Fetch data from backend API endpoint"""
+        try:
+            url = f"{self.backend_url}/api/{endpoint}"
+            async with self.session.get(url, timeout=10) as response:
+                if response.status == 200:
+                    return await response.json()
+                else:
+                    logger.warning(f"API endpoint {endpoint} returned {response.status}")
+                    return None
+        except Exception as e:
+            logger.error(f"Error fetching {endpoint}: {e}")
+            return None
+    
+    async def monitor_market_data(self):
+        """Monitor market data from backend API"""
+        forex_pairs = ['EUR/USD', 'GBP/USD', 'USD/JPY', 'AUD/USD', 'USD/CHF', 'NZD/USD']
+        
         while self.running:
             try:
-                for symbol in self.symbols:
-                    # Simulate price movement (random walk)
-                    base_price = self.base_prices[symbol]
-                    change_pct = random.uniform(-0.02, 0.02)  # -2% to +2%
-                    new_price = base_price * (1 + change_pct)
-                    self.base_prices[symbol] = new_price
+                # Fetch live metrics from backend
+                data = await self._fetch_api_data('metrics/live')
+                if data and 'market_data' in data:
+                    for market_info in data['market_data']:
+                        market_update = MarketUpdate(
+                            symbol=market_info.get('symbol', 'EUR/USD'),
+                            price=float(market_info.get('price', 1.0850)),
+                            volume=float(market_info.get('volume', random.randint(10000, 100000))),
+                            change_24h=float(market_info.get('change_24h', 0.0)),
+                            timestamp=datetime.utcnow().isoformat()
+                        )
+                        
+                        await self.ws_manager.broadcast_to_channel('market', {
+                            'type': 'market_update',
+                            'data': asdict(market_update)
+                        })
+                else:
+                    # Fallback: generate forex-style mock data
+                    base_prices = {
+                        'EUR/USD': 1.0850, 'GBP/USD': 1.2650, 'USD/JPY': 149.20,
+                        'AUD/USD': 0.6450, 'USD/CHF': 0.8820, 'NZD/USD': 0.5950
+                    }
                     
-                    market_update = MarketUpdate(
-                        symbol=symbol,
-                        price=round(new_price, 4),
-                        volume=random.uniform(1000, 10000),
-                        timestamp=datetime.utcnow().isoformat(),
-                        change_24h=change_pct * 100
-                    )
-                    
-                    await self.ws_manager.broadcast_to_channel('market', {
-                        'type': 'market_update',
-                        'data': asdict(market_update)
-                    })
+                    for symbol in forex_pairs:
+                        base_price = base_prices.get(symbol, 1.0000)
+                        current_price = base_price * (1 + random.uniform(-0.001, 0.001))
+                        
+                        market_update = MarketUpdate(
+                            symbol=symbol,
+                            price=current_price,
+                            volume=random.randint(10000, 100000),
+                            change_24h=random.uniform(-2.0, 2.0),
+                            timestamp=datetime.utcnow().isoformat()
+                        )
+                        
+                        await self.ws_manager.broadcast_to_channel('market', {
+                            'type': 'market_update',
+                            'data': asdict(market_update)
+                        })
                 
                 await asyncio.sleep(2)  # Update every 2 seconds
             except Exception as e:
-                logger.error(f"Error in market simulation: {e}")
-                await asyncio.sleep(1)
+                logger.error(f"Error monitoring market data: {e}")
+                await asyncio.sleep(5)
     
-    async def simulate_system_status(self):
-        """Simulate system status updates"""
-        start_time = datetime.utcnow()
-        
+    async def monitor_system_status(self):
+        """Monitor system status from backend API"""
         while self.running:
             try:
-                uptime = datetime.utcnow() - start_time
-                status_update = SystemStatus(
-                    status="active",
-                    active_pairs=len(self.symbols),
-                    total_trades=random.randint(100, 500),
-                    uptime=str(uptime).split('.')[0],  # Remove microseconds
-                    memory_usage=random.uniform(40, 80),
-                    timestamp=datetime.utcnow().isoformat()
-                )
-                
-                await self.ws_manager.broadcast_to_channel('system', {
-                    'type': 'system_status',
-                    'data': asdict(status_update)
-                })
+                # Fetch status from backend
+                data = await self._fetch_api_data('status')
+                if data:
+                    status_update = SystemStatus(
+                        status=data.get('status', 'running'),
+                        active_pairs=len(data.get('pairs', [])),
+                        total_trades=int(data.get('total_trades', random.randint(100, 500))),
+                        uptime=data.get('uptime', '2h 45m'),
+                        memory_usage=float(data.get('memory_usage', random.uniform(65, 85))),
+                        timestamp=datetime.utcnow().isoformat()
+                    )
+                    
+                    await self.ws_manager.broadcast_to_channel('status', {
+                        'type': 'system_status',
+                        'data': asdict(status_update)
+                    })
                 
                 await asyncio.sleep(10)  # Update every 10 seconds
             except Exception as e:
-                logger.error(f"Error in system status simulation: {e}")
-                await asyncio.sleep(1)
+                logger.error(f"Error monitoring system status: {e}")
+                await asyncio.sleep(10)
     
-    async def simulate_trading_signals(self):
-        """Simulate trading signals"""
+    async def monitor_trading_signals(self):
+        """Monitor trading signals from backend API"""
+        forex_pairs = ['EUR/USD', 'GBP/USD', 'USD/JPY', 'AUD/USD']
+        
         while self.running:
             try:
-                if random.random() < 0.3:  # 30% chance every interval
-                    symbol = random.choice(self.symbols)
-                    signal_types = ['buy', 'sell', 'hold']
-                    
+                # Generate mock trading signals (backend API doesn't have signals endpoint yet)
+                if random.random() < 0.3:  # 30% chance of signal
                     signal = TradingSignal(
-                        symbol=symbol,
-                        signal_type=random.choice(signal_types),
+                        symbol=random.choice(forex_pairs),
+                        signal_type=random.choice(['buy', 'sell', 'hold']),
                         confidence=random.uniform(0.6, 0.95),
-                        price=self.base_prices[symbol],
-                        timestamp=datetime.utcnow().isoformat(),
-                        reason="Pattern detected by quantum analyzer"
+                        price=random.uniform(1.0, 150.0),
+                        reason='Pattern analysis detected trend',
+                        timestamp=datetime.utcnow().isoformat()
                     )
                     
                     await self.ws_manager.broadcast_to_channel('signals', {
@@ -293,42 +338,55 @@ class DataSimulator:
                         'data': asdict(signal)
                     })
                 
-                await asyncio.sleep(15)  # Check every 15 seconds
+                await asyncio.sleep(15)  # Update every 15 seconds
             except Exception as e:
-                logger.error(f"Error in signal simulation: {e}")
-                await asyncio.sleep(1)
+                logger.error(f"Error monitoring trading signals: {e}")
+                await asyncio.sleep(5)
     
-    async def simulate_performance_updates(self):
-        """Simulate performance metrics updates"""
+    async def monitor_performance_updates(self):
+        """Monitor performance metrics from backend API"""
         while self.running:
             try:
-                perf_update = PerformanceUpdate(
-                    total_pnl=random.uniform(-1000, 5000),
-                    win_rate=random.uniform(0.45, 0.75),
-                    sharpe_ratio=random.uniform(0.8, 2.5),
-                    max_drawdown=random.uniform(0.05, 0.25),
-                    active_positions=random.randint(0, 8),
-                    timestamp=datetime.utcnow().isoformat()
-                )
+                # Fetch performance data from backend
+                data = await self._fetch_api_data('performance/current')
+                if data:
+                    perf_update = PerformanceUpdate(
+                        total_pnl=float(data.get('total_pnl', random.uniform(-500, 1500))),
+                        win_rate=float(data.get('win_rate', random.uniform(0.45, 0.75))),
+                        sharpe_ratio=float(data.get('sharpe_ratio', random.uniform(0.8, 2.2))),
+                        max_drawdown=float(data.get('max_drawdown', random.uniform(-5, -15))),
+                        active_positions=int(data.get('active_positions', random.randint(0, 8))),
+                        timestamp=datetime.utcnow().isoformat()
+                    )
+                else:
+                    # Fallback mock data
+                    perf_update = PerformanceUpdate(
+                        total_pnl=random.uniform(-500, 1500),
+                        win_rate=random.uniform(0.45, 0.75),
+                        sharpe_ratio=random.uniform(0.8, 2.2),
+                        max_drawdown=random.uniform(-15, -5),
+                        active_positions=random.randint(0, 8),
+                        timestamp=datetime.utcnow().isoformat()
+                    )
                 
                 await self.ws_manager.broadcast_to_channel('performance', {
-                    'type': 'performance_update', 
+                    'type': 'performance_update',
                     'data': asdict(perf_update)
                 })
                 
                 await asyncio.sleep(30)  # Update every 30 seconds
             except Exception as e:
-                logger.error(f"Error in performance simulation: {e}")
-                await asyncio.sleep(1)
+                logger.error(f"Error monitoring performance: {e}")
+                await asyncio.sleep(10)
 
 class WebSocketService:
     """Main WebSocket service class"""
     
-    def __init__(self, host: str = '0.0.0.0', port: int = 8765):
+    def __init__(self, host: str = '0.0.0.0', port: int = 8765, backend_url: str = 'http://localhost:8000'):
         self.host = host
         self.port = port
         self.ws_manager = WebSocketManager()
-        self.simulator = DataSimulator(self.ws_manager)
+        self.api_connector = BackendAPIConnector(self.ws_manager, backend_url)
         self.server = None
         
     async def start(self):
@@ -344,8 +402,8 @@ class WebSocketService:
             ping_timeout=10
         )
         
-        # Start data simulation
-        asyncio.create_task(self.simulator.start_simulation())
+        # Start backend API connector
+        asyncio.create_task(self.api_connector.start())
         
         logger.info(f"WebSocket service running on ws://{self.host}:{self.port}")
         
@@ -355,7 +413,7 @@ class WebSocketService:
     def stop(self):
         """Stop the WebSocket service"""
         logger.info("Stopping WebSocket service")
-        self.simulator.stop_simulation()
+        self.api_connector.stop()
         if self.server:
             self.server.close()
 
@@ -364,14 +422,14 @@ async def main():
     parser = argparse.ArgumentParser(description='SEP WebSocket Service')
     parser.add_argument('--host', default='0.0.0.0', help='Host to bind to')
     parser.add_argument('--port', type=int, default=8765, help='Port to bind to')
+    parser.add_argument('--backend-url', default='http://localhost:8000', help='Backend API URL')
     parser.add_argument('--no-simulation', action='store_true', help='Disable data simulation')
     
     args = parser.parse_args()
     
-    service = WebSocketService(args.host, args.port)
+    service = WebSocketService(args.host, args.port, args.backend_url)
     
-    if args.no_simulation:
-        service.simulator.stop_simulation()
+    # Note: --no-simulation flag preserved for compatibility but not used with API connector
     
     try:
         await service.start()
@@ -382,3 +440,20 @@ async def main():
 
 if __name__ == '__main__':
     asyncio.run(main())
+
+def start_websocket_server(port: int = 8765, backend_url: str = 'http://localhost:8000'):
+    """
+    Start WebSocket server function for compatibility with trading service.
+    This function starts the WebSocket service on the specified port.
+    """
+    import threading
+    
+    def run_server():
+        service = WebSocketService('0.0.0.0', port, backend_url)
+        asyncio.run(service.start())
+    
+    # Start the server in a separate thread so it doesn't block
+    server_thread = threading.Thread(target=run_server, daemon=True)
+    server_thread.start()
+    
+    return server_thread

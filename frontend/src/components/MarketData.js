@@ -3,7 +3,16 @@ import { useWebSocket } from '../hooks/useWebSocket';
 
 const MarketData = () => {
   const { connected, marketData } = useWebSocket();
-  const [selectedSymbol, setSelectedSymbol] = useState('AAPL');
+  const [selectedSymbol, setSelectedSymbol] = useState('EUR/USD');
+
+  const formatPrice = (value) => {
+    if (value === null || value === undefined) return '--';
+    return new Intl.NumberFormat('en-US', {
+      style: 'decimal',
+      minimumFractionDigits: 4,
+      maximumFractionDigits: 5
+    }).format(value);
+  };
 
   const formatCurrency = (value) => {
     if (value === null || value === undefined) return '--';
@@ -36,15 +45,16 @@ const MarketData = () => {
           <div key={symbol} className="market-card">
             <h3>{symbol}</h3>
             <div className="price-info">
-              <div className="current-price">{formatCurrency(data.price)}</div>
+              <div className="current-price">{formatPrice(data.price)}</div>
               <div className={`price-change ${(data.change || 0) >= 0 ? 'positive' : 'negative'}`}>
-                {formatPercentage(data.change / 100)} ({formatCurrency(data.change)})
+                {formatPercentage(data.change / 100)} ({formatPrice(data.change)})
               </div>
             </div>
             <div className="market-details">
               <div><label>Volume:</label> <span>{data.volume?.toLocaleString() || '--'}</span></div>
-              <div><label>High:</label> <span>{formatCurrency(data.high)}</span></div>
-              <div><label>Low:</label> <span>{formatCurrency(data.low)}</span></div>
+              <div><label>High:</label> <span>{formatPrice(data.high)}</span></div>
+              <div><label>Low:</label> <span>{formatPrice(data.low)}</span></div>
+              <div><label>Spread:</label> <span>{data.spread ? formatPrice(data.spread) : '--'}</span></div>
             </div>
           </div>
         ))}
