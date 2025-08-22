@@ -116,18 +116,18 @@ if [ "$NATIVE_BUILD" = true ] || [ "$SKIP_DOCKER" = true ] || ! "$DOCKER_BIN" in
     exit 0
 fi
 
-echo "Mounting local directory $(pwd) to ${SEP_WORKSPACE_PATH} in the container."
+echo "Mounting local directory $(pwd) to /sep in the container."
 
 # Build and setup development environment using Docker
 "${DOCKER_BIN}" run --gpus all --rm \
-    -v $(pwd):${SEP_WORKSPACE_PATH} \
-    -e SEP_WORKSPACE_PATH=${SEP_WORKSPACE_PATH} \
+    -v $(pwd):/sep \
+    -e SEP_WORKSPACE_PATH=/sep \
     sep_build_env bash -c \
     '\
     # Add exception for dubious ownership
     git config --global --add safe.directory "*"
     
-    cd /workspace
+    cd /sep
     
     # Clean any existing build directory to avoid cache conflicts
     rm -rf build
@@ -146,7 +146,7 @@ echo "Mounting local directory $(pwd) to ${SEP_WORKSPACE_PATH} in the container.
         -DSEP_USE_GUI=OFF \
         -DCMAKE_CXX_FLAGS="-Wno-pedantic -D_GLIBCXX_USE_CXX11_ABI=0" -DCMAKE_CXX_STANDARD=20 -DCMAKE_CUDA_FLAGS="-Wno-deprecated-gpu-targets -Xcompiler -Wno-pedantic -D_GLIBCXX_USE_CXX11_ABI=0"
     
-    ninja -k 0 2>&1 | tee ${SEP_WORKSPACE_PATH}/output/build_log.txt
+    ninja -k 0 2>&1 | tee /sep/output/build_log.txt
     
     # Copy compile_commands.json for IDE
     cp compile_commands.json ..
@@ -156,7 +156,7 @@ echo "Mounting local directory $(pwd) to ${SEP_WORKSPACE_PATH} in the container.
 sudo chown -R $USER_ID:$GROUP_ID .cache .codechecker build output 2>/dev/null || true
 fix_compile_commands() {
     # Replace container paths with host paths for IDE integration
-    sed -i -e "s|${SEP_WORKSPACE_PATH}/|$(pwd)/|g" compile_commands.json
+    sed -i -e "s|/sep/|$(pwd)/|g" compile_commands.json
 }
 
 # Extract errors from build log

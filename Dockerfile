@@ -42,7 +42,7 @@ RUN mkdir -p /etc/sudoers.d && \
 USER $USERNAME
 
 # Set the working directory
-WORKDIR /workspace
+WORKDIR /sep
 
 # This Dockerfile creates a build environment.
 # The source code is mounted as a volume by the build.sh script, not copied into the image.
