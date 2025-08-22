@@ -84,7 +84,7 @@ The system implements a **three-tier professional architecture**:
 
 ```yaml
 Services:
-- redis (6379): Redis cache and session storage
+- redis (6380): Redis cache and session storage
 - trading-backend (5000): Flask API service
 - websocket-service (8765): Real-time data service  
 - frontend (80/443): Nginx-served React application
@@ -97,7 +97,7 @@ Volumes: Local bind mounts for development
 
 ```yaml
 Services: 
-- redis (6379): Redis with persistent storage
+- redis (6380): Redis with persistent storage
 - trading-backend (5000): Production Flask API
 - websocket-service (8765): Production WebSocket service
 - frontend (80/443): Production web application

@@ -126,7 +126,7 @@ health_check() {
     log_info "Performing health checks..."
     
     # Check Redis
-    if curl -f http://localhost:6379 &> /dev/null; then
+    if curl -f http://localhost:6380 &> /dev/null; then
         log_success "Redis: Healthy"
     else
         log_warning "Redis: Not accessible"

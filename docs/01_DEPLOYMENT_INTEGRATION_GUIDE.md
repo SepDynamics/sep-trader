@@ -110,7 +110,7 @@ mkdir -p {data,logs,config}
 # Configure environment
 cat > .sep-config.env << EOF
 FLASK_ENV=development
-REDIS_URL=redis://redis:6379/0
+REDIS_URL=redis://redis:6380/0
 SEP_CONFIG_PATH=/app/config
 PYTHONPATH=/app
 PORT=5000
@@ -304,7 +304,7 @@ Key Features:
 ```bash
 # Core configuration
 FLASK_ENV=production
-REDIS_URL=redis://redis:6379/0
+REDIS_URL=redis://redis:6380/0
 SEP_CONFIG_PATH=/app/config
 PYTHONPATH=/app
 PORT=5000
@@ -332,7 +332,7 @@ REACT_APP_ENVIRONMENT=production
 
 #### WebSocket Service Environment
 ```bash
-REDIS_URL=redis://redis:6379/0
+REDIS_URL=redis://redis:6380/0
 WS_HOST=0.0.0.0
 WS_PORT=8765
 LOG_LEVEL=INFO
@@ -413,7 +413,7 @@ networks:
         - subnet: 172.25.0.0/16
 
 # Service discovery (internal)
-redis:6379           # Redis cache
+redis:6380           # Redis cache
 trading-backend:5000 # API service
 websocket-service:8765 # WebSocket service
 ```
@@ -450,7 +450,7 @@ websocket-service:8765 # WebSocket service
 curl -f http://[host]:5000/api/health    # Backend health
 curl -f http://[host]/health             # Frontend health  
 nc -z [host] 8765                        # WebSocket connectivity
-redis-cli -h [host] -p 6379 ping        # Redis health
+redis-cli -h [host] -p 6380 ping        # Redis health
 ```
 
 ### Log Management
@@ -494,7 +494,7 @@ docker network ls
 docker network inspect sep_sep-network
 
 # Check port conflicts
-netstat -tulpn | grep -E "(5000|8765|6379|80|443)"
+netstat -tulpn | grep -E "(5000|8765|6380|80|443)"
 ```
 
 #### Database Connection Issues
