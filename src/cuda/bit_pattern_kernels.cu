@@ -86,67 +86,56 @@ extern "C" sep::SEPResult launchAnalyzeBitPatternsKernel(const uint8_t* h_bits,
                                                       size_t window_size,
                                                       sep::apps::cuda::ForwardWindowResultDevice* h_results,
                                                       cudaStream_t stream) {
-    // Allocate device memory for input bits
-    uint8_t* d_bits;
+    uint8_t* d_bits = nullptr;
+    sep::apps::cuda::ForwardWindowResultDevice* d_results = nullptr;
+    sep::SEPResult result = sep::SEPResult::SUCCESS;
+
     cudaError_t err = cudaMallocAsync(&d_bits, total_bits_size * sizeof(uint8_t), stream);
     if (err != cudaSuccess) {
         sep::core::ErrorHandler::instance().reportError(sep::Error(sep::SEPResult::CUDA_ERROR, "Failed to allocate device memory for bits: " + std::string(cudaGetErrorString(err))));
-        return sep::SEPResult::CUDA_ERROR;
+        result = sep::SEPResult::CUDA_ERROR;
+        goto cleanup;
     }
+
     err = cudaMemcpyAsync(d_bits, h_bits, total_bits_size * sizeof(uint8_t), cudaMemcpyHostToDevice, stream);
     if (err != cudaSuccess) {
-        cudaFreeAsync(d_bits, stream);
         sep::core::ErrorHandler::instance().reportError(sep::Error(sep::SEPResult::CUDA_ERROR, "Failed to copy bits to device: " + std::string(cudaGetErrorString(err))));
-        return sep::SEPResult::CUDA_ERROR;
+        result = sep::SEPResult::CUDA_ERROR;
+        goto cleanup;
     }
 
-    // Allocate device memory for results
-    sep::apps::cuda::ForwardWindowResultDevice* d_results;
     err = cudaMallocAsync(&d_results, sizeof(sep::apps::cuda::ForwardWindowResultDevice), stream);
     if (err != cudaSuccess) {
-        cudaFreeAsync(d_bits, stream);
-        cudaFreeAsync(d_bits, stream);
         sep::core::ErrorHandler::instance().reportError(sep::Error(sep::SEPResult::CUDA_ERROR, "Failed to allocate device memory for results: " + std::string(cudaGetErrorString(err))));
-        return sep::SEPResult::CUDA_ERROR;
+        result = sep::SEPResult::CUDA_ERROR;
+        goto cleanup;
     }
 
-    // Launch the kernel
-    // Assuming a single block and single thread for now, as the kernel is designed for a single window.
-    // This will need to be adjusted for batch processing.
     analyzeBitPatternsKernel<<<1, 1, 0, stream>>>(d_bits, total_bits_size, index_start, window_size, d_results);
     err = cudaGetLastError();
     if (err != cudaSuccess) {
-        cudaFreeAsync(d_bits, stream);
-        cudaFreeAsync(d_results, stream);
-        cudaFreeAsync(d_bits, stream);
-        cudaFreeAsync(d_results, stream);
         sep::core::ErrorHandler::instance().reportError(sep::Error(sep::SEPResult::CUDA_ERROR, "Kernel launch failed: " + std::string(cudaGetErrorString(err))));
-        return sep::SEPResult::CUDA_ERROR;
+        result = sep::SEPResult::CUDA_ERROR;
+        goto cleanup;
     }
 
-    // Copy results back to host
     err = cudaMemcpyAsync(h_results, d_results, sizeof(sep::apps::cuda::ForwardWindowResultDevice), cudaMemcpyDeviceToHost, stream);
     if (err != cudaSuccess) {
-        cudaFreeAsync(d_bits, stream);
-        cudaFreeAsync(d_results, stream);
-        cudaFreeAsync(d_bits, stream);
-        cudaFreeAsync(d_results, stream);
         sep::core::ErrorHandler::instance().reportError(sep::Error(sep::SEPResult::CUDA_ERROR, "Failed to copy results to host: " + std::string(cudaGetErrorString(err))));
-        return sep::SEPResult::CUDA_ERROR;
+        result = sep::SEPResult::CUDA_ERROR;
+        goto cleanup;
     }
 
-    // Synchronize and free device memory
     err = cudaStreamSynchronize(stream);
     if (err != cudaSuccess) {
-        cudaFreeAsync(d_bits, stream);
-        cudaFreeAsync(d_results, stream);
-        cudaFreeAsync(d_bits, stream);
-        cudaFreeAsync(d_results, stream);
         sep::core::ErrorHandler::instance().reportError(sep::Error(sep::SEPResult::CUDA_ERROR, "Stream synchronization failed: " + std::string(cudaGetErrorString(err))));
-        return sep::SEPResult::CUDA_ERROR;
+        result = sep::SEPResult::CUDA_ERROR;
+        goto cleanup;
     }
-    cudaFreeAsync(d_bits, stream);
-    cudaFreeAsync(d_results, stream);
 
-    return sep::SEPResult::SUCCESS;
+cleanup:
+    if (d_bits) cudaFreeAsync(d_bits, stream);
+    if (d_results) cudaFreeAsync(d_results, stream);
+
+    return result;
 }

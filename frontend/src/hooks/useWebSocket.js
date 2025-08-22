@@ -3,7 +3,7 @@ import io from 'socket.io-client';
 
 const WebSocketContext = createContext();
 
-const WS_URL = process.env.REACT_APP_WS_URL || 'ws://localhost:8765';
+const WS_URL = window._env_?.REACT_APP_WS_URL || 'ws://localhost:8765';
 
 export const WebSocketProvider = ({ children }) => {
   const [socket, setSocket] = useState(null);
@@ -13,68 +13,26 @@ export const WebSocketProvider = ({ children }) => {
   const [tradingSignals, setTradingSignals] = useState([]);
   const [performanceData, setPerformanceData] = useState({});
 
-  const reconnectTimeoutRef = useRef(null);
-  const reconnectAttemptsRef = useRef(0);
-  const maxReconnectAttempts = 5;
-
   const connect = () => {
     try {
-      const ws = new WebSocket(WS_URL);
-      
-      ws.onopen = () => {
+      const newSocket = io(WS_URL);
+
+      newSocket.on('connect', () => {
         console.log('WebSocket connected');
         setConnected(true);
-        reconnectAttemptsRef.current = 0;
-        
-        // Send connection message and subscribe to channels
-        ws.send(JSON.stringify({
-          type: 'subscribe',
-          channels: ['market', 'system', 'signals', 'performance']
-        }));
-        
-        // Start heartbeat
-        const heartbeatInterval = setInterval(() => {
-          if (ws.readyState === WebSocket.OPEN) {
-            ws.send(JSON.stringify({ type: 'heartbeat' }));
-          } else {
-            clearInterval(heartbeatInterval);
-          }
-        }, 30000); // 30 seconds
-      };
+        newSocket.emit('subscribe', { channels: ['market', 'system', 'signals', 'performance'] });
+      });
 
-      ws.onmessage = (event) => {
-        try {
-          const message = JSON.parse(event.data);
-          handleWebSocketMessage(message);
-        } catch (error) {
-          console.error('Error parsing WebSocket message:', error);
-        }
-      };
-
-      ws.onclose = (event) => {
-        console.log('WebSocket disconnected:', event.code, event.reason);
+      newSocket.on('disconnect', () => {
+        console.log('WebSocket disconnected');
         setConnected(false);
-        setSocket(null);
-        
-        // Attempt to reconnect
-        if (reconnectAttemptsRef.current < maxReconnectAttempts) {
-          reconnectAttemptsRef.current++;
-          const delay = Math.min(1000 * Math.pow(2, reconnectAttemptsRef.current), 30000);
-          console.log(`Reconnecting in ${delay}ms... (attempt ${reconnectAttemptsRef.current})`);
-          
-          reconnectTimeoutRef.current = setTimeout(() => {
-            connect();
-          }, delay);
-        } else {
-          console.error('Max reconnection attempts reached');
-        }
-      };
+      });
 
-      ws.onerror = (error) => {
-        console.error('WebSocket error:', error);
-      };
+      newSocket.on('message', (message) => {
+        handleWebSocketMessage(message);
+      });
 
-      setSocket(ws);
+      setSocket(newSocket);
     } catch (error) {
       console.error('Failed to connect to WebSocket:', error);
     }

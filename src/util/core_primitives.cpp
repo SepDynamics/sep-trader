@@ -1,6 +1,9 @@
 #include "util/core_primitives.h"
+#include "util/pattern_processing.hpp"
 #include <iostream>
 #include <cmath>
+#include <vector>
+#include <cstdint>
 
 #include <unordered_map>
 #include <algorithm>
@@ -190,22 +193,24 @@ Value extract_bits(const std::vector<Value>& args) {
         throw std::runtime_error("extract_bits requires an argument");
     }
 
+    std::string pattern_id;
     if (std::holds_alternative<std::string>(args[0])) {
-        std::string id = std::get<std::string>(args[0]);
-        auto it = pattern_store.find(id);
-        if (it != pattern_store.end() && std::holds_alternative<std::string>(it->second)) {
-            return it->second;
-        }
-        return Value(id); // treat as raw bits
+        pattern_id = std::get<std::string>(args[0]);
+    } else if (std::holds_alternative<double>(args[0])) {
+        pattern_id = std::to_string(std::get<double>(args[0]));
+    } else {
+        return Value(""); // Return empty string for unsupported types
     }
 
-    if (std::holds_alternative<double>(args[0])) {
-        uint64_t num = static_cast<uint64_t>(std::get<double>(args[0]));
-        std::bitset<64> bits(num);
-        return Value(bits.to_string());
+    std::vector<uint8_t> bitstream;
+    sep::util::extract_bitstream_from_pattern_id(pattern_id, bitstream);
+
+    std::string bitstream_str;
+    for (uint8_t bit : bitstream) {
+        bitstream_str += (bit ? '1' : '0');
     }
 
-    return Value("");
+    return Value(bitstream_str);
 }
 
 Value weighted_sum(const std::vector<Value>& args) {
@@ -321,77 +326,9 @@ Value to_number(const std::vector<Value>& args) {
 // Quantum Analysis Functions
 // ============================================================================
 
-Value measure_coherence(const std::vector<Value>& args) {
-    if (args.empty()) {
-        throw std::runtime_error("measure_coherence requires at least one pattern argument");
-    }
-    
-    // Basic coherence calculation using pattern ID hash
-    std::string pattern_id;
-    if (std::holds_alternative<std::string>(args[0])) {
-        pattern_id = std::get<std::string>(args[0]);
-    } else {
-        pattern_id = "default_pattern";
-    }
-    
-    // Simple coherence metric based on pattern characteristics
-    double coherence = 0.75 + (std::hash<std::string>{}(pattern_id) % 1000) / 4000.0;
-    return Value(coherence);
-}
 
-Value measure_stability(const std::vector<Value>& args) {
-    if (args.empty()) {
-        throw std::runtime_error("measure_stability requires at least one pattern argument");
-    }
-    
-    // Basic stability calculation
-    std::string pattern_id;
-    if (std::holds_alternative<std::string>(args[0])) {
-        pattern_id = std::get<std::string>(args[0]);
-    } else {
-        pattern_id = "default_pattern";
-    }
-    
-    // Stability metric based on pattern characteristics
-    double stability = 0.80 + (std::hash<std::string>{}(pattern_id) % 500) / 2500.0;
-    return Value(stability);
-}
 
-Value measure_entropy(const std::vector<Value>& args) {
-    if (args.empty()) {
-        throw std::runtime_error("measure_entropy requires at least one pattern argument");
-    }
-    
-    // Basic entropy calculation
-    std::string pattern_id;
-    if (std::holds_alternative<std::string>(args[0])) {
-        pattern_id = std::get<std::string>(args[0]);
-    } else {
-        pattern_id = "default_pattern";
-    }
-    
-    // Entropy metric based on pattern characteristics
-    double entropy = 0.45 + (std::hash<std::string>{}(pattern_id) % 800) / 1600.0;
-    return Value(entropy);
-}
 
-Value qfh_analyze(const std::vector<Value>& args) {
-    if (args.empty()) {
-        throw std::runtime_error("qfh_analyze requires at least one pattern argument");
-    }
-    
-    // Basic QFH analysis
-    std::string pattern_id;
-    if (std::holds_alternative<std::string>(args[0])) {
-        pattern_id = std::get<std::string>(args[0]);
-    } else {
-        pattern_id = "default_pattern";
-    }
-    
-    // QFH result based on pattern characteristics
-    double qfh_score = 0.65 + (std::hash<std::string>{}(pattern_id) % 700) / 2000.0;
-    return Value(qfh_score);
-}
 
 Value qbsa_analyze(const std::vector<Value>& args) {
     if (args.empty()) {
@@ -411,22 +348,6 @@ Value qbsa_analyze(const std::vector<Value>& args) {
     return Value(qbsa_score);
 }
 
-Value manifold_optimize(const std::vector<Value>& args) {
-    if (args.empty()) {
-        throw std::runtime_error("manifold_optimize requires at least one pattern argument");
-    }
-    
-    // Basic manifold optimization
-    std::string pattern_id;
-    if (std::holds_alternative<std::string>(args[0])) {
-        pattern_id = std::get<std::string>(args[0]);
-    } else {
-        pattern_id = "default_pattern";
-    }
-    
-    // Return optimized pattern ID
-    return Value(pattern_id + "_optimized");
-}
 
 // ============================================================================
 // Registration Function
@@ -445,14 +366,9 @@ void register_core_primitives(Context& context) {
     context.set_function("create_pattern", create_pattern);
     context.set_function("evolve_pattern", evolve_pattern);
     context.set_function("merge_patterns", merge_patterns);
-    context.set_function("measure_coherence", measure_coherence);
-    context.set_function("measure_stability", measure_stability);
-    context.set_function("measure_entropy", measure_entropy);
     
     // Quantum operations
-    context.set_function("qfh_analyze", qfh_analyze);
     context.set_function("qbsa_analyze", qbsa_analyze);
-    context.set_function("manifold_optimize", manifold_optimize);
     context.set_function("detect_collapse", detect_collapse);
     
     // Memory operations

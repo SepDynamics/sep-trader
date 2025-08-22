@@ -2,20 +2,21 @@
 #include "core/result_types.h"
 #include "core/types.h"
 
+#include "batch_processor.h"
+#include "candle_data.h"
+#include "core/data_parser.h"
 #include "core/facade.h"
+#include "core/pattern.h"
+#include "core/pattern_types.h"
 #include "core/qfh.h"
 #include "core/quantum_manifold_optimizer.h"
-#include "streaming_data_manager.h"
-#include "pattern_cache.h"
-#include "gpu_memory_pool.h"
-#include "batch_processor.h"
 #include "engine_config.h"
-#include "core/pattern.h"
-#include "candle_data.h"
-#include "core/pattern_types.h"
-#include "core/data_parser.h"
+#include "gpu_memory_pool.h"
+#include "pattern_cache.h"
+#include "streaming_data_manager.h"
+#include "util/pattern_processing.hpp"
 
-namespace {
+namespace sep::engine {
 
 // Helper to convert quantum::Pattern to compat::PatternData
 sep::compat::PatternData convertToCompatPattern(const sep::quantum::Pattern& core_pattern) {
@@ -42,22 +43,6 @@ sep::compat::PatternData convertToCompatPattern(const sep::quantum::Pattern& cor
     
     return compat_pattern;
 }
-
-// Helper to convert CandleData to CandleData (assuming input is from sep namespace)
-sep::CandleData convertToCommonCandle(const sep::CandleData& core_candle) {
-    sep::CandleData common_candle;
-    common_candle.timestamp = core_candle.timestamp;
-    common_candle.open = core_candle.open;
-    common_candle.high = core_candle.high;
-    common_candle.low = core_candle.low;
-    common_candle.close = core_candle.close;
-    common_candle.volume = core_candle.volume;
-    return common_candle;
-}
-
-} // anonymous namespace
-
-namespace sep::engine {
 
 // Enhanced implementation with real engine components
 struct EngineFacade::Impl {
@@ -286,7 +271,6 @@ Result<void> EngineFacade::manifoldOptimize(const ManifoldOptimizationRequest& r
         return Result<void>(sep::Error(sep::Error::Code::OperationFailed));
     }
 }
-
 Result<void> EngineFacade::extractBits(const BitExtractionRequest& request,
                                       BitExtractionResponse& response) {
     if (!initialized_ || !impl_) {
@@ -296,16 +280,9 @@ Result<void> EngineFacade::extractBits(const BitExtractionRequest& request,
     std::cout << "DSL->Engine: Extracting bits from pattern '" << request.pattern_id << "'" << std::endl;
     
     try {
-        // Convert pattern ID to bitstream (simplified implementation)
-        response.bitstream.clear();
-        
-        for (size_t i = 0; i < request.pattern_id.length(); ++i) {
-            uint8_t char_val = static_cast<uint8_t>(request.pattern_id[i]);
-            for (int bit = 0; bit < 8; ++bit) {
-                response.bitstream.push_back((char_val >> bit) & 1);
-            }
-        }
-        
+        // Use the centralized bitstream extraction logic
+        sep::util::extract_bitstream_from_pattern_id(request.pattern_id, response.bitstream);
+
         response.success = true;
         std::cout << "Extracted " << response.bitstream.size() << " bits from pattern" << std::endl;
         
@@ -320,129 +297,19 @@ Result<void> EngineFacade::extractBits(const BitExtractionRequest& request,
     }
 }
 
-// Stub implementations for other methods to prevent link errors
-Result<void> EngineFacade::processPatterns(const PatternProcessRequest& request,
-                                         PatternProcessResponse& response) {
-    (void)request;  // Suppress unused parameter warning
-    (void)response; // Suppress unused parameter warning
-    return Result<void>(sep::Error(sep::Error::Code::NotImplemented));
-}
-
-Result<void> EngineFacade::processBatch(const BatchProcessRequest& request,
-                                       PatternProcessResponse& response) {
-    if (!initialized_ || !impl_)
-    {
-        return Result<void>(sep::Error(sep::Error::Code::NotInitialized, "Not initialized"));
+Result<void> EngineFacade::getTradingAccuracy(const TradingAccuracyRequest& request,
+                                              TradingAccuracyResponse& response) {
+    if (!initialized_ || !impl_) {
+        return Result<void>(sep::Error(sep::Error::Code::NotInitialized));
     }
 
-    ++impl_->request_counter;
-
-    // Step 1: Use the DataParser to convert raw data (Candles) into engine Patterns
-    DataParser parser;
-    // Convert core::CandleData to common::CandleData
-    std::vector<sep::CandleData> common_candles;
-    common_candles.reserve(request.market_data.size());
-    
-    for (const auto& candle : request.market_data) {
-        common_candles.push_back(convertToCommonCandle(candle));
+    try {
+        // Placeholder implementation
+        response.accuracy = 65.0 + (request.confidence_level - 0.5) * 20.0;
+        return Result<void>();
+    } catch (const std::exception& e) {
+        return Result<void>(sep::Error(sep::Error::Code::OperationFailed, e.what()));
     }
-    
-    auto patterns = parser.candlesToPatterns(common_candles);
-
-    if (patterns.empty())
-    {
-        response.processing_complete = false;
-        return Result<void>(sep::Error(sep::Error::Code::InvalidArgument, "Invalid argument"));
-    }
-
-    // Step 2: Add all new patterns to the batch processor
-    std::vector<sep::engine::batch::BatchPattern> batch_patterns;
-    batch_patterns.reserve(patterns.size());
-    for (const auto& p : patterns)
-    {
-        batch_patterns.emplace_back(std::to_string(p.id), "");
-    }
-
-    // Step 3: Process the batch
-    auto batch_results = impl_->batch_processor->process_batch(batch_patterns);
-    
-    response.processed_patterns.clear();
-    response.processed_patterns.reserve(batch_results.size());
-    
-    for (const auto& result : batch_results) {
-        // This part is tricky because the new facade doesn't store patterns directly.
-        // We will assume for now that the batch processor returns the processed patterns.
-        // This will need to be adjusted based on the actual implementation of BatchProcessor.
-    }
-    response.correlation_id = "batch_" + std::to_string(impl_->request_counter);
-    response.processing_complete = true;
-    
-    return Result<void>();
-}
-
-Result<void> EngineFacade::storePattern(const StorePatternRequest& request,
-                                       StorePatternResponse& response) {
-    (void)request;  // Suppress unused parameter warning
-    (void)response; // Suppress unused parameter warning
-    return Result<void>(sep::Error(sep::Error::Code::NotImplemented));
-}
-
-Result<void> EngineFacade::queryMemory(const MemoryQueryRequest& request,
-                                      std::vector<quantum::Pattern>& results) {
-    if (!initialized_ || !impl_ || !impl_->pattern_cache)
-    {
-        return Result<void>(sep::Error(sep::Error::Code::NotInitialized, "Not initialized"));
-    }
-
-    // This is a simplified implementation. A real implementation would
-    // involve a more complex querying mechanism.
-    results.clear();
-    
-    // This is a placeholder. The new facade does not have a direct way to query all patterns.
-    // We would need to implement a proper pattern storage and querying system.
-    
-    return Result<void>();
-}
-
-Result<void> EngineFacade::getHealthStatus(HealthStatusResponse& response) {
-    response.engine_healthy = initialized_;
-    response.quantum_systems_ready = initialized_;
-    response.memory_systems_ready = initialized_;
-    response.cpu_usage = 25.0f;
-    response.memory_usage = 512.0f;
-    response.status_message = initialized_ ? "DSL Engine operational" : "Engine not initialized";
-    return Result<void>(sep::Error(sep::Error::Code::Success));
-}
-
-Result<void> EngineFacade::getMemoryMetrics(MemoryMetricsResponse& response) {
-    response.stm_utilization = 0.3f;
-    response.mtm_utilization = 0.6f;
-    response.ltm_utilization = 0.8f;
-    response.total_patterns = impl_->request_counter;
-    response.active_patterns = impl_->request_counter / 2;
-    response.coherence_level = 0.75f;
-    
-    // Add pattern cache metrics
-    if (impl_->pattern_cache) {
-        auto cache_metrics = impl_->pattern_cache->getMetrics();
-        response.cached_patterns = cache_metrics.total_entries;
-        response.cache_hits = cache_metrics.cache_hits;
-        response.cache_misses = cache_metrics.cache_misses;
-        response.cache_hit_ratio = cache_metrics.hit_ratio;
-    }
-    
-    // Add GPU memory metrics
-    if (impl_->gpu_memory_pool) {
-        auto gpu_stats = impl_->gpu_memory_pool->get_stats();
-        response.gpu_total_allocated = gpu_stats.total_allocated;
-        response.gpu_current_usage = gpu_stats.current_usage;
-        response.gpu_peak_usage = gpu_stats.peak_usage;
-        response.gpu_fragmentation_ratio = gpu_stats.fragmentation_ratio;
-        response.gpu_allocations = gpu_stats.num_allocations;
-        response.gpu_deallocations = gpu_stats.num_deallocations;
-    }
-    
-    return Result<void>(sep::Error(sep::Error::Code::Success));
 }
 
 // Streaming data operations implementation
@@ -1004,4 +871,4 @@ Result<void> EngineFacade::resetEngineConfig(const std::string& category) {
     return Result<void>(sep::Error(sep::Error::Code::Success));
 }
 
-} // namespace sep::engine
+}  // namespace sep::engine

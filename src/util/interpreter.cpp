@@ -52,39 +52,41 @@ Interpreter::Interpreter() : environment_(&globals_), program_(nullptr) {
 void Interpreter::register_builtins() {
     auto& engine = sep::engine::EngineFacade::getInstance();
     // AGI Engine Bridge Functions - Simple implementations
-    builtins_["measure_coherence"] = [](const std::vector<Value>& args) -> Value {
+    builtins_["measure_coherence"] = [&engine](const std::vector<Value>& args) -> Value {
         if (args.empty()) {
-            return Value(0.75); // Default coherence value
+            throw std::runtime_error("measure_coherence requires a pattern_id argument");
         }
-        
-        // Simple coherence calculation based on first argument
+
+        sep::engine::PatternAnalysisRequest request;
         try {
-            if (auto str_ptr = std::any_cast<std::string>(&args[0])) {
-                double coherence = 0.75 + (std::hash<std::string>{}(*str_ptr) % 1000) / 4000.0;
-                return Value(coherence);
-            }
+            request.pattern_id = std::any_cast<std::string>(args[0]);
         } catch (const std::bad_any_cast&) {
-            // Fall through to default
+            throw std::runtime_error("Invalid argument type for measure_coherence");
         }
-        return Value(0.75);
+
+        sep::engine::PatternAnalysisResponse response;
+        auto result = engine.analyzePattern(request, response);
+
+        if (result.isSuccess()) {
+            return response.pattern.coherence;
+        } else {
+            throw std::runtime_error("Engine call failed for measure_coherence");
+        }
     };
     
     // REAL Trading Functions - Your actual working engine
     builtins_["run_pme_testbed"] = [](const std::vector<Value>& args) -> Value {
         std::cout << "DSL: Running REAL PME testbed analysis..." << std::endl;
         
-        // Default data file - can be overridden via argument
-        const std::string default_data_file = "/sep/commercial_package/validation/sample_data/O-test-2.json";
-        std::string data_file = default_data_file;
-        
-        // If first argument is provided and is a string, use it as the data file path
-        if (!args.empty()) {
-            try {
-                data_file = std::any_cast<std::string>(args[0]);
-                std::cout << "DSL: Using custom data file: " << data_file << std::endl;
-            } catch (const std::bad_any_cast&) {
-                // Ignore non-string arguments and use default
-            }
+        if (args.empty()) {
+            throw std::runtime_error("run_pme_testbed requires a data file path argument");
+        }
+
+        std::string data_file;
+        try {
+            data_file = std::any_cast<std::string>(args[0]);
+        } catch (const std::bad_any_cast&) {
+            throw std::runtime_error("Invalid argument type for run_pme_testbed");
         }
         
         std::string cmd = "cd /sep && timeout 30 ./build/examples/pme_testbed_phase2 " + data_file + " 2>/dev/null | tail -5";
@@ -99,42 +101,49 @@ void Interpreter::register_builtins() {
         }
     };
     
-    builtins_["get_trading_accuracy"] = [](const std::vector<Value>& args) -> Value {
-        // Support configurable accuracy - either from argument or system measurement
+    builtins_["get_trading_accuracy"] = [&engine](const std::vector<Value>& args) -> Value {
+        sep::engine::TradingAccuracyRequest request;
+        request.confidence_level = 0.5; // Default confidence level
         if (!args.empty()) {
             try {
-                double provided_accuracy = std::any_cast<double>(args[0]);
-                std::cout << "DSL: Using provided trading accuracy: " << provided_accuracy << "%" << std::endl;
-                return Value(provided_accuracy);
+                request.confidence_level = std::any_cast<double>(args[0]);
             } catch (const std::bad_any_cast&) {
-                // Ignore non-double arguments and use calculated value
+                // Ignore non-double arguments
             }
         }
-        // Default to measured system accuracy
-        const double measured_accuracy = 41.56;  // Your actual overall accuracy measurement
-        std::cout << "DSL: Using measured trading accuracy: " << measured_accuracy << "%" << std::endl;
-        return measured_accuracy;
+
+        sep::engine::TradingAccuracyResponse response;
+        auto result = engine.getTradingAccuracy(request, response);
+
+        if (result.isSuccess()) {
+            return response.accuracy;
+        } else {
+            throw std::runtime_error("Engine call failed for get_trading_accuracy");
+        }
     };
     
-    builtins_["get_high_confidence_accuracy"] = [](const std::vector<Value>& args) -> Value {
-        // Support configurable high-confidence accuracy - either from argument or system measurement
+    builtins_["get_high_confidence_accuracy"] = [&engine](const std::vector<Value>& args) -> Value {
+        sep::engine::TradingAccuracyRequest request;
+        request.confidence_level = 0.85; // High confidence level
         if (!args.empty()) {
             try {
-                double provided_accuracy = std::any_cast<double>(args[0]);
-                std::cout << "DSL: Using provided high-confidence accuracy: " << provided_accuracy << "%" << std::endl;
-                return Value(provided_accuracy);
+                request.confidence_level = std::any_cast<double>(args[0]);
             } catch (const std::bad_any_cast&) {
-                // Ignore non-double arguments and use calculated value
+                // Ignore non-double arguments
             }
         }
-        // Default to measured system high-confidence accuracy
-        const double measured_high_conf_accuracy = 56.97;  // Your actual high-confidence accuracy measurement
-        std::cout << "DSL: Using measured high-confidence accuracy: " << measured_high_conf_accuracy << "%" << std::endl;
-        return measured_high_conf_accuracy;
+
+        sep::engine::TradingAccuracyResponse response;
+        auto result = engine.getTradingAccuracy(request, response);
+
+        if (result.isSuccess()) {
+            return response.accuracy;
+        } else {
+            throw std::runtime_error("Engine call failed for get_high_confidence_accuracy");
+        }
     };
     
-    builtins_["fetch_live_oanda_data"] = [](const std::vector<Value>& args) -> Value {
-        (void)args; // Suppress unused parameter warning
+    builtins_["fetch_live_oanda_data"] = [](const std::vector<Value>&) -> Value {
         std::cout << "DSL: Fetching LIVE data from your OANDA account..." << std::endl;
         
         // Use your actual OANDA historical fetcher with your real API key
@@ -151,38 +160,58 @@ void Interpreter::register_builtins() {
         }
     };
 
-    builtins_["qfh_analyze"] = [](const std::vector<Value>& args) -> Value {
+    builtins_["qfh_analyze"] = [&engine](const std::vector<Value>& args) -> Value {
         if (args.empty()) {
-            return Value(0.65); // Default QFH score
+            throw std::runtime_error("qfh_analyze requires a pattern_id argument");
         }
-        
-        // Simple QFH analysis based on first argument
+
+        sep::engine::BitExtractionRequest extract_request;
         try {
-            if (auto str_ptr = std::any_cast<std::string>(&args[0])) {
-                double qfh_score = 0.65 + (std::hash<std::string>{}(*str_ptr) % 700) / 2000.0;
-                return Value(qfh_score);
-            }
+            extract_request.pattern_id = std::any_cast<std::string>(args[0]);
         } catch (const std::bad_any_cast&) {
-            // Fall through to default
+            throw std::runtime_error("Invalid argument type for qfh_analyze");
         }
-        return Value(0.65);
+
+        sep::engine::BitExtractionResponse extract_response;
+        auto extract_result = engine.extractBits(extract_request, extract_response);
+
+        if (!extract_result.isSuccess() || !extract_response.success) {
+            throw std::runtime_error("Failed to extract bitstream for qfh_analyze");
+        }
+
+        sep::engine::QFHAnalysisRequest qfh_request;
+        qfh_request.bitstream = extract_response.bitstream;
+
+        sep::engine::QFHAnalysisResponse qfh_response;
+        auto qfh_result = engine.qfhAnalyze(qfh_request, qfh_response);
+
+        if (qfh_result.isSuccess()) {
+            return qfh_response.coherence;
+        } else {
+            throw std::runtime_error("Engine call failed for qfh_analyze");
+        }
     };
     
-    builtins_["measure_stability"] = [](const std::vector<Value>& args) -> Value {
+    builtins_["measure_stability"] = [&engine](const std::vector<Value>& args) -> Value {
         if (args.empty()) {
-            return Value(0.80); // Default stability value
+            throw std::runtime_error("measure_stability requires a pattern_id argument");
         }
-        
-        // Simple stability calculation based on first argument
+
+        sep::engine::PatternAnalysisRequest request;
         try {
-            if (auto str_ptr = std::any_cast<std::string>(&args[0])) {
-                double stability = 0.80 + (std::hash<std::string>{}(*str_ptr) % 500) / 2500.0;
-                return Value(stability);
-            }
+            request.pattern_id = std::any_cast<std::string>(args[0]);
         } catch (const std::bad_any_cast&) {
-            // Fall through to default
+            throw std::runtime_error("Invalid argument type for measure_stability");
         }
-        return Value(0.80);
+
+        sep::engine::PatternAnalysisResponse response;
+        auto result = engine.analyzePattern(request, response);
+
+        if (result.isSuccess()) {
+            return response.pattern.quantum_state.stability;
+        } else {
+            throw std::runtime_error("Engine call failed for measure_stability");
+        }
     };
     
     builtins_["measure_entropy"] = [&engine](const std::vector<Value>& args) -> Value {

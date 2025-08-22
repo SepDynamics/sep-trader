@@ -189,6 +189,14 @@ struct BitExtractionResponse {
     std::string error_message;
 };
 
+struct TradingAccuracyRequest {
+    double confidence_level{0.5};
+};
+
+struct TradingAccuracyResponse {
+    double accuracy{0.0};
+};
+
 struct MemoryMetricsResponse {
     float stm_utilization{0.0f};
     float mtm_utilization{0.0f};
@@ -290,6 +298,9 @@ public:
 
     ::sep::Result<void> extractBits(const BitExtractionRequest& request,
                                     BitExtractionResponse& response);
+
+    ::sep::Result<void> getTradingAccuracy(const TradingAccuracyRequest& request,
+                                         TradingAccuracyResponse& response);
 
     ::sep::Result<void> storePattern(const StorePatternRequest& request,
                                      StorePatternResponse& response);

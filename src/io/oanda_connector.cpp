@@ -1,5 +1,6 @@
-#include "util/nlohmann_json_safe.h"
 #include "io/oanda_connector.h"
+#include "io/oanda_constants.h"
+#include "util/nlohmann_json_safe.h"
 
 #include <chrono>
 #include <cstring>
@@ -16,19 +17,19 @@
 namespace sep {
 namespace connectors {
 
-OandaConnector::OandaConnector(const std::string& api_key, const std::string& account_id, bool sandbox)
-    : api_key_(api_key)
-    , account_id_(account_id)
-    , sandbox_(sandbox)
-    , curl_handle_(nullptr)
-    , last_request_time_(std::chrono::steady_clock::now()) {
-    
+OandaConnector::OandaConnector(const std::string& api_key, const std::string& account_id,
+                               bool sandbox)
+    : api_key_(api_key),
+      account_id_(account_id),
+      sandbox_(sandbox),
+      curl_handle_(nullptr),
+      last_request_time_(std::chrono::steady_clock::now()) {
     if (sandbox) {
-        base_url_ = "https://api-fxpractice.oanda.com";
-        stream_url_ = "https://stream-fxpractice.oanda.com";
+        base_url_ = sep::oanda_constants::SANDBOX_API_URL;
+        stream_url_ = sep::oanda_constants::SANDBOX_STREAM_URL;
     } else {
-        base_url_ = "https://api-fxtrade.oanda.com";
-        stream_url_ = "https://stream-fxtrade.oanda.com";
+        base_url_ = sep::oanda_constants::LIVE_API_URL;
+        stream_url_ = sep::oanda_constants::LIVE_STREAM_URL;
     }
 }
 
@@ -103,10 +104,9 @@ std::vector<OandaCandle> OandaConnector::getHistoricalData(
         }
         if (!to.empty()) {
             endpoint += "&to=" + to;
-        }
-        // Cannot use count with from/to parameters per OANDA API
+            // Cannot use count with from/to parameters per OANDA API
     } else {
-        endpoint += "&count=2880";  // Request 48 hours of M1 data
+        endpoint += "&count=" + std::to_string(sep::oanda_constants::DEFAULT_CANDLE_COUNT);
     }
 
     try {
@@ -133,7 +133,7 @@ std::vector<OandaCandle> OandaConnector::getHistoricalData(
     if (!candles.empty()) {
         saveToCache(cache_filename, candles);
     }
-
+    }
     return candles;
 }
 

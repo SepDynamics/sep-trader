@@ -1,7 +1,7 @@
 // SEP Trading System - API Service
 // Centralized API client for all backend communications
 
-const API_BASE_URL = window._env_?.REACT_APP_API_URL || 'http://localhost:5000';
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 
 class APIClient {
   constructor() {

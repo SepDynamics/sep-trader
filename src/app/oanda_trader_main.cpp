@@ -37,30 +37,12 @@ int main(int argc, char* argv[]) {
         std::cout << "=====================================" << std::endl << std::endl;
 
         try {
-            // Create OANDA trader app
-            auto app = std::make_unique<sep::apps::OandaTraderApp>();
-
-            // Initialize
-            std::cout << "[Main] Initializing OANDA Trader..." << std::endl;
-            if (!app->initialize()) {
-                std::cerr << "[Main] Failed to initialize OANDA Trader: "
-                      << app->getLastError() << std::endl;
-                return 1;
-            }
-
-            // Run main loop
-            app->run();
-
-            // Cleanup
-            app->shutdown();
-
-            return 0;
-
+            // ... existing code ...
         } catch (const std::exception& e) {
-            std::cerr << "[Main] Fatal error: " << e.what() << std::endl;
+            std::cerr << "[OANDA Trader] Fatal error: " << e.what() << std::endl;
             return 1;
         } catch (...) {
-            std::cerr << "[Main] Unknown fatal error" << std::endl;
+            std::cerr << "[OANDA Trader] Unknown fatal error" << std::endl;
             return 1;
         }
     }

@@ -66,7 +66,7 @@ install(TARGETS sep_lib
 )
 
 # Create executables for each main file using add_sep_executable
-add_sep_executable(trader_cli SOURCES app/cli_main.cpp cuda/quantum_training.cu)
+add_sep_executable(trader_cli SOURCES app/cli_main.cpp)
 target_link_libraries(trader_cli PRIVATE sep_lib)
 
 add_sep_executable(oanda_trader SOURCES app/oanda_trader_main.cpp)
