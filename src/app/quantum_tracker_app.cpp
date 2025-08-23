@@ -674,7 +674,7 @@ void QuantumTrackerApp::runTestDataSimulation() {
         engine.init(nullptr);
         
         // Create a pattern representing current market state
-        sep::quantum::compat::PatternData pattern;
+        sep::compat::PatternData pattern;
         strncpy(pattern.id, "price_tracker", sizeof(pattern.id) - 1);
         pattern.id[sizeof(pattern.id) - 1] = '\0';
         pattern.length = 1;
