@@ -10,6 +10,7 @@
 #include <cstdlib>
 #include <fstream>
 #include <sstream>
+#include <nlohmann/json.hpp>
 
 using namespace sep::train;
 
@@ -103,6 +104,30 @@ DataFetchResult WeeklyDataFetcher::fetchInstrument(const std::string& instrument
     
     auto start_fetch = std::chrono::high_resolution_clock::now();
     
+    // Support deterministic testing via mock response file
+    if (const char* mock_path = std::getenv("OANDA_MOCK_FILE")) {
+        std::ifstream mock_file(mock_path);
+        if (mock_file) {
+            try {
+                nlohmann::json j; mock_file >> j;
+                if (j.contains("candles") && j["candles"].is_array()) {
+                    result.candles_fetched = j["candles"].size();
+                    result.success = true;
+                } else {
+                    result.error_message = "Invalid mock data";
+                }
+            } catch (const std::exception& e) {
+                result.error_message = e.what();
+            }
+        } else {
+            result.error_message = "Cannot open mock file";
+        }
+        auto end_fetch = std::chrono::high_resolution_clock::now();
+        auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_fetch - start_fetch);
+        result.fetch_duration_seconds = duration.count() / 1000.0;
+        return result;
+    }
+
     // CRITICAL FIX: Replace fake simulation with real OANDA API call
     if (config_.oanda_api_key.empty() || config_.oanda_account_id.empty()) {
         result.error_message = "No OANDA credentials - using cached data instead";
@@ -206,9 +231,10 @@ bool WeeklyDataFetcher::validateCachedData(const std::string& instrument) const 
     return true;
 }
 
-std::string WeeklyDataFetcher::getCachePath(const std::string& instrument, 
+std::string WeeklyDataFetcher::getCachePath(const std::string& instrument,
                                           const std::string& granularity) const {
-    return "cache/weekly_data/" + instrument + "_" + granularity + ".json";
+    std::string base = config_.cache_dir.empty() ? "cache/weekly_data" : config_.cache_dir;
+    return base + "/" + instrument + "_" + granularity + ".json";
 }
 
 std::chrono::system_clock::time_point WeeklyDataFetcher::getStartTime() const {

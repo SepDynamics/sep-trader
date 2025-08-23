@@ -4,6 +4,8 @@
 #include "weekly_data_fetcher.hpp"
 #include <mutex>
 #include <cstdlib>
+#include <fstream>
+#include <nlohmann/json.hpp>
 
 namespace sep {
 namespace train {
@@ -83,15 +85,36 @@ DataFetchResult WeeklyDataFetcher::fetchInstrument(const std::string& instrument
     result.instrument = instrument;
     result.start_time = getStartTime();
     result.end_time = getEndTime();
-    result.success = true;  // Assume success for stub
-    result.candles_fetched = 10080; // Full week of M1 data (simulation)
     result.cache_path = getCachePath(instrument, "M1");
+
+    if (const char* mock_path = std::getenv("OANDA_MOCK_FILE")) {
+        std::ifstream mock_file(mock_path);
+        if (mock_file) {
+            try {
+                nlohmann::json j; mock_file >> j;
+                if (j.contains("candles") && j["candles"].is_array()) {
+                    result.candles_fetched = j["candles"].size();
+                    result.success = true;
+                } else {
+                    result.success = false;
+                    result.error_message = "Invalid mock data";
+                }
+            } catch (const std::exception& e) {
+                result.success = false;
+                result.error_message = e.what();
+            }
+        } else {
+            result.success = false;
+            result.error_message = "Cannot open mock file";
+        }
+    } else {
+        result.success = true;  // Assume success for stub
+        result.candles_fetched = 10080; // Simulated
+        // Simulate brief processing time
+        std::this_thread::sleep_for(std::chrono::milliseconds(50));
+    }
+
     result.fetch_duration_seconds = 0.1; // Simulated duration
-    result.error_message = "";
-    
-    // Simulate brief processing time
-    std::this_thread::sleep_for(std::chrono::milliseconds(50));
-    
     return result;
 }
 
@@ -112,9 +135,10 @@ bool WeeklyDataFetcher::validateCachedData(const std::string& /* instrument */) 
     return true;
 }
 
-std::string WeeklyDataFetcher::getCachePath(const std::string& instrument, 
+std::string WeeklyDataFetcher::getCachePath(const std::string& instrument,
                                           const std::string& granularity) const {
-    return "cache/weekly_data/" + instrument + "_" + granularity + ".json";
+    std::string base = config_.cache_dir.empty() ? "cache/weekly_data" : config_.cache_dir;
+    return base + "/" + instrument + "_" + granularity + ".json";
 }
 
 std::chrono::system_clock::time_point WeeklyDataFetcher::getStartTime() const {
