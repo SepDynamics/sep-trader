@@ -25,8 +25,8 @@ namespace pqxx {
         static constexpr const char* name() noexcept { return "time_point"; }
 
         // Provide constexpr flags for pqxx::nullness detection
-        inline static constexpr bool has_null = true;
-        inline static constexpr bool always_null = false;
+        static constexpr bool has_null = false;
+        static constexpr bool always_null = false;
 
         static bool is_null(const subject_type& obj) {
             // A time_point is never conceptually "null". If you use epoch as a sentinel, check here.
