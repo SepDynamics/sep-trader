@@ -10,15 +10,15 @@ TEST(QuantumProcessingServiceGuard, MisuseBeforeInit) {
 
 TEST(QuantumProcessingServiceGuard, MisuseAfterStop) {
     QuantumProcessingService svc;
-    EXPECT_TRUE(svc.initialize().isOk());
+    EXPECT_TRUE(svc.initialize().isSuccess());
     EXPECT_NO_THROW(svc.getAvailableAlgorithms());
-    EXPECT_TRUE(svc.shutdown().isOk());
+    EXPECT_TRUE(svc.shutdown().isSuccess());
     EXPECT_THROW(svc.getAvailableAlgorithms(), std::logic_error);
 }
 
 TEST(QuantumProcessingServiceGuard, IdempotentStop) {
     QuantumProcessingService svc;
-    EXPECT_TRUE(svc.initialize().isOk());
-    EXPECT_TRUE(svc.shutdown().isOk());
-    EXPECT_TRUE(svc.shutdown().isOk());
+    EXPECT_TRUE(svc.initialize().isSuccess());
+    EXPECT_TRUE(svc.shutdown().isSuccess());
+    EXPECT_TRUE(svc.shutdown().isSuccess());
 }

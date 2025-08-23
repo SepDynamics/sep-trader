@@ -17,7 +17,7 @@ public:
 class MockEnhancedMarketModelCache : public sep::cache::EnhancedMarketModelCache {
 public:
     MockEnhancedMarketModelCache() : sep::cache::EnhancedMarketModelCache(nullptr, nullptr) {}
-    MOCK_METHOD(std::vector<sep::Candle>, getRecentCandles, (const std::string& pair, int count), ());
+    MOCK_METHOD(std::vector<Candle>, getRecentCandles, (const std::string& pair, int count), ());
 };
 
 class MultiAssetFusionTest : public ::testing::Test {
@@ -36,7 +36,7 @@ protected:
 
 TEST_F(MultiAssetFusionTest, PositiveCorrelation) {
     // Feed known correlated sequences
-    std::vector<sep::Candle> candles1, candles2;
+    std::vector<Candle> candles1, candles2;
     for (int i = 0; i < 100; ++i) {
         double price = 1.0 + i * 0.01;
         candles1.push_back({.close = price, .time = std::to_string(i)});
@@ -54,7 +54,7 @@ TEST_F(MultiAssetFusionTest, PositiveCorrelation) {
 
 TEST_F(MultiAssetFusionTest, NegativeCorrelation) {
     // Feed inverse sequences
-    std::vector<sep::Candle> candles1, candles2;
+    std::vector<Candle> candles1, candles2;
     for (int i = 0; i < 100; ++i) {
         candles1.push_back({.close = 1.0 + i * 0.01, .time = std::to_string(i)});
         candles2.push_back({.close = 1.0 - i * 0.01, .time = std::to_string(i)});
@@ -71,7 +71,7 @@ TEST_F(MultiAssetFusionTest, NegativeCorrelation) {
 
 TEST_F(MultiAssetFusionTest, ZeroCorrelation) {
     // Feed random uncorrelated data
-    std::vector<sep::Candle> candles1, candles2;
+    std::vector<Candle> candles1, candles2;
     srand(0);
     for (int i = 0; i < 100; ++i) {
         candles1.push_back({.close = static_cast<double>(rand()) / RAND_MAX, .time = std::to_string(i)});

@@ -300,3 +300,85 @@ ConfigValueType stringToConfigValueType(const std::string& type_str) {
 }
 
 } // namespace sep::config
+
+// ===== Template Implementations =====
+namespace sep::config {
+
+template<typename T>
+T DynamicConfigManager::getValue(const std::string& key, const T& default_value) const {
+    std::lock_guard<std::mutex> lock(impl_->mutex_);
+    auto it = impl_->config_values.find(key);
+    if (it == impl_->config_values.end()) {
+        return default_value;
+    }
+    try {
+        return std::any_cast<T>(it->second);
+    } catch (...) {
+        return default_value;
+    }
+}
+
+template<typename T>
+std::optional<T> DynamicConfigManager::getValue(const std::string& key) const {
+    std::lock_guard<std::mutex> lock(impl_->mutex_);
+    auto it = impl_->config_values.find(key);
+    if (it == impl_->config_values.end()) {
+        return std::nullopt;
+    }
+    try {
+        return std::any_cast<T>(it->second);
+    } catch (...) {
+        return std::nullopt;
+    }
+}
+
+template<typename T>
+bool DynamicConfigManager::setValue(const std::string& key, const T& value, ConfigSource source) {
+    std::lock_guard<std::mutex> lock(impl_->mutex_);
+    std::any old_value;
+    ConfigSource old_source = ConfigSource::DEFAULT;
+    auto it = impl_->config_values.find(key);
+    if (it != impl_->config_values.end()) {
+        old_value = it->second;
+        old_source = impl_->config_sources[key];
+        if (configSourcePrecedence(source) < configSourcePrecedence(old_source)) {
+            return false;
+        }
+    }
+
+    impl_->config_values[key] = value;
+    impl_->config_sources[key] = source;
+
+    for (const auto& cb_pair : impl_->callbacks) {
+        const auto& prefix = cb_pair.second.first;
+        if (key.rfind(prefix, 0) == 0) {
+            ConfigChangeEvent evt;
+            evt.key = key;
+            evt.old_value = old_value;
+            evt.new_value = value;
+            evt.source = source;
+            evt.timestamp = std::chrono::system_clock::now();
+            cb_pair.second.second(evt);
+        }
+    }
+
+    return true;
+}
+
+// ===== Explicit Template Instantiations =====
+template std::string DynamicConfigManager::getValue(const std::string&, const std::string&) const;
+template int DynamicConfigManager::getValue(const std::string&, const int&) const;
+template double DynamicConfigManager::getValue(const std::string&, const double&) const;
+template bool DynamicConfigManager::getValue(const std::string&, const bool&) const;
+
+template std::optional<std::string> DynamicConfigManager::getValue(const std::string&) const;
+template std::optional<int> DynamicConfigManager::getValue(const std::string&) const;
+template std::optional<double> DynamicConfigManager::getValue(const std::string&) const;
+template std::optional<bool> DynamicConfigManager::getValue(const std::string&) const;
+
+template bool DynamicConfigManager::setValue(const std::string&, const std::string&, ConfigSource);
+template bool DynamicConfigManager::setValue(const std::string&, const int&, ConfigSource);
+template bool DynamicConfigManager::setValue(const std::string&, const double&, ConfigSource);
+template bool DynamicConfigManager::setValue(const std::string&, const bool&, ConfigSource);
+
+} // namespace sep::config

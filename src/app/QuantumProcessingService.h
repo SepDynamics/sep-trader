@@ -34,7 +34,7 @@ public:
     /**
      * Constructor
      */
-    QuantumProcessingService() : ServiceBase("QuantumProcessingService", "1.0") {}
+    QuantumProcessingService();
     
     /**
      * Destructor
@@ -68,7 +68,7 @@ public:
         const QuantumState& state,
         const std::map<std::string, double>& evolutionParameters) override;
     Result<QuantumState> runQuantumPipeline(const QuantumState& state) override;
-    std::map<std::string, std::string> getAvailableAlgorithms() const;
+    std::map<std::string, std::string> getAvailableAlgorithms() const override;
 
 protected:
     // ServiceBase interface implementation
