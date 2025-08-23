@@ -82,8 +82,9 @@ mkdir -p "$LOG_DIR" "$BUILD_DIR"
 
 MIN_PACKAGES=(
   build-essential cmake git gcc clang-tidy-15 clang-format-15 ninja-build
-  libspdlog-dev libfmt-dev libbenchmark-dev libgtest-dev 
+  libspdlog-dev libfmt-dev libbenchmark-dev libgtest-dev
   nlohmann-json3-dev pkg-config libhiredis-dev libglm-dev
+  libpqxx-dev
   libyaml-cpp-dev libimgui-dev libgl1-mesa-dev libglfw3-dev
   libcurl4-openssl-dev curl python3 python3-pip gdb
   libpipewire-0.3-dev libspa-0.2-dev libtbb-dev

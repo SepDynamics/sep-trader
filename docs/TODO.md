@@ -21,6 +21,8 @@ Begin work on **Priority 2: Real Multi-Asset Correlation Implementation** descri
 - `build.sh` failed with an unbound `LD_LIBRARY_PATH` when `set -u` was enabled. Export now defaults the variable using `${LD_LIBRARY_PATH:-}` to avoid the error.
 - Several core files included CUDA headers unconditionally, breaking non-CUDA builds. Wrapped CUDA includes and helpers with `SEP_USE_CUDA` guards and removed unnecessary includes in tests.
 - Documented missing system dependencies (`libpqxx-dev`, `libglm-dev`, `libyaml-cpp-dev`, `libhiredis-dev`) after build failures; ensure they are installed in development environments.
+- `install.sh` omitted `libpqxx-dev`, causing configure-time errors; package added to the installer to satisfy the pqxx check.
+- Linking currently fails with unresolved `dsl::runtime::Interpreter::get_global_variable` in unit tests; investigate DSL linkage or missing objects.
 - `src/app/enhanced_market_model_cache.cpp` referenced an undefined `engine2`, causing compilation to fail. Replaced it with the existing `engine` instance.
 - `src/core/remote_data_manager.cpp` passed `system_clock::time_point` directly to `pqxx::exec_params`, triggering `pqxx::nullness` constant-expression errors. Converted timestamps to ISO strings before query execution.
 
