@@ -8,19 +8,10 @@ ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update && apt-get install -y \
     lcov sudo gcovr build-essential gcc-14 g++-14 libstdc++-14-dev \
     cmake ninja-build pkg-config curl git python3 python3-pip postgresql-client \
-    libpq-dev libhiredis-dev libhwloc-dev libbenchmark-dev \
+    libpq-dev libpqxx-dev libhiredis-dev libhwloc-dev libbenchmark-dev \
     nlohmann-json3-dev libglm-dev libglfw3-dev libgl1-mesa-dev libfmt-dev libcurl4-openssl-dev libyaml-cpp-dev \
     autoconf automake libtool \
     && rm -rf /var/lib/apt/lists/*
-
-RUN git clone https://github.com/jtv/libpqxx.git /tmp/libpqxx && \
-    cd /tmp/libpqxx && \
-    git checkout 7.9.0 && \
-    ./configure --prefix=/usr --disable-documentation && \
-    make -j$(nproc) && \
-    make install && \
-    cd / && \
-    rm -rf /tmp/libpqxx
 
 # Prefer toolchain v14 by default
 RUN update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-14 200 \

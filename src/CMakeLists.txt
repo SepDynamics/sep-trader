@@ -14,13 +14,13 @@ else()
     message(WARNING "CUDA not found, building without CUDA")
 endif()
 
-# Gather all source files
+# Gather all source files (C++ only - no .c files)
 file(GLOB_RECURSE ALL_SOURCES
-    "app/*.cpp"  "app/*.c"
-    "core/*.cpp" "core/*.c"
-    "cuda/*.cpp" "cuda/*.c"
-    "io/*.cpp"   "io/*.c"
-    "util/*.cpp" "util/*.c"
+    "app/*.cpp"
+    "core/*.cpp"
+    "cuda/*.cpp"
+    "io/*.cpp"
+    "util/*.cpp"
 )
 if(USE_CUDA)
     file(GLOB_RECURSE CUDA_SOURCES

@@ -84,8 +84,8 @@ function(add_sep_library name)
         endif()
     endif()
     
-    # Set C++17 standard
-    target_compile_features(${name} PUBLIC cxx_std_17)
+    # Set C++20 standard (matching root CMakeLists.txt)
+    target_compile_features(${name} PUBLIC cxx_std_20)
 
     if(ARG_PCH_HEADER)
         target_precompile_headers(${name} PUBLIC ${ARG_PCH_HEADER})
@@ -107,7 +107,7 @@ function(add_sep_library name)
             /W3
             /O2
             /EHsc
-            /std:c
+            /std:c++20
             /bigobj
         )
     endif()
@@ -137,8 +137,8 @@ function(add_sep_executable name)
         target_link_libraries(${name} PRIVATE ${ARG_DEPENDENCIES})
     endif()
     
-    # Set C standard
-    target_compile_features(${name} PUBLIC cxx_std_17)
+    # Set C++20 standard (matching root CMakeLists.txt)
+    target_compile_features(${name} PUBLIC cxx_std_20)
     
     # Common compile options
     if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
@@ -153,7 +153,7 @@ function(add_sep_executable name)
             /W3
             /O2
             /EHsc
-            /std:c
+            /std:c++20
             /bigobj
         )
     endif()
