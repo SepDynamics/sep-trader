@@ -51,6 +51,7 @@ add_compile_definitions(
     _GLIBCXX_DEBUG_PEDANTIC=0  # Disable pedantic debug checks
     _GLIBCXX_CONCEPT_CHECKS=0  # Disable concept checks that might interfere
     GLM_FORCE_CUDA_VERSION=1100
+    _DISABLE_FPCLASSIFY_FUNCTIONS=1  # Ensure CUDA math headers avoid fpclassify macro conflicts
 )
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wpedantic -O3")
