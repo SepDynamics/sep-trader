@@ -123,6 +123,7 @@ tmp/
 # Configuration files (may contain secrets)
 *.env
 OANDA.env
+!frontend/.env
 *.key
 *.pem
 config/secrets/

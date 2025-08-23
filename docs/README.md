@@ -34,6 +34,40 @@ The `frontend/` directory hosts a React/TypeScript UI served by Nginx. In produc
 
 The web interface communicates with the backend API on port `5000` and the WebSocket service on `8765`.
 
+### Running the Web UI
+
+```
+cd frontend
+npm run setup   # install dependencies
+npm start       # launch development server
+```
+
+Runtime settings are configured via environment variables. In development, create `frontend/.env`:
+
+```
+REACT_APP_API_URL=http://localhost:5000
+REACT_APP_WS_URL=ws://localhost:8765
+```
+
+For production builds:
+
+```
+npm run build
+```
+
+The contents of `frontend/build/` can be served by Nginx. Set `REACT_APP_API_URL` and `REACT_APP_WS_URL` in the deployment environment to point at the live services.
+
+### API Usage Examples
+
+The frontend consumes several backend endpoints:
+
+```
+GET    /api/market-data            # latest market prices
+GET    /api/performance/current    # performance metrics
+GET    /api/system-status          # system health information
+POST   /api/place-order            # submit a trade order
+```
+
 ## Testing
 Unit and integration tests live under `tests/` and are driven by CMake. When source code or tests change, run:
 

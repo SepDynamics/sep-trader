@@ -9,6 +9,7 @@ import PerformanceMetrics from './components/PerformanceMetrics';
 import MarketData from './components/MarketData';
 import TradingSignals from './components/TradingSignals';
 import ConfigurationPanel from './components/ConfigurationPanel';
+import ConnectionStatusIndicator from './components/ConnectionStatusIndicator';
 import './styles/App.css';
 
 const App = () => {
@@ -77,6 +78,7 @@ const App = () => {
           </div>
           
           <div className="header-right">
+            <ConnectionStatusIndicator />
             <button
               className="theme-toggle"
               onClick={() => setDarkMode(!darkMode)}
