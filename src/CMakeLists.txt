@@ -84,3 +84,6 @@ target_link_libraries(sep_app PRIVATE sep_lib)
 
 add_sep_executable(quantum_pair_trainer SOURCES core/quantum_pair_trainer.cpp)
 target_link_libraries(quantum_pair_trainer PRIVATE sep_lib)
+
+add_sep_executable(sep SOURCES app/sep_main.cpp)
+target_link_libraries(sep PRIVATE sep_lib)

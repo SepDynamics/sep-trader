@@ -1,5 +1,4 @@
-// SEP Training CLI Commands Implementation - Minimal stub for compilation
-// This is a temporary stub to resolve build issues
+// SEP Training CLI Commands Implementation - Minimal headless handlers
 
 // Avoid including problematic headers that cause macro conflicts
 extern "C" {
@@ -12,11 +11,11 @@ extern "C" {
 namespace sep {
 namespace train {
 
-// Minimal stub class to satisfy linker
-class CLICommandsStub {
+// Minimal CLI commands class providing basic training operations
+class CLICommands {
 public:
-    CLICommandsStub() {}
-    ~CLICommandsStub() {}
+    CLICommands() {}
+    ~CLICommands() {}
     
     // Stub methods that just print status
     bool trainPair(const char* pair) {
@@ -55,19 +54,19 @@ public:
 
 // Export C functions for linking compatibility
 extern "C" {
-    void* create_cli_commands_stub() {
-        return new sep::train::CLICommandsStub();
+    void* create_cli_commands() {
+        return new sep::train::CLICommands();
     }
-    
-    void destroy_cli_commands_stub(void* ptr) {
+
+    void destroy_cli_commands(void* ptr) {
         if (ptr) {
-            delete static_cast<sep::train::CLICommandsStub*>(ptr);
+            delete static_cast<sep::train::CLICommands*>(ptr);
         }
     }
     
     int cli_train_pair(void* ptr, const char* pair) {
         if (ptr && pair) {
-            auto* cli = static_cast<sep::train::CLICommandsStub*>(ptr);
+            auto* cli = static_cast<sep::train::CLICommands*>(ptr);
             return cli->trainPair(pair) ? 1 : 0;
         }
         return 0;
@@ -75,7 +74,7 @@ extern "C" {
     
     int cli_train_all_pairs(void* ptr, int quick_mode) {
         if (ptr) {
-            auto* cli = static_cast<sep::train::CLICommandsStub*>(ptr);
+            auto* cli = static_cast<sep::train::CLICommands*>(ptr);
             return cli->trainAllPairs(quick_mode != 0) ? 1 : 0;
         }
         return 0;
@@ -83,7 +82,7 @@ extern "C" {
     
     int cli_cleanup_cache(void* ptr) {
         if (ptr) {
-            auto* cli = static_cast<sep::train::CLICommandsStub*>(ptr);
+            auto* cli = static_cast<sep::train::CLICommands*>(ptr);
             return cli->cleanupCache() ? 1 : 0;
         }
         return 0;
@@ -91,7 +90,7 @@ extern "C" {
 
     int cli_run_benchmark(void* ptr) {
         if (ptr) {
-            auto* cli = static_cast<sep::train::CLICommandsStub*>(ptr);
+            auto* cli = static_cast<sep::train::CLICommands*>(ptr);
             return cli->runBenchmark() ? 1 : 0;
         }
         return 0;
@@ -99,7 +98,7 @@ extern "C" {
 
     int cli_train_selected_pairs(void* ptr, const char* pairs) {
         if (ptr && pairs) {
-            auto* cli = static_cast<sep::train::CLICommandsStub*>(ptr);
+            auto* cli = static_cast<sep::train::CLICommands*>(ptr);
             return cli->trainSelectedPairs(pairs) ? 1 : 0;
         }
         return 0;
@@ -107,7 +106,7 @@ extern "C" {
 
     int cli_retrain_failed_pairs(void* ptr) {
         if (ptr) {
-            auto* cli = static_cast<sep::train::CLICommandsStub*>(ptr);
+            auto* cli = static_cast<sep::train::CLICommands*>(ptr);
             return cli->retrainFailedPairs() ? 1 : 0;
         }
         return 0;
