@@ -23,6 +23,7 @@ sys.path.append(os.path.dirname(__file__))
 from trading.risk import RiskManager, RiskLimits  # noqa: E402
 from oanda_connector import OandaConnector  # noqa: E402
 from websocket_service import start_websocket_server  # noqa: E402
+from database_connection import get_database_connection  # noqa: E402
 import subprocess
 
 # Correlation ID support
@@ -84,6 +85,14 @@ class TradingService:
         self.current_config = {}
         self.build_hash = os.environ.get("BUILD_HASH", "unknown")
         self.config_version = os.environ.get("CONFIG_VERSION", "unknown")
+
+        # Setup database connection
+        try:
+            self.database = get_database_connection()
+            logger.info("Database connection initialized")
+        except Exception as e:
+            logger.warning(f"Database connection unavailable: {e}")
+            self.database = None
 
         # Setup connectors and risk manager
         try:
@@ -296,6 +305,12 @@ class TradingService:
         """Main trading execution loop"""
         logger.info("📊 Executing trading loop...")
 
+        # Fetch fresh candle data periodically (every 5 minutes)
+        current_time = time.time()
+        if not hasattr(self, 'last_candle_fetch') or current_time - self.last_candle_fetch > 300:
+            self.fetch_candles_for_enabled_pairs()
+            self.last_candle_fetch = current_time
+
         # Check for new trading signals
         signals_file = "/app/data/trading_signals.json"
         if os.path.exists(signals_file):
@@ -364,6 +379,60 @@ class TradingService:
             logger.error(f"Error writing trade log: {e}")
 
         self.risk_manager.record(0.0)
+    
+    def fetch_and_store_candles(self, instrument: str, granularity: str = 'M5', count: int = 100) -> bool:
+        """Fetch candles from OANDA and store in Valkey database"""
+        if not self.oanda:
+            logger.warning("OANDA connector not available")
+            return False
+        
+        if not self.database:
+            logger.warning("Database not available")
+            return False
+        
+        try:
+            logger.info(f"Fetching {count} {granularity} candles for {instrument}")
+            candles = self.oanda.get_latest_candles(instrument, granularity, count)
+            
+            if candles:
+                success = self.database.store_candle_data(instrument, granularity, candles)
+                if success:
+                    logger.info(f"Successfully stored {len(candles)} candles for {instrument}")
+                    return True
+                else:
+                    logger.error(f"Failed to store candles for {instrument}")
+                    return False
+            else:
+                logger.warning(f"No candles received for {instrument}")
+                return False
+                
+        except Exception as e:
+            logger.error(f"Error fetching/storing candles for {instrument}: {e}")
+            return False
+    
+    def fetch_candles_for_enabled_pairs(self, granularity: str = 'M5', count: int = 100):
+        """Fetch and store candles for all enabled trading pairs"""
+        logger.info("Fetching candles for enabled trading pairs...")
+        
+        for pair in self.enabled_pairs:
+            try:
+                self.fetch_and_store_candles(pair, granularity, count)
+                time.sleep(1)  # Rate limiting - be respectful to OANDA API
+            except Exception as e:
+                logger.error(f"Error processing candles for {pair}: {e}")
+    
+    def get_stored_candles(self, instrument: str, granularity: str = 'M5', limit: int = 100) -> list[dict]:
+        """Retrieve stored candle data from database"""
+        if not self.database:
+            return []
+        
+        try:
+            candles = self.database.get_candle_data(instrument, granularity, limit)
+            logger.info(f"Retrieved {len(candles)} stored candles for {instrument}")
+            return candles
+        except Exception as e:
+            logger.error(f"Error retrieving stored candles for {instrument}: {e}")
+            return []
 
     def stop_trading(self):
         """Stop the trading service"""
@@ -545,6 +614,29 @@ class TradingAPIHandler(BaseHTTPRequestHandler):
                 response = self.trading_service.get_config(key)
                 self.wfile.write(json.dumps(response).encode())
 
+            elif path.startswith('/api/candles/'):
+                # Extract instrument from path: /api/candles/{instrument}
+                instrument = path.split('/api/candles/')[-1]
+                query_params = dict(param.split('=') for param in urlparse(self.path).query.split('&') if '=' in param) if urlparse(self.path).query else {}
+                
+                granularity = query_params.get('granularity', 'M5')
+                limit = int(query_params.get('limit', '100'))
+                
+                self.send_response(200)
+                self.send_header('Content-type', 'application/json')
+                self._set_cors_headers()
+                self.end_headers()
+                
+                candles = self.trading_service.get_stored_candles(instrument, granularity, limit)
+                response = {
+                    'instrument': instrument,
+                    'granularity': granularity,
+                    'candles': candles,
+                    'count': len(candles),
+                    'timestamp': datetime.now().isoformat()
+                }
+                self.wfile.write(json.dumps(response).encode())
+
             else:
                 self.send_response(404)
                 self._set_cors_headers()
@@ -598,6 +690,48 @@ class TradingAPIHandler(BaseHTTPRequestHandler):
                 self._set_cors_headers()
                 self.end_headers()
                 self.wfile.write(json.dumps({'pairs': pairs}).encode())
+
+            elif path == '/api/candles/fetch':
+                # Trigger manual candle data fetching
+                length = int(self.headers.get('Content-Length', 0))
+                body = self.rfile.read(length) if length else b'{}'
+                try:
+                    data = json.loads(body)
+                except json.JSONDecodeError:
+                    data = {}
+                
+                instrument = data.get('instrument')
+                granularity = data.get('granularity', 'M5')
+                count = data.get('count', 100)
+                
+                if instrument:
+                    success = self.trading_service.fetch_and_store_candles(instrument, granularity, count)
+                    status_code = 200 if success else 500
+                    response = {
+                        'success': success,
+                        'instrument': instrument,
+                        'granularity': granularity,
+                        'count': count,
+                        'timestamp': datetime.now().isoformat()
+                    }
+                else:
+                    # Fetch for all enabled pairs
+                    self.trading_service.fetch_candles_for_enabled_pairs(granularity, count)
+                    status_code = 200
+                    response = {
+                        'success': True,
+                        'action': 'fetch_all_pairs',
+                        'granularity': granularity,
+                        'count': count,
+                        'pairs': list(self.trading_service.enabled_pairs),
+                        'timestamp': datetime.now().isoformat()
+                    }
+                
+                self.send_response(status_code)
+                self.send_header('Content-type', 'application/json')
+                self._set_cors_headers()
+                self.end_headers()
+                self.wfile.write(json.dumps(response).encode())
 
             elif path == '/api/commands/execute':
                 length = int(self.headers.get('Content-Length', 0))

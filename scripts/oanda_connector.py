@@ -325,6 +325,129 @@ class OandaConnector:
             logger.error(f"Error closing position: {e}")
             return None
     
+    def get_candles(self, instrument: str, granularity: str = 'M5',
+                   count: int = 100, from_time: str = None, to_time: str = None) -> Optional[List[Dict]]:
+        """
+        Get historical candle data for an instrument
+        
+        Args:
+            instrument: Currency pair (e.g., 'EUR_USD')
+            granularity: Candle granularity ('S5', 'S10', 'S15', 'S30', 'M1', 'M2', 'M4', 'M5', 'M10', 'M15', 'M30', 'H1', 'H2', 'H3', 'H4', 'H6', 'H8', 'H12', 'D', 'W', 'M')
+            count: Number of candles to retrieve (max 5000)
+            from_time: Start time in RFC3339 format
+            to_time: End time in RFC3339 format
+            
+        Returns:
+            List of candle dictionaries or None
+        """
+        if not self.connected:
+            # Return mock candles for simulation
+            logger.info(f"🔄 SIMULATION: Getting {count} {granularity} candles for {instrument}")
+            mock_candles = []
+            base_time = datetime.now().timestamp()
+            
+            # Generate mock OHLC data
+            base_price = 1.0850 if 'EUR_USD' in instrument else 1.2650
+            for i in range(count):
+                time_offset = i * 300  # 5 minutes apart
+                candle_time = datetime.fromtimestamp(base_time - time_offset).strftime('%Y-%m-%dT%H:%M:%S.000000000Z')
+                
+                # Simple mock price movement
+                price_var = 0.001 * (i % 10 - 5) / 10
+                open_price = base_price + price_var
+                close_price = open_price + 0.0005 * ((i % 3) - 1)
+                high_price = max(open_price, close_price) + 0.0002
+                low_price = min(open_price, close_price) - 0.0002
+                
+                mock_candles.append({
+                    'time': candle_time,
+                    'mid': {
+                        'o': f"{open_price:.5f}",
+                        'h': f"{high_price:.5f}",
+                        'l': f"{low_price:.5f}",
+                        'c': f"{close_price:.5f}"
+                    },
+                    'volume': 100 + (i % 50)
+                })
+            
+            return mock_candles[::-1]  # Return in chronological order
+        
+        try:
+            url = f"{self.api_base}/v3/instruments/{instrument}/candles"
+            params = {
+                'granularity': granularity,
+                'count': min(count, 5000)  # OANDA max limit
+            }
+            
+            if from_time:
+                params['from'] = from_time
+            if to_time:
+                params['to'] = to_time
+            
+            response = self.session.get(url, params=params, timeout=30)
+            
+            if response.status_code == 200:
+                data = response.json()
+                candles = data.get('candles', [])
+                logger.info(f"✅ Retrieved {len(candles)} {granularity} candles for {instrument}")
+                return candles
+            else:
+                logger.error(f"Failed to get candles for {instrument}: {response.status_code} - {response.text}")
+                return None
+                
+        except Exception as e:
+            logger.error(f"Error getting candles for {instrument}: {e}")
+            return None
+    
+    def get_latest_candles(self, instrument: str, granularity: str = 'M5', count: int = 100) -> Optional[List[Dict]]:
+        """
+        Get the most recent candle data for an instrument
+        
+        Args:
+            instrument: Currency pair (e.g., 'EUR_USD')
+            granularity: Candle granularity
+            count: Number of recent candles to retrieve
+            
+        Returns:
+            List of recent candles or None
+        """
+        return self.get_candles(instrument, granularity, count)
+    
+    def get_instruments(self) -> Optional[List[Dict]]:
+        """
+        Get available trading instruments
+        
+        Returns:
+            List of instrument dictionaries or None
+        """
+        if not self.connected:
+            # Return mock instruments for simulation
+            logger.info("🔄 SIMULATION: Returning mock instruments")
+            return [
+                {'name': 'EUR_USD', 'displayName': 'EUR/USD', 'type': 'CURRENCY'},
+                {'name': 'GBP_USD', 'displayName': 'GBP/USD', 'type': 'CURRENCY'},
+                {'name': 'USD_JPY', 'displayName': 'USD/JPY', 'type': 'CURRENCY'},
+                {'name': 'AUD_USD', 'displayName': 'AUD/USD', 'type': 'CURRENCY'},
+                {'name': 'USD_CAD', 'displayName': 'USD/CAD', 'type': 'CURRENCY'},
+                {'name': 'USD_CHF', 'displayName': 'USD/CHF', 'type': 'CURRENCY'}
+            ]
+        
+        try:
+            url = f"{self.api_base}/v3/accounts/{self.account_id}/instruments"
+            response = self.session.get(url, timeout=10)
+            
+            if response.status_code == 200:
+                instruments = response.json()['instruments']
+                logger.info(f"✅ Retrieved {len(instruments)} trading instruments")
+                return instruments
+            else:
+                logger.error(f"Failed to get instruments: {response.status_code} - {response.text}")
+                return None
+                
+        except Exception as e:
+            logger.error(f"Error getting instruments: {e}")
+            return None
+    
     def get_trading_summary(self) -> Dict:
         """Get trading activity summary"""
         account_info = self.get_account_info()

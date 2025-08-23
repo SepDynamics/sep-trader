@@ -13,7 +13,7 @@ export default function usePolling<T>(fetcher: Fetcher<T>, interval: number): Po
   const [data, setData] = useState<T | null>(null);
   const [error, setError] = useState<Error | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
-  const intervalRef = useRef<NodeJS.Timer | null>(null);
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const execute = async () => {
     try {

@@ -15,7 +15,7 @@ class APIClient {
   async request(endpoint: string, options: RequestInit = {}) {
     const url = `${this.baseURL}${endpoint}`;
 
-    const config: RequestInit & { headers: Record<string, string> } = {
+    const config: RequestInit = {
       headers: {
         'Content-Type': 'application/json',
         ...(options.headers as Record<string, string> | undefined),
@@ -23,8 +23,8 @@ class APIClient {
       ...options,
     };
 
-    if (this.token) {
-      config.headers.Authorization = `Bearer ${this.token}`;
+    if (this.token && config.headers && typeof config.headers === 'object' && !Array.isArray(config.headers)) {
+      (config.headers as Record<string, string>).Authorization = `Bearer ${this.token}`;
     }
 
     const response = await fetch(url, config);
