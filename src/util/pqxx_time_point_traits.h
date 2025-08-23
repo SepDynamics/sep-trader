@@ -16,9 +16,11 @@ namespace pqxx {
         using subject_type = std::chrono::time_point<std::chrono::system_clock>;
         
         static constexpr const char* name() noexcept { return "time_point"; }
-        
-        static constexpr bool has_null() noexcept { return true; }
-        
+
+        // Provide constexpr flags for pqxx::nullness detection
+        static constexpr bool has_null = true;
+        static constexpr bool always_null = false;
+
         static bool is_null(const subject_type& obj) {
             // A time_point is never conceptually "null". If you use epoch as a sentinel, check here.
             return obj.time_since_epoch().count() == 0;
