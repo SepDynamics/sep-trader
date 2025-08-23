@@ -7,10 +7,10 @@
 #include <mutex>
 #include "util/nlohmann_json_safe.h"
 #include <optional>
+#include "util/pqxx_time_point_traits.h"  // Must precede pqxx includes
 #include <pqxx/pqxx>
 #include <thread>
 
-#include "util/pqxx_time_point_traits.h"  // Must come after pqxx include
 #include "core/sep_precompiled.h"
 // #include <compression/gzip.hpp> // Optional compression - not available
 
