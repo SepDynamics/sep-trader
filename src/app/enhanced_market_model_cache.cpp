@@ -288,10 +288,10 @@ bool EnhancedMarketModelCache::fetchAssetData(const std::string& instrument, std
             openPattern.quantum_state.stability = 0.6;
             openPattern.quantum_state.entropy = 0.3;
             
-            engine2.addPattern(openPattern);
-            engine2.evolvePatterns();
-            
-            const auto& metrics2 = engine2.computeMetrics();
+            engine.addPattern(openPattern);
+            engine.evolvePatterns();
+
+            const auto& metrics2 = engine.computeMetrics();
             
             if (!metrics2.empty()) {
                 const auto& metric = metrics2[0];
