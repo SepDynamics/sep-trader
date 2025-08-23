@@ -78,7 +78,7 @@ public:
                     "SELECT pair, timestamp, features, target, metadata "
                     "FROM training_data WHERE pair = $1 AND timestamp BETWEEN $2 AND $3 "
                     "ORDER BY timestamp",
-                    pair, start, end
+                    pair, to_iso_string(start), to_iso_string(end)
                 );
                 
                 for (const auto& row : result) {

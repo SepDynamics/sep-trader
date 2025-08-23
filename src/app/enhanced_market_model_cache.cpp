@@ -272,11 +272,13 @@ bool EnhancedMarketModelCache::fetchAssetData(const std::string& instrument, std
                 movement = (static_cast<double>(std::rand() % 20 - 10) * 0.00001);
             }
             base_price += movement;
-            
+
             // Use real pattern data for candle properties
             // Note: PatternMetricEngine should be accessed via engine facade, not instantiated directly
-            
+
             // Create patterns for open, high, low, close
+            sep::quantum::PatternMetricEngine engine2;
+            engine2.init(nullptr);
             sep::compat::PatternData openPattern;
             strncpy(openPattern.id, "open_price", sizeof(openPattern.id) - 1);
             openPattern.id[sizeof(openPattern.id) - 1] = '\0';

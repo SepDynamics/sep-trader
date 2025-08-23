@@ -20,6 +20,8 @@ Begin work on **Priority 2: Real Multi-Asset Correlation Implementation** descri
 - GCC-14 again complained about `pqxx::nullness` when `time_point` resolved through the `_V2::system_clock` inline namespace. Switched the specialization to use `std::chrono::sys_time` and marked the nullness flags `inline constexpr` to ensure constant evaluation.
 - `build.sh` crashed when `LD_LIBRARY_PATH` was unset under `set -u`. Added a default to prevent unbound variable errors during native builds.
 - Documented missing system dependencies (`libpqxx-dev`, `libglm-dev`, `libyaml-cpp-dev`, `libhiredis-dev`) after build failures; ensure they are installed in development environments.
+- `src/app/enhanced_market_model_cache.cpp` referenced an undeclared `engine2` `PatternMetricEngine`, causing compilation to fail. Added a properly initialized instance before use.
+- `fetch_training_data` in `src/core/remote_data_manager.cpp` passed `std::chrono::time_point` values directly to `pqxx::exec_params`, reintroducing `pqxx::nullness` constant-expression errors. Converted the parameters to ISO timestamp strings.
 
 ## Priority 1: Remove Fake Data Generation [COMPLETED]
 
