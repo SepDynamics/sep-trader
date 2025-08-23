@@ -12,7 +12,7 @@ if [ "${EUID:-$(id -u)}" -ne 0 ]; then
   fi
 fi
 
-$SUDO ln -sf /workspace/sep /sep
+$SUDO ln -sf /workspace/sep-trader /sep
 cd /sep
 
 # Reserved for future Python version selection if needed
