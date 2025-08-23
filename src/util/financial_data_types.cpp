@@ -15,12 +15,27 @@ std::chrono::time_point<std::chrono::system_clock> parseTimestamp(const std::str
     using namespace std::chrono;
 
     std::istringstream ss(timestamp_str);
-    sys_time<std::chrono::nanoseconds> tp;
-    ss >> std::chrono::parse("%Y-%m-%dT%H:%M:%S.%fZ", tp);
+    std::tm tm{};
+    char dot;
+    long fractional = 0;
+
+    ss >> std::get_time(&tm, "%Y-%m-%dT%H:%M:%S");
     if (ss.fail()) {
         throw std::runtime_error("Invalid timestamp: " + timestamp_str);
     }
-    return time_point_cast<system_clock::duration>(tp);
+
+    if (ss.peek() == '.') {
+        ss >> dot >> fractional;
+    }
+    // Consume trailing 'Z' if present
+    if (ss.peek() == 'Z') {
+        ss.get();
+    }
+
+    auto time = std::mktime(&tm);
+    auto tp = system_clock::from_time_t(time);
+    tp += std::chrono::nanoseconds(fractional);
+    return tp;
 }
 
 } // namespace sep::common

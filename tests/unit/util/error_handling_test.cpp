@@ -32,10 +32,26 @@ TEST_F(ErrorHandlingTest, Initialization) {
 // Test error reporting
 TEST_F(ErrorHandlingTest, ErrorReporting) {
     // Test reporting a system error
-    SEP_REPORT_SYSTEM_ERROR(SEP_ERROR_ERROR, EINVAL, "Test system error");
-    
+    SEP_ERROR_CONTEXT sys_ctx{};
+    sys_ctx.file = __FILE__;
+    sys_ctx.line = __LINE__;
+    sys_ctx.function = __func__;
+    sys_ctx.level = SEP_ERROR_ERROR;
+    sys_ctx.category = SEP_ERROR_CATEGORY_SYSTEM;
+    sys_ctx.error_code = EINVAL;
+    sys_ctx.message = "Test system error";
+    sep_error_report(sys_ctx);
+
     // Test reporting a CUDA error
-    SEP_REPORT_CUDA_ERROR(SEP_ERROR_ERROR, 1, "Test CUDA error");
+    SEP_ERROR_CONTEXT cuda_ctx{};
+    cuda_ctx.file = __FILE__;
+    cuda_ctx.line = __LINE__;
+    cuda_ctx.function = __func__;
+    cuda_ctx.level = SEP_ERROR_ERROR;
+    cuda_ctx.category = SEP_ERROR_CATEGORY_CUDA;
+    cuda_ctx.error_code = 1;
+    cuda_ctx.message = "Test CUDA error";
+    sep_error_report(cuda_ctx);
     
     // Test checking for NULL pointer
     int* ptr = nullptr;
@@ -79,7 +95,15 @@ TEST_F(ErrorHandlingTest, ErrorCallback) {
     sep_error_set_callback(callback);
     
     // Trigger an error
-    SEP_REPORT_SYSTEM_ERROR(SEP_ERROR_WARNING, EACCES, "Test callback");
+    SEP_ERROR_CONTEXT ctx{};
+    ctx.file = __FILE__;
+    ctx.line = __LINE__;
+    ctx.function = __func__;
+    ctx.level = SEP_ERROR_WARNING;
+    ctx.category = SEP_ERROR_CATEGORY_SYSTEM;
+    ctx.error_code = EACCES;
+    ctx.message = "Test callback";
+    sep_error_report(ctx);
     
     // Check that callback was called
     EXPECT_TRUE(callback_called);
