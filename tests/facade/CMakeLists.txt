@@ -1,0 +1,1 @@
+add_sep_test(facade_stream_test facade_stream_test.cpp)

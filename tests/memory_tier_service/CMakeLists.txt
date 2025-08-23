@@ -1,0 +1,1 @@
+add_sep_test(memory_tier_service_test memory_tier_service_test.cpp)

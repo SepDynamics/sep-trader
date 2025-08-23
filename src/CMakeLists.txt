@@ -3,27 +3,33 @@ project(sep_trader)
 
 add_definitions(-DGLM_COMPILER=0)
 
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-set(CMAKE_CUDA_STANDARD 17)
+set(CMAKE_CUDA_STANDARD 20)
 set(CMAKE_CUDA_STANDARD_REQUIRED ON)
 
-find_package(CUDA REQUIRED)
+find_package(CUDA)
+if(CUDA_FOUND)
+    set(USE_CUDA TRUE)
+else()
+    set(USE_CUDA FALSE)
+    message(WARNING "CUDA not found, building without CUDA")
+endif()
 
 # Gather all source files
 file(GLOB_RECURSE ALL_SOURCES
     "app/*.cpp"
-    "app/*.cu"
     "core/*.cpp"
-    "core/*.cu"
     "cuda/*.cpp"
-    "cuda/*.cu"
     "io/*.cpp"
-    "io/*.cu"
     "util/*.cpp"
-    "util/*.cu"
 )
+if(USE_CUDA)
+    file(GLOB_RECURSE CUDA_SOURCES
+        "app/*.cu" "core/*.cu" "cuda/*.cu" "io/*.cu" "util/*.cu")
+    list(APPEND ALL_SOURCES ${CUDA_SOURCES})
+endif()
 
 # Exclude facade_original.cpp and OANDA-related files from the list of sources
 list(FILTER ALL_SOURCES EXCLUDE REGEX ".*/facade_original\\.cpp$")
@@ -42,7 +48,7 @@ add_sep_library(sep_lib SOURCES ${LIB_SOURCES} PCH_HEADER core/sep_precompiled.h
 target_link_libraries(sep_lib
     PUBLIC
         sep_core_deps
-        CUDA::cudart
+        $<$<BOOL:${USE_CUDA}>:CUDA::cudart>
     PRIVATE
         sep_fetchcontent_deps
 )

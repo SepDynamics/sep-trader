@@ -4,6 +4,8 @@
 #include "core/result_types.h"
 #include "core/types.h"
 
+#include <cuda_runtime.h>
+
 #include "core/pattern.h"
 #include "candle_data.h"
 #include "util/memory_tier_manager.hpp"
@@ -342,6 +344,10 @@ public:
     ::sep::Result<void> configureGPUMemory(const GPUMemoryConfigRequest& request);
     ::sep::Result<void> defragmentGPUMemory();
     ::sep::Result<void> resetGPUMemoryStats();
+
+    // Stream-aware device memory helpers
+    void* dev_alloc(size_t bytes, cudaStream_t stream);
+    void  dev_free(void* ptr, cudaStream_t stream);
 
     // Engine configuration operations
     ::sep::Result<void> setEngineConfig(const ConfigSetRequest& request, ConfigResponse& response);

@@ -766,6 +766,20 @@ Result<void> EngineFacade::resetGPUMemoryStats() {
     return Result<void>(sep::Error(sep::Error::Code::Success));
 }
 
+void* EngineFacade::dev_alloc(size_t bytes, cudaStream_t stream) {
+    if (!impl_ || !impl_->gpu_memory_pool) {
+        return nullptr;
+    }
+    return impl_->gpu_memory_pool->allocate_async(bytes, stream);
+}
+
+void EngineFacade::dev_free(void* ptr, cudaStream_t stream) {
+    if (!impl_ || !impl_->gpu_memory_pool) {
+        return;
+    }
+    impl_->gpu_memory_pool->deallocate_async(ptr, stream);
+}
+
 Result<void> EngineFacade::processAdvancedBatch(const AdvancedBatchRequest& request,
                                                AdvancedBatchResponse& response) {
     if (!initialized_ || !impl_ || !impl_->batch_processor) {
