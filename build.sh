@@ -92,14 +92,12 @@ if [ "$NATIVE_BUILD" = true ] || [ "$SKIP_DOCKER" = true ] || ! "$DOCKER_BIN" in
     
 
     # Temporarily use system libraries for cmake/ninja to avoid GCC-11 library conflicts
-    export LD_LIBRARY_PATH="/usr/lib64:/lib64:$LD_LIBRARY_PATH"
+    export LD_LIBRARY_PATH="/usr/lib64:/lib64:${LD_LIBRARY_PATH:-}"
 
     # Configure with cmake, using system's default compilers and a global header fix.
     # This avoids brittle LD_PRELOAD hacks and hardcoded compiler paths.
     cmake .. -G Ninja \
         -DCMAKE_BUILD_TYPE=Release \
-        -DCMAKE_CXX_COMPILER=g++-14 \
-        -DCMAKE_C_COMPILER=gcc-14 \
         -DCMAKE_BUILD_WITH_INSTALL_RPATH=ON \
         -DCMAKE_EXPORT_COMPILE_COMMANDS=TRUE \
         -DCMAKE_CXX_STANDARD=20 \

@@ -75,9 +75,11 @@
 //==============================================================================
 // SEP CUDA Infrastructure
 //==============================================================================
+#ifdef SEP_USE_CUDA
 #include "cuda/stream.h"
 #include "kernels.h"
 #include "core/cuda_error.cuh"
+#endif
 
 //==============================================================================
 // SEP Utilities
@@ -95,4 +97,6 @@
 // SEP Global Configuration
 //==============================================================================
 #include "util/global_includes.h"
+#ifdef SEP_USE_CUDA
 #include "cuda/ticker_optimization_kernel.cuh"
+#endif

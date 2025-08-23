@@ -1,6 +1,5 @@
 #include <gtest/gtest.h>
 #include <string>
-#include <cuda_runtime_api.h>
 
 #include "core/result_types.h"
 
@@ -117,14 +116,16 @@ TEST_F(ResultTypesTest, FromSEPResultConversion) {
 }
 
 // Test fromCudaError conversion
+#ifdef SEP_USE_CUDA
 TEST_F(ResultTypesTest, FromCudaErrorConversion) {
     // Test successful conversion
     sep::Result<void> success_result = sep::fromCudaError(cudaSuccess);
     EXPECT_TRUE(success_result.isSuccess());
-    
+
     // Test error conversion
     sep::Result<void> error_result = sep::fromCudaError(cudaErrorInvalidValue, "Invalid value");
     EXPECT_TRUE(error_result.isError());
     EXPECT_EQ(error_result.error().code, sep::Error::Code::InvalidArgument);
     EXPECT_EQ(error_result.error().message, "Invalid value: invalid argument");
 }
+#endif

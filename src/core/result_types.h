@@ -3,7 +3,9 @@
 #include <variant>
 #include <optional>
 #include <string>
+#ifdef SEP_USE_CUDA
 #include <cuda_runtime_api.h>
+#endif
 
 namespace sep {
 
@@ -157,8 +159,9 @@ std::string errorToString(const Error& error);
 
 template<typename T>
 Result<T> fromSEPResult(SEPResult result, const std::string& message = "");
-
+#ifdef SEP_USE_CUDA
 Result<void> fromCudaError(cudaError_t err, const std::string& context = "");
+#endif
 
 // Additional result utilities for enum-based results
 namespace result {

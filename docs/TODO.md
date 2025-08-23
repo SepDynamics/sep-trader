@@ -18,6 +18,8 @@ Begin work on **Priority 2: Real Multi-Asset Correlation Implementation** descri
 - GCC-14 still rejected the specialization because it was included after `<pqxx/pqxx>`, instantiating `pqxx::nullness` with incomplete `constexpr` flags. Moved the specialization into a standalone header included before pqxx and generalized it for all `system_clock` durations, restoring the build.
 - Precompiled headers continued to include `<pqxx/pqxx>` before the custom traits, triggering `pqxx::nullness` constant-expression errors in `src/core/remote_data_manager.cpp`. Replaced direct `time_point` conversions with explicit ISO timestamp parsing/formatting to remove the dependency on `pqxx::string_traits`.
 - GCC-14 again complained about `pqxx::nullness` when `time_point` resolved through the `_V2::system_clock` inline namespace. Switched the specialization to use `std::chrono::sys_time` and marked the nullness flags `inline constexpr` to ensure constant evaluation.
+- `build.sh` failed with an unbound `LD_LIBRARY_PATH` when `set -u` was enabled. Export now defaults the variable using `${LD_LIBRARY_PATH:-}` to avoid the error.
+- Several core files included CUDA headers unconditionally, breaking non-CUDA builds. Wrapped CUDA includes and helpers with `SEP_USE_CUDA` guards and removed unnecessary includes in tests.
 
 ## Priority 1: Remove Fake Data Generation [COMPLETED]
 
