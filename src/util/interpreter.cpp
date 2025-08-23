@@ -7,6 +7,7 @@
 #include <iostream>
 #include <regex>
 #include <stdexcept>
+#include <vector>
 
 #include "core/facade.h"
 #include "core/pattern_metric_engine.h"
@@ -113,7 +114,7 @@ Interpreter::Interpreter() : environment_(&globals_), program_(nullptr) {
 void Interpreter::register_builtins() {
     auto& engine = sep::engine::EngineFacade::getInstance();
     // AGI Engine Bridge Functions - Simple implementations
-    builtins_["measure_coherence"] = [this, &engine](const std::vector<Value>& args) -> Value {
+    builtins_["engine::measure_coherence"] = [this, &engine](const std::vector<Value>& args) -> Value {
         if (args.empty()) {
             throw std::runtime_error("measure_coherence requires a pattern_id argument");
         }
@@ -136,7 +137,7 @@ void Interpreter::register_builtins() {
     };
     
     // REAL Trading Functions - Your actual working engine
-    builtins_["run_pme_testbed"] = [](const std::vector<Value>& args) -> Value {
+    builtins_["engine::run_pme_testbed"] = [](const std::vector<Value>& args) -> Value {
         std::cout << "DSL: Running REAL PME testbed analysis..." << std::endl;
         
         if (args.empty()) {
@@ -162,7 +163,7 @@ void Interpreter::register_builtins() {
         }
     };
     
-    builtins_["get_trading_accuracy"] = [this, &engine](const std::vector<Value>& args) -> Value {
+    builtins_["engine::get_trading_accuracy"] = [this, &engine](const std::vector<Value>& args) -> Value {
         sep::engine::TradingAccuracyRequest request;
         request.confidence_level = 0.5; // Default confidence level
         if (!args.empty()) {
@@ -183,7 +184,7 @@ void Interpreter::register_builtins() {
         }
     };
     
-    builtins_["get_high_confidence_accuracy"] = [this, &engine](const std::vector<Value>& args) -> Value {
+    builtins_["engine::get_high_confidence_accuracy"] = [this, &engine](const std::vector<Value>& args) -> Value {
         sep::engine::TradingAccuracyRequest request;
         request.confidence_level = 0.85; // High confidence level
         if (!args.empty()) {
@@ -2143,8 +2144,11 @@ void Interpreter::execute_pattern_decl(const ast::PatternDecl& decl) {
     environment_ = &pattern_env;
     
     // Define inputs in the pattern environment
-    for (const auto& input : decl.inputs) {
-        environment_->define(input, 0.0);
+    std::vector<Value> input_array;
+    input_array.resize(decl.inputs.size(), 0.0);
+    environment_->define("inputs", input_array);
+    for (size_t i = 0; i < decl.inputs.size(); ++i) {
+        environment_->define(decl.inputs[i], input_array[i]);
     }
     
     // If this pattern inherits from another pattern, find and execute it first
@@ -3059,40 +3063,35 @@ void Interpreter::visit_return_statement(const ast::ReturnStatement& node) {
 }
 
 void Interpreter::visit_import_statement(const ast::ImportStatement& node) {
-    std::cout << "Importing module: " << node.module_path << std::endl;
-    
-    // For now, just implement a basic file-based import system
-    // In a full implementation, this would parse and execute the imported file
-    // and bring the specified exports into the current environment
-    
+    const std::string prefix = node.module_path;
     if (!node.imports.empty()) {
-        std::cout << "Importing specific items: ";
-        for (const auto& import : node.imports) {
-            std::cout << import << " ";
+        for (const auto& name : node.imports) {
+            std::string full = prefix.empty() ? name : prefix + "::" + name;
+            auto it = builtins_.find(full);
+            if (it != builtins_.end()) {
+                environment_->define(name, it->second);
+            }
         }
-        std::cout << std::endl;
     } else {
-        std::cout << "Importing all exports from module" << std::endl;
+        for (const auto& [full_name, func] : builtins_) {
+            if (prefix.empty() || full_name.rfind(prefix + "::", 0) == 0) {
+                std::string alias = prefix.empty() ? full_name : full_name.substr(prefix.size() + 2);
+                environment_->define(alias, func);
+            }
+        }
     }
-    
-    // TODO: Implement actual module loading and namespace management
-    // This would involve:
-    // 1. Parse the module file
-    // 2. Execute it in an isolated environment
-    // 3. Extract the exported patterns/functions
-    // 4. Import them into the current environment
 }
 
 void Interpreter::visit_export_statement(const ast::ExportStatement& node) {
-    std::cout << "Exporting: ";
     for (const auto& export_name : node.exports) {
-        std::cout << export_name << " ";
+        try {
+            Value v = environment_->get(export_name);
+            auto func = std::any_cast<std::function<Value(const std::vector<Value>&)>>(v);
+            builtins_[export_name] = func;
+        } catch (const std::exception&) {
+            // Ignore non-function exports
+        }
     }
-    std::cout << std::endl;
-    
-    // TODO: Implement actual export tracking
-    // This would involve marking the specified variables/patterns/functions
-    // as available for import by other modules
 }
 
 // Variable access methods

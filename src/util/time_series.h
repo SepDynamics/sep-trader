@@ -1,9 +1,12 @@
 #pragma once
 
-namespace sep::dsl::stdlib {
+#include "util/compiler.h"
 
-class Runtime;
+namespace dsl::stdlib {
 
-void register_time_series(Runtime& runtime);
+using dsl::compiler::Context;
 
-}
+/// Register time series utilities with the compiler context
+void register_time_series(Context& context);
+
+} // namespace dsl::stdlib
