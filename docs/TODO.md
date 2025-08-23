@@ -7,6 +7,7 @@ Begin work on **Priority 2: Real Multi-Asset Correlation Implementation** descri
 - `serializeFusionResult` in `src/app/multi_asset_signal_fusion.cpp` had unescaped JSON braces, causing `fmt` to treat the format string as invalid. Escaped the outer braces to restore compilation.
 - `processAsset` implementation in `src/app/quantum_signal_bridge.cpp` used `QuantumIdentifiers` outside its namespace. Fully qualified the return type and initializer.
 - `src/core/cuda_walk_forward_validator.cu` failed to compile due to missing `_DISABLE_FPCLASSIFY_FUNCTIONS` macro. Added the macro to align with other CUDA modules.
+- `src/core/cuda_walk_forward_validator.cu` still produced `<cuda/std>` `fpclassify` errors until `__CUDA_INCLUDE_COMPILER_INTERNAL_HEADERS` was defined alongside `_DISABLE_FPCLASSIFY_FUNCTIONS`.
 
 ## Priority 1: Remove Fake Data Generation [COMPLETED]
 
