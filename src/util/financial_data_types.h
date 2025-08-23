@@ -49,6 +49,10 @@ struct OrderInfo {
     OrderStatus status{OrderStatus::PENDING};
 };
 
+// Parse an ISO 8601 timestamp in UTC (e.g. "2024-07-20T12:34:56.789000Z")
+// into a std::chrono::system_clock::time_point. Fractional seconds up to
+// nanosecond precision are supported. Throws std::runtime_error on invalid
+// input.
 std::chrono::time_point<std::chrono::system_clock> parseTimestamp(const std::string& timestamp_str);
 
 // Convert a time_point to nanoseconds since epoch

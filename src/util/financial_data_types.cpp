@@ -1,6 +1,8 @@
 #include "financial_data_types.h"
 #include <iomanip>
 #include <sstream>
+#include <stdexcept>
+#include <chrono>
 
 namespace sep::common {
 
@@ -10,10 +12,15 @@ int64_t time_point_to_nanoseconds(const std::chrono::time_point<std::chrono::sys
 }
 
 std::chrono::time_point<std::chrono::system_clock> parseTimestamp(const std::string& timestamp_str) {
-    std::tm tm = {};
-    std::stringstream ss(timestamp_str);
-    ss >> std::get_time(&tm, "%Y-%m-%dT%H:%M:%S.%fZ");
-    return std::chrono::system_clock::from_time_t(std::mktime(&tm));
+    using namespace std::chrono;
+
+    std::istringstream ss(timestamp_str);
+    sys_time<std::chrono::nanoseconds> tp;
+    ss >> std::chrono::parse("%Y-%m-%dT%H:%M:%S.%fZ", tp);
+    if (ss.fail()) {
+        throw std::runtime_error("Invalid timestamp: " + timestamp_str);
+    }
+    return time_point_cast<system_clock::duration>(tp);
 }
 
 } // namespace sep::common

@@ -24,6 +24,7 @@ struct DataFetchConfig {
     int history_days;               // Number of days to fetch
     bool compress_data;             // Compress stored data
     int parallel_fetchers;          // Number of concurrent fetch threads
+    std::string cache_dir;          // Base directory for cached candles/volume
 };
 
 struct DataFetchResult {
