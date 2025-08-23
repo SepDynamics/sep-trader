@@ -195,6 +195,20 @@ class TradingService:
                 'timestamp': datetime.now().isoformat()
             }
 
+    def get_trading_signals(self) -> dict:
+        """Return latest trading signals from engine output"""
+        signals_file = "/app/data/trading_signals.json"
+        try:
+            if os.path.exists(signals_file):
+                with open(signals_file, 'r', encoding='utf-8') as f:
+                    data = json.load(f)
+                if isinstance(data, dict):
+                    return data
+                return {'signals': data}
+        except Exception as e:
+            logger.error(f"Error reading trading signals: {e}")
+        return {'signals': []}
+
     def get_config(self, key: str = None) -> dict:
         """Get configuration values"""
         if key:
@@ -506,6 +520,14 @@ class TradingAPIHandler(BaseHTTPRequestHandler):
                 self._set_cors_headers()
                 self.end_headers()
                 response = self.trading_service.get_performance_current()
+                self.wfile.write(json.dumps(response).encode())
+
+            elif path == '/api/signals':
+                self.send_response(200)
+                self.send_header('Content-type', 'application/json')
+                self._set_cors_headers()
+                self.end_headers()
+                response = self.trading_service.get_trading_signals()
                 self.wfile.write(json.dumps(response).encode())
 
             elif path.startswith('/api/config'):
