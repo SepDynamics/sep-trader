@@ -47,7 +47,8 @@
   "devDependencies": {
     "@types/styled-components": "^5.1.26",
     "eslint-config-react-app": "^7.0.1",
-    "react-scripts": "^5.0.1"
+    "react-scripts": "^5.0.1",
+    "typescript": "^5.3.3"
   },
   "proxy": "http://localhost:8080"
 }
