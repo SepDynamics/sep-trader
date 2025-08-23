@@ -1,6 +1,6 @@
 #pragma once
-#include "stubs.hpp"
 #include "pattern.hpp"
+#include "stubs.hpp"  // This includes the real implementations
 #include <random>
 #include <vector>
 #include <string>

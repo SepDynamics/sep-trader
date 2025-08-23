@@ -507,4 +507,92 @@ __device__ void calculateWindowStats(
     }
 }
 
+// Device management function implementations
+cudaError_t initializeCudaDevice(CudaContext& context, int device_id) {
+    cudaError_t error = cudaSuccess;
+    
+    // Set device
+    error = cudaSetDevice(device_id);
+    if (error != cudaSuccess) {
+        CUDA_CERR("[CUDA] Failed to set device %d: %s\n", device_id, cudaGetErrorString(error));
+        return error;
+    }
+    
+    // Create CUDA stream
+    error = cudaStreamCreate(&context.stream);
+    if (error != cudaSuccess) {
+        CUDA_CERR("[CUDA] Failed to create stream: %s\n", cudaGetErrorString(error));
+        return error;
+    }
+    
+    // Allocate device memory for tick data
+    error = cudaMalloc(&context.d_ticks, MAX_TICK_HISTORY * sizeof(TickData));
+    if (error != cudaSuccess) {
+        CUDA_CERR("[CUDA] Failed to allocate device memory for ticks: %s\n", cudaGetErrorString(error));
+        cudaStreamDestroy(context.stream);
+        return error;
+    }
+    
+    // Allocate device memory for hourly results
+    error = cudaMalloc(&context.d_hourly_results, MAX_CALCULATION_WINDOWS * sizeof(WindowResult));
+    if (error != cudaSuccess) {
+        CUDA_CERR("[CUDA] Failed to allocate device memory for hourly results: %s\n", cudaGetErrorString(error));
+        cudaFree(context.d_ticks);
+        cudaStreamDestroy(context.stream);
+        return error;
+    }
+    
+    // Allocate device memory for daily results
+    error = cudaMalloc(&context.d_daily_results, MAX_CALCULATION_WINDOWS * sizeof(WindowResult));
+    if (error != cudaSuccess) {
+        CUDA_CERR("[CUDA] Failed to allocate device memory for daily results: %s\n", cudaGetErrorString(error));
+        cudaFree(context.d_ticks);
+        cudaFree(context.d_hourly_results);
+        cudaStreamDestroy(context.stream);
+        return error;
+    }
+    
+    // Mark context as initialized
+    context.initialized = true;
+    
+    printf("[CUDA] Device %d initialized successfully\n", device_id);
+    return cudaSuccess;
+}
+
+cudaError_t cleanupCudaDevice(CudaContext& context) {
+    if (!context.initialized) {
+        return cudaSuccess;
+    }
+    
+    cudaError_t error = cudaSuccess;
+    
+    // Free device memory
+    if (context.d_ticks) {
+        cudaFree(context.d_ticks);
+        context.d_ticks = nullptr;
+    }
+    
+    if (context.d_hourly_results) {
+        cudaFree(context.d_hourly_results);
+        context.d_hourly_results = nullptr;
+    }
+    
+    if (context.d_daily_results) {
+        cudaFree(context.d_daily_results);
+        context.d_daily_results = nullptr;
+    }
+    
+    // Destroy CUDA stream
+    if (context.stream) {
+        error = cudaStreamDestroy(context.stream);
+        context.stream = nullptr;
+    }
+    
+    // Mark context as uninitialized
+    context.initialized = false;
+    
+    printf("[CUDA] Device cleaned up successfully\n");
+    return error;
+}
+
 } // namespace sep::apps::cuda

@@ -59,7 +59,8 @@ if(BUILD_TESTING)
         # Set RPATH to include the directory where TBB is built
         set_target_properties(${name} PROPERTIES
             BUILD_WITH_INSTALL_RPATH TRUE
-            INSTALL_RPATH "$ORIGIN/../../../gnu_11.4_cxx20_64_release"
+            INSTALL_RPATH "${CMAKE_BINARY_DIR}/gnu_14.2_cxx20_64_release:$ORIGIN/../../../gnu_14.2_cxx20_64_release"
+            BUILD_RPATH "${CMAKE_BINARY_DIR}/gnu_14.2_cxx20_64_release"
             INSTALL_RPATH_USE_LINK_PATH TRUE
         )
         

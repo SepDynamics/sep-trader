@@ -1,4 +1,5 @@
 #include "evolution_trainer.hpp"
+#include "training_session.hpp"
 #include <random>
 
 namespace sep::testbed {

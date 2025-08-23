@@ -27,8 +27,24 @@ double TrainingSession::run_epoch(const std::vector<int>& corpus) {
     std::uniform_real_distribution<double> dist(0.0, 0.1);
     double total = 0.0;
     for (auto& p : patterns_) {
-        engine_.process(p.mask);
-        processor_.analyze(p.mask);
+        // Convert uint64_t mask to uint8_t for QFH processor
+        std::vector<uint8_t> bitstream;
+        for (uint64_t val : p.mask) {
+            // Convert uint64_t to bytes
+            for (int i = 0; i < 8; ++i) {
+                bitstream.push_back(static_cast<uint8_t>((val >> (i * 8)) & 0xFF));
+            }
+        }
+        
+        // Use real QFH interface
+        auto qfh_result = processor_.analyze(bitstream);
+        
+        // Use real engine facade interface (simplified for testbed)
+        sep::engine::PatternProcessRequest request;
+        sep::engine::PatternProcessResponse response;
+        request.context_id = "testbed";
+        auto result = engine_.processPatterns(request, response);
+        
         double delta = dist(rng_);
         p.fitness += delta;
         total += delta;

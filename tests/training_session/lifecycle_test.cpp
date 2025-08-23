@@ -4,8 +4,9 @@
 #include "../../_sep/testbed/evolution/stubs.hpp"
 
 TEST(TrainingSession, LifecycleWritesArtifactsAndFreesResources) {
-    sep::engine::EngineFacade engine;
-    sep::quantum::QFHBasedProcessor proc;
+    auto& engine = sep::engine::EngineFacade::getInstance();
+    sep::quantum::QFHOptions qfh_options;
+    sep::quantum::QFHBasedProcessor proc(qfh_options);
     sep::testbed::TrainingSession session(engine, proc, 42);
     session.init();
     std::vector<int> corpus{1};

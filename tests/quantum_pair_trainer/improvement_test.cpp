@@ -4,8 +4,9 @@
 #include "../../_sep/testbed/evolution/stubs.hpp"
 
 TEST(QuantumPairTrainer, FitnessImprovesAfterEpochs) {
-    sep::engine::EngineFacade engine;
-    sep::quantum::QFHBasedProcessor proc;
+    auto& engine = sep::engine::EngineFacade::getInstance();
+    sep::quantum::QFHOptions qfh_opts{};
+    sep::quantum::QFHBasedProcessor proc(qfh_opts);
     sep::testbed::TrainingSession session(engine, proc, 123);
     session.init();
     std::vector<int> corpus{1,0,1,0};

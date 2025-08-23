@@ -71,4 +71,5 @@ cudaError_t calculateForwardWindowsCuda(
     ForwardWindowResult* results, size_t result_count,
     uint64_t window_size_ns);
 
+
 } // namespace sep::apps::cuda

@@ -1,8 +1,14 @@
 #pragma once
-#include "training_session.hpp"
 #include "lineage.hpp"
+#include "pattern.hpp"
+#include <vector>
+#include <string>
 
 namespace sep::testbed {
+
+// Forward declare TrainingSession to avoid circular include
+class TrainingSession;
+
 class EvolutionTrainer {
 public:
     explicit EvolutionTrainer(TrainingSession& session);
