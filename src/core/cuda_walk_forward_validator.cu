@@ -1,6 +1,7 @@
 #include "core/cuda_walk_forward_validator.hpp"
 #include <cuda_runtime.h>
 #include <device_launch_parameters.h>
+#include <cmath>  // Include cmath after the macros are defined
 
 namespace sep::validation::cuda
 {

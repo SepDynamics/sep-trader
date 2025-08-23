@@ -7,8 +7,11 @@
 #define GLM_COMPILER GLM_COMPILER_CUDA75
 #include <glm/glm.hpp>
 */
+// Disable fpclassify functions that cause conflicts with CUDA internal headers
+#define _DISABLE_FPCLASSIFY_FUNCTIONS 1
+#define __CUDA_INCLUDE_COMPILER_INTERNAL_HEADERS 1
 
-#include "constants.h"
+#include "core/constants.h"
 
 namespace sep::cuda {
 #if !defined(__CUDACC__)

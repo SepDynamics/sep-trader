@@ -1,4 +1,9 @@
 // CRITICAL: For CUDA compilation, include our special CUDA header fix first
+
+// Disable fpclassify functions that cause conflicts with CUDA internal headers
+#define _DISABLE_FPCLASSIFY_FUNCTIONS 1
+#define __CUDA_INCLUDE_COMPILER_INTERNAL_HEADERS 1
+
 #include "util/global_includes.h"
 #include "cuda_prerequisites.h"
 

@@ -3,10 +3,11 @@
 #include <device_launch_parameters.h>
 
 // Removed <array> include to fix CUDA compilation issue
+// Removed <cmath> include to fix fpclassify errors
 #include <cub/cub.cuh>
 #include <iostream>
 
-#include "tick_cuda_kernels.cuh"
+#include "app/tick_cuda_kernels.cuh"
 
 namespace sep::apps::cuda {
 
@@ -72,8 +73,8 @@ __global__ void calculateRollingWindowsKernel(
                 variance_sum += diff * diff;
             }
         }
-        
-        result.volatility = sqrt(variance_sum / valid_ticks);
+
+        result.volatility = std::sqrt(variance_sum / valid_ticks);
         result.price_change = last_price - first_price;
         result.pip_change = result.price_change * 10000.0; // Convert to pips
     }
@@ -167,7 +168,7 @@ __global__ void calculateRollingWindowsOptimized(
                     }
                 }
             }
-            result.volatility = sqrt(variance_sum / valid_ticks);
+            result.volatility = std::sqrt(variance_sum / valid_ticks);
         }
     }
 }
@@ -254,8 +255,8 @@ __device__ void calculateWindowStats(
                 variance_sum += diff * diff;
             }
         }
-        
-        result.volatility = sqrt(variance_sum / valid_ticks);
+
+        result.volatility = std::sqrt(variance_sum / valid_ticks);
     } else {
         result.mean_price = 0.0;
         result.volatility = 0.0;

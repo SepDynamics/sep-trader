@@ -3,6 +3,7 @@
 #include <cstdlib>
 #include <ctime>
 #include <algorithm>
+#include "core/pattern_metric_engine.h"
 
 namespace sep::train {
 /**
@@ -577,8 +578,36 @@ void QuantumTrainingCoordinator::setErrorCallback(ErrorCallback callback) {
 void QuantumTrainingCoordinator::generateSessionId(char* session_id_out) const {
     // Simple session ID generation based on timestamp and random number
     uint64_t timestamp = static_cast<uint64_t>(time(nullptr));
-    uint32_t random = static_cast<uint32_t>(rand());
-    sprintf(session_id_out, "TRN_%lu_%08X", timestamp, random);
+    
+    // Use pattern engine to generate a more meaningful session ID
+    sep::quantum::PatternMetricEngine engine;
+    engine.init(nullptr);
+    
+    // Create a pattern representing the training session
+    sep::compat::PatternData pattern;
+    strncpy(pattern.id, "training_session", sizeof(pattern.id) - 1);
+    pattern.id[sizeof(pattern.id) - 1] = '\0';
+    pattern.size = 1;
+    pattern.attributes[0] = static_cast<float>(timestamp);
+    pattern.quantum_state.coherence = 0.8;
+    pattern.quantum_state.stability = 0.9;
+    pattern.quantum_state.entropy = 0.2;
+    
+    engine.addPattern(pattern);
+    engine.evolvePatterns();
+    
+    const auto& metrics = engine.computeMetrics();
+    uint32_t session_hash = static_cast<uint32_t>(timestamp);
+    if (!metrics.empty()) {
+        // Use metrics to generate a more meaningful hash
+        session_hash = static_cast<uint32_t>(
+            (metrics[0].coherence * 1000) +
+            (metrics[0].stability * 10000) +
+            (metrics[0].entropy * 100000)
+        );
+    }
+    
+    sprintf(session_id_out, "TRN_%lu_%08X", timestamp, session_hash);
 }
 
 bool QuantumTrainingCoordinator::initializeTrainingEnvironment(const char* /*pair_symbol*/) {

@@ -129,6 +129,73 @@ Result<void> EngineFacade::shutdown() {
     return Result<void>();
 }
 
+Result<void> EngineFacade::processPatterns(const PatternProcessRequest& request,
+                                           PatternProcessResponse& response) {
+    if (!initialized_ || !impl_ || !impl_->qfh_processor) {
+        return Result<void>(sep::Error(sep::Error::Code::NotInitialized, "Engine not initialized"));
+    }
+
+    std::cout << "DSL->Engine: Processing " << request.patterns.size() << " patterns" << std::endl;
+
+    try {
+        float total_coherence = 0.0f;
+        for (const auto& pattern : request.patterns) {
+            std::vector<uint8_t> bitstream;
+            sep::util::extract_bitstream_from_pattern_id(std::to_string(pattern.id), bitstream);
+
+            auto qfh_result = impl_->qfh_processor->analyze(bitstream);
+
+            quantum::Pattern processed_pattern = pattern;
+            processed_pattern.coherence = qfh_result.coherence;
+            processed_pattern.quantum_state.coherence = qfh_result.coherence;
+            processed_pattern.quantum_state.stability = 1.0f - qfh_result.rupture_ratio;
+
+            response.processed_patterns.push_back(processed_pattern);
+            total_coherence += qfh_result.coherence;
+        }
+
+        response.coherence_score = request.patterns.empty() ? 0.0f : total_coherence / request.patterns.size();
+        response.processing_complete = true;
+        impl_->request_counter++;
+        return Result<void>();
+    } catch (const std::exception& e) {
+        std::cout << "Error in pattern processing: " << e.what() << std::endl;
+        return Result<void>(sep::Error(sep::Error::Code::OperationFailed, "Processing error"));
+    }
+}
+
+Result<void> EngineFacade::processBatch(const BatchProcessRequest& request,
+                                        PatternProcessResponse& response) {
+    if (!initialized_ || !impl_ || !impl_->batch_processor) {
+        return Result<void>(sep::Error(sep::Error::Code::NotInitialized, "Engine not initialized"));
+    }
+
+    std::cout << "DSL->Engine: Processing batch of " << request.market_data.size() << " market data points for " << request.symbol << std::endl;
+
+    try {
+        // This is a simplified implementation. A real implementation would involve
+        // more complex logic to process the batch of market data and generate patterns.
+        // For now, we'll just create some dummy patterns.
+
+        float total_coherence = 0.0f;
+        for (const auto& data : request.market_data) {
+            quantum::Pattern pattern;
+            pattern.id = data.timestamp;
+            pattern.coherence = static_cast<float>(data.close) / 100000.0f;
+            response.processed_patterns.push_back(pattern);
+            total_coherence += pattern.coherence;
+        }
+
+        response.coherence_score = request.market_data.empty() ? 0.0f : total_coherence / request.market_data.size();
+        response.processing_complete = true;
+        impl_->request_counter++;
+        return Result<void>();
+    } catch (const std::exception& e) {
+        std::cout << "Error in batch processing: " << e.what() << std::endl;
+        return Result<void>(sep::Error(sep::Error::Code::OperationFailed, "Processing error"));
+    }
+}
+
 Result<void> EngineFacade::analyzePattern(const PatternAnalysisRequest& request,
                                          PatternAnalysisResponse& response) {
     if (!initialized_ || !impl_ || !impl_->qfh_processor || !impl_->pattern_cache) {
@@ -310,6 +377,85 @@ Result<void> EngineFacade::getTradingAccuracy(const TradingAccuracyRequest& requ
     } catch (const std::exception& e) {
         return Result<void>(sep::Error(sep::Error::Code::OperationFailed, e.what()));
     }
+}
+
+Result<void> EngineFacade::storePattern(const StorePatternRequest& request,
+                                        StorePatternResponse& response) {
+    if (!initialized_ || !impl_ || !impl_->pattern_cache) {
+        return Result<void>(sep::Error(sep::Error::Code::NotInitialized, "Engine not initialized"));
+    }
+
+    std::cout << "DSL->Engine: Storing pattern" << std::endl;
+
+    try {
+        std::string cache_key = std::to_string(request.pattern.id);
+        impl_->pattern_cache->storePattern(cache_key, request.pattern, 0);
+        response.success = true;
+        impl_->request_counter++;
+        return Result<void>();
+    } catch (const std::exception& e) {
+        std::cout << "Error in storing pattern: " << e.what() << std::endl;
+        response.success = false;
+        response.error_message = "Processing error";
+        return Result<void>(sep::Error(sep::Error::Code::OperationFailed, "Processing error"));
+    }
+}
+
+Result<void> EngineFacade::queryMemory(const MemoryQueryRequest& request,
+                                     std::vector<::sep::quantum::Pattern>& results) {
+    if (!initialized_ || !impl_ || !impl_->pattern_cache) {
+        return Result<void>(sep::Error(sep::Error::Code::NotInitialized, "Engine not initialized"));
+    }
+
+    std::cout << "DSL->Engine: Querying memory for " << request.query_id << std::endl;
+
+    try {
+        quantum::Pattern cached_pattern;
+        if (impl_->pattern_cache->retrievePattern(request.query_id, cached_pattern).isSuccess()) {
+            results.push_back(cached_pattern);
+        }
+        impl_->request_counter++;
+        return Result<void>();
+    } catch (const std::exception& e) {
+        std::cout << "Error in querying memory: " << e.what() << std::endl;
+        return Result<void>(sep::Error(sep::Error::Code::OperationFailed, "Processing error"));
+    }
+}
+
+Result<void> EngineFacade::getHealthStatus(HealthStatusResponse& response) {
+    if (!initialized_ || !impl_) {
+        return Result<void>(sep::Error(sep::Error::Code::NotInitialized));
+    }
+
+    response.engine_healthy = true;
+    response.quantum_systems_ready = impl_->qfh_processor != nullptr;
+    response.memory_systems_ready = impl_->pattern_cache != nullptr;
+    response.status_message = "All systems nominal.";
+    return Result<void>();
+}
+
+Result<void> EngineFacade::getMemoryMetrics(MemoryMetricsResponse& response) {
+    if (!initialized_ || !impl_ || !impl_->pattern_cache) {
+        return Result<void>(sep::Error(sep::Error::Code::NotInitialized));
+    }
+
+    auto cache_stats = impl_->pattern_cache->getMetrics();
+    response.cached_patterns = cache_stats.total_entries;
+    response.cache_hits = cache_stats.cache_hits;
+    response.cache_misses = cache_stats.cache_misses;
+    response.cache_hit_ratio = cache_stats.hit_ratio;
+
+    if (impl_->gpu_memory_pool) {
+        auto gpu_stats = impl_->gpu_memory_pool->get_stats();
+        response.gpu_total_allocated = gpu_stats.total_allocated;
+        response.gpu_current_usage = gpu_stats.current_usage;
+        response.gpu_peak_usage = gpu_stats.peak_usage;
+        response.gpu_fragmentation_ratio = gpu_stats.fragmentation_ratio;
+        response.gpu_allocations = gpu_stats.num_allocations;
+        response.gpu_deallocations = gpu_stats.num_deallocations;
+    }
+
+    return Result<void>();
 }
 
 // Streaming data operations implementation

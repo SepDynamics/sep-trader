@@ -291,6 +291,61 @@ void EngineConfig::initialize_param_definitions() {
         "debug.enable_profiling", ConfigCategory::DEBUG, false,
         "Enable performance profiling"
     );
+    
+    // DSL Interpreter parameters
+    param_definitions_["dsl.array_bounds_error_template"] = ConfigParam(
+        "dsl.array_bounds_error_template", ConfigCategory::DEBUG,
+        std::string("Array index {index} out of bounds (size: {size})"),
+        "Template for array bounds error messages"
+    );
+    
+    param_definitions_["dsl.vector_bounds_error_template"] = ConfigParam(
+        "dsl.vector_bounds_error_template", ConfigCategory::DEBUG,
+        std::string("Vector component index {index} out of bounds (size: {size})"),
+        "Template for vector component bounds error messages"
+    );
+    
+    param_definitions_["dsl.vector_component_names"] = ConfigParam(
+        "dsl.vector_component_names", ConfigCategory::DEBUG,
+        std::string("x,y,z,w"),
+        "Comma-separated list of vector component names"
+    );
+    
+    param_definitions_["dsl.for_loop_type_error"] = ConfigParam(
+        "dsl.for_loop_type_error", ConfigCategory::DEBUG,
+        std::string("For loop iterable must be an array"),
+        "Error message for invalid for loop iterable type"
+    );
+    
+    param_definitions_["dsl.array_bounds_error_template"] = ConfigParam(
+        "dsl.array_bounds_error_template", ConfigCategory::DEBUG,
+        std::string("Array index {index} out of bounds (size: {size})"),
+        "Error message template for array index out of bounds. Use {index} and {size} as placeholders."
+    );
+    
+    param_definitions_["dsl.vector_bounds_error_template"] = ConfigParam(
+        "dsl.vector_bounds_error_template", ConfigCategory::DEBUG,
+        std::string("Vector component index {index} out of bounds (size: {size})"),
+        "Error message template for vector component index out of bounds. Use {index} and {size} as placeholders."
+    );
+    
+    param_definitions_["dsl.vector_component_names"] = ConfigParam(
+        "dsl.vector_component_names", ConfigCategory::DEBUG,
+        std::string("x,y,z,w"),
+        "Comma-separated list of valid vector component names"
+    );
+    
+    param_definitions_["dsl.function_missing_arg_default"] = ConfigParam(
+        "dsl.function_missing_arg_default", ConfigCategory::DEBUG,
+        std::string("null"),
+        "Default value for missing function arguments (null, 0, false, or empty string)"
+    );
+    
+    param_definitions_["dsl.if_expr_unknown_type_default"] = ConfigParam(
+        "dsl.if_expr_unknown_type_default", ConfigCategory::DEBUG,
+        false,
+        "Default boolean value for unknown types in if expressions"
+    );
 }
 
 bool EngineConfig::is_value_in_range(const ConfigValue& value, const ConfigValue& min_val, const ConfigValue& max_val) const {

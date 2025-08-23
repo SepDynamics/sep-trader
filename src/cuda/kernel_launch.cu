@@ -1,5 +1,9 @@
-#include "kernel_launch.h"
+// Disable fpclassify functions that cause conflicts with CUDA internal headers
+#define _DISABLE_FPCLASSIFY_FUNCTIONS 1
+#define __CUDA_INCLUDE_COMPILER_INTERNAL_HEADERS 1
+
 #include "core/cuda_error.cuh"
+#include "cuda/kernel_launch.h"
 
 namespace sep {
 namespace cuda {

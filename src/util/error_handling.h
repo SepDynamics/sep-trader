@@ -100,13 +100,13 @@ void sep_error_set_callback(void (*callback)(SEP_ERROR_CONTEXT));
  */
 #define SEP_REPORT_SYSTEM_ERROR(level, error_code, message) \
     sep_error_report((SEP_ERROR_CONTEXT){ \
-        .file = __FILE__, \
-        .line = __LINE__, \
-        .function = __func__, \
-        .level = (level), \
-        .category = SEP_ERROR_CATEGORY_SYSTEM, \
-        .error_code = (error_code), \
-        .message = (message) \
+        __FILE__, \
+        __LINE__, \
+        __func__, \
+        (level), \
+        SEP_ERROR_CATEGORY_SYSTEM, \
+        (error_code), \
+        (message) \
     })
 
 /**
@@ -114,13 +114,13 @@ void sep_error_set_callback(void (*callback)(SEP_ERROR_CONTEXT));
  */
 #define SEP_REPORT_CUDA_ERROR(level, error_code, message) \
     sep_error_report((SEP_ERROR_CONTEXT){ \
-        .file = __FILE__, \
-        .line = __LINE__, \
-        .function = __func__, \
-        .level = (level), \
-        .category = SEP_ERROR_CATEGORY_CUDA, \
-        .error_code = (error_code), \
-        .message = (message) \
+        __FILE__, \
+        __LINE__, \
+        __func__, \
+        (level), \
+        SEP_ERROR_CATEGORY_CUDA, \
+        (error_code), \
+        (message) \
     })
 
 /**
@@ -130,13 +130,13 @@ void sep_error_set_callback(void (*callback)(SEP_ERROR_CONTEXT));
     do { \
         if (condition) { \
             sep_error_report((SEP_ERROR_CONTEXT){ \
-                .file = __FILE__, \
-                .line = __LINE__, \
-                .function = __func__, \
-                .level = (level), \
-                .category = (category), \
-                .error_code = (error_code), \
-                .message = (message) \
+                __FILE__, \
+                __LINE__, \
+                __func__, \
+                (level), \
+                (category), \
+                (error_code), \
+                (message) \
             }); \
             return (error_code); \
         } \

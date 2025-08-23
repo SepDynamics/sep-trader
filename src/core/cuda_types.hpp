@@ -6,7 +6,7 @@
 #include <memory>
 #include <string>
 #include <vector>
-#include "error_handler.h"
+#include "core/result_types.h"
 
 namespace sep::cuda {
 

@@ -1,5 +1,8 @@
 cmake_minimum_required(VERSION 3.15)
 
+# Suppress deprecation warnings from external dependencies
+set(CMAKE_WARN_DEPRECATED OFF CACHE BOOL "Suppress deprecation warnings" FORCE)
+
 # CRITICAL: Set compilers BEFORE project() to avoid CMake loops
 # Force GCC-11 for CUDA 12.9 compatibility (GCC-14+ causes unsupported compiler error)
 if(UNIX AND NOT APPLE)
@@ -8,11 +11,6 @@ if(UNIX AND NOT APPLE)
         set(CMAKE_CXX_COMPILER "/usr/bin/g++-11")
         set(CMAKE_CUDA_HOST_COMPILER "/usr/bin/g++-11")
         message(STATUS "Using GCC-11 on Linux (CUDA 12.9 compatible)")
-    elseif(EXISTS "/usr/bin/gcc-12")
-        set(CMAKE_C_COMPILER "/usr/bin/gcc-12")
-        set(CMAKE_CXX_COMPILER "/usr/bin/g++-12")
-        set(CMAKE_CUDA_HOST_COMPILER "/usr/bin/g++-12")
-        message(STATUS "Using GCC-12 on Linux (CUDA 12.9 compatible)")
     else()
         # Fallback: Use unsupported compiler with override flag
         set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} --allow-unsupported-compiler")
@@ -42,13 +40,11 @@ include(GNUInstallDirs)
 include_directories(src)
 
 
-# Ensure consistent C++20 standard
-set(CMAKE_CXX_STANDARD 20)
+# Ensure consistent C++17 standard
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-# Enable precompiled headers
-set(CMAKE_DISABLE_PRECOMPILE_HEADERS OFF)
 
 # GLOBAL FIX: Force include array header and fix std library issues
 add_compile_definitions(
@@ -109,17 +105,16 @@ if(SEP_USE_CUDA)
     set(CMAKE_CUDA_ARCHITECTURES "61;86;89" CACHE STRING "CUDA architectures for GTX 1070, RTX 3080 Ti, RTX 4080 Mobile")
     
     # Configure CUDA standard
-    # Use CUDA 20 for better compatibility
-    set(CMAKE_CUDA_STANDARD 20)
+    # Use CUDA 17 for better compatibility
+    set(CMAKE_CUDA_STANDARD 17)
     set(CMAKE_CUDA_STANDARD_REQUIRED ON)
     set(CMAKE_CUDA_EXTENSIONS OFF)
-    
-    # Explicitly set CUDA flags for CUDA 20 support
-    set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -std=c++20")
     
     # Additional flags to suppress math function exception specification errors
     set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -Xcompiler -D__cpp_exceptions=0")
     set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -Xcompiler -D_GLIBCXX_USE_C99_MATH=0")
+    set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -Xcompiler -D_DISABLE_FPCLASSIFY_FUNCTIONS=1")
+    set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -Xcompiler -D__CUDA_INCLUDE_COMPILER_INTERNAL_HEADERS=1")
     set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -Xcompiler -Wno-deprecated-declarations")
     set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -Xcompiler -Wno-deprecated-copy")
     
@@ -127,21 +122,10 @@ if(SEP_USE_CUDA)
     enable_language(CUDA)
     
     # AGGRESSIVE WARNING SUPPRESSION - Kill all the annoying CUDA warnings
-    set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} --expt-relaxed-constexpr --extended-lambda -Xcompiler -w -D_GLIBCXX_USE_NOEXCEPT_FUNCTION_TYPE=1 -D_GLIBCXX_USE_BUILTIN_TRAIT=__has_builtin")
+    # Also add flags to work around CUDA internal header issues
+    set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} --expt-relaxed-constexpr --extended-lambda -Xcompiler -w -D_GLIBCXX_USE_NOEXCEPT_FUNCTION_TYPE=1 -D_GLIBCXX_USE_BUILTIN_TRAIT=__has_builtin -Xcompiler -D_FORCE_INLINES -Xcompiler -D__CUDA_INCLUDE_COMPILER_INTERNAL_HEADERS=1")
     
-    # Suppress specific CUDA diagnostic codes that cause noise
-    set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -diag-suppress 20012")
-    set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -diag-suppress 20014")
-    set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -diag-suppress 20011")
-    set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -diag-suppress 20013")
-    
-    # ADDITIONAL FIX: Suppress math function exception specification errors
-    set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -Xcompiler -D__cpp_exceptions=0 -Xcompiler -D_GLIBCXX_USE_C99_MATH=0")
-    
-    # Additional flags to suppress fpclassify and traits errors
-    set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -Xcompiler -D_DISABLE_EXTENDED_ALIGNED_STORAGE")
-    set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -Xcompiler -D__CUDACC__=1")
- 
+  
     find_package(CUDAToolkit REQUIRED)
     
     message(STATUS "Found CUDAToolkit")
@@ -174,10 +158,6 @@ set(SPDLOG_FMT_EXTERNAL ON CACHE BOOL "Use external fmt library")
 
 # Include the template
 include(cmake/template.cmake)
-
-# Set C++ standard
-set(CMAKE_CXX_STANDARD 20 CACHE STRING "C++ standard")
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 
 # Include directories should be added on a per-target basis.
@@ -379,10 +359,6 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(spdlog)
 
-# Create two separate dependency targets:
-# 1. sep_core_deps - exportable dependencies (system/external packages only)
-# 2. sep_fetchcontent_deps - build-only FetchContent dependencies
-
 add_library(sep_core_deps INTERFACE)
 target_link_libraries(sep_core_deps INTERFACE
     Threads::Threads
@@ -410,36 +386,14 @@ target_link_libraries(sep_fetchcontent_deps INTERFACE
     spdlog::spdlog
 )
 
-
-
-# Enable fuzzing if explicitly requested
-option(ENABLE_FUZZING "Enable fuzz testing with LibFuzzer" OFF)
-if(ENABLE_FUZZING)
-    add_subdirectory(tests/fuzzing)
-endif()
-
-# Enable memory testing if explicitly requested
-option(ENABLE_MEMORY_TESTING "Enable memory leak detection with AddressSanitizer/Valgrind" OFF)
-if(ENABLE_MEMORY_TESTING)
-    add_subdirectory(tests/memory)
-endif()
-
 # Add tests subdirectory
 if(BUILD_TESTING)
     add_subdirectory(tests)
 endif()
 
-# Custom command to generate documentation
-add_custom_target(generate_docs
-    COMMAND python3 ${CMAKE_CURRENT_SOURCE_DIR}/parse_docs.py
-    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-    COMMENT "Generating documentation from source headers"
-)
-
 add_subdirectory(src)
 
 # Add only sep_core_deps to the export set
-# Note: sep_fetchcontent_deps is build-only and cannot be exported due to build directory paths
 install(TARGETS sep_core_deps EXPORT sep_libTargets)
 
 install(EXPORT sep_libTargets

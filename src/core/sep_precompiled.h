@@ -9,6 +9,10 @@
 
 #pragma once
 
+// Disable fpclassify functions that cause conflicts with CUDA internal headers
+#define _DISABLE_FPCLASSIFY_FUNCTIONS 1
+#define __CUDA_INCLUDE_COMPILER_INTERNAL_HEADERS 1
+
 // C++20 compatibility for C builds (must be first)
 #include "common/namespace_protection.hpp"
 

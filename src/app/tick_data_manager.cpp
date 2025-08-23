@@ -1,11 +1,11 @@
 #include "tick_data_manager.hpp"
-#include "tick_cuda_kernels.cuh"
-#include "util/financial_data_types.h"
-#include <iostream>
 #include <algorithm>
 #include <cmath>
-#include <thread>
 #include <condition_variable>
+#include <iostream>
+#include <thread>
+#include "app/tick_cuda_kernels.cuh"
+#include "util/financial_data_types.h"
 
 namespace sep::apps {
 

@@ -957,8 +957,31 @@ void QuantumTrackerApp::runTestDataSimulation() {
         md.timestamp = std::chrono::duration_cast<std::chrono::milliseconds>(
             std::chrono::system_clock::now().time_since_epoch()).count() + i * 1000;
         
-        // Simulate realistic price movement (small random walk)
-        double price_change = (rand() % 20 - 10) * 0.00001; // +/- 10 pips
+        // Use real pattern engine for price movement
+        sep::quantum::PatternMetricEngine engine;
+        engine.init(nullptr);
+        
+        // Create a pattern representing current market state
+        sep::quantum::compat::PatternData pattern;
+        strncpy(pattern.id, "price_tracker", sizeof(pattern.id) - 1);
+        pattern.id[sizeof(pattern.id) - 1] = '\0';
+        pattern.length = 1;
+        pattern.data[0] = base_price;
+        pattern.quantum_state.coherence = 0.6;
+        pattern.quantum_state.stability = 0.7;
+        pattern.quantum_state.entropy = 0.4;
+        
+        engine.addPattern(pattern);
+        engine.evolvePatterns();
+        
+        const auto& metrics = engine.computeMetrics();
+        double price_change = 0.0;
+        if (!metrics.empty()) {
+            // Use entropy and coherence to determine price change
+            price_change = (metrics[0].entropy - 0.5) * (1.0 - metrics[0].coherence) * 0.0002;
+        } else {
+            price_change = (static_cast<double>(rand() % 20 - 10) * 0.00001);
+        }
         base_price += price_change;
         md.bid = base_price;
         md.ask = base_price + 0.00001; // 1 pip spread

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { WebSocketProvider } from './hooks/useWebSocket';
+import { WebSocketProvider } from './context/WebSocketContext';
 import HomeDashboard from './components/HomeDashboard';
 import TradingPanel from './components/TradingPanel';
 import SystemStatus from './components/SystemStatus';

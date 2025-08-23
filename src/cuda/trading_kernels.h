@@ -3,7 +3,7 @@
 #include <cuda_runtime.h>
 #include "trading_types.cuh"
 #include "multi_pair_kernel.cuh"
-#include "trading_kernels.cuh"
+#include "cuda/trading_kernels.cuh"
 #include "cuda/ticker_optimization_kernel.cuh"
 
 /**

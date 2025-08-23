@@ -1,4 +1,8 @@
 #pragma once
+// C++20 features - ensure array macro doesn't interfere
+#ifdef array
+    #undef array
+#endif
 
 #include <array>
 #include <atomic>
@@ -9,19 +13,17 @@
 #include <memory>
 #include <mutex>
 #include <optional>
+#include <span>
+#include <stop_token>
 #include <string>
 #include <thread>
 #include <utility>
 #include <variant>
 #include <vector>
 
-// C++20 features
-#include <span>
-#include <stop_token>
-
-#include "core/qfh.h"                         // if you keep legacy QFH/QBSA interop
-#include "core/quantum_manifold_optimizer.h"  // GAO impl lives here or new header
-#include "core/result_types.h"                // sep::Result<T>
+#include "core/qfh.h"
+#include "core/quantum_manifold_optimizer.h"
+#include "core/result_types.h"
 #include "core/timeframe.h"
 
 namespace sep::engine {
@@ -345,13 +347,13 @@ class SepEngine {
     void reset_stats();
 
   private:
-    AnalysisResult pipeline_(const InstrumentId& instrument,
+   AnalysisResult pipeline_(const InstrumentId& instrument,
 #if __cplusplus >= 202002L
-                            std::span<const Tick> ticks,
+                           std::span<const Tick> ticks,
 #else
-                            std::span<const Tick> ticks,
+                           const std::vector<Tick>& ticks,
 #endif
-                             const AnalysisRequest& req);
+                            const AnalysisRequest& req);
 
     // helpers
     static std::string timeframe_str(Timeframe tf);

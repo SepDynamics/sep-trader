@@ -14,7 +14,6 @@
 #include <sstream>
 #include <iomanip>
 #include <algorithm>
-#include <cmath>
 #include <cstdint>
 
 #include "util/nlohmann_json_safe.h"

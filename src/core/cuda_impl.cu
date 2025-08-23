@@ -4,6 +4,10 @@
  * Implementation of CUDA functions in the sep::cuda namespace
  */
 
+// Disable fpclassify functions that cause conflicts with CUDA internal headers
+#define _DISABLE_FPCLASSIFY_FUNCTIONS 1
+#define __CUDA_INCLUDE_COMPILER_INTERNAL_HEADERS 1
+
 // CRITICAL: For CUDA compilation, apply comprehensive std::array protection
 #include <cuda_runtime.h>
 
@@ -13,7 +17,6 @@
 
 #include "core/cuda_types.hpp"
 #include "core/result_types.h"
-#include "error_handler.h"
 
 namespace sep::cuda {
 

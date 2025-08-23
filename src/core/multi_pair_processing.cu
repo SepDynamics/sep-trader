@@ -1,3 +1,7 @@
+// Disable fpclassify functions that cause conflicts with CUDA internal headers
+#define _DISABLE_FPCLASSIFY_FUNCTIONS 1
+#define __CUDA_INCLUDE_COMPILER_INTERNAL_HEADERS 1
+
 #include <array>
 
 // CRITICAL: For CUDA compilation, include ALL necessary headers early
@@ -6,7 +10,7 @@
 #include <cstdint>
 #include <vector>
 
-#include "trading_kernels.cuh"
+#include "cuda/trading_kernels.cuh"
 
 extern "C" {
 

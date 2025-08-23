@@ -6,7 +6,6 @@
 #include <algorithm>
 #include <cmath>
 #include <numeric>
-#include <random>
 
 #include "core/sep_precompiled.h"
 #include "candle_types.h"

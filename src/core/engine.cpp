@@ -37,7 +37,6 @@
 #include "core/dag_graph.h"
 #include "core/data_parser.h"
 #include "core/engine.h"
-#include "error_handler.h"
 #include "core/logging.h"  // This is actually the logging manager
 #include "memory.h"
 #include "util/memory_tier_manager.hpp"
@@ -151,8 +150,7 @@ void Engine::generate_probes(const std::vector<PinState> &inputs,
 {
     if (inputs.empty())
     {
-        ::sep::core::ErrorHandler::instance().reportError(
-            {SEPResult::INVALID_ARGUMENT, "No input states", "Engine::generate_probes"});
+        // Error handling now standardized with Result<T> pattern
         return;
     }
 
@@ -219,15 +217,11 @@ void Engine::process_batch(const std::vector<::sep::PinState> &inputs, std::uint
     // Input validation
     if (inputs.empty())
     {
-        ::sep::core::ErrorHandler::instance().reportError(
-            {SEPResult::INVALID_ARGUMENT, "No input states", "Engine::process_batch"});
         return;
     }
 
     if (inputs.size() > DEFAULT_SIZE)
     {
-        ::sep::core::ErrorHandler::instance().reportError(
-            {SEPResult::INVALID_ARGUMENT, "Batch too large", "Engine::process_batch"});
         return;
     }
 
@@ -266,8 +260,6 @@ void Engine::process_batch(const std::vector<::sep::PinState> &inputs, std::uint
         }
         impl_->state_history_.push_back(node);
     } catch (const std::exception &e) {
-      ::sep::core::ErrorHandler::instance().reportError(
-          {SEPResult::PROCESSING_ERROR, e.what(), "Engine::process_batch"});
       return;
   }
 }

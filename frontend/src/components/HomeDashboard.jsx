@@ -1,53 +1,34 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Activity, TrendingUp, TrendingDown, DollarSign, AlertCircle, Play, Pause, Settings, BarChart3, Brain, Clock, ChevronUp, ChevronDown, CheckCircle, XCircle, RefreshCw, Database, Cpu, HardDrive, Zap, Target, Shield, Eye, Terminal, Upload, FileText, GitBranch, Server } from 'lucide-react';
+import { useWebSocket } from '../context/WebSocketContext';
 
 // This dashboard connects to your actual backend services
 // Backend API: http://localhost:5000/api/
 // WebSocket: ws://localhost:8765/
 
 const HomeDashboard = () => {
-  // Connection state
-  const [wsConnected, setWsConnected] = useState(false);
+  const {
+    connected: wsConnected,
+    systemStatus,
+    performanceData,
+    marketData,
+    tradingSignals,
+    systemMetrics
+  } = useWebSocket();
+
   const [apiHealth, setApiHealth] = useState('checking');
-  const wsRef = useRef(null);
-  const reconnectTimeoutRef = useRef(null);
   
-  // System state from API
-  const [systemStatus, setSystemStatus] = useState({
-    service: 'SEP Professional Trader-Bot',
-    version: '1.0.0',
-    status: 'stopped',
-    market: 'closed',
-    pairs: [],
-    last_sync: null
-  });
-  
-  // Performance metrics from API
-  const [performanceData, setPerformanceData] = useState({
-    current_pnl: 0,
-    daily_pnl: 0,
-    total_return: 0,
-    daily_return: 0,
-    sharpe_ratio: 0,
-    max_drawdown: 0,
-    win_rate: 0,
-    trades_count: 0
-  });
   
   // Live metrics from API
-  const [liveMetrics, setLiveMetrics] = useState({
+  const liveMetrics = systemMetrics || {
     confidence: 0,
     coherence: 0,
     stability: 0,
     flip_ratio: 0,
     rupture_ratio: 0,
     entropy: 0
-  });
+  };
   
-  // Real-time data from WebSocket
-  const [marketData, setMarketData] = useState({});
-  const [tradingSignals, setTradingSignals] = useState([]);
-  const [systemMetrics, setSystemMetrics] = useState({});
   const [activeTab, setActiveTab] = useState('overview');
   const [selectedPairs, setSelectedPairs] = useState([]);
   const [commandHistory, setCommandHistory] = useState([]);
@@ -56,146 +37,7 @@ const HomeDashboard = () => {
 
   // API base URL from environment or default
   const API_URL = window._env_?.REACT_APP_API_URL || 'http://localhost:5000';
-  const WS_URL = window._env_?.REACT_APP_WS_URL || (
-    window.location.hostname === 'localhost' ?
-    'ws://localhost:8765' :
-    `wss://${window.location.host}/ws/`
-  );
 
-  // Initialize WebSocket connection
-  const connectWebSocket = useCallback(() => {
-    if (wsRef.current?.readyState === WebSocket.OPEN) return;
-    
-    try {
-      const ws = new WebSocket(WS_URL);
-      
-      ws.onopen = () => {
-        console.log('WebSocket connected');
-        setWsConnected(true);
-        
-        // Subscribe to all channels
-        ws.send(JSON.stringify({
-          type: 'subscribe',
-          channels: ['market', 'system', 'signals', 'performance', 'trades']
-        }));
-      };
-      
-      ws.onmessage = (event) => {
-        try {
-          const message = JSON.parse(event.data);
-          handleWebSocketMessage(message);
-        } catch (error) {
-          console.error('WebSocket message parse error:', error);
-        }
-      };
-      
-      ws.onclose = () => {
-        console.log('WebSocket disconnected');
-        setWsConnected(false);
-        wsRef.current = null;
-        
-        // Reconnect after 3 seconds
-        reconnectTimeoutRef.current = setTimeout(() => {
-          connectWebSocket();
-        }, 3000);
-      };
-      
-      ws.onerror = (error) => {
-        console.error('WebSocket error:', error);
-      };
-      
-      wsRef.current = ws;
-    } catch (error) {
-      console.error('Failed to connect WebSocket:', error);
-      setWsConnected(false);
-    }
-  }, [WS_URL]);
-
-  // Handle WebSocket messages
-  const handleWebSocketMessage = (message) => {
-    const { type, channel, data } = message;
-    
-    switch (channel) {
-      case 'market':
-        if (type === 'market_update' && data) {
-          setMarketData(prev => ({
-            ...prev,
-            [data.symbol]: data
-          }));
-        }
-        break;
-        
-      case 'system':
-        if (type === 'system_status' && data) {
-          setSystemMetrics(data);
-        }
-        break;
-        
-      case 'signals':
-        if (type === 'trading_signal' && data) {
-          setTradingSignals(prev => [data, ...prev.slice(0, 49)]);
-        }
-        break;
-        
-      case 'performance':
-        if (type === 'performance_update' && data) {
-          setPerformanceData(prev => ({ ...prev, ...data }));
-        }
-        break;
-    }
-  };
-
-  // Fetch system status from API
-  const fetchSystemStatus = async () => {
-    try {
-      const response = await fetch(`${API_URL}/api/status`);
-      if (response.ok) {
-        const data = await response.json();
-        setSystemStatus(data);
-        setApiHealth('healthy');
-      } else {
-        setApiHealth('error');
-      }
-    } catch (error) {
-      console.error('Failed to fetch system status:', error);
-      setApiHealth('error');
-    }
-  };
-
-  // Fetch performance data from API
-  const fetchPerformanceData = async () => {
-    try {
-      const [current, history] = await Promise.all([
-        fetch(`${API_URL}/api/performance/current`),
-        fetch(`${API_URL}/api/performance/history`)
-      ]);
-      
-      if (current.ok) {
-        const currentData = await current.json();
-        setPerformanceData(prev => ({ ...prev, ...currentData }));
-      }
-      
-      if (history.ok) {
-        const historyData = await history.json();
-        // Process history data as needed
-      }
-    } catch (error) {
-      console.error('Failed to fetch performance data:', error);
-    }
-  };
-
-  // Fetch live metrics from API
-  const fetchLiveMetrics = async () => {
-    try {
-      const response = await fetch(`${API_URL}/api/metrics/live`);
-      if (response.ok) {
-        const data = await response.json();
-        setLiveMetrics(data);
-      }
-    } catch (error) {
-      console.error('Failed to fetch live metrics:', error);
-    }
-  };
 
   // Execute CLI command via API
   const executeCommand = async () => {
@@ -269,33 +111,20 @@ const HomeDashboard = () => {
 
   // Initialize dashboard
   useEffect(() => {
-    // Connect WebSocket
-    connectWebSocket();
-    
-    // Initial data fetch
-    fetchSystemStatus();
-    fetchPerformanceData();
-    fetchLiveMetrics();
-    
-    // Set up polling intervals
-    const statusInterval = setInterval(fetchSystemStatus, 5000);
-    const performanceInterval = setInterval(fetchPerformanceData, 10000);
-    const metricsInterval = setInterval(fetchLiveMetrics, 3000);
+    // Set up polling interval for API health
+    const healthInterval = setInterval(async () => {
+      try {
+        const response = await fetch(`${API_URL}/api/status`);
+        setApiHealth(response.ok ? 'healthy' : 'error');
+      } catch (error) {
+        setApiHealth('error');
+      }
+    }, 5000);
     
     return () => {
-      clearInterval(statusInterval);
-      clearInterval(performanceInterval);
-      clearInterval(metricsInterval);
-      
-      if (reconnectTimeoutRef.current) {
-        clearTimeout(reconnectTimeoutRef.current);
-      }
-      
-      if (wsRef.current) {
-        wsRef.current.close();
-      }
+      clearInterval(healthInterval);
     };
-  }, [connectWebSocket]);
+  }, []);
 
   // Format currency
   const formatCurrency = (value) => {
@@ -448,12 +277,12 @@ const HomeDashboard = () => {
               <div>
                 <div className="flex justify-between items-center mb-1">
                   <span className="text-gray-400 text-sm">Confidence</span>
-                  <span className="text-sm font-medium">{liveMetrics.confidence?.toFixed(1)}%</span>
+                  <span className="text-sm font-medium">{liveMetrics.confidence?.toFixed(1) || 0}%</span>
                 </div>
                 <div className="w-full bg-gray-800 rounded-full h-1.5">
-                  <div 
+                  <div
                     className="bg-blue-500 h-1.5 rounded-full transition-all"
-                    style={{ width: `${liveMetrics.confidence}%` }}
+                    style={{ width: `${liveMetrics.confidence || 0}%` }}
                   />
                 </div>
               </div>
@@ -461,12 +290,12 @@ const HomeDashboard = () => {
               <div>
                 <div className="flex justify-between items-center mb-1">
                   <span className="text-gray-400 text-sm">Coherence</span>
-                  <span className="text-sm font-medium">{liveMetrics.coherence?.toFixed(1)}%</span>
+                  <span className="text-sm font-medium">{liveMetrics.coherence?.toFixed(1) || 0}%</span>
                 </div>
                 <div className="w-full bg-gray-800 rounded-full h-1.5">
-                  <div 
+                  <div
                     className="bg-purple-500 h-1.5 rounded-full transition-all"
-                    style={{ width: `${liveMetrics.coherence}%` }}
+                    style={{ width: `${liveMetrics.coherence || 0}%` }}
                   />
                 </div>
               </div>
@@ -474,12 +303,12 @@ const HomeDashboard = () => {
               <div>
                 <div className="flex justify-between items-center mb-1">
                   <span className="text-gray-400 text-sm">Stability</span>
-                  <span className="text-sm font-medium">{liveMetrics.stability?.toFixed(1)}%</span>
+                  <span className="text-sm font-medium">{liveMetrics.stability?.toFixed(1) || 0}%</span>
                 </div>
                 <div className="w-full bg-gray-800 rounded-full h-1.5">
-                  <div 
+                  <div
                     className="bg-green-500 h-1.5 rounded-full transition-all"
-                    style={{ width: `${liveMetrics.stability}%` }}
+                    style={{ width: `${liveMetrics.stability || 0}%` }}
                   />
                 </div>
               </div>

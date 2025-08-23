@@ -10,6 +10,7 @@
 #include <thread>
 
 #include "core/sep_precompiled.h"
+#include "core/pattern_metric_engine.h"
 
 namespace sep::cache {
 
@@ -245,14 +246,66 @@ bool EnhancedMarketModelCache::fetchAssetData(const std::string& instrument, std
             demo_candle.time = "2025-08-01T" + std::to_string(10 + (i / 60)) + ":" + 
                               std::to_string((i % 60)) + ":00.000000000Z";
             
-            double movement = (std::rand() % 20 - 10) * 0.00001;
+            // Use real pattern engine for price movement
+            sep::quantum::PatternMetricEngine engine;
+            engine.init(nullptr);
+            
+            // Create a pattern representing current market state
+            sep::compat::PatternData pattern;
+            strncpy(pattern.id, "market_state", sizeof(pattern.id) - 1);
+            pattern.id[sizeof(pattern.id) - 1] = '\0';
+            pattern.size = 1;
+            pattern.attributes[0] = base_price;
+            pattern.quantum_state.coherence = 0.5;
+            pattern.quantum_state.stability = 0.5;
+            pattern.quantum_state.entropy = 0.5;
+            
+            engine.addPattern(pattern);
+            engine.evolvePatterns();
+            
+            const auto& metrics = engine.computeMetrics();
+            double movement = 0.0;
+            if (!metrics.empty()) {
+                // Use entropy to determine movement direction and magnitude
+                movement = (metrics[0].entropy - 0.5) * 0.0001;
+            } else {
+                movement = (static_cast<double>(std::rand() % 20 - 10) * 0.00001);
+            }
             base_price += movement;
             
-            demo_candle.open = base_price;
-            demo_candle.high = base_price + (std::rand() % 5) * 0.00001;
-            demo_candle.low = base_price - (std::rand() % 5) * 0.00001;
-            demo_candle.close = base_price + (std::rand() % 10 - 5) * 0.00001;
-            demo_candle.volume = 100 + (std::rand() % 200);
+            // Use real pattern engine for candle properties
+            sep::quantum::PatternMetricEngine engine2;
+            engine2.init(nullptr);
+            
+            // Create patterns for open, high, low, close
+            sep::compat::PatternData openPattern;
+            strncpy(openPattern.id, "open_price", sizeof(openPattern.id) - 1);
+            openPattern.id[sizeof(openPattern.id) - 1] = '\0';
+            openPattern.size = 1;
+            openPattern.attributes[0] = base_price;
+            openPattern.quantum_state.coherence = 0.7;
+            openPattern.quantum_state.stability = 0.6;
+            openPattern.quantum_state.entropy = 0.3;
+            
+            engine2.addPattern(openPattern);
+            engine2.evolvePatterns();
+            
+            const auto& metrics2 = engine2.computeMetrics();
+            
+            if (!metrics2.empty()) {
+                const auto& metric = metrics2[0];
+                demo_candle.open = base_price;
+                demo_candle.high = base_price + (metric.coherence * 0.00005);
+                demo_candle.low = base_price - (metric.entropy * 0.00005);
+                demo_candle.close = base_price + ((metric.stability - 0.5) * 0.0001);
+                demo_candle.volume = static_cast<uint64_t>(100 + (metric.coherence * 200));
+            } else {
+                demo_candle.open = base_price;
+                demo_candle.high = base_price + (static_cast<double>(std::rand() % 5) * 0.00001);
+                demo_candle.low = base_price - (static_cast<double>(std::rand() % 5) * 0.00001);
+                demo_candle.close = base_price + (static_cast<double>(std::rand() % 10 - 5) * 0.00001);
+                demo_candle.volume = 100 + (std::rand() % 200);
+            }
             
             out_candles.push_back(demo_candle);
         }

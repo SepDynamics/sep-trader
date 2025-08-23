@@ -36,7 +36,7 @@ function(add_sep_library name)
         set_target_properties(${name} PROPERTIES
             CUDA_SEPARABLE_COMPILATION ON
             CUDA_RESOLVE_DEVICE_SYMBOLS ON
-            CUDA_STANDARD 20
+            CUDA_STANDARD 17
             CUDA_STANDARD_REQUIRED ON
         )
         
@@ -84,8 +84,8 @@ function(add_sep_library name)
         endif()
     endif()
     
-    # Set C++20 standard
-    target_compile_features(${name} PUBLIC cxx_std_20)
+    # Set C++17 standard
+    target_compile_features(${name} PUBLIC cxx_std_17)
 
     if(ARG_PCH_HEADER)
         target_precompile_headers(${name} PUBLIC ${ARG_PCH_HEADER})

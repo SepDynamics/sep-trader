@@ -1,11 +1,10 @@
 #include <cuda_runtime.h>
 #include <device_launch_parameters.h>
 #include <algorithm> // For std::min, std::max
-#include <cmath>     // For log2, fabs
+#include <cmath>     // For log2, fabs - Include cmath after the macros are defined
 
-#include "bit_pattern_types.cuh" // Include the new device types
 #include "core/result_types.h"
-#include "core/error_handler.h"
+#include "cuda/bit_pattern_types.cuh"  // Include the new device types
 
 // Helper device functions (will be ported from forward_window_kernels.cpp)
 __device__ bool detectTrendAcceleration(const uint8_t* window, size_t window_size);
@@ -92,21 +91,21 @@ extern "C" sep::SEPResult launchAnalyzeBitPatternsKernel(const uint8_t* h_bits,
 
     cudaError_t err = cudaMallocAsync(&d_bits, total_bits_size * sizeof(uint8_t), stream);
     if (err != cudaSuccess) {
-        sep::core::ErrorHandler::instance().reportError(sep::Error(sep::SEPResult::CUDA_ERROR, "Failed to allocate device memory for bits: " + std::string(cudaGetErrorString(err))));
+        // Error handling now standardized with Result<T> pattern
         result = sep::SEPResult::CUDA_ERROR;
         goto cleanup;
     }
 
     err = cudaMemcpyAsync(d_bits, h_bits, total_bits_size * sizeof(uint8_t), cudaMemcpyHostToDevice, stream);
     if (err != cudaSuccess) {
-        sep::core::ErrorHandler::instance().reportError(sep::Error(sep::SEPResult::CUDA_ERROR, "Failed to copy bits to device: " + std::string(cudaGetErrorString(err))));
+        // Error handling now standardized with Result<T> pattern
         result = sep::SEPResult::CUDA_ERROR;
         goto cleanup;
     }
 
     err = cudaMallocAsync(&d_results, sizeof(sep::apps::cuda::ForwardWindowResultDevice), stream);
     if (err != cudaSuccess) {
-        sep::core::ErrorHandler::instance().reportError(sep::Error(sep::SEPResult::CUDA_ERROR, "Failed to allocate device memory for results: " + std::string(cudaGetErrorString(err))));
+        // Error handling now standardized with Result<T> pattern
         result = sep::SEPResult::CUDA_ERROR;
         goto cleanup;
     }
@@ -114,21 +113,18 @@ extern "C" sep::SEPResult launchAnalyzeBitPatternsKernel(const uint8_t* h_bits,
     analyzeBitPatternsKernel<<<1, 1, 0, stream>>>(d_bits, total_bits_size, index_start, window_size, d_results);
     err = cudaGetLastError();
     if (err != cudaSuccess) {
-        sep::core::ErrorHandler::instance().reportError(sep::Error(sep::SEPResult::CUDA_ERROR, "Kernel launch failed: " + std::string(cudaGetErrorString(err))));
         result = sep::SEPResult::CUDA_ERROR;
         goto cleanup;
     }
 
     err = cudaMemcpyAsync(h_results, d_results, sizeof(sep::apps::cuda::ForwardWindowResultDevice), cudaMemcpyDeviceToHost, stream);
     if (err != cudaSuccess) {
-        sep::core::ErrorHandler::instance().reportError(sep::Error(sep::SEPResult::CUDA_ERROR, "Failed to copy results to host: " + std::string(cudaGetErrorString(err))));
         result = sep::SEPResult::CUDA_ERROR;
         goto cleanup;
     }
 
     err = cudaStreamSynchronize(stream);
     if (err != cudaSuccess) {
-        sep::core::ErrorHandler::instance().reportError(sep::Error(sep::SEPResult::CUDA_ERROR, "Stream synchronization failed: " + std::string(cudaGetErrorString(err))));
         result = sep::SEPResult::CUDA_ERROR;
         goto cleanup;
     }

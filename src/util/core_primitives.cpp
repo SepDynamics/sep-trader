@@ -28,189 +28,42 @@ void initialize_engine_components() {
 }
 
 // ============================================================================
-// Pattern Operations
+// Pattern Operations - Now handled via EngineFacade
 // ============================================================================
 
-Value create_pattern(const std::vector<Value>& args) {
-    if (args.empty()) {
-        throw std::runtime_error("create_pattern requires data argument");
-    }
-
-    std::string id = "pattern_" + std::to_string(next_pattern_id++);
-    pattern_store[id] = args[0];
-    pattern_tiers[id] = "HTM"; // default tier - hot tier memory
-    return Value(id);
-}
-
-Value evolve_pattern(const std::vector<Value>& args) {
-    if (args.size() < 2 || !std::holds_alternative<std::string>(args[0]) || !std::holds_alternative<double>(args[1])) {
-        throw std::runtime_error("evolve_pattern requires pattern id and time step");
-    }
-
-    std::string id = std::get<std::string>(args[0]);
-    int steps = static_cast<int>(std::get<double>(args[1]));
-    auto it = pattern_store.find(id);
-    if (it == pattern_store.end()) {
-        throw std::runtime_error("Unknown pattern id: " + id);
-    }
-
-    Value data = it->second;
-    std::string new_id = "pattern_" + std::to_string(next_pattern_id++);
-
-    if (std::holds_alternative<std::string>(data)) {
-        std::string bits = std::get<std::string>(data);
-        if (!bits.empty()) {
-            steps = steps % static_cast<int>(bits.size());
-            std::rotate(bits.begin(), bits.begin() + steps, bits.end());
-        }
-        pattern_store[new_id] = Value(bits);
-    } else if (std::holds_alternative<double>(data)) {
-        double v = std::get<double>(data);
-        v += steps;
-        pattern_store[new_id] = Value(v);
-    } else {
-        pattern_store[new_id] = data; // fallback
-    }
-
-    pattern_tiers[new_id] = pattern_tiers[id];
-    return Value(new_id);
-}
-
-Value merge_patterns(const std::vector<Value>& args) {
-    if (args.size() < 2 || !std::holds_alternative<std::string>(args[0]) || !std::holds_alternative<std::string>(args[1])) {
-        throw std::runtime_error("merge_patterns requires two pattern ids");
-    }
-
-    auto it1 = pattern_store.find(std::get<std::string>(args[0]));
-    auto it2 = pattern_store.find(std::get<std::string>(args[1]));
-    if (it1 == pattern_store.end() || it2 == pattern_store.end()) {
-        throw std::runtime_error("merge_patterns unknown pattern id");
-    }
-
-    Value merged;
-    if (std::holds_alternative<std::string>(it1->second) && std::holds_alternative<std::string>(it2->second)) {
-        merged = Value(std::get<std::string>(it1->second) + std::get<std::string>(it2->second));
-    } else if (std::holds_alternative<double>(it1->second) && std::holds_alternative<double>(it2->second)) {
-        double avg = (std::get<double>(it1->second) + std::get<double>(it2->second)) / 2.0;
-        merged = Value(avg);
-    } else {
-        merged = it1->second; // fallback to first pattern
-    }
-
-    std::string id = "pattern_" + std::to_string(next_pattern_id++);
-    pattern_store[id] = merged;
-    pattern_tiers[id] = pattern_tiers[std::get<std::string>(args[0])];
-    return Value(id);
-}
-
-static std::string get_pattern_bits(const std::string& id) {
-    auto it = pattern_store.find(id);
-    if (it == pattern_store.end() || !std::holds_alternative<std::string>(it->second)) {
-        throw std::runtime_error("pattern does not contain bitstring: " + id);
-    }
-    return std::get<std::string>(it->second);
-}
-
 // ============================================================================
-// Quantum Operations - Removed duplicates, functions now handled via DSL binding layer in interpreter.cpp
+// Quantum Operations - Now handled via EngineFacade
 // ============================================================================
 
-// qbsa_analyze and manifold_optimize now handled via DSL binding layer in interpreter.cpp
-
-Value detect_collapse(const std::vector<Value>& args) {
-    if (args.empty() || !std::holds_alternative<std::string>(args[0])) {
-        throw std::runtime_error("detect_collapse requires pattern id");
-    }
-    std::string bits = get_pattern_bits(std::get<std::string>(args[0]));
-    // collapse if coherence is 1.0 (all bits identical)
-    bool collapsed = std::all_of(bits.begin(), bits.end(), [&](char c) { return c == bits.front(); });
-    return Value(collapsed);
-}
-
 // ============================================================================
-// Memory Operations
+// Memory Operations - Now handled via EngineFacade
 // ============================================================================
 
-Value store_pattern(const std::vector<Value>& args) {
-    if (args.empty()) {
-        throw std::runtime_error("store_pattern requires pattern data argument");
-    }
-    std::string tier = (args.size() > 1 && std::holds_alternative<std::string>(args[1]))
-                           ? std::get<std::string>(args[1])
-                           : "HTM";
-    std::string id = "pattern_" + std::to_string(next_pattern_id++);
-    pattern_store[id] = args[0];
-    pattern_tiers[id] = tier;
-    return Value(id);
-}
-
-Value retrieve_pattern(const std::vector<Value>& args) {
-    if (args.empty() || !std::holds_alternative<std::string>(args[0])) {
-        throw std::runtime_error("retrieve_pattern requires pattern id");
-    }
-    std::string id = std::get<std::string>(args[0]);
-    auto it = pattern_store.find(id);
-    if (it == pattern_store.end()) {
-        throw std::runtime_error("unknown pattern id: " + id);
-    }
-    return it->second;
-}
-
-Value promote_pattern(const std::vector<Value>& args) {
-    if (args.empty() || !std::holds_alternative<std::string>(args[0])) {
-        throw std::runtime_error("promote_pattern requires pattern id");
-    }
-    std::string id = std::get<std::string>(args[0]);
-    std::string new_tier = (args.size() > 1 && std::holds_alternative<std::string>(args[1]))
-                               ? std::get<std::string>(args[1])
-                               : "LTM";
-    auto it = pattern_store.find(id);
-    if (it == pattern_store.end()) {
-        throw std::runtime_error("unknown pattern id: " + id);
-    }
-    pattern_tiers[id] = new_tier;
-    return Value(new_tier);
-}
-
-Value query_patterns(const std::vector<Value>& args) {
-    if (!args.empty() && std::holds_alternative<std::string>(args[0])) {
-        std::string tier = std::get<std::string>(args[0]);
-        size_t count = 0;
-        for (const auto& p : pattern_tiers) {
-            if (p.second == tier) count++;
-        }
-        return Value(static_cast<double>(count));
-    }
-    return Value(static_cast<double>(pattern_store.size()));
-}
-
 // ============================================================================
-// Stream Operations
+// Type Checking & Conversion Functions - Now handled via interpreter builtin functions
 // ============================================================================
 
-Value extract_bits(const std::vector<Value>& args) {
-    if (args.empty()) {
-        throw std::runtime_error("extract_bits requires an argument");
+// ============================================================================
+// Math Functions - Now handled via interpreter builtin functions
+// ============================================================================
+
+// ============================================================================
+// Statistical Functions - Now handled via interpreter builtin functions
+// ============================================================================
+
+Value generate_sine_wave(const std::vector<Value>& args) {
+    double frequency = 10.0; // Default 10Hz
+    if (!args.empty() && std::holds_alternative<double>(args[0])) {
+        frequency = std::get<double>(args[0]);
     }
 
-    std::string pattern_id;
-    if (std::holds_alternative<std::string>(args[0])) {
-        pattern_id = std::get<std::string>(args[0]);
-    } else if (std::holds_alternative<double>(args[0])) {
-        pattern_id = std::to_string(std::get<double>(args[0]));
-    } else {
-        return Value(""); // Return empty string for unsupported types
+    std::ostringstream oss;
+    for (int i = 0; i < 100; ++i) {
+        double val = std::sin(2 * M_PI * frequency * i / 100.0);
+        if (i) oss << ',';
+        oss << val;
     }
-
-    std::vector<uint8_t> bitstream;
-    sep::util::extract_bitstream_from_pattern_id(pattern_id, bitstream);
-
-    std::string bitstream_str;
-    for (uint8_t bit : bitstream) {
-        bitstream_str += (bit ? '1' : '0');
-    }
-
-    return Value(bitstream_str);
+    return Value(oss.str());
 }
 
 Value weighted_sum(const std::vector<Value>& args) {
@@ -231,162 +84,16 @@ Value weighted_sum(const std::vector<Value>& args) {
     return Value(weights == 0.0 ? 0.0 : total / weights);
 }
 
-Value generate_sine_wave(const std::vector<Value>& args) {
-    double frequency = 10.0; // Default 10Hz
-    if (!args.empty() && std::holds_alternative<double>(args[0])) {
-        frequency = std::get<double>(args[0]);
-    }
-
-    std::ostringstream oss;
-    for (int i = 0; i < 100; ++i) {
-        double val = std::sin(2 * M_PI * frequency * i / 100.0);
-        if (i) oss << ',';
-        oss << val;
-    }
-    return Value(oss.str());
-}
-
-// ============================================================================
-// Type Checking & Conversion Functions (from TASK.md Phase 2A)
-// ============================================================================
-
-Value is_number(const std::vector<Value>& args) {
-    if (args.empty()) {
-        throw std::runtime_error("is_number() requires exactly 1 argument");
-    }
-    return Value(std::holds_alternative<double>(args[0]));
-}
-
-Value is_string(const std::vector<Value>& args) {
-    if (args.empty()) {
-        throw std::runtime_error("is_string() requires exactly 1 argument");
-    }
-    return Value(std::holds_alternative<std::string>(args[0]));
-}
-
-Value is_bool(const std::vector<Value>& args) {
-    if (args.empty()) {
-        throw std::runtime_error("is_bool() requires exactly 1 argument");
-    }
-    return Value(std::holds_alternative<bool>(args[0]));
-}
-
-Value to_string(const std::vector<Value>& args) {
-    if (args.empty()) {
-        throw std::runtime_error("to_string() requires exactly 1 argument");
-    }
-    
-    const Value& val = args[0];
-    if (std::holds_alternative<double>(val)) {
-        return Value(std::to_string(std::get<double>(val)));
-    } else if (std::holds_alternative<std::string>(val)) {
-        return val; // Already a string
-    } else if (std::holds_alternative<bool>(val)) {
-        return Value(std::get<bool>(val) ? "true" : "false");
-    } else {
-        return Value("unknown");
-    }
-}
-
-Value get_env_var(const std::vector<Value>& args) {
-    if (args.empty() || !std::holds_alternative<std::string>(args[0])) {
-        throw std::runtime_error("get_env_var() requires a single string argument for the environment variable name");
-    }
-    std::string env_var_name = std::get<std::string>(args[0]);
-    char* env_var_value = std::getenv(env_var_name.c_str());
-    if (env_var_value == nullptr) {
-        return Value(""); // Return empty string if not found
-    }
-    return Value(std::string(env_var_value));
-}
-
-Value to_number(const std::vector<Value>& args) {
-    if (args.empty()) {
-        throw std::runtime_error("to_number() requires exactly 1 argument");
-    }
-    
-    const Value& val = args[0];
-    if (std::holds_alternative<double>(val)) {
-        return val; // Already a number
-    } else if (std::holds_alternative<std::string>(val)) {
-        std::string str = std::get<std::string>(val);
-        try {
-            return Value(std::stod(str));
-        } catch (const std::exception&) {
-            throw std::runtime_error("Cannot convert string '" + str + "' to number");
-        }
-    } else if (std::holds_alternative<bool>(val)) {
-        return Value(std::get<bool>(val) ? 1.0 : 0.0);
-    } else {
-        throw std::runtime_error("Cannot convert this type to number");
-    }
-}
-
-// ============================================================================
-// Quantum Analysis Functions
-// ============================================================================
-
-
-
-
-
-Value qbsa_analyze(const std::vector<Value>& args) {
-    if (args.empty()) {
-        throw std::runtime_error("qbsa_analyze requires at least one pattern argument");
-    }
-    
-    // Basic QBSA analysis
-    std::string pattern_id;
-    if (std::holds_alternative<std::string>(args[0])) {
-        pattern_id = std::get<std::string>(args[0]);
-    } else {
-        pattern_id = "default_pattern";
-    }
-    
-    // QBSA result based on pattern characteristics
-    double qbsa_score = 0.70 + (std::hash<std::string>{}(pattern_id) % 600) / 2000.0;
-    return Value(qbsa_score);
-}
-
-
 // ============================================================================
 // Registration Function
 // ============================================================================
 
 void register_core_primitives(Context& context) {
-    // Type checking & conversion functions
-    context.set_function("is_number", is_number);
-    context.set_function("is_string", is_string);
-    context.set_function("is_bool", is_bool);
-    context.set_function("to_string", to_string);
-    context.set_function("to_number", to_number);
-    context.set_function("get_env", get_env_var);
-    
-    // Pattern operations
-    context.set_function("create_pattern", create_pattern);
-    context.set_function("evolve_pattern", evolve_pattern);
-    context.set_function("merge_patterns", merge_patterns);
-    
-    // Quantum operations
-    context.set_function("qbsa_analyze", qbsa_analyze);
-    context.set_function("detect_collapse", detect_collapse);
-    
-    // Memory operations
-    context.set_function("store_pattern", store_pattern);
-    context.set_function("retrieve_pattern", retrieve_pattern);
-    context.set_function("promote_pattern", promote_pattern);
-    context.set_function("query_patterns", query_patterns);
-    
-    // Stream operations
-    context.set_function("extract_bits", extract_bits);
+    // Only register functions that are not duplicated in the interpreter
     context.set_function("generate_sine_wave", generate_sine_wave);
-    
-    // Override the weighted_sum function
     context.set_function("weighted_sum", weighted_sum);
     
-    
-    
-    std::cout << "Registered " << 23 << " core primitive functions (including trading functions)" << std::endl;
+    std::cout << "Registered " << 2 << " core primitive functions (including trading functions)" << std::endl;
 }
 
 } // namespace dsl::stdlib

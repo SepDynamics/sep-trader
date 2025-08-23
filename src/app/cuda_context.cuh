@@ -2,8 +2,6 @@
 
 #include <cuda_runtime.h>
 
-#include "tick_data.cuh"
-
 namespace sep::apps::cuda {
 
 struct ForwardWindowResult;

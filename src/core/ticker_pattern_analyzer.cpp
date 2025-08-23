@@ -316,7 +316,11 @@ BitState64 SepEngine::make_bitstate64(const Tick& t) const {
 }
 
 AnalysisResult SepEngine::pipeline_(const InstrumentId& instrument,
+#if __cplusplus >= 202002L
                                     std::span<const Tick> ticks,
+#else
+                                    const std::vector<Tick>& ticks,
+#endif
                                     const AnalysisRequest& req) {
     (void)req;  // Suppress unused parameter warning
     

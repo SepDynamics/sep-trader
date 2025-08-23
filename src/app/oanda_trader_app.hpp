@@ -3,7 +3,14 @@
 #include <array>
 #include "util/nlohmann_json_safe.h"
 
-#include <GLFW/glfw3.h>
+#include "app/cuda_types.cuh"
+#include "app/forward_window_kernels.cuh"
+#include "app/quantum_signal_bridge.hpp"
+#include "app/tick_cuda_kernels.cuh"
+#include "core/engine.h"
+#include "core/forward_window_result.h"
+#include "io/oanda_connector.h"
+#include "util/managed_thread.hpp"
 
 #include <deque>
 #include <map>
@@ -13,23 +20,11 @@
 #include <thread>
 #include <vector>
 
-#include "core/forward_window_result.h"
-#include "io/oanda_connector.h"
-#include "core/engine.h"
-#ifdef SEP_USE_GUI
-#include "imgui.h"
-#endif
-#include "cuda_types.cuh"
-#include "forward_window_kernels.cuh"
-#include "tick_cuda_kernels.cuh"
-#include "app/quantum_signal_bridge.hpp"
-#include "util/managed_thread.hpp"
-
 namespace sep::apps {
 
 class OandaTraderApp {
 public:
-    explicit OandaTraderApp(bool headless = false) : headless_mode_(headless) {}
+    explicit OandaTraderApp(bool headless = true) : headless_mode_(headless) {}
     ~OandaTraderApp() = default;
 
     // Core lifecycle
@@ -41,33 +36,16 @@ public:
     const std::string& getLastError() const { return last_error_; }
 
 private:
-    // UI rendering
-    void renderMainInterface();
-    void renderConnectionStatus();
-    void renderAccountInfo();
-    void renderMarketData();
-    void renderTradePanel();
-    void renderPositions();
-    void renderOrderHistory();
-    
     // OANDA integration
     void connectToOanda();
     void refreshAccountInfo();
     void refreshPositions();
     void refreshOrderHistory();
     
-    // OpenGL/GLFW setup
-    bool initializeGraphics();
-    void setupImGui();
-    void cleanupGraphics();
-    
     // Members
-    GLFWwindow* window_ = nullptr;
     std::unique_ptr<sep::connectors::OandaConnector> oanda_connector_;
     std::unique_ptr<sep::core::Engine> sep_engine_;
     
-    // UI state
-    bool show_demo_window_ = false;
     bool oanda_connected_ = false;
     std::string account_balance_ = "N/A";
     std::string account_currency_ = "USD";
@@ -93,12 +71,7 @@ private:
     sep::apps::cuda::CudaContext cuda_context_;
     
     // Runtime settings
-    bool headless_mode_ = false;
-    
-    // Window settings
-    static constexpr int WINDOW_WIDTH = 1400;
-    static constexpr int WINDOW_HEIGHT = 900;
-    static constexpr const char* WINDOW_TITLE = "SEP OANDA Trader";
+    bool headless_mode_ = true;
 };
 
 } // namespace sep::apps

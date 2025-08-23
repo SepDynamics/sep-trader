@@ -3,6 +3,7 @@
 #include "app/IPatternRecognitionService.h"
 #include "ServiceBase.h"
 #include "util/nlohmann_json_safe.h"
+#include "core/engine.h"  // Add this include
 #include <array>
 #include <unordered_map>
 #include <mutex>
@@ -18,8 +19,11 @@ namespace services {
  */
 class PatternRecognitionService : public IPatternRecognitionService, public ServiceBase {
 public:
-    PatternRecognitionService();
+    PatternRecognitionService();  // Default constructor
     virtual ~PatternRecognitionService();
+    
+    // Method to set the engine reference
+    void setEngine(sep::core::Engine& engine);
     
     // IService interface
     bool isReady() const override;
@@ -70,6 +74,9 @@ private:
     // ID generators
     std::atomic<int> nextPatternId_{1};
     std::atomic<int> nextSubscriptionId_{1};
+    
+    // Reference to the core engine for real pattern analysis
+    sep::core::Engine* engine_{nullptr};  // Add engine pointer
 };
 
 } // namespace services

@@ -1,5 +1,5 @@
 #include <cuda_runtime.h>
-#include <cmath>
+#include <cmath>  // Include cmath after the macros are defined
 #include <stdexcept>
 #include <string>
 

@@ -6,8 +6,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 
 # Install all dependencies in a single layer to optimize image size
 RUN apt-get update && apt-get install -y \
-    sudo \
-    lcov gcovr cmake build-essential gcc-11 g++-11 \
+    lcov sudo gcovr build-essential gcc-11 g++-11 \
     ninja-build pkg-config curl git python3 python3-pip postgresql-client \
     libpq-dev libpqxx-dev libhiredis-dev libhwloc-dev libbenchmark-dev \
     nlohmann-json3-dev libglm-dev libglfw3-dev libgl1-mesa-dev libfmt-dev libcurl4-openssl-dev libyaml-cpp-dev \
@@ -17,6 +16,7 @@ RUN apt-get update && apt-get install -y \
     && update-alternatives --set gcc /usr/bin/gcc-11 \
     && update-alternatives --set g++ /usr/bin/g++-11
 
+
 # Set environment variables for the build
 ENV CXX=g++-11
 ENV CC=gcc-11
@@ -25,7 +25,6 @@ ENV CUDA_TOOLKIT_ROOT_DIR=/usr/local/cuda
 ENV CUDA_HOME=/usr/local/cuda
 ENV PATH="/usr/local/cuda/bin:${PATH}"
 ENV LD_LIBRARY_PATH="/usr/local/cuda/lib64:${LD_LIBRARY_PATH}"
-ENV PKG_CONFIG_PATH="/usr/lib/x86_64-linux-gnu/pkgconfig:${PKG_CONFIG_PATH:-}"
 
 # Set up a non-root user to avoid permission issues
 ARG USERNAME=vscode

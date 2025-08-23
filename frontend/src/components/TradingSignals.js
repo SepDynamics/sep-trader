@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useWebSocket } from '../hooks/useWebSocket';
+import { useWebSocket } from '../context/WebSocketContext';
 
 const TradingSignals = () => {
   const { connected, tradingSignals } = useWebSocket();
