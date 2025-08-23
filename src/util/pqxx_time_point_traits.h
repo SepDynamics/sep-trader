@@ -1,7 +1,6 @@
 // /sep/src/common/pqxx_time_point_traits.h
 #pragma once
 
-#include <pqxx/pqxx>
 #include <chrono>
 #include <string>
 #include <string_view>
@@ -9,12 +8,20 @@
 #include <iomanip> // For std::put_time, std::get_time
 #include <ctime>   // For std::tm, gmtime
 
+// Forward declaration of pqxx::string_traits to allow specialization prior to
+// including <pqxx/pqxx>.  This avoids early instantiation of pqxx::nullness
+// with incomplete constexpr flags, which previously triggered build errors.
 namespace pqxx {
-    // Full specialization for std::chrono::system_clock::time_point
-    template<>
-    struct string_traits<std::chrono::time_point<std::chrono::system_clock>> {
-        using subject_type = std::chrono::time_point<std::chrono::system_clock>;
-        
+    template <typename T>
+    struct string_traits;
+}
+
+namespace pqxx {
+    // Partial specialization for std::chrono::system_clock::time_point with any duration
+    template <typename Duration>
+    struct string_traits<std::chrono::time_point<std::chrono::system_clock, Duration>> {
+        using subject_type = std::chrono::time_point<std::chrono::system_clock, Duration>;
+
         static constexpr const char* name() noexcept { return "time_point"; }
 
         // Provide constexpr flags for pqxx::nullness detection
@@ -28,11 +35,12 @@ namespace pqxx {
 
         static subject_type null() {
             // Return epoch time as null representation
-            return std::chrono::time_point<std::chrono::system_clock>{};
+            return subject_type{};
         }
 
         static std::string to_string(const subject_type& obj) {
-            auto tt = std::chrono::system_clock::to_time_t(obj);
+            auto sys_time = std::chrono::time_point_cast<std::chrono::system_clock::duration>(obj);
+            auto tt = std::chrono::system_clock::to_time_t(sys_time);
             std::tm tm = *std::gmtime(&tt); // Use gmtime for UTC
             std::stringstream ss;
             // Format as ISO 8601, which PostgreSQL loves.
@@ -40,10 +48,9 @@ namespace pqxx {
             return ss.str();
         }
 
-        // THIS IS THE CORRECTED FUNCTION
         static void from_string(const char* str, subject_type& obj) {
             if (str == nullptr || *str == '\0') {
-                obj = std::chrono::system_clock::time_point{}; // Handle NULL from DB
+                obj = subject_type{}; // Handle NULL from DB
                 return;
             }
             std::tm tm{};
@@ -53,11 +60,14 @@ namespace pqxx {
             if (ss.fail()) {
                 throw std::runtime_error("Failed to parse time_point from string: " + std::string(str));
             }
-            obj = std::chrono::system_clock::from_time_t(timegm(&tm));
+            auto sys_time = std::chrono::system_clock::from_time_t(timegm(&tm));
+            obj = std::chrono::time_point_cast<Duration>(sys_time);
         }
-        
+
         static std::size_t size_buffer(const subject_type& /*obj*/) {
             return 32; // Enough for ISO timestamp
         }
     };
 } // namespace pqxx
+
+#include <pqxx/pqxx>
