@@ -213,23 +213,30 @@ class TradingService:
             return {'status': 'error', 'message': str(e)}
 
     def execute_command(self, command: str) -> dict:
-        """Execute a CLI command and return its output"""
+        """Execute a CLI command safely"""
+
+        allowed_commands = {"status", "pairs", "config"}
+        cmd_parts = command.split()
+        base_cmd = cmd_parts[0] if cmd_parts else ""
+
+        if base_cmd not in allowed_commands:
+            return {"error": "Command not allowed"}
+
         try:
             result = subprocess.run(
-                command,
-                shell=True,
+                ["./bin/trader_cli", *cmd_parts],
                 capture_output=True,
                 text=True,
                 timeout=60,
             )
             return {
-                'returncode': result.returncode,
-                'stdout': result.stdout,
-                'stderr': result.stderr,
+                "returncode": result.returncode,
+                "stdout": result.stdout,
+                "stderr": result.stderr,
             }
         except Exception as e:
             logger.error(f"Command execution failed: {e}")
-            return {'returncode': -1, 'error': str(e)}
+            return {"returncode": -1, "error": str(e)}
 
     def check_market_hours(self):
         """Check if forex market is currently open"""
