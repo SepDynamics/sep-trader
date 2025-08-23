@@ -1,0 +1,294 @@
+# SEP Trading System - DigitalOcean PostgreSQL Docker Compose Configuration
+# =========================================================================
+#
+# This Docker Compose configuration template provides the necessary services
+# for connecting to DigitalOcean managed PostgreSQL with SSL/TLS support.
+#
+# Instructions:
+# 1. Copy this file to docker-compose.digitalocean.yml
+# 2. Update the environment file references
+# 3. Download DigitalOcean CA certificate to ./pki/digitalocean-ca-certificate.crt
+# 4. Run: docker-compose -f docker-compose.digitalocean.yml up
+#
+# Security Note: Ensure SSL certificates have proper permissions (600)
+
+version: '3.8'
+
+services:
+  # SEP Trading Backend Service
+  sep-backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+      args:
+        - ENVIRONMENT=production
+    container_name: sep-backend-digitalocean
+    restart: unless-stopped
+    
+    environment:
+      - NODE_ENV=production
+    
+    env_file:
+      - ./config/.sep-config.env
+    
+    volumes:
+      # SSL Certificate mounting
+      - ./pki/digitalocean-ca-certificate.crt:/app/certs/ca-certificate.crt:ro
+      - ./pki/client-certificate.crt:/app/certs/client-certificate.crt:ro
+      - ./pki/client-key.key:/app/certs/client-key.key:ro
+      
+      # Application logs
+      - sep_logs:/app/logs
+      
+      # Configuration
+      - ./config:/app/config:ro
+    
+    ports:
+      - "8000:8000"
+    
+    networks:
+      - sep-network
+    
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    
+    depends_on:
+      - redis-cache
+    
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+          cpus: '1.0'
+        reservations:
+          memory: 512M
+          cpus: '0.5'
+
+  # SEP Trading Frontend Service
+  sep-frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        - REACT_APP_API_BASE_URL=http://localhost:8000/api/v1
+    
+    container_name: sep-frontend-digitalocean
+    restart: unless-stopped
+    
+    env_file:
+      - ./frontend/.env
+    
+    ports:
+      - "3000:80"
+    
+    networks:
+      - sep-network
+    
+    depends_on:
+      - sep-backend
+    
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:80/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Redis Cache for Session Management and Caching
+  redis-cache:
+    image: redis:7-alpine
+    container_name: sep-redis-cache
+    restart: unless-stopped
+    
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:-default_password}
+    
+    volumes:
+      - redis_data:/data
+      - ./config/redis.conf:/usr/local/etc/redis/redis.conf:ro
+    
+    ports:
+      - "6379:6379"
+    
+    networks:
+      - sep-network
+    
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '0.5'
+
+  # Database Connection Test Service
+  db-test:
+    image: postgres:15-alpine
+    container_name: sep-db-test
+    
+    environment:
+      - PGPASSWORD=${DB_PASSWORD}
+    
+    env_file:
+      - ./config/.sep-config.env
+    
+    volumes:
+      - ./pki/digitalocean-ca-certificate.crt:/certs/ca-certificate.crt:ro
+      - ./scripts/test-db-connection.sh:/scripts/test-connection.sh:ro
+    
+    networks:
+      - sep-network
+    
+    command: >
+      sh -c "
+        echo 'Testing DigitalOcean PostgreSQL connection...' &&
+        psql -h $${DB_HOST} -p $${DB_PORT} -U $${DB_USER} -d $${DB_NAME} 
+             --set=sslmode=$${DB_SSL_MODE} 
+             --set=sslrootcert=/certs/ca-certificate.crt 
+             -c 'SELECT version();' &&
+        echo 'Database connection successful!' ||
+        (echo 'Database connection failed!' && exit 1)
+      "
+    
+    profiles:
+      - test
+
+  # PgBouncer Connection Pooler (Optional)
+  pgbouncer:
+    image: pgbouncer/pgbouncer:latest
+    container_name: sep-pgbouncer
+    restart: unless-stopped
+    
+    environment:
+      - DATABASES_HOST=${DB_HOST}
+      - DATABASES_PORT=${DB_PORT}
+      - DATABASES_USER=${DB_USER}
+      - DATABASES_PASSWORD=${DB_PASSWORD}
+      - DATABASES_DBNAME=${DB_NAME}
+      - POOL_MODE=${DB_POOL_MODE:-transaction}
+      - MAX_CLIENT_CONN=${DB_POOL_MAX_CONNECTIONS:-100}
+      - DEFAULT_POOL_SIZE=${DB_POOL_SIZE:-25}
+    
+    volumes:
+      - ./config/pgbouncer.ini:/etc/pgbouncer/pgbouncer.ini:ro
+      - ./pki/digitalocean-ca-certificate.crt:/certs/ca-certificate.crt:ro
+    
+    ports:
+      - "6432:6432"
+    
+    networks:
+      - sep-network
+    
+    profiles:
+      - pooling
+
+  # Monitoring and Logging
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: sep-prometheus
+    restart: unless-stopped
+    
+    volumes:
+      - ./config/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    
+    ports:
+      - "9090:9090"
+    
+    networks:
+      - sep-network
+    
+    profiles:
+      - monitoring
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: sep-grafana
+    restart: unless-stopped
+    
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD:-admin}
+    
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./config/grafana:/etc/grafana/provisioning:ro
+    
+    ports:
+      - "3001:3000"
+    
+    networks:
+      - sep-network
+    
+    depends_on:
+      - prometheus
+    
+    profiles:
+      - monitoring
+
+  # Log Aggregation
+  fluentd:
+    image: fluentd:latest
+    container_name: sep-fluentd
+    restart: unless-stopped
+    
+    volumes:
+      - ./config/fluentd.conf:/fluentd/etc/fluent.conf:ro
+      - sep_logs:/var/log/app:ro
+    
+    ports:
+      - "24224:24224"
+    
+    networks:
+      - sep-network
+    
+    profiles:
+      - logging
+
+# Named Volumes
+volumes:
+  redis_data:
+    driver: local
+    name: sep_redis_data
+  
+  prometheus_data:
+    driver: local
+    name: sep_prometheus_data
+  
+  grafana_data:
+    driver: local
+    name: sep_grafana_data
+  
+  sep_logs:
+    driver: local
+    name: sep_application_logs
+
+# Networks
+networks:
+  sep-network:
+    driver: bridge
+    name: sep-digitalocean-network
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
+
+# Health Check Configuration
+x-healthcheck-defaults: &healthcheck-defaults
+  interval: 30s
+  timeout: 10s
+  retries: 3
+  start_period: 60s
+
+# Resource Limits Template
+x-resource-limits: &default-resources
+  limits:
+    memory: 1G
+    cpus: '0.5'
+  reservations:
+    memory: 256M
+    cpus: '0.25'

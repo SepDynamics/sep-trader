@@ -83,7 +83,7 @@ mkdir -p "$LOG_DIR" "$BUILD_DIR"
 MIN_PACKAGES=(
   build-essential cmake git gcc clang-tidy-15 clang-format-15 ninja-build
   libspdlog-dev libfmt-dev libbenchmark-dev libgtest-dev
-  nlohmann-json3-dev pkg-config libhiredis-dev libglm-dev
+  nlohmann-json3-dev pkg-config libhiredis-dev libglm-dev postgresql-client
   libpqxx-dev
   libyaml-cpp-dev libimgui-dev libgl1-mesa-dev libglfw3-dev
   libcurl4-openssl-dev curl python3 python3-pip gdb
@@ -259,7 +259,7 @@ fi
 # Install Python packages for analysis
 # Install Python packages for analysis. Use --break-system-packages to
 # allow pip to modify system-managed environments in Ubuntu 24.04.
-python3 -m pip install --break-system-packages pandas numpy matplotlib codechecker
+python3 -m pip install pandas numpy matplotlib codechecker
 
 # Set up clang tool symlinks
 $SUDO ln -sf /usr/bin/clang-tidy-15 /usr/bin/clang-tidy
@@ -303,4 +303,3 @@ if [ "$SKIP_DOCKER" -eq 0 ]; then
 else
   echo "Skipping Docker image build (--no-docker)"
 fi
-
