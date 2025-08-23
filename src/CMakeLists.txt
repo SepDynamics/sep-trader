@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.18)
-project(sep_trader)
+project(sep_trader LANGUAGES CXX C)
 
 add_definitions(-DGLM_COMPILER=0)
 
@@ -14,34 +14,52 @@ else()
     message(WARNING "CUDA not found, building without CUDA")
 endif()
 
-# Gather all source files (C++ only - no .c files)
-file(GLOB_RECURSE ALL_SOURCES
+# Gather C++ source files only
+file(GLOB_RECURSE CXX_SOURCES
     "app/*.cpp"
     "core/*.cpp"
     "cuda/*.cpp"
     "io/*.cpp"
     "util/*.cpp"
 )
+
+# Gather C source files separately
+set(C_SOURCES
+    "util/error_handling.c"
+)
+
+# Add CUDA sources if available
 if(USE_CUDA)
     file(GLOB_RECURSE CUDA_SOURCES
         "app/*.cu" "core/*.cu" "cuda/*.cu" "io/*.cu" "util/*.cu")
-    list(APPEND ALL_SOURCES ${CUDA_SOURCES})
+    list(APPEND CXX_SOURCES ${CUDA_SOURCES})
 endif()
 
 # Exclude facade_original.cpp and OANDA-related files from the list of sources
-list(FILTER ALL_SOURCES EXCLUDE REGEX ".*/facade_original\\.cpp$")
-list(FILTER ALL_SOURCES EXCLUDE REGEX ".*/oanda_.*\\.(cpp|cu)$")
+list(FILTER CXX_SOURCES EXCLUDE REGEX ".*/facade_original\\.cpp$")
+list(FILTER CXX_SOURCES EXCLUDE REGEX ".*/oanda_.*\\.(cpp|cu)$")
 
 # Separate main files from library source files
-set(LIB_SOURCES)
-foreach(file ${ALL_SOURCES})
+set(LIB_CXX_SOURCES)
+foreach(file ${CXX_SOURCES})
     if(NOT file MATCHES "main.cpp$")
-        list(APPEND LIB_SOURCES ${file})
+        list(APPEND LIB_CXX_SOURCES ${file})
     endif()
 endforeach()
 
-# Create a library from the non-main source files using add_sep_library
-add_sep_library(sep_lib SOURCES ${LIB_SOURCES} PCH_HEADER core/sep_precompiled.h)
+# Create C library first (no PCH for C files)
+add_library(sep_c_lib STATIC ${C_SOURCES})
+set_source_files_properties(${C_SOURCES} PROPERTIES LANGUAGE C)
+target_include_directories(sep_c_lib PUBLIC
+    ${CMAKE_CURRENT_SOURCE_DIR}
+    ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_SOURCE_DIR}
+)
+
+# Create C++ library with PCH
+add_sep_library(sep_lib SOURCES ${LIB_CXX_SOURCES} PCH_HEADER core/sep_precompiled.h)
+# Link C library to C++ library
+target_link_libraries(sep_lib PRIVATE sep_c_lib)
 target_link_libraries(sep_lib
     PUBLIC
         sep_core_deps

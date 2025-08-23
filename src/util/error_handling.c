@@ -8,6 +8,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#include <errno.h>
 
 /* Static variables for error handling */
 static FILE* error_log_file = NULL;

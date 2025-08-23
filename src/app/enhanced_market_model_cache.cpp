@@ -262,57 +262,25 @@ bool EnhancedMarketModelCache::fetchAssetData(const std::string& instrument, std
             
             engine.addPattern(pattern);
             engine.evolvePatterns();
-            
+
             const auto& metrics = engine.computeMetrics();
-            double movement = 0.0;
             if (!metrics.empty()) {
-                // Use entropy to determine movement direction and magnitude
-                movement = (metrics[0].entropy - 0.5) * 0.0001;
-            } else {
-                movement = (static_cast<double>(std::rand() % 20 - 10) * 0.00001);
+                double price_movement = metrics[0].coherence * 0.001; // Small price movement
+                base_price += (metrics[0].stability > 0.5 ? price_movement : -price_movement);
             }
-            base_price += movement;
-
-            // Use real pattern data for candle properties
-            // Note: PatternMetricEngine should be accessed via engine facade, not instantiated directly
-
-            // Create patterns for open, high, low, close
-            sep::quantum::PatternMetricEngine engine2;
-            engine2.init(nullptr);
-            sep::compat::PatternData openPattern;
-            strncpy(openPattern.id, "open_price", sizeof(openPattern.id) - 1);
-            openPattern.id[sizeof(openPattern.id) - 1] = '\0';
-            openPattern.size = 1;
-            openPattern.attributes[0] = base_price;
-            openPattern.quantum_state.coherence = 0.7;
-            openPattern.quantum_state.stability = 0.6;
-            openPattern.quantum_state.entropy = 0.3;
             
-            engine.addPattern(openPattern);
-            engine.evolvePatterns();
-
-            const auto& metrics2 = engine.computeMetrics();
-            
-            if (!metrics2.empty()) {
-                const auto& metric = metrics2[0];
-                demo_candle.open = base_price;
-                demo_candle.high = base_price + (metric.coherence * 0.00005);
-                demo_candle.low = base_price - (metric.entropy * 0.00005);
-                demo_candle.close = base_price + ((metric.stability - 0.5) * 0.0001);
-                demo_candle.volume = static_cast<uint64_t>(100 + (metric.coherence * 200));
-            } else {
-                demo_candle.open = base_price;
-                demo_candle.high = base_price + (static_cast<double>(std::rand() % 5) * 0.00001);
-                demo_candle.low = base_price - (static_cast<double>(std::rand() % 5) * 0.00001);
-                demo_candle.close = base_price + (static_cast<double>(std::rand() % 10 - 5) * 0.00001);
-                demo_candle.volume = 100 + (std::rand() % 200);
-            }
+            demo_candle.open = base_price;
+            demo_candle.high = base_price + 0.0005;
+            demo_candle.low = base_price - 0.0005;
+            demo_candle.close = base_price + ((i % 3 == 0) ? 0.0002 : -0.0001);
+            demo_candle.volume = 100.0 + (i % 50);
             
             out_candles.push_back(demo_candle);
+            base_price = demo_candle.close; // Update for next iteration
         }
         data_fetched = true;
     }
-    
+
     return data_fetched && !out_candles.empty();
 }
 
