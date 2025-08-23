@@ -18,6 +18,7 @@ from websockets.legacy.server import WebSocketServerProtocol
 import argparse
 from pathlib import Path
 import aiohttp
+from watchgod import awatch
 
 # Add project root to path for imports
 project_root = Path(__file__).parent.parent
@@ -77,7 +78,7 @@ class WebSocketManager:
         self.subscriptions: Dict[WebSocketServerProtocol, Set[str]] = {}
         self.last_heartbeat = {}
         
-    async def register_client(self, websocket: WebSocketServerProtocol, path: str):
+    async def register_client(self, websocket: WebSocketServerProtocol, path: str = "/"):
         """Register a new WebSocket client"""
         self.clients.add(websocket)
         self.subscriptions[websocket] = set()
@@ -213,8 +214,8 @@ class BackendAPIConnector:
         tasks = [
             asyncio.create_task(self.monitor_market_data()),
             asyncio.create_task(self.monitor_system_status()),
-            asyncio.create_task(self.monitor_trading_signals()),
             asyncio.create_task(self.monitor_performance_updates()),
+            asyncio.create_task(self.watch_trading_signals()),
         ]
         
         # Wait for all tasks to complete (or be cancelled)
@@ -319,45 +320,47 @@ class BackendAPIConnector:
                 logger.error(f"Error monitoring system status: {e}")
                 await asyncio.sleep(10)
     
-    async def monitor_trading_signals(self):
-        """Monitor trading signals from engine output files"""
+    async def _process_signal_file(self, path: Path):
+        """Read signal file and broadcast new signals"""
+        try:
+            data = await asyncio.to_thread(self._read_engine_file, path.name)
+            if isinstance(data, list):
+                signals = data
+            elif isinstance(data, dict):
+                signals = data.get('signals', [])
+            else:
+                signals = []
 
-        while self.running:
-            try:
-                data = await asyncio.to_thread(
-                    self._read_engine_file, 'trading_signals.json'
+            for s in signals:
+                signal_id = s.get('id') or f"{s.get('symbol')}:{s.get('timestamp')}"
+                if signal_id in self._processed_signals:
+                    continue
+                self._processed_signals.add(signal_id)
+                signal = TradingSignal(
+                    symbol=s.get('symbol', ''),
+                    signal_type=s.get('signal_type', 'hold'),
+                    confidence=float(s.get('confidence', 0.0)),
+                    price=float(s.get('price', 0.0)),
+                    timestamp=s.get('timestamp', datetime.utcnow().isoformat()),
+                    reason=s.get('reason', ''),
                 )
-                if isinstance(data, list):
-                    signals = data
-                elif isinstance(data, dict):
-                    signals = data.get('signals', [])
-                else:
-                    signals = []
+                await self.ws_manager.broadcast_to_channel(
+                    'signals',
+                    {'type': 'trading_signal', 'data': asdict(signal)},
+                )
+        except Exception as e:
+            logger.error(f"Error processing trading signals: {e}")
 
-                for s in signals:
-                    signal_id = s.get('id') or f"{s.get('symbol')}:{s.get('timestamp')}"
-                    if signal_id in self._processed_signals:
-                        continue
-                    self._processed_signals.add(signal_id)
-                    signal = TradingSignal(
-                        symbol=s.get('symbol', ''),
-                        signal_type=s.get('signal_type', 'hold'),
-                        confidence=float(s.get('confidence', 0.0)),
-                        price=float(s.get('price', 0.0)),
-                        timestamp=s.get(
-                            'timestamp', datetime.utcnow().isoformat()
-                        ),
-                        reason=s.get('reason', ''),
-                    )
-                    await self.ws_manager.broadcast_to_channel(
-                        'signals',
-                        {'type': 'trading_signal', 'data': asdict(signal)},
-                    )
+    async def watch_trading_signals(self):
+        """Watch for trading signal file updates and stream new signals"""
+        signal_file = self.engine_output_dir / 'trading_signals.json'
+        if signal_file.exists():
+            await self._process_signal_file(signal_file)
 
-                await asyncio.sleep(5)
-            except Exception as e:
-                logger.error(f"Error monitoring trading signals: {e}")
-                await asyncio.sleep(5)
+        async for changes in awatch(self.engine_output_dir):
+            for change, changed_path in changes:
+                if Path(changed_path) == signal_file:
+                    await self._process_signal_file(signal_file)
     
     async def monitor_performance_updates(self):
         """Monitor performance metrics from backend API or engine files"""

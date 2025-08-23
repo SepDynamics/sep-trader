@@ -6,6 +6,7 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <unistd.h>
+#include <cstdlib>
 
 using json = nlohmann::json;
 
@@ -174,4 +175,10 @@ TEST_F(IntegrationTest, ForexPairsEnabled) {
     
     EXPECT_TRUE(has_eur_usd) << "EUR_USD should be enabled";
     EXPECT_TRUE(has_gbp_usd) << "GBP_USD should be enabled";
+}
+
+// Test WebSocket streaming of trading signals via filesystem watcher
+TEST_F(IntegrationTest, WebSocketSignalStreaming) {
+    int result = std::system("python ../../tests/integration/websocket_signal_client.py");
+    ASSERT_EQ(result, 0) << "WebSocket signal streaming test failed";
 }
