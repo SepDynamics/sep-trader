@@ -75,13 +75,7 @@ FusedSignal MultiAssetSignalFusion::generateFusedSignal(const std::string& targe
             
             auto correlation = calculateDynamicCorrelation(target_asset, asset);
             
-            // Create placeholder quantum identifiers (will be replaced with real data)
-            sep::trading::QuantumIdentifiers quantum_identifiers{
-                .confidence = 0.7f,
-                .coherence = 0.4f,
-                .stability = 0.5f,
-                .converged = true
-            };
+            auto quantum_identifiers = quantum_processor_->processAsset(asset);
             
             AssetSignal signal{
                 .instrument = asset,
@@ -145,11 +139,11 @@ CrossAssetCorrelation MultiAssetSignalFusion::calculateDynamicCorrelation(
     
     // Calculate new correlation if not in cache
     try {
-        // For now, return a default correlation since we're simplifying for Phase 2
-        // TODO: Implement proper historical data fetching through connector
-        std::vector<Candle> data1, data2; // Empty for now
+        // Fetch last N candles for both assets
+        auto data1 = market_cache_->getRecentCandles(asset1, 100);
+        auto data2 = market_cache_->getRecentCandles(asset2, 100);
         
-        if (data1.empty() || data2.empty()) {
+        if (data1.size() < 50 || data2.size() < 50) {
             spdlog::warn("Insufficient data for correlation calculation: {} or {}", asset1, asset2);
             return {0.0, std::chrono::milliseconds(0), 0.0};
         }
@@ -277,21 +271,11 @@ double MultiAssetSignalFusion::calculateCrossAssetBoost(
     const sep::trading::QuantumIdentifiers& signal,
     const CrossAssetCorrelation& correlation) {
     
-    // Base boost is proportional to correlation strength
-    double base_boost = std::abs(correlation.strength) * 0.5;
-    
-    // Additional boost for high-confidence signals
-    if (signal.confidence > 0.7) {
-        base_boost *= 1.2;
-    }
-    
-    // Additional boost for stable correlations
-    if (correlation.stability > 0.6) {
-        base_boost *= 1.1;
-    }
-    
-    // Cap the boost to prevent over-amplification
-    return std::min(base_boost, 0.3);
+       double base_boost = correlation.strength * correlation.stability;
+       double coherence_factor = signal.coherence / 0.3;  // Normalized to threshold
+       double confidence_factor = signal.confidence / 0.65;  // Normalized
+       
+       return base_boost * coherence_factor * confidence_factor * 0.2;  // Max 20% boost
 }
 
 FusedSignal MultiAssetSignalFusion::fuseSignals(const std::vector<AssetSignal>& asset_signals) {
