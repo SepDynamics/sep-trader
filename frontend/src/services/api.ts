@@ -53,6 +53,7 @@ class APIClient {
     return this.request('/api/market-data');
   }
 
+<<<<<<< Updated upstream
   async getLiveMetrics() {
     return this.request('/api/metrics/live');
   }
@@ -82,6 +83,27 @@ class APIClient {
 
   async getQuantumSignals() {
     return this.request('/api/quantum/signals');
+=======
+  // OANDA Candle Data
+  async getCandleData(instrument: string, granularity?: string, count?: number) {
+    const params = new URLSearchParams();
+    if (granularity) params.append('granularity', granularity);
+    if (count) params.append('count', count.toString());
+    
+    const queryString = params.toString() ? `?${params.toString()}` : '';
+    return this.request(`/api/candles/${instrument}${queryString}`);
+  }
+
+  async fetchCandleData(instruments?: string[]) {
+    return this.request('/api/candles/fetch', {
+      method: 'POST',
+      body: JSON.stringify({ instruments: instruments || [] }),
+    });
+  }
+
+  async getStoredCandles(instrument: string) {
+    return this.request(`/api/candles/${instrument}`);
+>>>>>>> Stashed changes
   }
 
   // Trading Operations
@@ -210,6 +232,7 @@ export const {
   login,
   logout,
   getMarketData,
+<<<<<<< Updated upstream
   getLiveMetrics,
   getSignals,
   getSignalHistory,
@@ -217,6 +240,11 @@ export const {
   getValkeyStatus,
   getLivePatterns,
   getQuantumSignals,
+=======
+  getCandleData,
+  fetchCandleData,
+  getStoredCandles,
+>>>>>>> Stashed changes
   placeOrder,
   submitOrder,
   getPositions,
