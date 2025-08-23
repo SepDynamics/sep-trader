@@ -116,7 +116,7 @@ public:
     sep::SEPResult updatePattern(const std::string& pattern_id, const compat::Pattern& pattern);
     compat::Pattern getPattern(const std::string& pattern_id) const;
     std::vector<sep::compat::Pattern> getPatterns() const;
-    std::vector<sep::compat::Pattern> getPatternsByTier(sep::memory::MemoryTierEnum tier) const;
+    std::vector<sep::compat::Pattern> getPatternsByTier(sep::compat::Pattern::MemoryTier tier) const;
     size_t getPatternCount() const;
 
     ProcessingResult processPattern(const std::string& pattern_id);

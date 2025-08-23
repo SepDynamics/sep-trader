@@ -97,20 +97,23 @@ public:
     std::vector<Pattern> getPatterns() const
     {
         std::lock_guard<std::mutex> lock(mutex_);
-        return patterns_;
+        std::vector<Pattern> result;
+        for (const auto& pattern : patterns_) {
+            if (pattern.tier == Pattern::MemoryTier::Hot) {
+                result.push_back(pattern);
+            }
+        }
+        return result;
     }
 
-    std::vector<Pattern> getPatternsByTier(::sep::memory::MemoryTierEnum tier) const
+    std::vector<Pattern> getPatternsByTier(Pattern::MemoryTier tier) const
     {
-        // Suppress unused parameter warning until tier-based filtering is implemented
-        (void)tier;
         std::lock_guard<std::mutex> lock(mutex_);
         std::vector<Pattern> result;
         for (const auto& pattern : patterns_) {
-            // Note: memory_tier is no longer part of QuantumState
-            // This method will return all patterns for now
-            // TODO: Implement tier-based filtering using other criteria
-            result.push_back(pattern);
+            if (pattern.tier == tier) {
+                result.push_back(pattern);
+            }
         }
         return result;
     }
@@ -421,7 +424,7 @@ Pattern Processor::getPattern(const std::string& pattern_id) const
 }
 
 std::vector<Pattern> Processor::getPatterns() const { return impl_->getPatterns(); }
-std::vector<Pattern> Processor::getPatternsByTier(::sep::memory::MemoryTierEnum tier) const
+std::vector<Pattern> Processor::getPatternsByTier(Pattern::MemoryTier tier) const
 {
     return impl_->getPatternsByTier(tier);
 }
