@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useWebSocket } from '../context/WebSocketContext';
-import { apiClient } from '../services/api';
+import { apiClient, startTrading, stopTrading } from '../services/api';
+import QuickActionButton from './QuickActionButton';
 import '../styles/Dashboard.css';
 
 const Dashboard = () => {
@@ -9,6 +10,7 @@ const Dashboard = () => {
   const [performance, setPerformance] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [actionStatus, setActionStatus] = useState(null);
 
   useEffect(() => {
     loadInitialData();
@@ -32,6 +34,24 @@ const Dashboard = () => {
       setError('Failed to load dashboard data');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleStartTrading = async () => {
+    try {
+      await startTrading();
+      setActionStatus({ type: 'success', message: 'Trading started' });
+    } catch (err) {
+      setActionStatus({ type: 'error', message: 'Failed to start trading' });
+    }
+  };
+
+  const handlePauseTrading = async () => {
+    try {
+      await stopTrading();
+      setActionStatus({ type: 'success', message: 'Trading paused' });
+    } catch (err) {
+      setActionStatus({ type: 'error', message: 'Failed to pause trading' });
     }
   };
 
@@ -244,23 +264,38 @@ const Dashboard = () => {
             </div>
             <div className="card-content">
               <div className="action-buttons">
-                <button className="action-btn primary">
-                  <span className="btn-icon">▶️</span>
+                <QuickActionButton
+                  className="action-btn primary"
+                  icon={<span className="btn-icon">▶️</span>}
+                  onClick={handleStartTrading}
+                >
                   Start Trading
-                </button>
-                <button className="action-btn secondary">
-                  <span className="btn-icon">⏸️</span>
+                </QuickActionButton>
+                <QuickActionButton
+                  className="action-btn secondary"
+                  icon={<span className="btn-icon">⏸️</span>}
+                  onClick={handlePauseTrading}
+                >
                   Pause System
-                </button>
-                <button className="action-btn info">
-                  <span className="btn-icon">📊</span>
+                </QuickActionButton>
+                <QuickActionButton
+                  className="action-btn info"
+                  icon={<span className="btn-icon">📊</span>}
+                >
                   View Reports
-                </button>
-                <button className="action-btn warning">
-                  <span className="btn-icon">⚙️</span>
+                </QuickActionButton>
+                <QuickActionButton
+                  className="action-btn warning"
+                  icon={<span className="btn-icon">⚙️</span>}
+                >
                   Settings
-                </button>
+                </QuickActionButton>
               </div>
+              {actionStatus && (
+                <div className={`action-feedback ${actionStatus.type}`}>
+                  {actionStatus.message}
+                </div>
+              )}
             </div>
           </div>
         </div>

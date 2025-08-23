@@ -71,6 +71,34 @@ class APIClient {
     return this.request('/api/trading-signals');
   }
 
+  // Quick Actions
+  async startTrading() {
+    return this.request('/api/trading/start', { method: 'POST' });
+  }
+
+  async stopTrading() {
+    return this.request('/api/trading/stop', { method: 'POST' });
+  }
+
+  async pauseSystem() {
+    return this.request('/api/system/pause', { method: 'POST' });
+  }
+
+  async uploadTrainingData(payload = {}) {
+    return this.request('/api/training/upload', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+  }
+
+  async startModelTraining() {
+    return this.request('/api/training/start', { method: 'POST' });
+  }
+
+  async generateReport() {
+    return this.request('/api/reports/generate', { method: 'POST' });
+  }
+
   // System Status
   async getSystemStatus() {
     return this.request('/api/system-status');
@@ -138,6 +166,12 @@ export const {
   getTradingSignals,
   getSystemStatus,
   getHealth,
+  startTrading,
+  stopTrading,
+  pauseSystem,
+  uploadTrainingData,
+  startModelTraining,
+  generateReport,
   getPerformanceMetrics,
   getConfiguration,
   setConfiguration,

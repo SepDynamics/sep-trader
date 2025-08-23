@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Activity, TrendingUp, TrendingDown, DollarSign, AlertCircle, Play, Pause, Settings, BarChart3, Brain, Clock, ChevronUp, ChevronDown, CheckCircle, XCircle, RefreshCw, Database, Cpu, HardDrive, Zap, Target, Shield, Eye, Terminal, Upload, FileText, GitBranch, Server } from 'lucide-react';
 import { useWebSocket } from '../context/WebSocketContext';
+import QuickActionButton from './QuickActionButton';
+import { uploadTrainingData, startModelTraining, generateReport, getConfiguration, getSystemStatus } from '../services/api';
 
 // This dashboard connects to your actual backend services
 // Backend API: http://localhost:5000/api/
@@ -34,6 +36,7 @@ const HomeDashboard = () => {
   const [commandHistory, setCommandHistory] = useState([]);
   const [commandInput, setCommandInput] = useState('');
   const [isExecutingCommand, setIsExecutingCommand] = useState(false);
+  const [actionStatus, setActionStatus] = useState(null);
 
   // API base URL from environment or default
   const API_URL = window._env_?.REACT_APP_API_URL || 'http://localhost:5000';
@@ -76,16 +79,23 @@ const HomeDashboard = () => {
   };
 
   // Enable/disable trading pair
+  const fetchSystemStatus = async () => {
+    try {
+      await getSystemStatus();
+    } catch (error) {
+      console.error('Failed to fetch system status:', error);
+    }
+  };
+
   const togglePair = async (pair, enable) => {
     try {
-      const endpoint = enable ? 
-        `${API_URL}/api/pairs/${pair}/enable` : 
-        `${API_URL}/api/pairs/${pair}/disable`;
-      
+      const endpoint = enable
+        ? `${API_URL}/api/pairs/${pair}/enable`
+        : `${API_URL}/api/pairs/${pair}/disable`;
+
       const response = await fetch(endpoint, { method: 'POST' });
       if (response.ok) {
-        const data = await response.json();
-        setSystemStatus(prev => ({ ...prev, pairs: data.pairs }));
+        await fetchSystemStatus();
       }
     } catch (error) {
       console.error(`Failed to ${enable ? 'enable' : 'disable'} pair ${pair}:`, error);
@@ -106,6 +116,42 @@ const HomeDashboard = () => {
       }
     } catch (error) {
       console.error(`Failed to ${isRunning ? 'stop' : 'start'} trading:`, error);
+    }
+  };
+
+  const handleUploadData = async () => {
+    try {
+      await uploadTrainingData();
+      setActionStatus({ type: 'success', message: 'Training data uploaded' });
+    } catch (error) {
+      setActionStatus({ type: 'error', message: 'Upload failed' });
+    }
+  };
+
+  const handleStartTraining = async () => {
+    try {
+      await startModelTraining();
+      setActionStatus({ type: 'success', message: 'Model training started' });
+    } catch (error) {
+      setActionStatus({ type: 'error', message: 'Training start failed' });
+    }
+  };
+
+  const handleGenerateReport = async () => {
+    try {
+      await generateReport();
+      setActionStatus({ type: 'success', message: 'Report generation started' });
+    } catch (error) {
+      setActionStatus({ type: 'error', message: 'Report generation failed' });
+    }
+  };
+
+  const handleOpenConfig = async () => {
+    try {
+      await getConfiguration();
+      setActionStatus({ type: 'success', message: 'Configuration loaded' });
+    } catch (error) {
+      setActionStatus({ type: 'error', message: 'Failed to load configuration' });
     }
   };
 
@@ -502,23 +548,40 @@ const HomeDashboard = () => {
           <div className="bg-gray-900 rounded-lg p-4">
             <h3 className="text-sm font-medium text-gray-400 mb-3">Quick Actions</h3>
             <div className="space-y-2">
-              <button className="w-full px-3 py-2 bg-gray-800 hover:bg-gray-700 rounded-lg text-sm text-left transition-colors">
-                <Upload className="w-4 h-4 inline mr-2" />
+              <QuickActionButton
+                className="w-full px-3 py-2 bg-gray-800 hover:bg-gray-700 rounded-lg text-sm text-left transition-colors"
+                icon={<Upload className="w-4 h-4 inline mr-2" />}
+                onClick={handleUploadData}
+              >
                 Upload Training Data
-              </button>
-              <button className="w-full px-3 py-2 bg-gray-800 hover:bg-gray-700 rounded-lg text-sm text-left transition-colors">
-                <Brain className="w-4 h-4 inline mr-2" />
+              </QuickActionButton>
+              <QuickActionButton
+                className="w-full px-3 py-2 bg-gray-800 hover:bg-gray-700 rounded-lg text-sm text-left transition-colors"
+                icon={<Brain className="w-4 h-4 inline mr-2" />}
+                onClick={handleStartTraining}
+              >
                 Start Model Training
-              </button>
-              <button className="w-full px-3 py-2 bg-gray-800 hover:bg-gray-700 rounded-lg text-sm text-left transition-colors">
-                <FileText className="w-4 h-4 inline mr-2" />
+              </QuickActionButton>
+              <QuickActionButton
+                className="w-full px-3 py-2 bg-gray-800 hover:bg-gray-700 rounded-lg text-sm text-left transition-colors"
+                icon={<FileText className="w-4 h-4 inline mr-2" />}
+                onClick={handleGenerateReport}
+              >
                 Generate Report
-              </button>
-              <button className="w-full px-3 py-2 bg-gray-800 hover:bg-gray-700 rounded-lg text-sm text-left transition-colors">
-                <Settings className="w-4 h-4 inline mr-2" />
+              </QuickActionButton>
+              <QuickActionButton
+                className="w-full px-3 py-2 bg-gray-800 hover:bg-gray-700 rounded-lg text-sm text-left transition-colors"
+                icon={<Settings className="w-4 h-4 inline mr-2" />}
+                onClick={handleOpenConfig}
+              >
                 System Configuration
-              </button>
+              </QuickActionButton>
             </div>
+            {actionStatus && (
+              <div className={`mt-2 text-sm ${actionStatus.type === 'success' ? 'text-green-400' : 'text-red-400'}`}>
+                {actionStatus.message}
+              </div>
+            )}
           </div>
 
           {/* System Metrics */}
