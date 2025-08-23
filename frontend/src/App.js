@@ -10,11 +10,14 @@ import MarketData from './components/MarketData';
 import TradingSignals from './components/TradingSignals';
 import ConfigurationPanel from './components/ConfigurationPanel';
 import ConnectionStatusIndicator from './components/ConnectionStatusIndicator';
+import QuantumAnalysis from './components/QuantumAnalysis';
+import TestingSuite from './components/TestingSuite';
 import './styles/App.css';
 
 const App = () => {
-  const [activeTab, setActiveTab] = useState('dashboard');
-  const [darkMode, setDarkMode] = useState(false);
+  const [activeSection, setActiveSection] = useState('dashboard');
+  const [testMode, setTestMode] = useState(false);
+  const [darkMode, setDarkMode] = useState(true); // Default to dark mode
 
   useEffect(() => {
     // Load theme preference from localStorage
@@ -22,8 +25,8 @@ const App = () => {
     if (savedTheme) {
       setDarkMode(savedTheme === 'dark');
     } else {
-      // Default to system preference
-      setDarkMode(window.matchMedia('(prefers-color-scheme: dark)').matches);
+      // Default to dark mode for professional trading interface
+      setDarkMode(true);
     }
   }, []);
 
@@ -31,20 +34,73 @@ const App = () => {
     // Apply theme to document
     document.documentElement.setAttribute('data-theme', darkMode ? 'dark' : 'light');
     localStorage.setItem('theme', darkMode ? 'dark' : 'light');
+    
+    // Add body classes for theme
+    document.body.className = darkMode ? 'dark-theme' : 'light-theme';
   }, [darkMode]);
 
-  const tabs = [
-    { id: 'dashboard', label: 'Dashboard', icon: '📊' },
-    { id: 'trading', label: 'Trading', icon: '💹' },
-    { id: 'market', label: 'Market Data', icon: '📈' },
-    { id: 'signals', label: 'Signals', icon: '🔔' },
-    { id: 'performance', label: 'Performance', icon: '📊' },
-    { id: 'system', label: 'System', icon: '⚙️' },
-    { id: 'config', label: 'Config', icon: '🔧' }
+  // Navigation sections aligned with example.html
+  const navSections = [
+    {
+      title: 'Main',
+      items: [
+        { id: 'dashboard', label: 'Dashboard', icon: '📊' },
+        { id: 'trading', label: 'Trading', icon: '💹' },
+        { id: 'signals', label: 'Signals', icon: '🔔' },
+      ]
+    },
+    {
+      title: 'Analysis',
+      items: [
+        { id: 'quantum', label: 'Quantum Analysis', icon: '⚛️' },
+        { id: 'performance', label: 'Performance', icon: '📈' },
+        { id: 'market', label: 'Market Data', icon: '🌍' },
+      ]
+    },
+    {
+      title: 'Testing',
+      items: [
+        { id: 'unit-tests', label: 'Unit Tests', icon: '🧪' },
+        { id: 'integration', label: 'Integration', icon: '🔗' },
+        { id: 'backtest', label: 'Backtesting', icon: '⏪' },
+      ]
+    },
+    {
+      title: 'System',
+      items: [
+        { id: 'system', label: 'System Status', icon: '⚙️' },
+        { id: 'config', label: 'Configuration', icon: '🔧' },
+      ]
+    }
   ];
 
+  const handleSectionChange = (sectionId) => {
+    setActiveSection(sectionId);
+    
+    // Update nav item active states
+    document.querySelectorAll('.nav-item').forEach(item => {
+      item.classList.remove('active');
+    });
+    
+    // Handle test mode sections
+    if (['unit-tests', 'integration', 'backtest'].includes(sectionId)) {
+      setTestMode(true);
+    } else if (testMode && !['unit-tests', 'integration', 'backtest'].includes(sectionId)) {
+      setTestMode(false);
+    }
+  };
+
+  const toggleTestMode = () => {
+    setTestMode(!testMode);
+    if (!testMode) {
+      setActiveSection('unit-tests');
+    } else {
+      setActiveSection('dashboard');
+    }
+  };
+
   const renderActiveComponent = () => {
-    switch (activeTab) {
+    switch (activeSection) {
       case 'dashboard':
         return <HomeDashboard />;
       case 'trading':
@@ -53,12 +109,18 @@ const App = () => {
         return <MarketData />;
       case 'signals':
         return <TradingSignals />;
+      case 'quantum':
+        return <QuantumAnalysis />;
       case 'performance':
         return <PerformanceMetrics />;
       case 'system':
         return <SystemStatus />;
       case 'config':
         return <ConfigurationPanel />;
+      case 'unit-tests':
+      case 'integration':
+      case 'backtest':
+        return <TestingSuite activeTab={activeSection} />;
       default:
         return <HomeDashboard />;
     }
@@ -67,61 +129,77 @@ const App = () => {
   return (
     <WebSocketProvider>
       <SymbolProvider>
-      <ConfigProvider>
-      <div className={`app ${darkMode ? 'dark' : 'light'}`}>
-        <header className="app-header">
-          <div className="header-left">
-            <h1 className="app-title">
-              <span className="title-icon">⚡</span>
-              SEP Professional Trading System
-            </h1>
-          </div>
-          
-          <div className="header-right">
-            <ConnectionStatusIndicator />
-            <button
-              className="theme-toggle"
-              onClick={() => setDarkMode(!darkMode)}
-              aria-label="Toggle dark mode"
-            >
-              {darkMode ? '☀️' : '🌙'}
-            </button>
-          </div>
-        </header>
+        <ConfigProvider>
+          <div className={`app ${darkMode ? 'dark' : 'light'}`}>
+            {/* Animated Background */}
+            <div className="background-animation"></div>
+            
+            {/* Header */}
+            <header className="header">
+              <div className="logo">
+                <div className="logo-icon">⚡</div>
+                <span>SEP Professional Trading System</span>
+              </div>
+              <div className="header-controls">
+                <ConnectionStatusIndicator />
+                <button
+                  className="test-button"
+                  onClick={toggleTestMode}
+                  aria-label="Toggle test mode"
+                >
+                  Test Mode
+                </button>
+              </div>
+            </header>
 
-        <nav className="app-nav">
-          <div className="nav-tabs">
-            {tabs.map(tab => (
-              <button
-                key={tab.id}
-                className={`nav-tab ${activeTab === tab.id ? 'active' : ''}`}
-                onClick={() => setActiveTab(tab.id)}
-              >
-                <span className="tab-icon">{tab.icon}</span>
-                <span className="tab-label">{tab.label}</span>
-              </button>
-            ))}
-          </div>
-        </nav>
+            {/* Main Container */}
+            <div className="main-container">
+              {/* Sidebar Navigation */}
+              <aside className="sidebar">
+                {navSections.map((section, sectionIndex) => (
+                  <div key={sectionIndex} className="nav-section">
+                    <div className="nav-title">{section.title}</div>
+                    {section.items.map((item) => (
+                      <a
+                        key={item.id}
+                        className={`nav-item ${activeSection === item.id ? 'active' : ''}`}
+                        onClick={() => handleSectionChange(item.id)}
+                        role="button"
+                        tabIndex={0}
+                        onKeyPress={(e) => {
+                          if (e.key === 'Enter' || e.key === ' ') {
+                            handleSectionChange(item.id);
+                          }
+                        }}
+                      >
+                        <span>{item.icon}</span> {item.label}
+                      </a>
+                    ))}
+                  </div>
+                ))}
+              </aside>
 
-        <main className="app-main">
-          <div className="main-content">
-            {renderActiveComponent()}
-          </div>
-        </main>
+              {/* Main Content */}
+              <main className="content" id="mainContent">
+                <div className="main-content">
+                  {renderActiveComponent()}
+                </div>
+              </main>
+            </div>
 
-        <footer className="app-footer">
-          <div className="footer-content">
-            <span className="footer-text">
-              SEP Engine v1.0 | Status: Online
-            </span>
-            <span className="footer-timestamp">
-              {new Date().toLocaleTimeString()}
-            </span>
+            {/* Footer */}
+            <footer className="app-footer">
+              <div className="footer-content">
+                <span className="footer-text">
+                  SEP Engine v4.1.0 | CUDA: Enabled | Quantum Engine: Active
+                </span>
+                <span className="footer-timestamp">
+                  {new Date().toLocaleTimeString()}
+                </span>
+              </div>
+            </footer>
           </div>
-        </footer>
-      </div>
-      </ConfigProvider>
+        </ConfigProvider>
       </SymbolProvider>
     </WebSocketProvider>
   );
