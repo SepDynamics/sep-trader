@@ -53,7 +53,6 @@ class APIClient {
     return this.request('/api/market-data');
   }
 
-<<<<<<< Updated upstream
   async getLiveMetrics() {
     return this.request('/api/metrics/live');
   }
@@ -83,7 +82,8 @@ class APIClient {
 
   async getQuantumSignals() {
     return this.request('/api/quantum/signals');
-=======
+  }
+
   // OANDA Candle Data
   async getCandleData(instrument: string, granularity?: string, count?: number) {
     const params = new URLSearchParams();
@@ -103,7 +103,6 @@ class APIClient {
 
   async getStoredCandles(instrument: string) {
     return this.request(`/api/candles/${instrument}`);
->>>>>>> Stashed changes
   }
 
   // Trading Operations
@@ -232,7 +231,6 @@ export const {
   login,
   logout,
   getMarketData,
-<<<<<<< Updated upstream
   getLiveMetrics,
   getSignals,
   getSignalHistory,
@@ -240,11 +238,9 @@ export const {
   getValkeyStatus,
   getLivePatterns,
   getQuantumSignals,
-=======
   getCandleData,
   fetchCandleData,
   getStoredCandles,
->>>>>>> Stashed changes
   placeOrder,
   submitOrder,
   getPositions,
