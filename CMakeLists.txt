@@ -164,17 +164,8 @@ if(NOT nlohmann_json_FOUND)
 endif()
 
 # Handle both system package and FetchContent target names
-if(TARGET nlohmann_json::nlohmann_json)
-  # System package - just create alias
-  if(NOT TARGET nlohmann_json)
-    add_library(nlohmann_json ALIAS nlohmann_json::nlohmann_json)
-  endif()
-elseif(TARGET nlohmann_json)
-  # FetchContent target - we can modify include directories
-  get_target_property(_nloh_includes nlohmann_json INTERFACE_INCLUDE_DIRECTORIES)
-  if(_nloh_includes)
-    target_include_directories(nlohmann_json SYSTEM INTERFACE ${_nloh_includes})
-  endif()
+if(TARGET nlohmann_json::nlohmann_json AND NOT TARGET nlohmann_json)
+  add_library(nlohmann_json ALIAS nlohmann_json::nlohmann_json)
 endif()
 
 # ---------- yaml-cpp ----------
@@ -315,9 +306,4 @@ endif()
 add_subdirectory(src)
 
 # ---------- Install ----------
-install(TARGETS sep_core_deps EXPORT sep_libTargets)
-install(EXPORT sep_libTargets
-  FILE sep_libTargets.cmake
-  NAMESPACE sep::
-  DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/sep
-)
+# Note: This is a standalone application, not a library for external consumption
