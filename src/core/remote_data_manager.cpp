@@ -7,14 +7,39 @@
 #include <mutex>
 #include "util/nlohmann_json_safe.h"
 #include <optional>
-#include "util/pqxx_time_point_traits.h"  // Must precede pqxx includes
 #include <pqxx/pqxx>
 #include <thread>
+#include <iomanip>
+#include <sstream>
+#include <ctime>
 
 #include "core/sep_precompiled.h"
 // #include <compression/gzip.hpp> // Optional compression - not available
 
 namespace sep::trading {
+
+namespace {
+
+std::string to_iso_string(const std::chrono::system_clock::time_point& tp) {
+    std::time_t tt = std::chrono::system_clock::to_time_t(tp);
+    std::tm tm = *std::gmtime(&tt);
+    char buffer[20];
+    std::strftime(buffer, sizeof(buffer), "%Y-%m-%d %H:%M:%S", &tm);
+    return std::string(buffer);
+}
+
+std::chrono::system_clock::time_point from_iso_string(const std::string& s) {
+    std::tm tm{};
+    std::istringstream ss(s);
+    ss >> std::get_time(&tm, "%Y-%m-%d %H:%M:%S");
+    if (ss.fail()) {
+        throw std::runtime_error("Failed to parse time_point from string: " + s);
+    }
+    std::time_t tt = timegm(&tm);
+    return std::chrono::system_clock::from_time_t(tt);
+}
+
+} // namespace
 
 class RemoteDataManager::Impl {
 public:
@@ -59,7 +84,7 @@ public:
                 for (const auto& row : result) {
                     TrainingData record;
                     record.pair = row[0].as<std::string>();
-                    record.timestamp = row[1].as<std::chrono::system_clock::time_point>();
+                    record.timestamp = from_iso_string(row[1].as<std::string>());
                     
                     // Parse JSON features array
                     try {
@@ -110,7 +135,7 @@ public:
                         "INSERT INTO training_data (pair, timestamp, features, target, metadata) "
                         "VALUES ($1, $2, $3, $4, $5) ON CONFLICT (pair, timestamp) DO UPDATE SET "
                         "features = EXCLUDED.features, target = EXCLUDED.target, metadata = EXCLUDED.metadata",
-                        record.pair, record.timestamp, features_str, record.target, record.metadata
+                        record.pair, to_iso_string(record.timestamp), features_str, record.target, record.metadata
                     );
                 }
                 
@@ -152,7 +177,7 @@ public:
                     "VALUES ($1, $2, $3, $4, $5, $6) ON CONFLICT (model_id) DO UPDATE SET "
                     "accuracy = EXCLUDED.accuracy, trained_at = EXCLUDED.trained_at, "
                     "hyperparameters = EXCLUDED.hyperparameters, redis_key = EXCLUDED.redis_key",
-                    model.model_id, model.pair, model.accuracy, model.trained_at, 
+                    model.model_id, model.pair, model.accuracy, to_iso_string(model.trained_at),
                     hyperparams_str, redis_key
                 );
                 
