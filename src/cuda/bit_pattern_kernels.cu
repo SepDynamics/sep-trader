@@ -1,7 +1,7 @@
 #include <cuda_runtime.h>
 #include <device_launch_parameters.h>
 #include <algorithm> // For std::min, std::max
-#include <cmath>     // For log2, fabs - Include cmath after the macros are defined
+// Removed <cmath> include to fix fpclassify errors
 
 #include "core/result_types.h"
 #include "cuda/bit_pattern_types.cuh"  // Include the new device types

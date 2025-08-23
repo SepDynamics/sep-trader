@@ -5,7 +5,6 @@
 // Removed <array> include to fix CUDA compilation issue
 // Removed <cmath> include to fix fpclassify errors
 #include <cub/cub.cuh>
-#include <iostream>
 
 #include "app/tick_cuda_kernels.cuh"
 
@@ -74,7 +73,7 @@ __global__ void calculateRollingWindowsKernel(
             }
         }
 
-        result.volatility = std::sqrt(variance_sum / valid_ticks);
+        result.volatility = sqrt(variance_sum / valid_ticks);
         result.price_change = last_price - first_price;
         result.pip_change = result.price_change * 10000.0; // Convert to pips
     }
@@ -168,7 +167,7 @@ __global__ void calculateRollingWindowsOptimized(
                     }
                 }
             }
-            result.volatility = std::sqrt(variance_sum / valid_ticks);
+            result.volatility = sqrtf(static_cast<float>(variance_sum / valid_ticks));
         }
     }
 }
@@ -256,7 +255,7 @@ __device__ void calculateWindowStats(
             }
         }
 
-        result.volatility = std::sqrt(variance_sum / valid_ticks);
+        result.volatility = sqrtf(static_cast<float>(variance_sum / valid_ticks));
     } else {
         result.mean_price = 0.0;
         result.volatility = 0.0;
@@ -488,7 +487,7 @@ cudaError_t calculateForwardWindowsCuda(
             int direction_changes = 0;
             for (size_t j = i + 1; j < window_end; ++j) {
                 double change = ticks[j].price - ticks[j-1].price;
-                total_change += std::abs(change);
+                total_change += fabs(change);
                 if (j > i + 1) {
                     double prev_change = ticks[j-1].price - ticks[j-2].price;
                     if ((change > 0 && prev_change < 0) || (change < 0 && prev_change > 0)) {
@@ -510,7 +509,7 @@ cudaError_t calculateForwardWindowsCuda(
             
             // Check for significant price ruptures (>2% moves)
             for (size_t j = i + 1; j < window_end; ++j) {
-                double price_change = std::abs((ticks[j].price - ticks[j-1].price) / ticks[j-1].price);
+                double price_change = fabs((ticks[j].price - ticks[j-1].price) / ticks[j-1].price);
                 if (price_change > 0.02) { // 2% threshold
                     result.rupture_count++;
                 }

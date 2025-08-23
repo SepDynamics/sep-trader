@@ -1,5 +1,5 @@
 #include <cuda_runtime.h>
-#include <cmath>  // Include cmath after the macros are defined
+// Removed <cmath> include to fix fpclassify errors
 #include <stdexcept>
 #include <string>
 

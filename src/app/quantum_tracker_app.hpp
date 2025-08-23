@@ -1,10 +1,5 @@
 #pragma once
 
-#ifdef SEP_USE_GUI
-#include <GLFW/glfw3.h>
-#include "quantum_tracker_window.hpp"
-#include "rolling_window_chart.hpp"
-#endif
 
 #include <memory>
 #include <string>
@@ -39,10 +34,6 @@ public:
     const std::string& getLastError() const { return last_error_; }
 
 private:
-    // Graphics setup
-    bool initializeGraphics();
-    void setupImGui();
-    void cleanupGraphics();
     
     // OANDA integration
     void connectToOanda();
@@ -67,11 +58,6 @@ private:
     void logFileSimulatedTrade(const sep::trading::QuantumTradingSignal& signal, const Candle& candle);
     
     // Core components
-#ifdef SEP_USE_GUI
-    GLFWwindow* window_ = nullptr;
-    std::unique_ptr<QuantumTrackerWindow> quantum_tracker_;
-    std::unique_ptr<RollingWindowChart> window_chart_;
-#endif
     // Essential quantum functionality (always available)
     std::unique_ptr<sep::trading::QuantumSignalBridge> quantum_bridge_;
     std::unique_ptr<sep::connectors::OandaConnector> oanda_connector_;
@@ -103,10 +89,6 @@ private:
     // File simulation mode
     bool file_sim_mode_ = false;
     
-    // Window settings
-    static constexpr int WINDOW_WIDTH = 800;
-    static constexpr int WINDOW_HEIGHT = 900;
-    static constexpr const char* WINDOW_TITLE = "SEP Quantum Signal Tracker - Live";
 };
 
 } // namespace sep::apps

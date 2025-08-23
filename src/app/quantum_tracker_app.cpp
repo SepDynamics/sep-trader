@@ -5,14 +5,6 @@
 #include "app/candle_types.h"
 #include "market_utils.hpp"
 #include "weekend_optimizer.hpp"
-#ifdef SEP_USE_GUI
-#include <glad/glad.h> // Must be included before GLFW
-#include <GLFW/glfw3.h>
-#include "imgui.h"
-#include "imgui_impl_glfw.h"
-#include "imgui_impl_opengl3.h"
-#include "implot.h"
-#endif
 
 #include <chrono>
 #include <condition_variable>
@@ -43,17 +35,8 @@ bool QuantumTrackerApp::initialize() {
         std::cout << "[FILE-SIM] Initializing File Simulation Mode..." << std::endl;
         std::cout << "[FILE-SIM] Using local test data for rapid backtesting" << std::endl;
         
-#ifdef SEP_USE_GUI
-        // Initialize quantum tracker (no GUI, no OANDA connector needed)
-        quantum_tracker_ = std::make_unique<QuantumTrackerWindow>();
-        if (!quantum_tracker_->initialize()) {
-            last_error_ = "Failed to initialize quantum tracker in file simulation mode";
-            return false;
-        }
-#else
         std::cout << "[FILE-SIM] GUI disabled, running in CLI-only mode" << std::endl;
         // TODO: Initialize CLI-only quantum bridge when available
-#endif
         
         runFileSimulation();
         return false; // Exit after simulation
@@ -73,17 +56,8 @@ bool QuantumTrackerApp::initialize() {
         
         oanda_connector_ = std::make_unique<sep::connectors::OandaConnector>(api_key, account_id);
         
-#ifdef SEP_USE_GUI
-        // Initialize quantum tracker (no GUI)
-        quantum_tracker_ = std::make_unique<QuantumTrackerWindow>();
-        if (!quantum_tracker_->initialize()) {
-            last_error_ = "Failed to initialize quantum tracker in historical simulation mode";
-            return false;
-        }
-#else
         std::cout << "[HISTORICAL-SIM] GUI disabled, running in CLI-only mode" << std::endl;
         // TODO: Initialize CLI-only quantum bridge when available
-#endif
         
         runHistoricalSimulation();
         return false; // Exit after simulation
@@ -103,41 +77,16 @@ bool QuantumTrackerApp::initialize() {
         
         oanda_connector_ = std::make_unique<sep::connectors::OandaConnector>(api_key, account_id);
         
-#ifdef SEP_USE_GUI
-        // Initialize minimal quantum tracker (no GUI)
-        quantum_tracker_ = std::make_unique<QuantumTrackerWindow>();
-        if (!quantum_tracker_->initialize()) {
-            last_error_ = "Failed to initialize quantum tracker in simulation mode";
-            return false;
-        }
-#else
         std::cout << "[SIMULATION] GUI disabled, running in CLI-only mode" << std::endl;
         // TODO: Initialize CLI-only quantum bridge when available
-#endif
         
         runSimulation();
         return false; // Exit after simulation
     }
-#ifdef SEP_USE_GUI
-    if (!initializeGraphics()) {
-        last_error_ = "Failed to initialize graphics";
-        return false;
-    }
-    
-    setupImGui();
-    
-    // Initialize quantum tracker
-    quantum_tracker_ = std::make_unique<QuantumTrackerWindow>();
-    if (!quantum_tracker_->initialize()) {
-        last_error_ = "Failed to initialize quantum tracker";
-        return false;
-    }
-#else
     std::cout << "[QuantumTracker] GUI disabled, running in CLI-only mode" << std::endl;
     // TODO: Initialize CLI-only quantum bridge when available
     last_error_ = "GUI mode required for full functionality";
     return false;
-#endif
     
     // Initialize data manager
     sep::trading::UnifiedDataConfig data_config;
@@ -226,41 +175,19 @@ bool QuantumTrackerApp::initialize() {
         std::cout << "[Bootstrap] API fetch timeout. Falling back to static test data for development..." << std::endl;
         
         // Fallback to static file initialization for development/testing
-#ifdef SEP_USE_GUI
-        if (!quantum_tracker_->getQuantumBridge()->initializeMultiTimeframe(
-            "/sep/Testing/OANDA/O-test-M5.json",
-            "/sep/Testing/OANDA/O-test-M15.json")) {
-            last_error_ = "Failed to initialize with both dynamic and static data";
-            return false;
-        }
-#else
         std::cout << "[Bootstrap] CLI mode - skipping quantum tracker initialization" << std::endl;
-#endif
         std::cout << "[Bootstrap] Static fallback completed successfully! System ready for live trading." << std::endl;
     } else if (historical_m1_candles.empty()) {
         std::cout << "[Bootstrap] API returned 0 candles (likely weekend/market closed). Using static test data..." << std::endl;
         
         // Fallback to static file initialization when no data available
-#ifdef SEP_USE_GUI
-        if (!quantum_tracker_->getQuantumBridge()->initializeMultiTimeframe(
-            "/sep/Testing/OANDA/O-test-M5.json",
-            "/sep/Testing/OANDA/O-test-M15.json")) {
-            last_error_ = "Failed to initialize with static fallback data";
-            return false;
-        }
-#else
         std::cout << "[Bootstrap] CLI mode - skipping quantum tracker initialization" << std::endl;
-#endif
         std::cout << "[Bootstrap] Static fallback completed successfully! System ready for live trading." << std::endl;
     } else {
         std::cout << "[Bootstrap] Fetched " << historical_m1_candles.size() << " M1 candles. Initializing multi-timeframe system..." << std::endl;
 
         // 2. Bootstrap the QuantumSignalBridge with the historical data
-#ifdef SEP_USE_GUI
-        quantum_tracker_->getQuantumBridge()->bootstrap(historical_m1_candles);
-#else
         quantum_bridge_->bootstrap(historical_m1_candles);
-#endif
 
         std::cout << "[Bootstrap] Dynamic bootstrap completed successfully! System ready for live trading." << std::endl;
     }
@@ -272,82 +199,7 @@ bool QuantumTrackerApp::initialize() {
     return true;
 }
 
-bool QuantumTrackerApp::initializeGraphics() {
-#ifdef SEP_USE_GUI
-    // Initialize GLFW
-    if (!glfwInit()) {
-        last_error_ = "Failed to initialize GLFW";
-        return false;
-    }
-    
-    // Setup GLFW window
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-    
-    window_ = glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_TITLE, nullptr, nullptr);
-    if (!window_) {
-        last_error_ = "Failed to create GLFW window";
-        glfwTerminate();
-        return false;
-    }
-    
-    glfwMakeContextCurrent(window_);
-    glfwSwapInterval(1); // Enable vsync
-    
-    return true;
-#else
-    last_error_ = "Graphics initialization requires SEP_USE_GUI=ON";
-    return false;
-#endif
-}
 
-void QuantumTrackerApp::setupImGui() {
-#ifdef SEP_USE_GUI
-    // Setup Dear ImGui context
-    IMGUI_CHECKVERSION();
-    ImGui::CreateContext();
-    ImPlot::CreateContext();
-    ImGuiIO& io = ImGui::GetIO(); (void)io;
-    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
-    
-    // Setup Dear ImGui style with quantum theme
-    ImGui::StyleColorsDark();
-    
-    ImGuiStyle& style = ImGui::GetStyle();
-    style.WindowRounding = 8.0f;
-    style.FrameRounding = 4.0f;
-    style.GrabRounding = 4.0f;
-    style.ScrollbarRounding = 4.0f;
-    style.WindowPadding = ImVec2(12, 12);
-    style.FramePadding = ImVec2(8, 4);
-    style.ItemSpacing = ImVec2(8, 6);
-    
-    // Quantum-inspired colors (purple/blue/cyan theme)
-    ImVec4* colors = style.Colors;
-    colors[ImGuiCol_WindowBg] = ImVec4(0.08f, 0.08f, 0.15f, 0.95f);
-    colors[ImGuiCol_Header] = ImVec4(0.25f, 0.15f, 0.55f, 0.80f);
-    colors[ImGuiCol_HeaderHovered] = ImVec4(0.35f, 0.25f, 0.65f, 0.90f);
-    colors[ImGuiCol_HeaderActive] = ImVec4(0.45f, 0.35f, 0.75f, 1.00f);
-    colors[ImGuiCol_Button] = ImVec4(0.20f, 0.20f, 0.45f, 0.70f);
-    colors[ImGuiCol_ButtonHovered] = ImVec4(0.30f, 0.30f, 0.55f, 0.90f);
-    colors[ImGuiCol_ButtonActive] = ImVec4(0.40f, 0.40f, 0.65f, 1.00f);
-    colors[ImGuiCol_FrameBg] = ImVec4(0.15f, 0.15f, 0.25f, 0.60f);
-    colors[ImGuiCol_FrameBgHovered] = ImVec4(0.20f, 0.20f, 0.35f, 0.70f);
-    colors[ImGuiCol_FrameBgActive] = ImVec4(0.25f, 0.25f, 0.45f, 0.80f);
-    colors[ImGuiCol_TitleBg] = ImVec4(0.15f, 0.10f, 0.35f, 1.00f);
-    colors[ImGuiCol_TitleBgActive] = ImVec4(0.25f, 0.20f, 0.55f, 1.00f);
-    colors[ImGuiCol_TableHeaderBg] = ImVec4(0.20f, 0.15f, 0.40f, 1.00f);
-    colors[ImGuiCol_TableBorderStrong] = ImVec4(0.35f, 0.25f, 0.55f, 1.00f);
-    colors[ImGuiCol_TableBorderLight] = ImVec4(0.25f, 0.15f, 0.45f, 1.00f);
-    colors[ImGuiCol_TableRowBg] = ImVec4(0.0f, 0.0f, 0.0f, 0.0f);
-    colors[ImGuiCol_TableRowBgAlt] = ImVec4(1.0f, 1.0f, 1.0f, 0.04f);
-    
-    // Setup Platform/Renderer backends
-    ImGui_ImplGlfw_InitForOpenGL(window_, true);
-    ImGui_ImplOpenGL3_Init("#version 330");
-#endif
-}
 
 void QuantumTrackerApp::run() {
     std::cout << "[QuantumTracker] Starting quantum signal tracking..." << std::endl;
@@ -362,78 +214,8 @@ void QuantumTrackerApp::run() {
     std::cout << "[QuantumTracker] Markets are open - entering Live Trading mode" << std::endl;
     std::cout << "[QuantumTracker] Current session: " << SEP::MarketUtils::getCurrentSession() << std::endl;
     
-#ifdef SEP_USE_GUI
-    // Set up GLFW error callback
-    glfwSetErrorCallback([](int error, const char* description) {
-        std::cerr << "[GLFW Error] " << error << ": " << description << std::endl;
-    });
-    
-    while (!glfwWindowShouldClose(window_)) {
-        // Poll events with timeout to prevent infinite blocking
-        glfwWaitEventsTimeout(0.016); // ~60 FPS equivalent
-        
-        // Check if window should close due to external signals
-        if (glfwGetKey(window_, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
-            glfwSetWindowShouldClose(window_, GLFW_TRUE);
-            break;
-        }
-        
-        // Start ImGui frame
-        ImGui_ImplOpenGL3_NewFrame();
-        ImGui_ImplGlfw_NewFrame();
-        ImGui::NewFrame();
-        
-        // Set window to fill entire viewport
-        ImGui::SetNextWindowPos(ImVec2(0, 0));
-        ImGui::SetNextWindowSize(ImGui::GetIO().DisplaySize);
-        ImGui::SetNextWindowBgAlpha(1.0f);
-        
-        // Render quantum tracker window
-        quantum_tracker_->render();
-        
-        // Connection status overlay
-        if (!oanda_connected_) {
-            ImGui::SetNextWindowPos(ImVec2(10, 10));
-            ImGui::Begin("Connection", nullptr, 
-                        ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | 
-                        ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMove);
-            ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), "⚠ DISCONNECTED");
-            ImGui::Text("Waiting for OANDA connection...");
-            ImGui::End();
-        } else {
-            ImGui::SetNextWindowPos(ImVec2(10, 10));
-            ImGui::Begin("Connection", nullptr, 
-                        ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | 
-                        ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMove);
-            ImGui::TextColored(ImVec4(0.0f, 1.0f, 0.0f, 1.0f), "● CONNECTED");
-            ImGui::Text("Live quantum analysis active");
-            ImGui::End();
-        }
-        
-        // Render
-        ImGui::Render();
-        int display_w, display_h;
-        glfwGetFramebufferSize(window_, &display_w, &display_h);
-        glViewport(0, 0, display_w, display_h);
-        glClearColor(0.05f, 0.05f, 0.12f, 1.00f);
-        glClear(GL_COLOR_BUFFER_BIT);
-        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-        
-        // Check for OpenGL errors
-        GLenum gl_error = glGetError();
-        if (gl_error != GL_NO_ERROR) {
-            std::cerr << "[OpenGL Error] " << gl_error << std::endl;
-        }
-        
-        glfwSwapBuffers(window_);
-        
-        // Small sleep to prevent excessive CPU usage
-        std::this_thread::sleep_for(std::chrono::milliseconds(1));
-    }
-#else
     std::cout << "[QuantumTracker] GUI disabled - starting headless service mode" << std::endl;
     runHeadlessService();
-#endif
 }
 
 void QuantumTrackerApp::connectToOanda() {
@@ -491,7 +273,6 @@ void QuantumTrackerApp::loadHistoricalData() {
               << " hourly calculations to quantum analysis..." << std::endl;
     
     // CRITICAL FIX: Feed real market data instead of synthetic data
-#ifdef SEP_USE_GUI
     for (size_t i = 0; i < hourly_prices.size() && i < timestamps.size(); ++i) {
         // CRITICAL: Use real market data structure - NO MORE SYNTHETIC DATA
         sep::connectors::MarketData real_market_data;

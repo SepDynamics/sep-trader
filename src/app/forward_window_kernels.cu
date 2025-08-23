@@ -4,7 +4,7 @@
 #include <device_launch_parameters.h>
 
 #include <array>
-#include <cmath>  // Include cmath after the macros are defined
+// Removed <cmath> include to fix fpclassify errors
 
 #include "forward_window_kernels.cuh"
 
@@ -42,7 +42,7 @@ __global__ void trajectoryKernel(const TrajectoryPointDevice* trajectories,
             next_value /= total_weight;
         }
 
-        if (std::fabs(next_value - current_value) < convergence_threshold) {
+        if (fabs(next_value - current_value) < convergence_threshold) {
             converged = true;
             break;
         }
