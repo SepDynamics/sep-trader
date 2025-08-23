@@ -32,8 +32,11 @@ services:
       - SEP_CONFIG_PATH=/app/config
       - PYTHONPATH=/app
       - PORT=5000
+    env_file:
+      - ./config/.sep-config.env
     volumes:
       - ./config:/app/config:ro
+      - ./pki/digitalocean-ca-certificate.crt:/app/certs/ca-certificate.crt:ro
       - sep-data:/app/data
       - sep-logs:/app/logs
       - ./bin:/app/bin:ro
