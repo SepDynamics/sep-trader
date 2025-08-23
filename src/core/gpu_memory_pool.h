@@ -1,7 +1,7 @@
 #ifndef SEP_GPU_MEMORY_POOL_H
 #define SEP_GPU_MEMORY_POOL_H
 
-#include <cuda_runtime.h>
+#include "cuda_api.hpp"
 #include <cstddef>
 #include <cstdlib>
 #include <cstring>

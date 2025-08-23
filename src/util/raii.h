@@ -1,6 +1,6 @@
 #pragma once
 
-#include <cuda_runtime.h>
+#include "core/cuda_api.hpp"
 #include <functional>
 #include <stdexcept>
 #include <cstdint>
