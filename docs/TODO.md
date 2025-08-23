@@ -17,6 +17,7 @@ Begin work on **Priority 2: Real Multi-Asset Correlation Implementation** descri
 - Custom `pqxx_time_point_traits` used function-based `has_null()` which was not a constant expression, causing PostgreSQL integration to fail. Replaced it with `constexpr` flags `has_null`/`always_null` to satisfy `pqxx`'s `nullness` checks.
 - GCC-14 still rejected the specialization because it was included after `<pqxx/pqxx>`, instantiating `pqxx::nullness` with incomplete `constexpr` flags. Moved the specialization into a standalone header included before pqxx and generalized it for all `system_clock` durations, restoring the build.
 - Precompiled headers continued to include `<pqxx/pqxx>` before the custom traits, triggering `pqxx::nullness` constant-expression errors in `src/core/remote_data_manager.cpp`. Replaced direct `time_point` conversions with explicit ISO timestamp parsing/formatting to remove the dependency on `pqxx::string_traits`.
+- GCC-14 again complained about `pqxx::nullness` when `time_point` resolved through the `_V2::system_clock` inline namespace. Switched the specialization to use `std::chrono::sys_time` and marked the nullness flags `inline constexpr` to ensure constant evaluation.
 
 ## Priority 1: Remove Fake Data Generation [COMPLETED]
 
