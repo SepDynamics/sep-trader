@@ -15,7 +15,7 @@ namespace services {
  * QFH (Quantum Fourier Hierarchy), pattern evolution, coherence calculation,
  * and stability determination
  */
-class IQuantumProcessingService : public IService {
+class IQuantumProcessingService : public virtual IService {
 public:
     /**
      * Process a quantum state through the QBSA algorithm

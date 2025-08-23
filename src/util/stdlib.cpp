@@ -1,4 +1,5 @@
 #include "util/stdlib.h"
+#include "util/time_series.h"
 
 namespace dsl::stdlib {
 

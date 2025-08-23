@@ -39,8 +39,19 @@ TEST_F(MultiAssetFusionTest, PositiveCorrelation) {
     std::vector<Candle> candles1, candles2;
     for (int i = 0; i < 100; ++i) {
         double price = 1.0 + i * 0.01;
-        candles1.push_back({.close = price, .time = std::to_string(i)});
-        candles2.push_back({.close = price, .time = std::to_string(i)});
+        Candle c1{};
+        c1.time = std::to_string(i);
+        c1.timestamp = 0;
+        c1.open = c1.high = c1.low = c1.close = price;
+        c1.volume = 0.0;
+        candles1.push_back(c1);
+
+        Candle c2{};
+        c2.time = std::to_string(i);
+        c2.timestamp = 0;
+        c2.open = c2.high = c2.low = c2.close = price;
+        c2.volume = 0.0;
+        candles2.push_back(c2);
     }
 
     EXPECT_CALL(*market_cache, getRecentCandles("EUR_USD", 100)).WillOnce(testing::Return(candles1));
@@ -56,8 +67,19 @@ TEST_F(MultiAssetFusionTest, NegativeCorrelation) {
     // Feed inverse sequences
     std::vector<Candle> candles1, candles2;
     for (int i = 0; i < 100; ++i) {
-        candles1.push_back({.close = 1.0 + i * 0.01, .time = std::to_string(i)});
-        candles2.push_back({.close = 1.0 - i * 0.01, .time = std::to_string(i)});
+        Candle c1{};
+        c1.time = std::to_string(i);
+        c1.timestamp = 0;
+        c1.open = c1.high = c1.low = c1.close = 1.0 + i * 0.01;
+        c1.volume = 0.0;
+        candles1.push_back(c1);
+
+        Candle c2{};
+        c2.time = std::to_string(i);
+        c2.timestamp = 0;
+        c2.open = c2.high = c2.low = c2.close = 1.0 - i * 0.01;
+        c2.volume = 0.0;
+        candles2.push_back(c2);
     }
 
     EXPECT_CALL(*market_cache, getRecentCandles("EUR_USD", 100)).WillOnce(testing::Return(candles1));
@@ -74,8 +96,19 @@ TEST_F(MultiAssetFusionTest, ZeroCorrelation) {
     std::vector<Candle> candles1, candles2;
     srand(0);
     for (int i = 0; i < 100; ++i) {
-        candles1.push_back({.close = static_cast<double>(rand()) / RAND_MAX, .time = std::to_string(i)});
-        candles2.push_back({.close = static_cast<double>(rand()) / RAND_MAX, .time = std::to_string(i)});
+        Candle c1{};
+        c1.time = std::to_string(i);
+        c1.timestamp = 0;
+        c1.open = c1.high = c1.low = c1.close = static_cast<double>(rand()) / RAND_MAX;
+        c1.volume = 0.0;
+        candles1.push_back(c1);
+
+        Candle c2{};
+        c2.time = std::to_string(i);
+        c2.timestamp = 0;
+        c2.open = c2.high = c2.low = c2.close = static_cast<double>(rand()) / RAND_MAX;
+        c2.volume = 0.0;
+        candles2.push_back(c2);
     }
 
     EXPECT_CALL(*market_cache, getRecentCandles("EUR_USD", 100)).WillOnce(testing::Return(candles1));
