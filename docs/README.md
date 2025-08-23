@@ -242,11 +242,11 @@ The frontend relies on backend REST APIs and WebSocket endpoints for data and li
   - Quick action buttons ("Start Trading", "Pause System", etc.) have no handlers.
 
 ## TradingPanel
-- **Context**: `useWebSocket` supplies `connected`, `marketData`, and `tradingSignals`.
-- **State**: `selectedSymbol` (`'EUR/USD'`), `orderType` (`'market'`), `quantity` (`10000`), `price`, `side` (`'buy'`), `loading`, and `message`.
+- **Context**: `useWebSocket` supplies `connected`, `marketData`, and `tradingSignals`. `useConfig` exposes configuration defaults.
+- **State**: `selectedSymbol` (`'EUR/USD'`), `orderType` (`'market'`), `quantity`, `price`, `side` (`'buy'`), `loading`, and `message`.
+- **Behavior**: Builds payloads with `buildOrder` and posts them via `submitOrder`; quantity resets using server confirmation or configuration default.
 - **Hardcoded/Placeholders**:
-  - Currency `symbols` array and default order quantity.
-  - After submitting an order, `quantity` resets to `100`.
+  - Currency `symbols` array.
 
 ## ConfigurationPanel
 - **State**: `config`, `loading`, `saving`, and `message` drive configuration forms.
@@ -304,6 +304,7 @@ Contains the API client used for all HTTP requests to the backend.
 
 ## Responsibilities
 - Wraps fetch calls for authentication, market data, trading operations, and configuration.
+- Provides `submitOrder` helper for posting trades.
 - Manages an auth token and attaches it to request headers.
 
 ## Configuration
@@ -329,11 +330,12 @@ CSS modules defining the look and feel of the frontend.
 
 # Utils
 
-Hosts a complete API client for interacting with various backend endpoints.
+Hosts shared helpers such as the API client and order construction utilities.
 
 ## Responsibilities
 - Sends REST requests for system status, trading actions, performance metrics, and configuration changes.
 - Provides helper methods for pairs management, command execution, and data reload.
+- Builds standardized order payloads via `orderBuilder`.
 
 ## Configuration
 - `REACT_APP_API_URL`: base URL for all requests (default `http://localhost:5000`).

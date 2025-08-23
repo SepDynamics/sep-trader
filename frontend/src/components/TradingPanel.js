@@ -1,10 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useWebSocket } from '../context/WebSocketContext';
-import { apiClient } from '../services/api';
+import { submitOrder } from '../services/api';
+import { useConfig } from '../context/ConfigContext';
+import buildOrder from '../utils/orderBuilder';
 import '../styles/TradingPanel.css';
 
 const TradingPanel = () => {
   const { connected, marketData, tradingSignals } = useWebSocket();
+  const config = useConfig();
   const [selectedSymbol, setSelectedSymbol] = useState('EUR/USD');
   const [orderType, setOrderType] = useState('market');
   const [quantity, setQuantity] = useState(10000);
@@ -15,28 +18,36 @@ const TradingPanel = () => {
 
   const symbols = ['EUR/USD', 'GBP/USD', 'USD/JPY', 'USD/CHF', 'AUD/USD', 'USD/CAD', 'NZD/USD', 'EUR/GBP'];
 
+  useEffect(() => {
+    if (config?.trading?.default_order_quantity) {
+      setQuantity(config.trading.default_order_quantity);
+    }
+  }, [config]);
+
   const handleSubmitOrder = async (e) => {
     e.preventDefault();
     setLoading(true);
     setMessage('');
 
     try {
-      const orderData = {
+      const orderData = buildOrder({
         symbol: selectedSymbol,
-        side: side,
-        quantity: parseInt(quantity),
+        side,
+        quantity,
         type: orderType,
-        ...(orderType === 'limit' && { price: parseFloat(price) })
-      };
+        price,
+      });
 
-      const response = await apiClient.submitOrder(orderData);
-      setMessage(`Order submitted successfully: ${response.data.message || 'Order processed'}`);
-      
-      // Reset form
-      setQuantity(100);
+      const response = await submitOrder(orderData);
+      setMessage(`Order submitted successfully: ${response.message || 'Order processed'}`);
+
+      const resetQty = response.default_quantity ?? config?.trading?.default_order_quantity;
+      if (resetQty !== undefined) {
+        setQuantity(resetQty);
+      }
       setPrice('');
     } catch (error) {
-      setMessage(`Order failed: ${error.response?.data?.message || error.message}`);
+      setMessage(`Order failed: ${error.message}`);
     } finally {
       setLoading(false);
     }
