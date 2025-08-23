@@ -1,19 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import { useWebSocket } from '../context/WebSocketContext';
+import { useSymbol } from '../context/SymbolContext';
+import { symbols } from '../config/symbols';
 import { apiClient } from '../services/api';
 import '../styles/TradingPanel.css';
 
 const TradingPanel = () => {
   const { connected, marketData, tradingSignals } = useWebSocket();
-  const [selectedSymbol, setSelectedSymbol] = useState('EUR/USD');
+  const { selectedSymbol, setSelectedSymbol } = useSymbol();
   const [orderType, setOrderType] = useState('market');
   const [quantity, setQuantity] = useState(10000);
   const [price, setPrice] = useState('');
   const [side, setSide] = useState('buy');
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
-
-  const symbols = ['EUR/USD', 'GBP/USD', 'USD/JPY', 'USD/CHF', 'AUD/USD', 'USD/CAD', 'NZD/USD', 'EUR/GBP'];
 
   const handleSubmitOrder = async (e) => {
     e.preventDefault();
