@@ -1,6 +1,9 @@
 # SEP Trading Engine - De-stubbing TODO
 
-## Priority 1: Remove Fake Data Generation [CRITICAL]
+## Next Task
+Begin work on **Priority 2: Real Multi-Asset Correlation Implementation** described below.
+
+## Priority 1: Remove Fake Data Generation [COMPLETED]
 
 ### Task 1.1: Eliminate Demo Candle Generation
 **File**: `src/app/market_model_cache.cpp`

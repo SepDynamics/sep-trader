@@ -1,1 +1,3 @@
-add_sep_test(facade_stream_test facade_stream_test.cpp)
+add_sep_test(facade_stream_test
+    SOURCES facade_stream_test.cpp
+)
