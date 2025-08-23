@@ -88,7 +88,11 @@ struct Pattern {
     // Relationships
     std::vector<PatternRelationship> relationships;
     std::vector<uint32_t> parent_ids;
-    
+
+    // Memory residency tier
+    enum class MemoryTier { Hot, Warm, Cold };
+    MemoryTier tier{MemoryTier::Hot};
+
     // Temporal properties
     uint64_t timestamp{0};
     uint64_t last_accessed{0};

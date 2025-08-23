@@ -122,9 +122,15 @@ void* GPUMemoryPool::allocate_async(size_t size, cudaStream_t stream, size_t ali
 }
 
 void GPUMemoryPool::deallocate_async(void* ptr, cudaStream_t stream) {
-    // For async deallocation, we could defer until stream completion
-    // For now, just do immediate deallocation
-    (void)stream; // Suppress unused parameter warning
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        auto it = ptr_to_block_.find(ptr);
+        if (it != ptr_to_block_.end()) {
+            if (blocks_[it->second].stream != stream) {
+                throw std::invalid_argument("stream mismatch");
+            }
+        }
+    }
     deallocate(ptr);
 }
 

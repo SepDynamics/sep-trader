@@ -1,6 +1,7 @@
 #pragma once
 
 #include <queue>
+#include <cstddef>
 
 #include "core/sep_precompiled.h"
 #include "core/pair_manager.hpp"
@@ -51,6 +52,11 @@ struct DynamicPairConfig {
     std::string training_data_source;
     std::string model_template;
     std::unordered_map<std::string, std::string> custom_parameters;
+
+    // Resource requirements
+    size_t required_hot_bytes{0};
+    size_t required_streams{0};
+    size_t batch_size{0};
     
     DynamicPairConfig() : enabled(false), priority(0), pip_precision(4), 
                          margin_rate(0.02), max_position_size(1000000) {}
@@ -87,11 +93,17 @@ struct ResourceAllocation {
     size_t max_memory_per_pair_mb;
     double cpu_limit_percentage;
     size_t network_bandwidth_limit;
+
+    // New thresholds
+    size_t max_hot_bytes;
+    size_t max_streams;
+    size_t max_batch_size;
     
     ResourceAllocation() : max_total_pairs(50), max_concurrent_operations(5),
                           max_trading_pairs(20), max_cache_size_mb(10240),
                           max_memory_per_pair_mb(256), cpu_limit_percentage(80.0),
-                          network_bandwidth_limit(1048576) {} // 1MB/s
+                          network_bandwidth_limit(1048576), // 1MB/s
+                          max_hot_bytes(SIZE_MAX), max_streams(SIZE_MAX), max_batch_size(SIZE_MAX) {}
 };
 
 // Dynamic pair management callbacks
@@ -261,6 +273,7 @@ private:
     bool validatePairSymbolFormat(const std::string& symbol) const;
     bool validatePairAvailability(const std::string& symbol) const;
     bool validateResourceRequirements(const ::sep::trading::DynamicPairConfig& config) const;
+    bool validateResources(const ::sep::trading::ResourceAllocation& usage) const;
     bool validateMarketData(const std::string& symbol) const;
     
     // Resource management
