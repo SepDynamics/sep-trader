@@ -1,7 +1,7 @@
 // SEP Trading System - API Service
 // Centralized API client for all backend communications
 
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+const API_BASE_URL = process.env.REACT_APP_API_URL || process.env.REACT_APP_API_BASE_URL || 'http://localhost:5000';
 
 class APIClient {
   baseURL: string;
@@ -51,6 +51,37 @@ class APIClient {
   // Market Data
   async getMarketData() {
     return this.request('/api/market-data');
+  }
+
+  async getLiveMetrics() {
+    return this.request('/api/metrics/live');
+  }
+
+  // Signals
+  async getSignals() {
+    return this.request('/api/signals');
+  }
+
+  async getSignalHistory(params = {}) {
+    const queryString = new URLSearchParams(params as Record<string, string>).toString();
+    return this.request(`/api/signals/history${queryString ? '?' + queryString : ''}`);
+  }
+
+  // Valkey/Redis Integration
+  async getValkeyMetrics() {
+    return this.request('/api/valkey/metrics');
+  }
+
+  async getValkeyStatus() {
+    return this.request('/api/valkey/status');
+  }
+
+  async getLivePatterns() {
+    return this.request('/api/patterns/live');
+  }
+
+  async getQuantumSignals() {
+    return this.request('/api/quantum/signals');
   }
 
   // Trading Operations
@@ -122,6 +153,15 @@ class APIClient {
     return this.request('/api/performance/current');
   }
 
+  async getPerformanceCurrent() {
+    return this.request('/api/performance/current');
+  }
+
+  async getPerformanceHistory(params = {}) {
+    const queryString = new URLSearchParams(params as Record<string, string>).toString();
+    return this.request(`/api/performance/history${queryString ? '?' + queryString : ''}`);
+  }
+
   // Configuration
   async getConfig() {
     return this.request('/api/config/get');
@@ -170,6 +210,13 @@ export const {
   login,
   logout,
   getMarketData,
+  getLiveMetrics,
+  getSignals,
+  getSignalHistory,
+  getValkeyMetrics,
+  getValkeyStatus,
+  getLivePatterns,
+  getQuantumSignals,
   placeOrder,
   submitOrder,
   getPositions,
@@ -184,6 +231,8 @@ export const {
   startModelTraining,
   generateReport,
   getPerformanceMetrics,
+  getPerformanceCurrent,
+  getPerformanceHistory,
   getConfig,
   updateConfig,
   executeCLICommand,

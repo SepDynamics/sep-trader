@@ -5,19 +5,25 @@ import React, { createContext, useContext, useEffect, useRef, useState, useCallb
 
 const WebSocketContext = createContext(null);
 
-const WS_URL = process.env.REACT_APP_WS_URL || window._env_?.REACT_APP_WS_URL || 'ws://localhost:8765';
+const WS_URL = process.env.REACT_APP_WS_URL || process.env.REACT_APP_WS_BASE_URL || window._env_?.REACT_APP_WS_URL || 'ws://localhost:8765';
 
 export const WebSocketProvider = ({ children }) => {
   const [socket, setSocket] = useState(null);
   const [connected, setConnected] = useState(false);
   const [connectionStatus, setConnectionStatus] = useState('disconnected');
   
-  // Data states
+  // Data states for SEP system
   const [marketData, setMarketData] = useState({});
   const [systemStatus, setSystemStatus] = useState({});
   const [tradingSignals, setTradingSignals] = useState([]);
   const [performanceData, setPerformanceData] = useState({});
   const [systemMetrics, setSystemMetrics] = useState({});
+  
+  // New data states for Valkey/Redis integration
+  const [quantumSignals, setQuantumSignals] = useState({});
+  const [signalHistory, setSignalHistory] = useState([]);
+  const [valkeyMetrics, setValkeyMetrics] = useState({});
+  const [livePatterns, setLivePatterns] = useState({});
   
   // Connection management
   const reconnectTimeoutRef = useRef(null);
@@ -26,7 +32,7 @@ export const WebSocketProvider = ({ children }) => {
   const maxReconnectAttempts = 10;
   const reconnectDelay = 3000;
 
-  // Message handlers for different channels
+  // Enhanced message handlers for Valkey/Redis integration
   const messageHandlers = {
     market: (data) => {
       if (data.symbol) {
@@ -73,6 +79,60 @@ export const WebSocketProvider = ({ children }) => {
     trades: (data) => {
       // Handle trade execution updates
       console.log('Trade update:', data);
+    },
+    
+    // New handlers for Valkey/Redis data streams
+    quantum_signals: (data) => {
+      if (data.instrument && data.timestamp) {
+        const signalKey = `${data.instrument}:${data.timestamp}`;
+        setQuantumSignals(prev => ({
+          ...prev,
+          [signalKey]: {
+            ...data,
+            received_at: new Date().toISOString()
+          }
+        }));
+        
+        // Add to history for analysis
+        setSignalHistory(prev => {
+          const newHistory = [data, ...prev];
+          return newHistory.slice(0, 500); // Keep last 500 signals
+        });
+      }
+    },
+    
+    valkey_metrics: (data) => {
+      setValkeyMetrics(prev => ({
+        ...prev,
+        ...data,
+        lastUpdate: new Date().toISOString()
+      }));
+    },
+    
+    live_patterns: (data) => {
+      if (data.pattern_id) {
+        setLivePatterns(prev => ({
+          ...prev,
+          [data.pattern_id]: {
+            ...data,
+            lastUpdate: new Date().toISOString()
+          }
+        }));
+      }
+    },
+    
+    signal_updates: (data) => {
+      // Handle real-time signal state updates (entropy, stability, coherence)
+      if (data.signal_key) {
+        setQuantumSignals(prev => ({
+          ...prev,
+          [data.signal_key]: {
+            ...prev[data.signal_key],
+            ...data.updates,
+            lastUpdate: new Date().toISOString()
+          }
+        }));
+      }
     }
   };
 
@@ -96,10 +156,20 @@ export const WebSocketProvider = ({ children }) => {
         setSocket(ws);
         reconnectAttemptsRef.current = 0;
         
-        // Subscribe to all channels
+        // Subscribe to all channels including Valkey/Redis streams
         ws.send(JSON.stringify({
           type: 'subscribe',
-          channels: ['market', 'system', 'signals', 'performance', 'trades']
+          channels: [
+            'market',
+            'system',
+            'signals',
+            'performance',
+            'trades',
+            'quantum_signals',
+            'valkey_metrics',
+            'live_patterns',
+            'signal_updates'
+          ]
         }));
         
         // Start heartbeat
@@ -181,13 +251,22 @@ export const WebSocketProvider = ({ children }) => {
         if (channel && messageHandlers[channel]) {
           messageHandlers[channel](data);
         } else if (data) {
-          // Try to infer channel from message structure
+          // Enhanced message routing for Valkey/Redis data
           if (data.symbol && data.price) {
             messageHandlers.market(data);
           } else if (data.signal_type && data.confidence) {
             messageHandlers.signals(data);
           } else if (data.total_pnl !== undefined) {
             messageHandlers.performance(data);
+          } else if (data.instrument && data.entropy !== undefined) {
+            // Quantum signal from Valkey
+            messageHandlers.quantum_signals(data);
+          } else if (data.pattern_id && data.coherence !== undefined) {
+            // Live pattern data
+            messageHandlers.live_patterns(data);
+          } else if (data.signal_key && data.updates) {
+            // Signal state updates
+            messageHandlers.signal_updates(data);
           }
         }
     }
@@ -268,19 +347,25 @@ export const WebSocketProvider = ({ children }) => {
     };
   }, []);
 
-  // Context value
+  // Context value with Valkey/Redis data
   const value = {
     // Connection state
     socket,
     connected,
     connectionStatus,
     
-    // Data
+    // Traditional trading data
     marketData,
     systemStatus,
     tradingSignals,
     performanceData,
     systemMetrics,
+    
+    // Valkey/Redis quantum data
+    quantumSignals,
+    signalHistory,
+    valkeyMetrics,
+    livePatterns,
     
     // Methods
     connect,

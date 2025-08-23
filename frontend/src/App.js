@@ -4,6 +4,7 @@ import { SymbolProvider } from './context/SymbolContext';
 import { ConfigProvider } from './context/ConfigContext';
 import HomeDashboard from './components/HomeDashboard';
 import TradingPanel from './components/TradingPanel';
+import TradingCockpit from './components/TradingCockpit';
 import SystemStatus from './components/SystemStatus';
 import PerformanceMetrics from './components/PerformanceMetrics';
 import MarketData from './components/MarketData';
@@ -45,7 +46,8 @@ const App = () => {
       title: 'Main',
       items: [
         { id: 'dashboard', label: 'Dashboard', icon: '📊' },
-        { id: 'trading', label: 'Trading', icon: '💹' },
+        { id: 'cockpit', label: 'Trading Cockpit', icon: '🚀' },
+        { id: 'trading', label: 'Trading Panel', icon: '💹' },
         { id: 'signals', label: 'Signals', icon: '🔔' },
       ]
     },
@@ -103,6 +105,8 @@ const App = () => {
     switch (activeSection) {
       case 'dashboard':
         return <HomeDashboard />;
+      case 'cockpit':
+        return <TradingCockpit />;
       case 'trading':
         return <TradingPanel />;
       case 'market':
