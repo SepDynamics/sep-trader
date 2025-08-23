@@ -4,18 +4,21 @@
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 
 class APIClient {
+  baseURL: string;
+  token: string | null;
+
   constructor() {
     this.baseURL = API_BASE_URL;
     this.token = localStorage.getItem('auth_token');
   }
 
-  async request(endpoint, options = {}) {
+  async request(endpoint: string, options: RequestInit = {}) {
     const url = `${this.baseURL}${endpoint}`;
-    
-    const config = {
+
+    const config: RequestInit & { headers: Record<string, string> } = {
       headers: {
         'Content-Type': 'application/json',
-        ...options.headers,
+        ...(options.headers as Record<string, string> | undefined),
       },
       ...options,
     };
@@ -24,22 +27,17 @@ class APIClient {
       config.headers.Authorization = `Bearer ${this.token}`;
     }
 
-    try {
-      const response = await fetch(url, config);
-      
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
+    const response = await fetch(url, config);
 
-      return await response.json();
-    } catch (error) {
-      console.error(`API request failed for ${endpoint}:`, error);
-      throw error;
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
     }
+
+    return response.json();
   }
 
   // Authentication
-  async login(credentials) {
+  async login(credentials: any) {
     return this.request('/api/auth/login', {
       method: 'POST',
       body: JSON.stringify(credentials),
@@ -56,7 +54,7 @@ class APIClient {
   }
 
   // Trading Operations
-  async placeOrder(order) {
+  async placeOrder(order: any) {
     return this.request('/api/place-order', {
       method: 'POST',
       body: JSON.stringify(order),
@@ -86,11 +84,11 @@ class APIClient {
   }
 
   // Configuration
-  async getConfiguration() {
+  async getConfig() {
     return this.request('/api/config/get');
   }
 
-  async setConfiguration(config) {
+  async updateConfig(config: any) {
     return this.request('/api/config/set', {
       method: 'POST',
       body: JSON.stringify(config),
@@ -98,7 +96,7 @@ class APIClient {
   }
 
   // CLI Operations
-  async executeCLICommand(command, args = []) {
+  async executeCLICommand(command: string, args: string[] = []) {
     return this.request('/api/cli/execute', {
       method: 'POST',
       body: JSON.stringify({ command, args }),
@@ -110,7 +108,7 @@ class APIClient {
   }
 
   // Utility Methods
-  setAuthToken(token) {
+  setAuthToken(token: string) {
     this.token = token;
     localStorage.setItem('auth_token', token);
   }
@@ -139,14 +137,15 @@ export const {
   getSystemStatus,
   getHealth,
   getPerformanceMetrics,
-  getConfiguration,
-  setConfiguration,
+  getConfig,
+  updateConfig,
   executeCLICommand,
   getCLIStatus,
   setAuthToken,
   clearAuthToken,
   isAuthenticated,
-} = apiClient;
+} = apiClient as any;
 
 export { apiClient };
 export default apiClient;
+

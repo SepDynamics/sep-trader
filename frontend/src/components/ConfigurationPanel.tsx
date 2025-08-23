@@ -1,33 +1,15 @@
-import React, { useState, useEffect } from 'react';
-import { apiClient } from '../services/api';
+import React, { useState } from 'react';
+import { useConfig } from '../context/ConfigContext';
 
-const ConfigurationPanel = () => {
-  const [config, setConfig] = useState({});
-  const [loading, setLoading] = useState(true);
+const ConfigurationPanel: React.FC = () => {
+  const { config, setConfig, loading, saveConfig } = useConfig();
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState('');
-
-  useEffect(() => {
-    loadConfiguration();
-  }, []);
-
-  const loadConfiguration = async () => {
-    try {
-      setLoading(true);
-      const response = await apiClient.getConfiguration();
-      setConfig(response.data);
-    } catch (error) {
-      console.error('Failed to load configuration:', error);
-      setMessage('Failed to load configuration');
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleSave = async () => {
     try {
       setSaving(true);
-      await apiClient.setConfiguration(config);
+      await saveConfig(config);
       setMessage('Configuration saved successfully');
       setTimeout(() => setMessage(''), 3000);
     } catch (error) {
@@ -38,13 +20,13 @@ const ConfigurationPanel = () => {
     }
   };
 
-  const handleInputChange = (section, key, value) => {
-    setConfig(prev => ({
+  const handleInputChange = (section: string, key: string, value: any) => {
+    setConfig((prev: any) => ({
       ...prev,
       [section]: {
         ...prev[section],
-        [key]: value
-      }
+        [key]: value,
+      },
     }));
   };
 
@@ -56,8 +38,8 @@ const ConfigurationPanel = () => {
     <div className="configuration-panel">
       <div className="config-header">
         <h1>System Configuration</h1>
-        <button 
-          onClick={handleSave} 
+        <button
+          onClick={handleSave}
           disabled={saving}
           className="save-btn"
         >
@@ -72,9 +54,10 @@ const ConfigurationPanel = () => {
             <div className="field-group">
               <label>Risk Level:</label>
               <select
-                value={config.trading?.risk_level || 'medium'}
+                value={config.trading?.risk_level ?? ''}
                 onChange={(e) => handleInputChange('trading', 'risk_level', e.target.value)}
               >
+                <option value="" disabled>Select</option>
                 <option value="low">Low</option>
                 <option value="medium">Medium</option>
                 <option value="high">High</option>
@@ -84,7 +67,7 @@ const ConfigurationPanel = () => {
               <label>Max Position Size:</label>
               <input
                 type="number"
-                value={config.trading?.max_position_size || 10000}
+                value={config.trading?.max_position_size ?? ''}
                 onChange={(e) => handleInputChange('trading', 'max_position_size', parseInt(e.target.value))}
               />
             </div>
@@ -93,7 +76,7 @@ const ConfigurationPanel = () => {
               <input
                 type="number"
                 step="0.01"
-                value={config.trading?.stop_loss_percent || 5}
+                value={config.trading?.stop_loss_percent ?? ''}
                 onChange={(e) => handleInputChange('trading', 'stop_loss_percent', parseFloat(e.target.value))}
               />
             </div>
@@ -107,7 +90,7 @@ const ConfigurationPanel = () => {
               <label>Refresh Interval (seconds):</label>
               <input
                 type="number"
-                value={config.system?.refresh_interval || 30}
+                value={config.system?.refresh_interval ?? ''}
                 onChange={(e) => handleInputChange('system', 'refresh_interval', parseInt(e.target.value))}
               />
             </div>
@@ -115,16 +98,17 @@ const ConfigurationPanel = () => {
               <label>Debug Mode:</label>
               <input
                 type="checkbox"
-                checked={config.system?.debug_mode || false}
+                checked={config.system?.debug_mode ?? false}
                 onChange={(e) => handleInputChange('system', 'debug_mode', e.target.checked)}
               />
             </div>
             <div className="field-group">
               <label>Log Level:</label>
               <select
-                value={config.system?.log_level || 'INFO'}
+                value={config.system?.log_level ?? ''}
                 onChange={(e) => handleInputChange('system', 'log_level', e.target.value)}
               >
+                <option value="" disabled>Select</option>
                 <option value="DEBUG">Debug</option>
                 <option value="INFO">Info</option>
                 <option value="WARNING">Warning</option>
@@ -141,7 +125,7 @@ const ConfigurationPanel = () => {
               <label>API Timeout (seconds):</label>
               <input
                 type="number"
-                value={config.api?.timeout || 30}
+                value={config.api?.timeout ?? ''}
                 onChange={(e) => handleInputChange('api', 'timeout', parseInt(e.target.value))}
               />
             </div>
@@ -149,7 +133,7 @@ const ConfigurationPanel = () => {
               <label>Rate Limit (requests/min):</label>
               <input
                 type="number"
-                value={config.api?.rate_limit || 60}
+                value={config.api?.rate_limit ?? ''}
                 onChange={(e) => handleInputChange('api', 'rate_limit', parseInt(e.target.value))}
               />
             </div>
@@ -167,3 +151,4 @@ const ConfigurationPanel = () => {
 };
 
 export default ConfigurationPanel;
+
