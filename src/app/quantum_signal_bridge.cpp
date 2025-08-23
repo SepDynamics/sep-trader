@@ -1012,10 +1012,10 @@ void sep::trading::QuantumSignalBridge::loadOptimalConfig() {
 
 }
 
-QuantumIdentifiers sep::trading::QuantumSignalBridge::processAsset(const std::string& asset) {
+sep::trading::QuantumIdentifiers sep::trading::QuantumSignalBridge::processAsset(const std::string& asset) {
     // TODO: Implement real asset processing
     // For now, return dummy data as per the de-stubbing plan
-    return QuantumIdentifiers{
+    return sep::trading::QuantumIdentifiers{
         .confidence = 0.5f,
         .coherence = 0.5f,
         .stability = 0.5f,

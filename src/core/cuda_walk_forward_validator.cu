@@ -1,4 +1,5 @@
 // Minimal CUDA includes to avoid conflicts
+#define _DISABLE_FPCLASSIFY_FUNCTIONS 1
 #include <cuda_runtime.h>
 
 // Include our header after CUDA headers
