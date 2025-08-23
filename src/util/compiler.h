@@ -8,6 +8,7 @@
 #include <vector>
 #include <unordered_map>
 #include <functional>
+#include <memory>
 
 // Forward declarations for AST types
 namespace dsl {
@@ -115,16 +116,17 @@ namespace ast {
         std::string confidence;
         std::string action;
     };
-    struct MemoryDecl { std::string name; std::vector<std::string> rules; };
-    struct Statement { std::string content; };
-    struct AssignmentStmt { std::string variable; std::string expression; };
+    struct MemoryDecl {
+        std::string name;
+        std::vector<std::shared_ptr<dsl::ast::Statement>> rules;
+    };
     
     struct Program {
         std::vector<std::shared_ptr<StreamDecl>> streams;
         std::vector<std::shared_ptr<PatternDecl>> patterns;
         std::vector<std::shared_ptr<SignalDecl>> signals;
         std::shared_ptr<MemoryDecl> memory;
-        std::vector<std::shared_ptr<Statement>> statements;
+        std::vector<std::shared_ptr<dsl::ast::Statement>> statements;
     };
 }
 
@@ -139,7 +141,7 @@ public:
     std::function<void(Context&)> compile_pattern_declaration(const dsl::compiler::ast::PatternDecl& pattern);
     std::function<void(Context&)> compile_signal_declaration(const dsl::compiler::ast::SignalDecl& signal);
     std::function<void(Context&)> compile_memory_declaration(const dsl::compiler::ast::MemoryDecl& memory);
-    std::function<void(Context&)> compile_statement(const dsl::compiler::ast::Statement& stmt);
+    std::function<void(Context&)> compile_statement(const dsl::ast::Statement& stmt);
     std::function<Value(Context&)> compile_expression(const dsl::ast::Expression& expr);
     
     void register_builtin_functions(Context& context);

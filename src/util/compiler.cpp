@@ -46,14 +46,7 @@ std::function<void(Context&)> Compiler::compile_stream_declaration(const ast::St
     return [stream](Context& context) {
         (void)context; // Suppress unused parameter warning
         std::cout << "Creating stream: " << stream.name << " from " << stream.source << std::endl;
-
-// CRITICAL FIX: Eliminate ALL fake data - no backtesting placeholders allowed
-#ifdef SEP_BACKTESTING
-        // ELIMINATED: No more mock stream data injection
-        throw std::runtime_error("CRITICAL: Backtesting mode disabled - no fake data allowed in production system!");
-#else
         throw std::runtime_error("Stream creation requires production implementation with real data source");
-#endif
     };
 }
 
@@ -81,30 +74,33 @@ std::function<void(Context&)> Compiler::compile_signal_declaration(const ast::Si
 
 std::function<void(Context&)> Compiler::compile_memory_declaration(const ast::MemoryDecl& memory) {
     std::vector<std::function<void(Context&)>> compiled_rules;
-    
+
     for (const auto& rule : memory.rules) {
-        // Create a Statement object from the rule string
-        ast::Statement stmt;
-        stmt.content = rule;
-        compiled_rules.push_back(compile_statement(stmt));
+        compiled_rules.push_back(compile_statement(*rule));
     }
-    
+
     return [compiled_rules](Context& context) {
-        std::cout << "Executing memory rules" << std::endl;
-        
         for (const auto& rule : compiled_rules) {
             rule(context);
         }
     };
 }
 
-std::function<void(Context&)> Compiler::compile_statement(const ast::Statement& stmt) {
-    // Simplified statement compilation - just execute the content as a placeholder
-    return [stmt](Context& context) {
-        std::cout << "Executing statement: " << stmt.content << std::endl;
-        // For now, just set a simple variable to indicate the statement ran
-        context.set_variable("last_statement", Value(stmt.content));
-    };
+std::function<void(Context&)> Compiler::compile_statement(const dsl::ast::Statement& stmt) {
+    if (const auto* assign = dynamic_cast<const dsl::ast::Assignment*>(&stmt)) {
+        auto compiled_value = compile_expression(*assign->value);
+        std::string name = assign->name;
+        return [compiled_value, name](Context& context) {
+            context.set_variable(name, compiled_value(context));
+        };
+    }
+    if (const auto* expr_stmt = dynamic_cast<const dsl::ast::ExpressionStatement*>(&stmt)) {
+        auto compiled_expr = compile_expression(*expr_stmt->expression);
+        return [compiled_expr](Context& context) {
+            compiled_expr(context);
+        };
+    }
+    return [](Context&) {};
 }
 
 std::function<Value(Context&)> Compiler::compile_expression(const dsl::ast::Expression& expr) {
@@ -258,9 +254,11 @@ std::function<Value(Context&)> Compiler::compile_expression(const dsl::ast::Expr
                 args.push_back(compiled_arg(context));
             }
             
-            // For now, return a default value since call_function doesn't exist
-            // This would need proper function call implementation
-            return Value(0.0);
+            auto func = context.get_function(function_name);
+            if (!func) {
+                throw std::runtime_error("Unknown function: " + function_name);
+            }
+            return func(args);
         };
     }
     
@@ -278,15 +276,12 @@ std::function<Value(Context&)> Compiler::compile_expression(const dsl::ast::Expr
                 return context.get_variable(full_var_name);
             }
             
-            return Value(0.5); // Fallback
+            return Value{}; // Fallback for unsupported member access
         };
     }
-    
+
     // Default case
-    return [](Context& context) -> Value {
-        (void)context; // Suppress unused parameter warning
-        return Value(0.0);
-    };
+    return [](Context&) -> Value { return Value{}; };
 }
 
 void Compiler::register_builtin_functions(Context& context) {

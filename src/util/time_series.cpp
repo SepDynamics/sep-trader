@@ -1,10 +1,29 @@
 #include "time_series.h"
 
-namespace sep::dsl::stdlib {
+#include <numeric>
+#include <stdexcept>
+#include <vector>
 
-void register_time_series(Runtime& runtime) {
-    (void)runtime;  // Suppress unused parameter warning
-    // Registration for time series functions will go here.
+namespace dsl::stdlib {
+
+using dsl::compiler::Value;
+
+void register_time_series(Context& context) {
+    context.register_function(
+        "moving_average",
+        [](const std::vector<Value>& args) -> Value {
+            if (args.empty()) {
+                return Value{};
+            }
+            double sum = 0.0;
+            for (const auto& v : args) {
+                if (!std::holds_alternative<double>(v)) {
+                    throw std::runtime_error("moving_average expects numeric arguments");
+                }
+                sum += std::get<double>(v);
+            }
+            return Value(sum / static_cast<double>(args.size()));
+        });
 }
 
-}
+} // namespace dsl::stdlib
