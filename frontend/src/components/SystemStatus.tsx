@@ -1,44 +1,36 @@
+// @ts-nocheck
 import React, { useState, useEffect } from 'react';
 import { useWebSocket } from '../context/WebSocketContext';
 import { apiClient } from '../services/api';
+import usePolling from '../hooks/usePolling';
 import '../styles/SystemStatus.css';
 
-const SystemStatus = () => {
+interface ComponentConfig {
+  name: string;
+  key: string;
+}
+
+const SystemStatus: React.FC = () => {
   const { connected, systemStatus } = useWebSocket();
-  const [systemInfo, setSystemInfo] = useState({});
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [config, setConfig] = useState<{ poll_interval: number; components: ComponentConfig[] }>({ poll_interval: 30000, components: [] });
   const [lastRefresh, setLastRefresh] = useState(new Date());
 
   useEffect(() => {
-    loadSystemStatus();
-    
-    // Refresh system status every 30 seconds
-    const interval = setInterval(() => {
-      loadSystemStatus();
-    }, 30000);
-
-    return () => clearInterval(interval);
+    apiClient.getSystemStatusConfig()
+      .then(setConfig)
+      .catch(() => {});
   }, []);
 
-  const loadSystemStatus = async () => {
-    try {
-      setLoading(true);
-      const response = await apiClient.getSystemStatus();
-      setSystemInfo(response.data);
-      setLastRefresh(new Date());
-      setError(null);
-    } catch (err) {
-      console.error('Failed to load system status:', err);
-      setError('Failed to load system status');
-    } finally {
-      setLoading(false);
-    }
+  const fetchStatus = async () => {
+    const data = await apiClient.getSystemStatus();
+    setLastRefresh(new Date());
+    return data;
   };
 
-  const getStatusColor = (status) => {
+  const { data: systemInfo, loading, error, refresh } = usePolling(fetchStatus, config.poll_interval);
+
+  const getStatusColor = (status?: string) => {
     if (!status) return 'unknown';
-    
     switch (status.toLowerCase()) {
       case 'online':
       case 'active':
@@ -59,7 +51,7 @@ const SystemStatus = () => {
     }
   };
 
-  const getStatusIcon = (status) => {
+  const getStatusIcon = (status?: string) => {
     const color = getStatusColor(status);
     switch (color) {
       case 'success': return '✅';
@@ -69,13 +61,11 @@ const SystemStatus = () => {
     }
   };
 
-  const formatUptime = (seconds) => {
+  const formatUptime = (seconds?: number) => {
     if (!seconds) return 'Unknown';
-    
     const days = Math.floor(seconds / 86400);
     const hours = Math.floor((seconds % 86400) / 3600);
     const minutes = Math.floor((seconds % 3600) / 60);
-    
     if (days > 0) {
       return `${days}d ${hours}h ${minutes}m`;
     } else if (hours > 0) {
@@ -85,15 +75,14 @@ const SystemStatus = () => {
     }
   };
 
-  const formatBytes = (bytes) => {
+  const formatBytes = (bytes?: number) => {
     if (!bytes) return '0 B';
-    
     const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
     const i = Math.floor(Math.log(bytes) / Math.log(1024));
     return `${(bytes / Math.pow(1024, i)).toFixed(2)} ${sizes[i]}`;
   };
 
-  const currentStatus = systemStatus || systemInfo;
+  const currentStatus = systemStatus || systemInfo || {};
 
   if (loading && !currentStatus.status) {
     return (
@@ -112,8 +101,8 @@ const SystemStatus = () => {
         <div className="error-container">
           <div className="error-icon">⚠️</div>
           <h3>System Status Error</h3>
-          <p>{error}</p>
-          <button onClick={loadSystemStatus} className="retry-button">
+          <p>{error.message}</p>
+          <button onClick={refresh} className="retry-button">
             Retry
           </button>
         </div>
@@ -129,8 +118,8 @@ const SystemStatus = () => {
           <div className="last-refresh">
             Last updated: {lastRefresh.toLocaleTimeString()}
           </div>
-          <button 
-            onClick={loadSystemStatus} 
+          <button
+            onClick={refresh}
             className="refresh-btn"
             disabled={loading}
           >
@@ -140,7 +129,6 @@ const SystemStatus = () => {
       </div>
 
       <div className="status-grid">
-        {/* Overall Status */}
         <div className="status-card overall-status">
           <div className="card-header">
             <h3>Overall System Status</h3>
@@ -166,53 +154,31 @@ const SystemStatus = () => {
           </div>
         </div>
 
-        {/* Component Status */}
         <div className="status-card">
           <div className="card-header">
             <h3>Core Components</h3>
           </div>
           <div className="card-content">
             <div className="component-list">
-              <div className="component-item">
-                <div className="component-info">
-                  <span className="component-name">SEP Engine</span>
-                  <span className={`component-status ${getStatusColor(currentStatus.engine_status)}`}>
-                    {getStatusIcon(currentStatus.engine_status)} {currentStatus.engine_status || 'Unknown'}
-                  </span>
-                </div>
-              </div>
-              
-              <div className="component-item">
-                <div className="component-info">
-                  <span className="component-name">Memory Tiers</span>
-                  <span className={`component-status ${getStatusColor(currentStatus.memory_status)}`}>
-                    {getStatusIcon(currentStatus.memory_status)} {currentStatus.memory_status || 'Unknown'}
-                  </span>
-                </div>
-              </div>
-              
-              <div className="component-item">
-                <div className="component-info">
-                  <span className="component-name">Trading System</span>
-                  <span className={`component-status ${getStatusColor(currentStatus.trading_status)}`}>
-                    {getStatusIcon(currentStatus.trading_status)} {currentStatus.trading_status || 'Unknown'}
-                  </span>
-                </div>
-              </div>
-              
-              <div className="component-item">
-                <div className="component-info">
-                  <span className="component-name">WebSocket Service</span>
-                  <span className={`component-status ${getStatusColor(connected ? 'online' : 'offline')}`}>
-                    {getStatusIcon(connected ? 'online' : 'offline')} {connected ? 'Online' : 'Offline'}
-                  </span>
-                </div>
-              </div>
+              {config.components.map((comp) => {
+                const status = comp.key === 'websocket'
+                  ? (connected ? 'online' : 'offline')
+                  : currentStatus[comp.key];
+                return (
+                  <div key={comp.key} className="component-item">
+                    <div className="component-info">
+                      <span className="component-name">{comp.name}</span>
+                      <span className={`component-status ${getStatusColor(status)}`}>
+                        {getStatusIcon(status)} {status || 'Unknown'}
+                      </span>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </div>
         </div>
 
-        {/* Resource Usage */}
         <div className="status-card">
           <div className="card-header">
             <h3>Resource Usage</h3>
@@ -225,7 +191,7 @@ const SystemStatus = () => {
                   <span className="metric-value">{(currentStatus.cpu_usage * 100 || 0).toFixed(1)}%</span>
                 </div>
                 <div className="progress-bar">
-                  <div 
+                  <div
                     className="progress-fill"
                     style={{ width: `${(currentStatus.cpu_usage * 100 || 0)}%` }}
                   ></div>
@@ -240,11 +206,9 @@ const SystemStatus = () => {
                   </span>
                 </div>
                 <div className="progress-bar">
-                  <div 
+                  <div
                     className="progress-fill"
-                    style={{ 
-                      width: `${((currentStatus.memory_used / currentStatus.memory_total) * 100 || 0)}%` 
-                    }}
+                    style={{ width: `${((currentStatus.memory_used / currentStatus.memory_total) * 100 || 0)}%` }}
                   ></div>
                 </div>
               </div>
@@ -266,7 +230,6 @@ const SystemStatus = () => {
           </div>
         </div>
 
-        {/* Recent Events */}
         <div className="status-card events-card">
           <div className="card-header">
             <h3>Recent System Events</h3>

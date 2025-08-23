@@ -270,9 +270,9 @@ The frontend relies on backend REST APIs and WebSocket endpoints for data and li
 ## SystemStatus
 - **Context**: `useWebSocket` provides `connected` and `systemStatus`.
 - **State**: `systemInfo`, `loading`, `error`, and `lastRefresh` handle polling logic.
-- **Hardcoded/Placeholders**:
-  - Refresh interval fixed at `30s`.
-  - Component list (SEP Engine, Memory Tiers, Trading System, WebSocket Service) is static.
+- **Dynamic Behavior**:
+  - Poll interval and component list are provided by `/api/system-status/config`.
+  - Refresh cadence is configurable on the backend rather than hardcoded.
 
 ## TradingSignals
 - **Context**: `useWebSocket` provides `connected` and `tradingSignals`.
