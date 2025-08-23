@@ -3,7 +3,7 @@
  * @brief Implementation of standardized error handling utilities
  */
 
-#include "core/error_handling.h"
+#include "util/error_handling.h"
 
 #include <stdlib.h>
 #include <string.h>
