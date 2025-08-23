@@ -2,7 +2,9 @@
 #include <iostream>
 #include <sstream>
 #include <stdexcept>
+#ifdef SEP_USE_CUDA
 #include <cuda_runtime_api.h>
+#endif
 
 #include "core/result_types.h"
 
@@ -64,6 +66,7 @@ Result<void> fromSEPResult<void>(SEPResult result, const ::std::string& message)
     return makeError(Error(result, message));
 }
 
+#ifdef SEP_USE_CUDA
 static Error::Code mapCudaError(cudaError_t err) {
     switch (err) {
         case cudaSuccess: return Error::Code::Success;
@@ -85,6 +88,7 @@ Result<void> fromCudaError(cudaError_t err, const std::string& context) {
     msg += cudaGetErrorString(err);
     return makeError(Error(mapCudaError(err), msg));
 }
+#endif
 
 // Explicit template instantiations
 template Result<void> fromSEPResult<void>(SEPResult, const ::std::string&);

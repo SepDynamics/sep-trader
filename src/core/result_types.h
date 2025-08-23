@@ -160,7 +160,7 @@ std::string errorToString(const Error& error);
 template<typename T>
 Result<T> fromSEPResult(SEPResult result, const std::string& message = "");
 
-#ifdef SEP_USE_CUDA
+  #ifdef SEP_USE_CUDA
 Result<void> fromCudaError(cudaError_t err, const std::string& context = "");
 #endif
 
