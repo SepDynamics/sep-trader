@@ -46,7 +46,6 @@ private:
     
     // Time Machine simulation
     void runSimulation();
-    void runTestDataSimulation();
     void logSimulatedTrade(const sep::trading::QuantumTradingSignal& signal, const Candle& candle);
     
     // Historical simulation with current market data
@@ -73,11 +72,6 @@ private:
     // State
     bool oanda_connected_ = false;
     std::string last_error_;
-    
-    // Simulation state variables
-    int simulation_cycles = 1000; // Provide a sensible default
-    int trade_count = 0;
-    double base_price = 0.0;
     
     // Time Machine parameters
     std::string simulation_start_time_;
