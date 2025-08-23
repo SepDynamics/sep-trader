@@ -11,7 +11,6 @@ The SEP Trading Engine is a CUDA-accelerated trading platform that applies Quant
   - `quantum_pair_trainer` – model training
   - `quantum_tracker` – live signal monitor
   - `data_downloader` – historical fetch utility
-- The static library `libsep_lib.a` is also produced for linking.
 
 ## Configuration
 Runtime configuration lives under `config/`. `default.json` provides base settings and can be overridden by other files in the directory.
