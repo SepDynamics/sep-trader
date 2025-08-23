@@ -1,9 +1,7 @@
 #pragma once
 
 #include <cuda_runtime.h>
-
 #include <cstdint>
-#include <vector>
 
 #include "cuda_types.cuh"
 
@@ -60,17 +58,17 @@ cudaError_t cleanupCudaDevice(CudaContext& context);
 
 cudaError_t calculateWindowsCuda(
     CudaContext& context,
-    const std::vector<TickData>& host_ticks,
-    std::vector<WindowResult>& hourly_results,
-    std::vector<WindowResult>& daily_results,
+    const TickData* host_ticks, size_t tick_count,
+    WindowResult* hourly_results, size_t hourly_count,
+    WindowResult* daily_results, size_t daily_count,
     uint64_t current_time,
     uint64_t hourly_window_ns,
     uint64_t daily_window_ns);
 
 cudaError_t calculateForwardWindowsCuda(
     CudaContext& context,
-    const std::vector<TickData>& ticks,
-    std::vector<ForwardWindowResult>& results,
+    const TickData* ticks, size_t tick_count,
+    ForwardWindowResult* results, size_t result_count,
     uint64_t window_size_ns);
 
 } // namespace sep::apps::cuda

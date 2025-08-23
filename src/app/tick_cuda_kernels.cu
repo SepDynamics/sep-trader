@@ -1,25 +1,257 @@
-// CRITICAL: For CUDA compilation, apply comprehensive std::array protection
+#include <cuda.h>
 #include <cuda_runtime.h>
 #include <device_launch_parameters.h>
+#include <cuda_runtime_api.h>
 
-// CUDA-compatible includes for math functions and I/O
-#include <math.h>  // For sqrt, fabs - CUDA compatible
-#include <stdio.h> // For printf - CUDA compatible
-#include <cub/cub.cuh>
+// C++ standard headers
+#include <cstddef>
+#include <cstdint>
+#include <algorithm>
+#include <stdio.h>
+#include <iostream>
 
-#include "app/tick_cuda_kernels.cuh"
+// CUDA printf for device code
+extern "C" {
+    int printf(const char*, ...);
+}
 
 // CUDA-compatible iostream replacement
 #ifdef __CUDACC__
-#define CUDA_COUT printf
-#define CUDA_CERR printf
+#define CUDA_COUT(...) printf(__VA_ARGS__)
+#define CUDA_CERR(...) fprintf(stderr, __VA_ARGS__)
 #else
-#include <iostream>
-#define CUDA_COUT std::cout
-#define CUDA_CERR std::cerr
+#define CUDA_COUT(...) std::cout << __VA_ARGS__
+#define CUDA_CERR(...) std::cerr << __VA_ARGS__
 #endif
 
+// Project headers
+#include "app/tick_cuda_kernels.cuh"
+#include "app/cuda_types.cuh"
+
+// CUDA math functions
+using ::sqrtf;
+
 namespace sep::apps::cuda {
+
+// Forward window calculation kernel
+__global__ void calculateForwardWindowsKernel(
+    const TickData* ticks,
+    size_t tick_count,
+    ForwardWindowResult* results,
+    size_t result_count,
+    uint64_t window_size_ns) {
+    
+    int idx = blockIdx.x * blockDim.x + threadIdx.x;
+    if (idx >= result_count) return;
+
+    ForwardWindowResult& result = results[idx];
+    size_t window_start = idx * (tick_count / result_count);
+    size_t window_end = (idx + 1) * (tick_count / result_count);
+    
+    // Initialize result
+    result.coherence = 0.0f;
+    result.stability = 0.0f;
+    result.entropy = 0.0f;
+    result.rupture_count = 0;
+    result.flip_count = 0;
+    result.confidence = 0.0f;
+    result.converged = false;
+    result.iterations = 0;
+    
+    // Calculate window statistics
+    if (window_end > window_start + 2) {
+        double mean_price = 0.0;
+        size_t count = 0;
+        
+        // First pass - calculate mean
+        for (size_t j = window_start; j < window_end; ++j) {
+            mean_price += ticks[j].price;
+            count++;
+        }
+        mean_price /= count;
+        
+        // Second pass - calculate volatility and detect patterns
+        double volatility = 0.0;
+        int direction_changes = 0;
+        double prev_change = 0.0;
+        
+        for (size_t j = window_start + 1; j < window_end; ++j) {
+            // Volatility calculation
+            double diff = ticks[j].price - mean_price;
+            volatility += diff * diff;
+            
+            // Direction change detection
+            double change = ticks[j].price - ticks[j-1].price;
+            if (j > window_start + 1) {
+                if ((change > 0 && prev_change < 0) || (change < 0 && prev_change > 0)) {
+                    direction_changes++;
+                }
+            }
+            prev_change = change;
+        }
+        
+        volatility = sqrt(volatility / count);
+        
+        // Calculate metrics
+        result.coherence = static_cast<float>(1.0 - (direction_changes / static_cast<double>(count)));
+        result.stability = static_cast<float>(1.0 / (1.0 + volatility));
+        result.flip_count = direction_changes;
+        result.confidence = result.coherence * result.stability;
+        result.iterations = static_cast<int>(count);
+        result.converged = (result.confidence > 0.5f);
+    }
+}
+
+namespace {
+// Helper functions for device memory management
+template<typename T>
+cudaError_t allocateDeviceMemory(T** dev_ptr, size_t count) {
+    return cudaMalloc(reinterpret_cast<void**>(dev_ptr), count * sizeof(T));
+}
+
+template<typename T>
+cudaError_t copyToDevice(T* dev_ptr, const T* host_ptr, size_t count) {
+    return cudaMemcpy(dev_ptr, host_ptr, count * sizeof(T), cudaMemcpyHostToDevice);
+}
+
+template<typename T>
+cudaError_t copyToHost(T* host_ptr, const T* dev_ptr, size_t count) {
+    return cudaMemcpy(host_ptr, dev_ptr, count * sizeof(T), cudaMemcpyDeviceToHost);
+}
+} // anonymous namespace
+
+cudaError_t calculateWindowsCuda(
+    CudaContext& context,
+    const TickData* host_ticks, size_t tick_count,
+    WindowResult* hourly_results, size_t hourly_count,
+    WindowResult* daily_results, size_t daily_count,
+    uint64_t current_time,
+    uint64_t hourly_window_ns,
+    uint64_t daily_window_ns) {
+    
+    if (!context.initialized) {
+        return cudaErrorNotReady;
+    }
+    
+    cudaError_t error = cudaSuccess;
+    
+    // Limit tick count to maximum history
+    if (tick_count > MAX_TICK_HISTORY) {
+        tick_count = MAX_TICK_HISTORY;
+    }
+    
+    // Copy tick data to device
+    error = cudaMemcpyAsync(context.d_ticks, host_ticks,
+                           tick_count * sizeof(TickData),
+                           cudaMemcpyHostToDevice, context.stream);
+    if (error != cudaSuccess) {
+        CUDA_CERR("[CUDA] Error copying ticks to device: %s\n", cudaGetErrorString(error));
+        return error;
+    }
+    
+    // Calculate grid and block dimensions
+    size_t result_count = std::min(hourly_count, daily_count);
+    int block_size = CUDA_BLOCK_SIZE;
+    int grid_size = (result_count + block_size - 1) / block_size;
+    
+    // Launch multi-timeframe kernel
+    calculateMultiTimeframeWindows<<<grid_size, block_size, 0, context.stream>>>(
+        context.d_ticks,
+        tick_count,
+        context.d_hourly_results,
+        context.d_daily_results,
+        result_count,
+        current_time,
+        HOURLY_STEP_NS,
+        DAILY_STEP_NS,
+        hourly_window_ns,
+        daily_window_ns
+    );
+    
+    error = cudaGetLastError();
+    if (error != cudaSuccess) {
+        CUDA_CERR("[CUDA] Kernel launch error: %s\n", cudaGetErrorString(error));
+        return error;
+    }
+    
+    // Copy results back to host
+    error = cudaMemcpyAsync(hourly_results, context.d_hourly_results,
+                           result_count * sizeof(WindowResult),
+                           cudaMemcpyDeviceToHost, context.stream);
+    if (error != cudaSuccess) {
+        CUDA_CERR("[CUDA] Error copying hourly results: %s\n", cudaGetErrorString(error));
+        return error;
+    }
+    
+    error = cudaMemcpyAsync(daily_results, context.d_daily_results,
+                           result_count * sizeof(WindowResult),
+                           cudaMemcpyDeviceToHost, context.stream);
+    if (error != cudaSuccess) {
+        CUDA_CERR("[CUDA] Error copying daily results: %s\n", cudaGetErrorString(error));
+        return error;
+    }
+    
+    // Synchronize stream
+    error = cudaStreamSynchronize(context.stream);
+    if (error != cudaSuccess) {
+        CUDA_CERR("[CUDA] Stream sync error: %s\n", cudaGetErrorString(error));
+        return error;
+    }
+    
+    return cudaSuccess;
+}
+
+cudaError_t calculateForwardWindowsCuda(
+    CudaContext& context,
+    const TickData* ticks, size_t tick_count,
+    ForwardWindowResult* results, size_t result_count,
+    uint64_t window_size_ns) {
+    
+    if (!context.initialized) {
+        return cudaErrorNotReady;
+    }
+    
+    if (tick_count == 0 || result_count == 0) {
+        return cudaSuccess;
+    }
+    
+    // Copy input data to device
+    cudaError_t error = cudaMemcpyAsync(context.d_ticks, ticks,
+                                       tick_count * sizeof(TickData),
+                                       cudaMemcpyHostToDevice, context.stream);
+    if (error != cudaSuccess) {
+        CUDA_CERR("[CUDA] Error copying ticks to device: %s\n", cudaGetErrorString(error));
+        return error;
+    }
+    
+    // Calculate grid dimensions
+    int block_size = CUDA_BLOCK_SIZE;
+    int grid_size = (result_count + block_size - 1) / block_size;
+    
+    // Launch kernel
+    calculateForwardWindowsKernel<<<grid_size, block_size, 0, context.stream>>>(
+        context.d_ticks,
+        tick_count,
+        results,
+        result_count,
+        window_size_ns
+    );
+    
+    error = cudaGetLastError();
+    if (error != cudaSuccess) {
+        CUDA_CERR("[CUDA] Kernel launch error: %s\n", cudaGetErrorString(error));
+        return error;
+    }
+    
+    // Synchronize stream
+    error = cudaStreamSynchronize(context.stream);
+    if (error != cudaSuccess) {
+        CUDA_CERR("[CUDA] Stream sync error: %s\n", cudaGetErrorString(error));
+        return error;
+    }
+    
+    return cudaSuccess;
+}
 
 // CUDA kernel for calculating rolling window statistics
 __global__ void calculateRollingWindowsKernel(
@@ -255,7 +487,7 @@ __device__ void calculateWindowStats(
         result.price_change = last_price - first_price;
         result.pip_change = result.price_change * 10000.0;
         
-        // Second pass: calculate variance
+        // Second pass: calculate volatility
         double variance_sum = 0.0;
         for (size_t i = 0; i < tick_count; ++i) {
             const TickData& tick = ticks[i];
@@ -265,283 +497,14 @@ __device__ void calculateWindowStats(
                 variance_sum += diff * diff;
             }
         }
-
-        result.volatility = sqrtf(static_cast<float>(variance_sum / valid_ticks));
+        
+        result.volatility = sqrt(variance_sum / valid_ticks);
     } else {
         result.mean_price = 0.0;
-        result.volatility = 0.0;
         result.price_change = 0.0;
         result.pip_change = 0.0;
+        result.volatility = 0.0;
     }
-}
-
-// Host function implementations
-cudaError_t initializeCudaDevice(CudaContext& context, int device_id) {
-    cudaError_t error = cudaSuccess;
-
-    error = cudaSetDevice(device_id);
-    if (error != cudaSuccess) {
-        CUDA_CERR("[CUDA] Error setting device: %s\n", cudaGetErrorString(error));
-        return error;
-    }
-    
-    // Get device properties
-    error = cudaGetDeviceProperties(&context.device_props, device_id);
-    if (error != cudaSuccess) {
-        CUDA_CERR("[CUDA] Error getting device properties: %s\n", cudaGetErrorString(error));
-        return error;
-    }
-    
-    CUDA_COUT("[CUDA] Device: %s\n", context.device_props.name);
-    CUDA_COUT("[CUDA] Compute Capability: %d.%d\n", context.device_props.major, context.device_props.minor);
-    CUDA_COUT("[CUDA] Global Memory: %lu MB\n", context.device_props.totalGlobalMem / (1024*1024));
-    CUDA_COUT("[CUDA] Max Threads per Block: %d\n", context.device_props.maxThreadsPerBlock);
-    
-    // Allocate device memory
-    size_t max_ticks = MAX_TICK_HISTORY;
-    size_t max_windows = MAX_CALCULATION_WINDOWS;
-    
-    error = cudaMalloc(&context.d_ticks, max_ticks * sizeof(TickData));
-    if (error != cudaSuccess) {
-        CUDA_CERR("[CUDA] Error allocating tick data: %s\n", cudaGetErrorString(error));
-        return error;
-    }
-    
-    error = cudaMalloc(&context.d_hourly_results, max_windows * sizeof(WindowResult));
-    if (error != cudaSuccess) {
-        CUDA_CERR("[CUDA] Error allocating hourly results: %s\n", cudaGetErrorString(error));
-        return error;
-    }
-    
-    error = cudaMalloc(&context.d_daily_results, max_windows * sizeof(WindowResult));
-    if (error != cudaSuccess) {
-        CUDA_CERR("[CUDA] Error allocating daily results: %s\n", cudaGetErrorString(error));
-        return error;
-    }
-    
-    error = cudaMalloc(&context.d_window_specs, max_windows * sizeof(WindowSpec));
-    if (error != cudaSuccess) {
-        CUDA_CERR("[CUDA] Error allocating window specs: %s\n", cudaGetErrorString(error));
-        return error;
-    }
-    
-    // Create CUDA streams for async operations
-    error = cudaStreamCreate(&context.stream);
-    if (error != cudaSuccess) {
-        CUDA_CERR("[CUDA] Error creating stream: %s\n", cudaGetErrorString(error));
-        return error;
-    }
-    
-    context.initialized = true;
-    CUDA_COUT("[CUDA] Initialization complete!\n");
-    
-    return cudaSuccess;
-}
-
-cudaError_t cleanupCudaDevice(CudaContext& context) {
-    cudaError_t error = cudaSuccess;
-    
-    if (context.d_ticks) {
-        cudaFree(context.d_ticks);
-        context.d_ticks = nullptr;
-    }
-    
-    if (context.d_hourly_results) {
-        cudaFree(context.d_hourly_results);
-        context.d_hourly_results = nullptr;
-    }
-    
-    if (context.d_daily_results) {
-        cudaFree(context.d_daily_results);
-        context.d_daily_results = nullptr;
-    }
-    
-    if (context.d_window_specs) {
-        cudaFree(context.d_window_specs);
-        context.d_window_specs = nullptr;
-    }
-    
-    if (context.stream) {
-        cudaStreamDestroy(context.stream);
-        context.stream = nullptr;
-    }
-    
-    context.initialized = false;
-    return error;
-}
-
-cudaError_t calculateWindowsCuda(
-    CudaContext& context,
-    const std::vector<TickData>& host_ticks,
-    std::vector<WindowResult>& hourly_results,
-    std::vector<WindowResult>& daily_results,
-    uint64_t current_time,
-    uint64_t hourly_window_ns,
-    uint64_t daily_window_ns) {
-    
-    if (!context.initialized) {
-        return cudaErrorNotReady;
-    }
-    
-    cudaError_t error = cudaSuccess;
-    
-    // Copy tick data to device
-    size_t tick_count = host_ticks.size();
-    if (tick_count > MAX_TICK_HISTORY) {
-        tick_count = MAX_TICK_HISTORY;
-    }
-    
-    error = cudaMemcpyAsync(context.d_ticks, host_ticks.data(),
-                           tick_count * sizeof(TickData),
-                           cudaMemcpyHostToDevice, context.stream);
-    if (error != cudaSuccess) {
-        CUDA_CERR("[CUDA] Error copying ticks to device: %s\n", cudaGetErrorString(error));
-        return error;
-    }
-    
-    // Calculate grid and block dimensions
-    size_t result_count = std::min(hourly_results.size(), daily_results.size());
-    int block_size = CUDA_BLOCK_SIZE;
-    int grid_size = (result_count + block_size - 1) / block_size;
-    
-    // Launch multi-timeframe kernel
-    calculateMultiTimeframeWindows<<<grid_size, block_size, 0, context.stream>>>(
-        context.d_ticks,
-        tick_count,
-        context.d_hourly_results,
-        context.d_daily_results,
-        result_count,
-        current_time,
-        HOURLY_STEP_NS,
-        DAILY_STEP_NS,
-        hourly_window_ns,
-        daily_window_ns
-    );
-    
-    error = cudaGetLastError();
-    if (error != cudaSuccess) {
-        CUDA_CERR("[CUDA] Kernel launch error: %s\n", cudaGetErrorString(error));
-        return error;
-    }
-    
-    // Copy results back to host
-    error = cudaMemcpyAsync(hourly_results.data(), context.d_hourly_results,
-                           result_count * sizeof(WindowResult),
-                           cudaMemcpyDeviceToHost, context.stream);
-    if (error != cudaSuccess) {
-        CUDA_CERR("[CUDA] Error copying hourly results: %s\n", cudaGetErrorString(error));
-        return error;
-    }
-    
-    error = cudaMemcpyAsync(daily_results.data(), context.d_daily_results,
-                           result_count * sizeof(WindowResult),
-                           cudaMemcpyDeviceToHost, context.stream);
-    if (error != cudaSuccess) {
-        CUDA_CERR("[CUDA] Error copying daily results: %s\n", cudaGetErrorString(error));
-        return error;
-    }
-    
-    // Synchronize stream
-    error = cudaStreamSynchronize(context.stream);
-    if (error != cudaSuccess) {
-        CUDA_CERR("[CUDA] Stream sync error: %s\n", cudaGetErrorString(error));
-        return error;
-    }
-    
-    return cudaSuccess;
-}
-
-cudaError_t calculateForwardWindowsCuda(
-    CudaContext& context,
-    const std::vector<TickData>& ticks,
-    std::vector<ForwardWindowResult>& results,
-    [[maybe_unused]] uint64_t window_size_ns) {
-    
-    if (!context.initialized) {
-        return cudaErrorNotReady;
-    }
-    
-    // Clear and resize results based on tick data windows
-    results.clear();
-    size_t num_windows = std::max(static_cast<size_t>(1), ticks.size() / 100); // Create windows from tick data
-    results.resize(num_windows);
-    
-    // Get raw data pointer for efficient access
-    const TickData* tick_data = ticks.data();
-    size_t tick_count = ticks.size();
-    ForwardWindowResult* result_data = results.data();
-    
-    // Calculate forward window metrics based on bitspace math
-    for (size_t i = 0; i < num_windows && i < tick_count; ++i) {
-        ForwardWindowResult& result = result_data[i];
-        
-        // Calculate coherence - measure of pattern consistency
-        double price_variance = 0.0;
-        double mean_price = 0.0;
-        size_t window_end = std::min(i + 100, tick_count);
-        size_t window_size = window_end - i;
-        
-        if (window_size > 1) {
-            // Calculate mean price in window
-            for (size_t j = i; j < window_end; ++j) {
-                mean_price += tick_data[j].price;
-            }
-            mean_price /= window_size;
-            
-            // Calculate variance for coherence
-            for (size_t j = i; j < window_end; ++j) {
-                double diff = tick_data[j].price - mean_price;
-                price_variance += diff * diff;
-            }
-            price_variance /= window_size;
-            
-            // Coherence: inverse of normalized variance (higher coherence = lower variance)
-            result.coherence = 1.0f / (1.0f + static_cast<float>(price_variance * 10000.0));
-            
-            // Stability: based on price change consistency
-            double total_change = 0.0;
-            int direction_changes = 0;
-            for (size_t j = i + 1; j < window_end; ++j) {
-                double change = tick_data[j].price - tick_data[j-1].price;
-                total_change += fabs(change);
-                if (j > i + 1) {
-                    double prev_change = tick_data[j-1].price - tick_data[j-2].price;
-                    if ((change > 0 && prev_change < 0) || (change < 0 && prev_change > 0)) {
-                        direction_changes++;
-                    }
-                }
-            }
-            result.stability = 1.0f - (static_cast<float>(direction_changes) / static_cast<float>(window_size - 1));
-            
-            // Entropy: measure of randomness in price movements
-            result.entropy = static_cast<float>(total_change / (window_size * mean_price));
-            
-            // Confidence: based on trajectory similarity (simplified)
-            result.confidence = result.coherence * result.stability * (1.0f - result.entropy);
-            
-            // Count ruptures and flips based on price movements
-            result.rupture_count = 0;
-            result.flip_count = direction_changes;
-            
-            // Check for significant price ruptures (>2% moves)
-            for (size_t j = i + 1; j < window_end; ++j) {
-                double price_change = fabs((tick_data[j].price - tick_data[j-1].price) / tick_data[j-1].price);
-                if (price_change > 0.02) { // 2% threshold
-                    result.rupture_count++;
-                }
-            }
-        } else {
-            // Default values for insufficient data
-            result.coherence = 0.5f;
-            result.stability = 0.5f;
-            result.entropy = 0.1f;
-            result.confidence = 0.25f;
-            result.rupture_count = 0;
-            result.flip_count = 0;
-        }
-    }
-    
-    return cudaSuccess;
 }
 
 } // namespace sep::apps::cuda

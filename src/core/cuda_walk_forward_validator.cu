@@ -1,6 +1,13 @@
+// Minimal CUDA includes to avoid conflicts
 #include <cuda_runtime.h>
-#include <device_launch_parameters.h>
+
+// Include our header after CUDA headers
 #include "core/cuda_walk_forward_validator.hpp"
+
+// Forward declarations of used functions
+extern "C" {
+    int printf(const char*, ...);
+}
 
 namespace sep::validation::cuda
 {

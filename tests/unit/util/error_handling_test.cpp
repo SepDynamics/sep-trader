@@ -84,7 +84,7 @@ TEST_F(ErrorHandlingTest, ErrorCallback) {
     // Check that callback was called
     EXPECT_TRUE(callback_called);
     EXPECT_STREQ(last_context.message, "Test callback");
-    EXPECT_EQ(last_context.level, SEP_ERROR_WARNING);
+    EXPECT_EQ(last_context.level, SEP_ERROR_LEVEL::SEP_ERROR_WARNING);
     EXPECT_EQ(last_context.category, SEP_ERROR_CATEGORY_SYSTEM);
     EXPECT_EQ(last_context.error_code, EACCES);
     

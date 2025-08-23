@@ -111,12 +111,19 @@ if(SEP_USE_CUDA)
     set(CMAKE_CUDA_EXTENSIONS OFF)
     
     # Additional flags to suppress math function exception specification errors
+    # CUDA compiler flags for C++ compatibility
     set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -Xcompiler -D__cpp_exceptions=0")
     set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -Xcompiler -D_GLIBCXX_USE_C99_MATH=0")
     set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -Xcompiler -D_DISABLE_FPCLASSIFY_FUNCTIONS=1")
     set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -Xcompiler -D__CUDA_INCLUDE_COMPILER_INTERNAL_HEADERS=1")
     set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -Xcompiler -Wno-deprecated-declarations")
     set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -Xcompiler -Wno-deprecated-copy")
+    
+    # Additional flags for template support
+    set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} --expt-relaxed-constexpr")
+    set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -Xcompiler -fno-strict-aliasing")
+    set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -Xcompiler -D_GLIBCXX_USE_CXX11_ABI=0")
+    set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -Xcompiler -D__STRICT_ANSI__")
     
     # Enable CUDA language and find toolkit
     enable_language(CUDA)

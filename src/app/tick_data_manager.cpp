@@ -462,9 +462,12 @@ void TickDataManager::calculateWindowsCudaAccelerated() {
     // Launch CUDA calculation
     cudaError_t error = cuda::calculateWindowsCuda(
         *cuda_context_,
-        cuda_ticks,
-        hourly_cuda_results,
-        daily_cuda_results,
+        cuda_ticks.data(),
+        cuda_ticks.size(),
+        hourly_cuda_results.data(),
+        hourly_cuda_results.size(),
+        daily_cuda_results.data(),
+        daily_cuda_results.size(),
         current_time,
         hourly_window_ns,
         daily_window_ns

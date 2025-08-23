@@ -7,7 +7,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 # Install all dependencies in a single layer to optimize image size
 RUN apt-get update && apt-get install -y \
     lcov sudo gcovr build-essential gcc-11 g++-11 \
-    ninja-build pkg-config curl git python3 python3-pip postgresql-client \
+    cmake ninja-build pkg-config curl git python3 python3-pip postgresql-client \
     libpq-dev libpqxx-dev libhiredis-dev libhwloc-dev libbenchmark-dev \
     nlohmann-json3-dev libglm-dev libglfw3-dev libgl1-mesa-dev libfmt-dev libcurl4-openssl-dev libyaml-cpp-dev \
     && rm -rf /var/lib/apt/lists/* \

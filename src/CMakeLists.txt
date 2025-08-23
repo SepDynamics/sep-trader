@@ -25,8 +25,9 @@ file(GLOB_RECURSE ALL_SOURCES
     "util/*.cu"
 )
 
-# Exclude facade_original.cpp from the list of sources
+# Exclude facade_original.cpp and OANDA-related files from the list of sources
 list(FILTER ALL_SOURCES EXCLUDE REGEX ".*/facade_original\\.cpp$")
+list(FILTER ALL_SOURCES EXCLUDE REGEX ".*/oanda_.*\\.(cpp|cu)$")
 
 # Separate main files from library source files
 set(LIB_SOURCES)
@@ -68,9 +69,6 @@ install(TARGETS sep_lib
 # Create executables for each main file using add_sep_executable
 add_sep_executable(trader_cli SOURCES app/cli_main.cpp)
 target_link_libraries(trader_cli PRIVATE sep_lib)
-
-add_sep_executable(oanda_trader SOURCES app/oanda_trader_main.cpp)
-target_link_libraries(oanda_trader PRIVATE sep_lib)
 
 add_sep_executable(data_downloader SOURCES app/data_downloader.cpp)
 target_link_libraries(data_downloader PRIVATE sep_lib)
