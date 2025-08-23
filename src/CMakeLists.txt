@@ -16,11 +16,11 @@ endif()
 
 # Gather all source files
 file(GLOB_RECURSE ALL_SOURCES
-    "app/*.cpp"
-    "core/*.cpp"
-    "cuda/*.cpp"
-    "io/*.cpp"
-    "util/*.cpp"
+    "app/*.cpp"  "app/*.c"
+    "core/*.cpp" "core/*.c"
+    "cuda/*.cpp" "cuda/*.c"
+    "io/*.cpp"   "io/*.c"
+    "util/*.cpp" "util/*.c"
 )
 if(USE_CUDA)
     file(GLOB_RECURSE CUDA_SOURCES
