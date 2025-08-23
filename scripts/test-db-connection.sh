@@ -77,9 +77,16 @@ validate_config() {
     fi
     
     # Source configuration
+    set +e
     set -a
     source "$CONFIG_FILE"
+    local source_exit_code=$?
     set +a
+    set -e
+    if [ $source_exit_code -ne 0 ]; then
+        log_error "Configuration file contains syntax errors. Please check the file."
+        return 1
+    fi
     
     # Validate required variables
     local required_vars=(
@@ -216,13 +223,20 @@ test_basic_connection() {
         ssl_args="--set=sslmode=${DB_SSL_MODE:-require}"
     fi
     
-    if ! PGPASSWORD="$DB_PASSWORD" psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" $ssl_args -c "SELECT 1;" &>/dev/null; then
+    local psql_output
+    if ! psql_output=$(PGPASSWORD="$DB_PASSWORD" psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" $ssl_args -c "SELECT 1;" 2>&1); then
         log_error "Basic database connection failed"
         echo "Common issues:"
         echo "- Incorrect credentials"
         echo "- Database cluster not running"
         echo "- IP address not in trusted sources"
         echo "- SSL configuration issues"
+        if [ -n "$psql_output" ]; then
+            echo
+            echo -e "${RED}psql error output:${NC}"
+            # Indent the output for readability
+            echo "$psql_output" | sed 's/^/  /'
+        fi
         return 1
     fi
     
