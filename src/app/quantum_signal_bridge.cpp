@@ -359,7 +359,6 @@ QuantumTradingSignal QuantumSignalBridge::analyzeMarketData(
 
     return signal;
 }
-}
 
 std::vector<uint8_t> sep::trading::QuantumSignalBridge::convertPriceToBits(
     const std::vector<sep::connectors::MarketData>& history) {
@@ -1011,3 +1010,15 @@ void sep::trading::QuantumSignalBridge::loadOptimalConfig() {
     }
 }
 
+}
+
+QuantumIdentifiers sep::trading::QuantumSignalBridge::processAsset(const std::string& asset) {
+    // TODO: Implement real asset processing
+    // For now, return dummy data as per the de-stubbing plan
+    return QuantumIdentifiers{
+        .confidence = 0.5f,
+        .coherence = 0.5f,
+        .stability = 0.5f,
+        .converged = false
+    };
+}
