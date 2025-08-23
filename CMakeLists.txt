@@ -55,7 +55,7 @@ add_compile_definitions(
   GLM_FORCE_CUDA_VERSION=1100
 )
 
-add_compile_options(-Wall -Wextra -Wpedantic -O3)
+add_compile_options(-Wall -Wextra -Wpedantic -O3 -Wno-error=stringop-overflow)
 
 # If you actually use TBB in algorithms, this is the only PSTL hint you need
 if(SEP_USE_TBB)
