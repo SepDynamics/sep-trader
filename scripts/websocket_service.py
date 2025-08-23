@@ -8,11 +8,10 @@ import asyncio
 import json
 import logging
 import os
-import random
 import sys
 import time
 from datetime import datetime, timedelta
-from typing import Dict, List, Set, Optional, Any
+from typing import Dict, Set, Optional, Any
 from dataclasses import dataclass, asdict
 import websockets
 from websockets.legacy.server import WebSocketServerProtocol
@@ -189,13 +188,20 @@ class WebSocketManager:
             await self.unregister_client(websocket)
 
 class BackendAPIConnector:
-    """Connects to the existing trading service backend API for real-time data"""
-    
-    def __init__(self, websocket_manager: WebSocketManager, backend_url: str = 'http://localhost:8000'):
+    """Connects to the trading service API and engine output files"""
+
+    def __init__(
+        self,
+        websocket_manager: WebSocketManager,
+        backend_url: str = 'http://localhost:8000',
+        engine_output_dir: Path = project_root / 'output',
+    ):
         self.ws_manager = websocket_manager
         self.backend_url = backend_url.rstrip('/')
+        self.engine_output_dir = Path(engine_output_dir)
         self.running = False
         self.session = None
+        self._processed_signals: Set[str] = set()
         
     async def start(self):
         """Start monitoring backend API"""
@@ -224,6 +230,17 @@ class BackendAPIConnector:
         """Stop monitoring"""
         self.running = False
         logger.info("Stopping Backend API Connector...")
+
+    def _read_engine_file(self, filename: str) -> Optional[Dict[str, Any]]:
+        """Read a JSON file produced by the C++ engine"""
+        try:
+            path = self.engine_output_dir / filename
+            if path.exists():
+                with path.open('r', encoding='utf-8') as f:
+                    return json.load(f)
+        except Exception as e:
+            logger.error(f"Error reading {filename}: {e}")
+        return None
     
     async def _fetch_api_data(self, endpoint: str) -> Optional[Dict[str, Any]]:
         """Fetch data from backend API endpoint"""
@@ -240,51 +257,32 @@ class BackendAPIConnector:
             return None
     
     async def monitor_market_data(self):
-        """Monitor market data from backend API"""
-        forex_pairs = ['EUR/USD', 'GBP/USD', 'USD/JPY', 'AUD/USD', 'USD/CHF', 'NZD/USD']
+        """Monitor market data from backend API or engine files"""
         
         while self.running:
             try:
                 # Fetch live metrics from backend
                 data = await self._fetch_api_data('metrics/live')
+                if not data:
+                    data = await asyncio.to_thread(
+                        self._read_engine_file, 'market_data.json'
+                    )
+
                 if data and 'market_data' in data:
                     for market_info in data['market_data']:
                         market_update = MarketUpdate(
                             symbol=market_info.get('symbol', 'EUR/USD'),
-                            price=float(market_info.get('price', 1.0850)),
-                            volume=float(market_info.get('volume', random.randint(10000, 100000))),
+                            price=float(market_info.get('price', 0.0)),
+                            volume=float(market_info.get('volume', 0.0)),
                             change_24h=float(market_info.get('change_24h', 0.0)),
-                            timestamp=datetime.utcnow().isoformat()
+                            timestamp=datetime.utcnow().isoformat(),
                         )
-                        
-                        await self.ws_manager.broadcast_to_channel('market', {
-                            'type': 'market_update',
-                            'data': asdict(market_update)
-                        })
-                else:
-                    # Fallback: generate forex-style mock data
-                    base_prices = {
-                        'EUR/USD': 1.0850, 'GBP/USD': 1.2650, 'USD/JPY': 149.20,
-                        'AUD/USD': 0.6450, 'USD/CHF': 0.8820, 'NZD/USD': 0.5950
-                    }
-                    
-                    for symbol in forex_pairs:
-                        base_price = base_prices.get(symbol, 1.0000)
-                        current_price = base_price * (1 + random.uniform(-0.001, 0.001))
-                        
-                        market_update = MarketUpdate(
-                            symbol=symbol,
-                            price=current_price,
-                            volume=random.randint(10000, 100000),
-                            change_24h=random.uniform(-2.0, 2.0),
-                            timestamp=datetime.utcnow().isoformat()
+
+                        await self.ws_manager.broadcast_to_channel(
+                            'market',
+                            {'type': 'market_update', 'data': asdict(market_update)},
                         )
-                        
-                        await self.ws_manager.broadcast_to_channel('market', {
-                            'type': 'market_update',
-                            'data': asdict(market_update)
-                        })
-                
+
                 await asyncio.sleep(2)  # Update every 2 seconds
             except Exception as e:
                 logger.error(f"Error monitoring market data: {e}")
@@ -294,86 +292,99 @@ class BackendAPIConnector:
         """Monitor system status from backend API"""
         while self.running:
             try:
-                # Fetch status from backend
+                # Fetch status from backend or engine file
                 data = await self._fetch_api_data('status')
+                if not data:
+                    data = await asyncio.to_thread(
+                        self._read_engine_file, 'system_status.json'
+                    )
+
                 if data:
                     status_update = SystemStatus(
-                        status=data.get('status', 'running'),
+                        status=data.get('status', 'unknown'),
                         active_pairs=len(data.get('pairs', [])),
-                        total_trades=int(data.get('total_trades', random.randint(100, 500))),
-                        uptime=data.get('uptime', '2h 45m'),
-                        memory_usage=float(data.get('memory_usage', random.uniform(65, 85))),
-                        timestamp=datetime.utcnow().isoformat()
+                        total_trades=int(data.get('total_trades', 0)),
+                        uptime=data.get('uptime', '0s'),
+                        memory_usage=float(data.get('memory_usage', 0.0)),
+                        timestamp=datetime.utcnow().isoformat(),
                     )
-                    
-                    await self.ws_manager.broadcast_to_channel('status', {
-                        'type': 'system_status',
-                        'data': asdict(status_update)
-                    })
-                
+
+                    await self.ws_manager.broadcast_to_channel(
+                        'status',
+                        {'type': 'system_status', 'data': asdict(status_update)},
+                    )
+
                 await asyncio.sleep(10)  # Update every 10 seconds
             except Exception as e:
                 logger.error(f"Error monitoring system status: {e}")
                 await asyncio.sleep(10)
     
     async def monitor_trading_signals(self):
-        """Monitor trading signals from backend API"""
-        forex_pairs = ['EUR/USD', 'GBP/USD', 'USD/JPY', 'AUD/USD']
-        
+        """Monitor trading signals from engine output files"""
+
         while self.running:
             try:
-                # Generate mock trading signals (backend API doesn't have signals endpoint yet)
-                if random.random() < 0.3:  # 30% chance of signal
+                data = await asyncio.to_thread(
+                    self._read_engine_file, 'trading_signals.json'
+                )
+                if isinstance(data, list):
+                    signals = data
+                elif isinstance(data, dict):
+                    signals = data.get('signals', [])
+                else:
+                    signals = []
+
+                for s in signals:
+                    signal_id = s.get('id') or f"{s.get('symbol')}:{s.get('timestamp')}"
+                    if signal_id in self._processed_signals:
+                        continue
+                    self._processed_signals.add(signal_id)
                     signal = TradingSignal(
-                        symbol=random.choice(forex_pairs),
-                        signal_type=random.choice(['buy', 'sell', 'hold']),
-                        confidence=random.uniform(0.6, 0.95),
-                        price=random.uniform(1.0, 150.0),
-                        reason='Pattern analysis detected trend',
-                        timestamp=datetime.utcnow().isoformat()
+                        symbol=s.get('symbol', ''),
+                        signal_type=s.get('signal_type', 'hold'),
+                        confidence=float(s.get('confidence', 0.0)),
+                        price=float(s.get('price', 0.0)),
+                        timestamp=s.get(
+                            'timestamp', datetime.utcnow().isoformat()
+                        ),
+                        reason=s.get('reason', ''),
                     )
-                    
-                    await self.ws_manager.broadcast_to_channel('signals', {
-                        'type': 'trading_signal',
-                        'data': asdict(signal)
-                    })
-                
-                await asyncio.sleep(15)  # Update every 15 seconds
+                    await self.ws_manager.broadcast_to_channel(
+                        'signals',
+                        {'type': 'trading_signal', 'data': asdict(signal)},
+                    )
+
+                await asyncio.sleep(5)
             except Exception as e:
                 logger.error(f"Error monitoring trading signals: {e}")
                 await asyncio.sleep(5)
     
     async def monitor_performance_updates(self):
-        """Monitor performance metrics from backend API"""
+        """Monitor performance metrics from backend API or engine files"""
         while self.running:
             try:
-                # Fetch performance data from backend
+                # Fetch performance data from backend or engine file
                 data = await self._fetch_api_data('performance/current')
+                if not data:
+                    data = await asyncio.to_thread(
+                        self._read_engine_file, 'performance.json'
+                    )
+
                 if data:
                     perf_update = PerformanceUpdate(
-                        total_pnl=float(data.get('total_pnl', random.uniform(-500, 1500))),
-                        win_rate=float(data.get('win_rate', random.uniform(0.45, 0.75))),
-                        sharpe_ratio=float(data.get('sharpe_ratio', random.uniform(0.8, 2.2))),
-                        max_drawdown=float(data.get('max_drawdown', random.uniform(-5, -15))),
-                        active_positions=int(data.get('active_positions', random.randint(0, 8))),
-                        timestamp=datetime.utcnow().isoformat()
+                        total_pnl=float(data.get('total_pnl', 0.0)),
+                        win_rate=float(data.get('win_rate', 0.0)),
+                        sharpe_ratio=float(data.get('sharpe_ratio', 0.0)),
+                        max_drawdown=float(data.get('max_drawdown', 0.0)),
+                        active_positions=int(data.get('active_positions', 0)),
+                        timestamp=datetime.utcnow().isoformat(),
                     )
-                else:
-                    # Fallback mock data
-                    perf_update = PerformanceUpdate(
-                        total_pnl=random.uniform(-500, 1500),
-                        win_rate=random.uniform(0.45, 0.75),
-                        sharpe_ratio=random.uniform(0.8, 2.2),
-                        max_drawdown=random.uniform(-15, -5),
-                        active_positions=random.randint(0, 8),
-                        timestamp=datetime.utcnow().isoformat()
+
+                    await self.ws_manager.broadcast_to_channel(
+                        'performance',
+                        {'type': 'performance_update', 'data': asdict(perf_update)},
                     )
-                
-                await self.ws_manager.broadcast_to_channel('performance', {
-                    'type': 'performance_update',
-                    'data': asdict(perf_update)
-                })
-                
+
                 await asyncio.sleep(30)  # Update every 30 seconds
             except Exception as e:
                 logger.error(f"Error monitoring performance: {e}")
