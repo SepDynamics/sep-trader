@@ -301,11 +301,11 @@ ssh sep-trader "docker-compose logs -f"
 
 ## 📋 Priority Order
 
-1. **HIGH**: Update `trading_service.py` with missing endpoints
-2. **HIGH**: Replace DataSimulator with real data in `websocket_service.py`
-3. **MEDIUM**: Implement CLI bridge for command execution
-4. **MEDIUM**: Connect to C++ engine output files
-5. **LOW**: Add SSL and production optimizations
+- [x] **HIGH**: Update `trading_service.py` with missing endpoints
+- [x] **HIGH**: Replace DataSimulator with real data in `websocket_service.py`
+- [x] **MEDIUM**: Implement CLI bridge for command execution
+- [ ] **MEDIUM**: Connect to C++ engine output files
+- [ ] **LOW**: Add SSL and production optimizations
 
 ## 🚨 Important Notes
 
