@@ -41,7 +41,6 @@ cpp:
       -DCMAKE_BUILD_TYPE=Release \
       -DCMAKE_CXX_COMPILER=g++-11 \
       -DSEP_USE_CUDA=OFF \
-      -DSEP_USE_GUI=OFF \
       -DSEP_USE_TBB=ON \
       -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
     cmake --build build --parallel 2

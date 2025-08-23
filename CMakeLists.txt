@@ -35,6 +35,14 @@ project(sep_engine VERSION 1.0.0 LANGUAGES CXX)
 
 include(GNUInstallDirs)
 
+# Provide project root path to C++ sources
+add_compile_definitions(PROJECT_ROOT="${CMAKE_SOURCE_DIR}")
+
+# Common directories used across the project
+set(CACHE_DIR "${CMAKE_SOURCE_DIR}/cache/")
+set(CONFIG_DIR "${CMAKE_SOURCE_DIR}/config/")
+set(LOG_DIR "${CMAKE_SOURCE_DIR}/logs/")
+
 # C++ standard
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)

@@ -293,9 +293,9 @@ void QuantumTrackerApp::loadHistoricalData() {
         real_market_data.volume = 1000; // Placeholder - needs real volume data
         real_market_data.atr = 0.0001;  // Should be calculated from real volatility data
         
-#ifdef SEP_USE_GUI
-        quantum_bridge_->processNewMarketData(real_market_data, std::to_string(timestamps[i]));
-#endif
+        std::vector<sep::connectors::MarketData> history;
+        std::vector<sep::apps::cuda::ForwardWindowResult> forward_results;
+        quantum_bridge_->analyzeMarketData(real_market_data, history, forward_results);
         
         // Rate limit for visual feedback
         if (i % 100 == 0) {
@@ -447,26 +447,7 @@ void QuantumTrackerApp::shutdown() {
         oanda_connector_->stopPriceStream();
     }
     
-    // Shutdown quantum tracker
-#ifdef SEP_USE_GUI
-    if (quantum_tracker_) {
-        quantum_tracker_->shutdown();
-    }
-#endif
-    
     // Graphics cleanup moved to frontend - no longer needed here
-    
-    // Print final stats
-#ifdef SEP_USE_GUI
-    if (quantum_tracker_) {
-        const auto& stats = quantum_tracker_->getStats();
-        std::cout << "[QuantumTracker] Final Results:" << std::endl;
-        std::cout << "  Total Predictions: " << stats.total_predictions << std::endl;
-        std::cout << "  Correct: " << stats.correct_predictions << std::endl;
-        std::cout << "  Accuracy: " << stats.accuracy_percentage << "%" << std::endl;
-        std::cout << "  Average Confidence: " << stats.average_confidence << std::endl;
-    }
-#endif
 }
 
 void QuantumTrackerApp::runHeadlessService() {
@@ -498,17 +479,8 @@ void QuantumTrackerApp::runHeadlessService() {
         static auto last_status = std::chrono::steady_clock::now();
         auto now = std::chrono::steady_clock::now();
         if (now - last_status >= std::chrono::minutes(5)) {
-#ifdef SEP_USE_GUI
-            if (quantum_tracker_) {
-                const auto& stats = quantum_tracker_->getStats();
-                std::cout << "[QuantumTracker] Status - Predictions: " << stats.total_predictions 
-                         << ", Accuracy: " << stats.accuracy_percentage << "%, Connected: " 
-                         << (oanda_connected_ ? "YES" : "NO") << std::endl;
-            }
-#else
-            std::cout << "[QuantumTracker] Status - GUI disabled, Connected: " 
-                     << (oanda_connected_ ? "YES" : "NO") << std::endl;
-#endif
+            std::cout << "[QuantumTracker] Status - Connected: "
+                      << (oanda_connected_ ? "YES" : "NO") << std::endl;
             last_status = now;
         }
     }
@@ -590,19 +562,15 @@ void QuantumTrackerApp::runSimulation() {
     
     if (simulation_candles.empty()) {
         std::cout << "[SIMULATION] No live data available. Falling back to test data..." << std::endl;
-        
+
         // Use existing test data for demonstration
-#ifdef SEP_USE_GUI
-        if (!quantum_tracker_->getQuantumBridge()->initializeMultiTimeframe(
-            "/sep/Testing/OANDA/O-test-M5.json",
-            "/sep/Testing/OANDA/O-test-M15.json")) {
+        if (!quantum_bridge_->initializeMultiTimeframe(
+                "/sep/Testing/OANDA/O-test-M5.json",
+                "/sep/Testing/OANDA/O-test-M15.json")) {
             std::cerr << "[SIMULATION] Failed to initialize with test data" << std::endl;
             return;
         }
-#else
-        std::cout << "[SIMULATION] GUI disabled - skipping quantum tracker initialization" << std::endl;
-#endif
-        
+
         std::cout << "[SIMULATION] ✅ Fallback to test data successful!" << std::endl;
         std::cout << "[SIMULATION] System ready for backtesting as part of training model." << std::endl;
         return;
@@ -613,11 +581,7 @@ void QuantumTrackerApp::runSimulation() {
     // 5. Bootstrap with first 48 hours of data
     size_t bootstrap_size = std::min((size_t)2880, simulation_candles.size());
     std::vector<Candle> bootstrap_data(simulation_candles.begin(), simulation_candles.begin() + bootstrap_size);
-#ifdef SEP_USE_GUI
-    quantum_tracker_->getQuantumBridge()->bootstrap(bootstrap_data);
-#else
     quantum_bridge_->bootstrap(bootstrap_data);
-#endif
     
     std::cout << "[SIMULATION] Bootstrap complete with " << bootstrap_size << " candles" << std::endl;
     std::cout << "[SIMULATION] Processing " << (simulation_candles.size() - bootstrap_size) << " live candles..." << std::endl;
@@ -632,19 +596,13 @@ void QuantumTrackerApp::runSimulation() {
         md.bid = candle.close;  // Simplified - use close as bid
         md.ask = candle.close + 0.00001;  // Simplified spread
         md.instrument = "EUR_USD";
-        
-        // Process as if it were live data
-#ifdef SEP_USE_GUI
-        quantum_tracker_->processNewMarketData(md);
-#endif
-        
-        // Check for trading signals
-#ifdef SEP_USE_GUI
-        if (quantum_tracker_->hasLatestSignal()) {
-            const auto& signal = quantum_tracker_->getLatestSignal();
-            if (signal.should_execute) {
-                logSimulatedTrade(signal, candle);
-            }
+
+        // Analyze market data and check for signals
+        std::vector<sep::connectors::MarketData> history;
+        std::vector<sep::apps::cuda::ForwardWindowResult> forward_results;
+        auto signal = quantum_bridge_->analyzeMarketData(md, history, forward_results);
+        if (signal.should_execute) {
+            logSimulatedTrade(signal, candle);
         }
         
         // Progress indicator every 1000 candles
@@ -657,15 +615,7 @@ void QuantumTrackerApp::runSimulation() {
     
     std::cout << "[SIMULATION] ✅ Time Machine simulation complete!" << std::endl;
     
-    // 7. Print final results
-    if (quantum_tracker_) {
-        const auto& stats = quantum_tracker_->getStats();
-        std::cout << "[SIMULATION] Final Results:" << std::endl;
-        std::cout << "  Total Predictions: " << stats.total_predictions << std::endl;
-        std::cout << "  Correct: " << stats.correct_predictions << std::endl;
-        std::cout << "  Accuracy: " << stats.accuracy_percentage << "%" << std::endl;
-        std::cout << "  Average Confidence: " << stats.average_confidence << std::endl;
-    }
+    // 7. Simulation complete
 }
 
 void QuantumTrackerApp::logSimulatedTrade(const sep::trading::QuantumTradingSignal& signal, const Candle& candle) {
@@ -749,28 +699,22 @@ void QuantumTrackerApp::runTestDataSimulation() {
         md.ask = base_price + 0.00001; // 1 pip spread
         md.mid = (md.bid + md.ask) / 2.0;
         
-        // Feed this data to the quantum tracker to trigger signal generation
-#ifdef SEP_USE_GUI
-        quantum_tracker_->processNewMarketData(md);
-#endif
-        
-        // Check for signals after processing data
-        if (quantum_tracker_->hasLatestSignal()) {
-            const auto& signal = quantum_tracker_->getLatestSignal();
-            if (signal.should_execute) {
-                trade_count++;
-                
-                // Create a candle for logging
-                Candle candle;
-                candle.timestamp = md.timestamp;
-                candle.close = md.mid;
-                candle.time = "2025-08-01T" + std::to_string(10 + i/60) + ":" +
-                             std::to_string(i%60) + ":00.000000Z";
-                
-                logSimulatedTrade(signal, candle);
-            }
+        // Analyze data and log trades for generated signals
+        std::vector<sep::connectors::MarketData> history;
+        std::vector<sep::apps::cuda::ForwardWindowResult> forward_results;
+        auto signal = quantum_bridge_->analyzeMarketData(md, history, forward_results);
+        if (signal.should_execute) {
+            trade_count++;
+
+            // Create a candle for logging
+            Candle candle;
+            candle.timestamp = md.timestamp;
+            candle.close = md.mid;
+            candle.time = "2025-08-01T" + std::to_string(10 + i/60) + ":" +
+                         std::to_string(i%60) + ":00.000000Z";
+
+            logSimulatedTrade(signal, candle);
         }
-#endif
         
         // Small delay to simulate real-time processing
         std::this_thread::sleep_for(std::chrono::milliseconds(50));
@@ -787,20 +731,7 @@ void QuantumTrackerApp::runTestDataSimulation() {
     std::cout << "[SIMULATION] ✅ Test data simulation complete!" << std::endl;
     std::cout << "[SIMULATION] Total trades generated: " << trade_count << std::endl;
     
-    // Print final results
-#ifdef SEP_USE_GUI
-    if (quantum_tracker_) {
-        const auto& stats = quantum_tracker_->getStats();
-        std::cout << "[SIMULATION] Final Results:" << std::endl;
-        std::cout << "  Total Predictions: " << stats.total_predictions << std::endl;
-        std::cout << "  Correct: " << stats.correct_predictions << std::endl;
-        std::cout << "  Accuracy: " << stats.accuracy_percentage << "%" << std::endl;
-        std::cout << "  Average Confidence: " << stats.average_confidence << std::endl;
-    }
-#else
-    std::cout << "[SIMULATION] GUI disabled - quantum tracker stats not available" << std::endl;
-#endif
-    
+    // Print final results    
     // Check if simulation results were logged
     std::cout << "[SIMULATION] Check /sep/live_results/simulations/ for detailed trade logs" << std::endl;
 }
@@ -865,19 +796,7 @@ void QuantumTrackerApp::runHistoricalSimulation() {
     
     std::cout << "[HISTORICAL-SIM] 💡 This simulation used pre-computed signals from real market data!" << std::endl;
     
-    // Print quantum tracker stats
-#ifdef SEP_USE_GUI
-    if (quantum_tracker_) {
-        const auto& stats = quantum_tracker_->getStats();
-        std::cout << "[HISTORICAL-SIM] Quantum Tracker Stats:" << std::endl;
-        std::cout << "  Total Predictions: " << stats.total_predictions << std::endl;
-        std::cout << "  Accuracy: " << stats.accuracy_percentage << "%" << std::endl;
-        std::cout << "  Average Confidence: " << stats.average_confidence << std::endl;
-    }
-#else
-    std::cout << "[HISTORICAL-SIM] GUI disabled - quantum tracker stats not available" << std::endl;
-#endif
-    
+    // Print quantum tracker stats    
     std::cout << "[HISTORICAL-SIM] Check /sep/live_results/historical_sim/ for detailed logs" << std::endl;
 }
 
@@ -926,13 +845,7 @@ void QuantumTrackerApp::runFileSimulation() {
     std::cout << "[FILE-SIM] M1: " << m1_candles.size() << " candles" << std::endl;
     
     // Bootstrap the quantum tracker with M1 data
-    std::cout << "[FILE-SIM] Bootstrapping quantum tracker with M1 data..." << std::endl;
-#ifdef SEP_USE_GUI
-    quantum_tracker_->getQuantumBridge()->bootstrap(m1_candles);
-#else
-    quantum_bridge_->bootstrap(m1_candles);
-#endif
-    
+    std::cout << "[FILE-SIM] Bootstrapping quantum tracker with M1 data..." << std::endl;    
     std::cout << "[FILE-SIM] ✅ Bootstrap complete! Starting M1 stream simulation..." << std::endl;
     
     // Process M1 candles one by one as live stream (skip first 120 for bootstrap)
@@ -951,24 +864,8 @@ void QuantumTrackerApp::runFileSimulation() {
         md.mid = candle.close;
         md.instrument = "EUR_USD";
         
-        // Process through quantum tracker (same as live mode)
-#ifdef SEP_USE_GUI
-        quantum_tracker_->processNewMarketData(md);
-#endif
-        
-        // Check for signals
-#ifdef SEP_USE_GUI
-        if (quantum_tracker_->hasLatestSignal()) {
-            signal_count++;
-            const auto& signal = quantum_tracker_->getLatestSignal();
-            
-            if (signal.should_execute) {
-                execution_count++;
-                logFileSimulatedTrade(signal, candle);
-            }
-        }
-#endif
-        
+        // Process through quantum tracker (same as live mode)        
+        // Check for signals        
         // Progress reporting every 1000 candles
         if (i % 1000 == 0) {
             double progress = 100.0 * (i - start_index) / (m1_candles.size() - start_index);
@@ -987,19 +884,7 @@ void QuantumTrackerApp::runFileSimulation() {
     std::cout << "  Execution Rate: " << std::fixed << std::setprecision(1) 
               << (100.0 * execution_count / std::max(1, signal_count)) << "%" << std::endl;
     
-    // Print quantum tracker stats
-#ifdef SEP_USE_GUI
-    if (quantum_tracker_) {
-        const auto& stats = quantum_tracker_->getStats();
-        std::cout << "[FILE-SIM] Quantum Tracker Stats:" << std::endl;
-        std::cout << "  Total Predictions: " << stats.total_predictions << std::endl;
-        std::cout << "  Accuracy: " << stats.accuracy_percentage << "%" << std::endl;
-        std::cout << "  Average Confidence: " << stats.average_confidence << std::endl;
-    }
-#else
-    std::cout << "[FILE-SIM] GUI disabled - quantum tracker stats not available" << std::endl;
-#endif
-    
+    // Print quantum tracker stats    
     std::cout << "[FILE-SIM] ✅ Perfect for weekend optimization! Check /sep/live_results/file_sim/ for logs" << std::endl;
 }
 

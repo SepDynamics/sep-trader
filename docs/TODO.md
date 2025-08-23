@@ -10,6 +10,7 @@ Begin work on **Priority 2: Real Multi-Asset Correlation Implementation** descri
 - Some toolchains still defined legacy `fpclassify`-related macros which broke CUDA's `<cuda/std>` headers. Added defensive `#undef` guards in `src/core/cuda_walk_forward_validator.cu` to ensure portable compilation.
 - `src/util/error_handling.c` was excluded from builds and included the wrong header, producing undefined references to `sep_error_*`. Added `.c` sources to `src/CMakeLists.txt` and corrected the include path.
 - Native builds failed with `bits/c++config.h` errors because the build script forced unavailable `g++-11`/`gcc-11` compilers. Switched to the system defaults in `build.sh` and fixed the installer symlink to point at `sep-trader`, restoring access to standard library headers.
+- Added `PROJECT_ROOT` compile definition and centralized cache/config/log directory variables in `CMakeLists.txt` for consistent path resolution.
 
 ## Priority 1: Remove Fake Data Generation [COMPLETED]
 
