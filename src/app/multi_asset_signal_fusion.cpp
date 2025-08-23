@@ -426,9 +426,14 @@ std::string MultiAssetSignalFusion::serializeFusionResult(const FusedSignal& sig
         (signal.primary_direction == Direction::BUY) ? "BUY" :
         (signal.primary_direction == Direction::SELL) ? "SELL" : "HOLD";
     
-    return fmt::format("{ \"direction\": \"{}\", \"confidence\": {:.3f}, \"coherence\": {:.3f}, \"strength\": {:.3f}, \"assets\": {}, \"input_hash\": \"{}\", \"config_version\": \"{}\" }",
-                      direction_str, signal.fusion_confidence, signal.cross_asset_coherence,
-                      signal.signal_strength, signal.contributing_signals.size(), signal.input_hash, signal.config_version);
+    return fmt::format("{{ \"direction\": \"{}\", \"confidence\": {:.3f}, \"coherence\": {:.3f}, \"strength\": {:.3f}, \"assets\": {}, \"input_hash\": \"{}\", \"config_version\": \"{}\" }}",
+                      direction_str,
+                      signal.fusion_confidence,
+                      signal.cross_asset_coherence,
+                      signal.signal_strength,
+                      signal.contributing_signals.size(),
+                      signal.input_hash,
+                      signal.config_version);
 }
 
 } // namespace sep

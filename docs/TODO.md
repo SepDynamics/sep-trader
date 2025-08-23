@@ -3,6 +3,11 @@
 ## Next Task
 Begin work on **Priority 2: Real Multi-Asset Correlation Implementation** described below.
 
+## Recent Build Fixes
+- `serializeFusionResult` in `src/app/multi_asset_signal_fusion.cpp` had unescaped JSON braces, causing `fmt` to treat the format string as invalid. Escaped the outer braces to restore compilation.
+- `processAsset` implementation in `src/app/quantum_signal_bridge.cpp` used `QuantumIdentifiers` outside its namespace. Fully qualified the return type and initializer.
+- `src/core/cuda_walk_forward_validator.cu` failed to compile due to missing `_DISABLE_FPCLASSIFY_FUNCTIONS` macro. Added the macro to align with other CUDA modules.
+
 ## Priority 1: Remove Fake Data Generation [COMPLETED]
 
 ### Task 1.1: Eliminate Demo Candle Generation
