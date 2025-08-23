@@ -1,6 +1,26 @@
 // Minimal CUDA includes to avoid conflicts
 #define _DISABLE_FPCLASSIFY_FUNCTIONS 1
 #include <cuda_runtime.h>
+#include <cmath>
+
+// Some environments still expose legacy math macros that conflict with
+// `cuda/std`'s fpclassify helpers. Undefine them if present to allow NVCC to
+// compile cleanly across toolchain versions.
+#ifdef fpclassify
+#undef fpclassify
+#endif
+#ifdef isfinite
+#undef isfinite
+#endif
+#ifdef isnan
+#undef isnan
+#endif
+#ifdef isinf
+#undef isinf
+#endif
+#ifdef isnormal
+#undef isnormal
+#endif
 
 // Include our header after CUDA headers
 #include "core/cuda_walk_forward_validator.hpp"
