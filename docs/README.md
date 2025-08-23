@@ -249,8 +249,8 @@ The frontend relies on backend REST APIs and WebSocket endpoints for data and li
   - After submitting an order, `quantity` resets to `100`.
 
 ## ConfigurationPanel
-- **State**: `config`, `loading`, `saving`, and `message` drive configuration forms.
-- **Hardcoded Defaults**: risk level `'medium'`, max position size `10000`, stop loss `5%`, refresh interval `30s`, debug mode `false`, log level `'INFO'`, API timeout `30s`, rate limit `60`.
+- **State**: Provided through `ConfigContext` with `config`, `loading`, and `message` used for form control.
+- **Dynamic Configuration**: values load via `getConfig` and persist through `updateConfig`, replacing previous static defaults.
 
 ## HomeDashboard
 - **Context**: `useWebSocket` exposes connection state, system metrics, and live data.
