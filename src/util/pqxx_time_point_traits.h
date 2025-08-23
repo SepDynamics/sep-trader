@@ -60,4 +60,11 @@ namespace pqxx {
             return 32; // Enough for ISO timestamp
         }
     };
+
+    // Ensure pqxx::nullness uses constexpr flags for time_point
+    template<>
+    struct nullness<std::chrono::system_clock::time_point> {
+        static constexpr bool has_null = true;
+        static constexpr bool always_null = false;
+    };
 } // namespace pqxx
