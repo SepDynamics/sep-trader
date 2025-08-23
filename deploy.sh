@@ -78,7 +78,7 @@ setup_local_environment() {
     if [ -d "frontend" ] && [ ! -d "frontend/build" ]; then
         log_info "Building frontend..."
         cd frontend
-        npm install
+        npm install --legacy-peer-deps
         npm run build
         cd ..
     fi

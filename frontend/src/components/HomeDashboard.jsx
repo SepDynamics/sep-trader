@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Activity, TrendingUp, TrendingDown, DollarSign, AlertCircle, Play, Pause, Settings, BarChart3, Brain, Clock, ChevronUp, ChevronDown, CheckCircle, XCircle, RefreshCw, Database, Cpu, HardDrive, Zap, Target, Shield, Eye, Terminal, Upload, FileText, GitBranch, Server } from 'lucide-react';
 import { useWebSocket } from '../context/WebSocketContext';
 import QuickActionButton from './QuickActionButton';
-import { uploadTrainingData, startModelTraining, generateReport, getConfiguration, getSystemStatus } from '../services/api';
+import { uploadTrainingData, startModelTraining, generateReport, getConfig, getSystemStatus } from '../services/api';
 
 // This dashboard connects to your actual backend services
 // Backend API: http://localhost:5000/api/
@@ -148,7 +148,7 @@ const HomeDashboard = () => {
 
   const handleOpenConfig = async () => {
     try {
-      await getConfiguration();
+      await getConfig();
       setActionStatus({ type: 'success', message: 'Configuration loaded' });
     } catch (error) {
       setActionStatus({ type: 'error', message: 'Failed to load configuration' });
