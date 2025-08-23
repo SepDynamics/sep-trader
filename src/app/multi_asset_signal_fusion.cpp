@@ -6,9 +6,39 @@
 #include <algorithm>
 #include <cmath>
 #include <numeric>
+#include <sstream>
+#include <cstdlib>
 
 #include "core/sep_precompiled.h"
 #include "candle_types.h"
+
+namespace {
+std::string computeInputHash(const std::vector<sep::AssetSignal>& signals) {
+    const uint64_t fnv_offset = 1469598103934665603ULL;
+    const uint64_t fnv_prime = 1099511628211ULL;
+    uint64_t hash = fnv_offset;
+    std::ostringstream oss;
+    for (const auto& s : signals) {
+        oss << s.instrument << s.correlation_weight << s.lag.count() << s.confidence_modifier;
+    }
+    auto data = oss.str();
+    for (unsigned char c : data) {
+        hash ^= c;
+        hash *= fnv_prime;
+    }
+    std::ostringstream out;
+    out << std::hex << hash;
+    return out.str();
+}
+
+std::string getConfigVersion() {
+    if (const char* v = std::getenv("SEP_CONFIG_VERSION")) {
+        return std::string(v);
+    }
+    return std::string("unknown");
+}
+} // anonymous namespace
+
 
 namespace sep {
 
@@ -326,7 +356,9 @@ FusedSignal MultiAssetSignalFusion::fuseSignals(const std::vector<AssetSignal>& 
         .fusion_confidence = fusion_confidence,
         .contributing_signals = asset_signals,
         .cross_asset_coherence = coherence,
-        .signal_strength = signal_strength
+        .signal_strength = signal_strength,
+        .input_hash = computeInputHash(asset_signals),
+        .config_version = getConfigVersion()
     };
     
     logFusionDetails(result);
@@ -410,9 +442,9 @@ std::string MultiAssetSignalFusion::serializeFusionResult(const FusedSignal& sig
         (signal.primary_direction == Direction::BUY) ? "BUY" :
         (signal.primary_direction == Direction::SELL) ? "SELL" : "HOLD";
     
-    return fmt::format("{{ \"direction\": \"{}\", \"confidence\": {:.3f}, \"coherence\": {:.3f}, \"strength\": {:.3f}, \"assets\": {} }}",
+    return fmt::format("{ \"direction\": \"{}\", \"confidence\": {:.3f}, \"coherence\": {:.3f}, \"strength\": {:.3f}, \"assets\": {}, \"input_hash\": \"{}\", \"config_version\": \"{}\" }",
                       direction_str, signal.fusion_confidence, signal.cross_asset_coherence,
-                      signal.signal_strength, signal.contributing_signals.size());
+                      signal.signal_strength, signal.contributing_signals.size(), signal.input_hash, signal.config_version);
 }
 
 } // namespace sep

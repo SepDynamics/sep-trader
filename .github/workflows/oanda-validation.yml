@@ -1,0 +1,19 @@
+name: oanda-data-validation
+
+on:
+  schedule:
+    - cron: '0 0 * * *'
+  workflow_dispatch:
+
+jobs:
+  retail-validation:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Run OANDA validation
+        run: bash testing/retail_data_validation.sh
+      - name: Upload authenticity report
+        uses: actions/upload-artifact@v3
+        with:
+          name: authenticity-report
+          path: validation/retail_kit_proof/
