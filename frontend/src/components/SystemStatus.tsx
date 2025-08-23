@@ -11,7 +11,7 @@ interface ComponentConfig {
 }
 
 const SystemStatus: React.FC = () => {
-  const { connected, systemStatus } = useWebSocket();
+  const { connected, systemStatus, connectionStatus } = useWebSocket();
   const [config, setConfig] = useState<{ poll_interval: number; components: ComponentConfig[] }>({ poll_interval: 30000, components: [] });
   const [lastRefresh, setLastRefresh] = useState(new Date());
 
@@ -141,6 +141,7 @@ const SystemStatus: React.FC = () => {
               <div className="connection-info">
                 <span className={`connection-dot ${connected ? 'connected' : 'disconnected'}`}></span>
                 <span>Real-time: {connected ? 'Connected' : 'Disconnected'}</span>
+                <span className="connection-status-label">State: {connectionStatus}</span>
               </div>
               <div className="uptime-info">
                 <label>System Uptime:</label>

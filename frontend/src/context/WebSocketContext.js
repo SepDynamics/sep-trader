@@ -5,7 +5,7 @@ import React, { createContext, useContext, useEffect, useRef, useState, useCallb
 
 const WebSocketContext = createContext(null);
 
-const WS_URL = window._env_?.REACT_APP_WS_URL || 'ws://localhost:8765';
+const WS_URL = process.env.REACT_APP_WS_URL || window._env_?.REACT_APP_WS_URL || 'ws://localhost:8765';
 
 export const WebSocketProvider = ({ children }) => {
   const [socket, setSocket] = useState(null);
@@ -151,6 +151,12 @@ export const WebSocketProvider = ({ children }) => {
       setConnected(false);
     }
   }, []);
+
+  // Notify listeners of connection status changes
+  useEffect(() => {
+    console.log(`WebSocket status: ${connectionStatus}`);
+    window.dispatchEvent(new CustomEvent('ws-status', { detail: connectionStatus }));
+  }, [connectionStatus]);
 
   // Handle incoming messages
   const handleMessage = (message) => {

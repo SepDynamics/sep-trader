@@ -15,8 +15,8 @@ const PerformanceMetrics = () => {
   const loadPerformanceData = async () => {
     try {
       setLoading(true);
-      const response = await apiClient.getPerformanceCurrent();
-      setMetrics(response.data);
+      const response = await apiClient.getPerformanceMetrics();
+      setMetrics(response);
       setError(null);
     } catch (err) {
       console.error('Failed to load performance data:', err);
@@ -55,10 +55,13 @@ const PerformanceMetrics = () => {
     <div className="performance-metrics">
       <div className="metrics-header">
         <h1>Performance Metrics</h1>
-        <div className="connection-status">
-          <span className={connected ? 'connected' : 'disconnected'}>
-            {connected ? '🟢 Real-time' : '🔴 Offline'}
-          </span>
+        <div className="metrics-controls">
+          <div className="connection-status">
+            <span className={connected ? 'connected' : 'disconnected'}>
+              {connected ? '🟢 Real-time' : '🔴 Offline'}
+            </span>
+          </div>
+          <button onClick={loadPerformanceData} className="refresh-btn">Refresh</button>
         </div>
       </div>
 
