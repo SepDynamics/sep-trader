@@ -304,8 +304,14 @@ ssh sep-trader "docker-compose logs -f"
 - [x] **HIGH**: Update `trading_service.py` with missing endpoints
 - [x] **HIGH**: Replace DataSimulator with real data in `websocket_service.py`
 - [x] **MEDIUM**: Implement CLI bridge for command execution
-- [ ] **MEDIUM**: Connect to C++ engine output files
+- [x] **MEDIUM**: Connect to C++ engine output files
 - [ ] **LOW**: Add SSL and production optimizations
+
+## ➡️ Next Tasks
+
+- [ ] Implement filesystem watcher to stream new engine signals automatically
+- [ ] Expose trading signals through backend API for parity with file feeds
+- [ ] Add integration tests for WebSocket streaming and signal handling
 
 ## 🚨 Important Notes
 
