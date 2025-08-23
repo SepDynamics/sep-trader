@@ -72,6 +72,10 @@ class APIClient {
     return this.request('/api/valkey/metrics');
   }
 
+  async getRedisMetrics() {
+    return this.request('/api/metrics/redis');
+  }
+
   async getValkeyStatus() {
     return this.request('/api/valkey/status');
   }

@@ -14,6 +14,7 @@ import ConnectionStatusIndicator from './components/ConnectionStatusIndicator';
 import QuantumAnalysis from './components/QuantumAnalysis';
 import ManifoldVisualizer from './components/ManifoldVisualizer';
 import ManifoldKernel from './components/ManifoldKernel';
+import ValkeyPipelineManager from './components/ValkeyPipelineManager';
 import TestingSuite from './components/TestingSuite';
 import './styles/App.css';
 
@@ -57,6 +58,7 @@ const App = () => {
       title: 'Analysis',
       items: [
         { id: 'kernel', label: 'Manifold Kernel', icon: '🧠' },
+        { id: 'valkey', label: 'Valkey Pipeline', icon: '⚡' },
         { id: 'quantum', label: 'Quantum Analysis', icon: '⚛️' },
         { id: 'manifold', label: 'Manifold Visualizer', icon: '🌐' },
         { id: 'performance', label: 'Performance', icon: '📈' },
@@ -119,6 +121,8 @@ const App = () => {
         return <TradingSignals />;
       case 'kernel':
         return <ManifoldKernel />;
+      case 'valkey':
+        return <ValkeyPipelineManager />;
       case 'quantum':
         return <QuantumAnalysis />;
       case 'manifold':
