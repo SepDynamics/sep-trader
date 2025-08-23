@@ -25,6 +25,7 @@ Begin work on **Priority 2: Real Multi-Asset Correlation Implementation** descri
 - Linking currently fails with unresolved `dsl::runtime::Interpreter::get_global_variable` in unit tests; investigate DSL linkage or missing objects.
 - `src/app/enhanced_market_model_cache.cpp` referenced an undefined `engine2`, causing compilation to fail. Replaced it with the existing `engine` instance.
 - `src/core/remote_data_manager.cpp` passed `system_clock::time_point` directly to `pqxx::exec_params`, triggering `pqxx::nullness` constant-expression errors. Converted timestamps to ISO strings before query execution.
+- CPU-only builds failed due to unguarded `cuda_runtime.h` includes in `core/cuda_api.hpp` and `core/gpu_memory_pool.h`. Added stubbed definitions when `SEP_USE_CUDA` is undefined and switched headers to the new guard to restore non-CUDA compilation.
 
 ## Priority 1: Remove Fake Data Generation [COMPLETED]
 
