@@ -91,7 +91,7 @@ if [ "$NATIVE_BUILD" = true ] || [ "$SKIP_DOCKER" = true ] || ! "$DOCKER_BIN" in
     
     
 
-    # Temporarily use system libraries for cmake/ninja to avoid GCC-11 library conflicts
+    # Use a default if LD_LIBRARY_PATH is unset to avoid unbound variable errors
     export LD_LIBRARY_PATH="/usr/lib64:/lib64:${LD_LIBRARY_PATH:-}"
 
     # Configure with cmake, using system's default compilers and a global header fix.
@@ -135,9 +135,9 @@ echo "Mounting local directory $(pwd) to /sep in the container."
     # Configure and build with Docker container paths
     cmake .. -G Ninja \
         -DCMAKE_BUILD_TYPE=Release \
-        -DCMAKE_C_COMPILER=/usr/bin/gcc \
-        -DCMAKE_CXX_COMPILER=/usr/bin/g++ \
-        -DCMAKE_CUDA_HOST_COMPILER=/usr/bin/g++ \
+        -DCMAKE_C_COMPILER=/usr/bin/gcc-14 \
+        -DCMAKE_CXX_COMPILER=/usr/bin/g++-14 \
+        -DCMAKE_CUDA_HOST_COMPILER=/usr/bin/g++-14 \
         -DCMAKE_BUILD_WITH_INSTALL_RPATH=ON \
         -DCMAKE_EXPORT_COMPILE_COMMANDS=TRUE \
         -DSEP_USE_CUDA=ON \
