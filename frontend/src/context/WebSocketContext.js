@@ -25,6 +25,12 @@ export const WebSocketProvider = ({ children }) => {
   const [valkeyMetrics, setValkeyMetrics] = useState({});
   const [livePatterns, setLivePatterns] = useState({});
   
+  // Enhanced states for backwards computation & manifold streaming
+  const [manifoldStream, setManifoldStream] = useState({});
+  const [pinStates, setPinStates] = useState(new Map());
+  const [signalEvolution, setSignalEvolution] = useState(new Map());
+  const [backwardsDerivations, setBackwardsDerivations] = useState(new Map());
+  
   // Connection management
   const reconnectTimeoutRef = useRef(null);
   const reconnectAttemptsRef = useRef(0);
@@ -133,6 +139,112 @@ export const WebSocketProvider = ({ children }) => {
           }
         }));
       }
+    },
+    
+    // Enhanced handlers for backwards computation manifold
+    manifold_update: (data) => {
+      // Handle timestamped identity updates from Valkey - time-intrinsic compression
+      const { timestamp, instrument, valkey_key, manifold_data } = data;
+      
+      setManifoldStream(prev => ({
+        ...prev,
+        [timestamp]: {
+          instrument,
+          valkey_key, // Time IS the key identifier
+          manifold_data,
+          received_at: Date.now(),
+          time_intrinsic: true // Key identifier intrinsically contains the time
+        }
+      }));
+    },
+    
+    pin_state_change: (data) => {
+      // Handle pin state transitions (flux → stabilizing → converged)
+      const { valkey_key, pin_state, metrics, transition_data } = data;
+      
+      setPinStates(prev => {
+        const newStates = new Map(prev);
+        newStates.set(valkey_key, {
+          state: pin_state, // 'flux', 'stabilizing', 'converged'
+          metrics: {
+            entropy: metrics.entropy,
+            stability: metrics.stability,
+            coherence: metrics.coherence
+          },
+          transition_data,
+          updated_at: Date.now(),
+          backwards_derivable: pin_state === 'converged',
+          unique_path: transition_data?.unique_path || false // Only ONE path can produce these metrics
+        });
+        return newStates;
+      });
+    },
+    
+    signal_evolution: (data) => {
+      // Handle real-time signal metric evolution with backwards integration capability
+      const { valkey_key, evolution_step, previous_metrics, current_metrics, derivative_strength } = data;
+      
+      setSignalEvolution(prev => {
+        const newEvolution = new Map(prev);
+        const signalHistory = newEvolution.get(valkey_key) || [];
+        
+        signalHistory.push({
+          step: evolution_step,
+          timestamp: Date.now(),
+          previous: previous_metrics,
+          current: current_metrics,
+          derivative_strength, // How strongly backwards derivable
+          entropy_delta: current_metrics.entropy - previous_metrics.entropy,
+          stability_delta: current_metrics.stability - previous_metrics.stability,
+          coherence_delta: current_metrics.coherence - previous_metrics.coherence,
+          integration_ready: derivative_strength > 0.8 // Ready for backwards integration
+        });
+        
+        // Keep only last 100 evolution steps per signal
+        if (signalHistory.length > 100) {
+          signalHistory.shift();
+        }
+        
+        newEvolution.set(valkey_key, signalHistory);
+        return newEvolution;
+      });
+    },
+    
+    backwards_computation: (data) => {
+      // Handle backwards integration results - derive previous state from current + metrics
+      const { valkey_key, current_state, derived_previous_state, confidence, computation_proof } = data;
+      
+      setBackwardsDerivations(prev => {
+        const newDerivations = new Map(prev);
+        newDerivations.set(valkey_key, {
+          current_state,
+          derived_previous_state,
+          confidence,
+          computation_proof, // Mathematical proof that only ONE path is possible
+          computed_at: Date.now(),
+          verified: confidence > 0.95,
+          unique_solution: computation_proof?.unique_solution || false
+        });
+        return newDerivations;
+      });
+      
+      // Update signal evolution with backwards integration results
+      setSignalEvolution(prev => {
+        const newEvolution = new Map(prev);
+        const signalHistory = newEvolution.get(valkey_key) || [];
+        
+        // Add backwards computation verification to latest step
+        const lastStep = signalHistory[signalHistory.length - 1];
+        if (lastStep) {
+          lastStep.backwards_verified = true;
+          lastStep.backwards_confidence = confidence;
+          lastStep.derived_previous = derived_previous_state;
+          lastStep.mathematical_proof = computation_proof;
+        }
+        
+        newEvolution.set(valkey_key, signalHistory);
+        return newEvolution;
+      });
     }
   };
 
@@ -156,7 +268,7 @@ export const WebSocketProvider = ({ children }) => {
         setSocket(ws);
         reconnectAttemptsRef.current = 0;
         
-        // Subscribe to all channels including Valkey/Redis streams
+        // Subscribe to all channels including backwards computation manifold streams
         ws.send(JSON.stringify({
           type: 'subscribe',
           channels: [
@@ -168,7 +280,11 @@ export const WebSocketProvider = ({ children }) => {
             'quantum_signals',
             'valkey_metrics',
             'live_patterns',
-            'signal_updates'
+            'signal_updates',
+            'manifold_update',
+            'pin_state_change',
+            'signal_evolution',
+            'backwards_computation'
           ]
         }));
         
