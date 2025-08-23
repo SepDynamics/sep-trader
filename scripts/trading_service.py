@@ -9,6 +9,9 @@ import sys
 import time
 import json
 import logging
+import contextvars
+from uuid import uuid4
+from logging.handlers import RotatingFileHandler
 from datetime import datetime, timezone
 from http.server import HTTPServer, BaseHTTPRequestHandler
 from urllib.parse import urlparse
@@ -22,7 +25,19 @@ from oanda_connector import OandaConnector  # noqa: E402
 from websocket_service import start_websocket_server  # noqa: E402
 import subprocess
 
-# Setup logging with environment-appropriate paths
+# Correlation ID support
+correlation_id_var = contextvars.ContextVar("correlation_id", default="-")
+
+
+class CorrelationIdFilter(logging.Filter):
+    """Ensure every log record contains a correlation_id field."""
+
+    def filter(self, record):
+        record.correlation_id = correlation_id_var.get()
+        return True
+
+
+# Setup logging with environment-appropriate paths and rotation
 def setup_logging():
     # Determine log directory based on environment
     if os.path.exists('/app'):
@@ -37,15 +52,25 @@ def setup_logging():
     
     log_file = os.path.join(log_dir, 'trading_service.log')
     
-    logging.basicConfig(
-        level=logging.INFO,
-        format='%(asctime)s - %(levelname)s - %(message)s',
-        handlers=[
-            logging.FileHandler(log_file),
-            logging.StreamHandler()
-        ]
+    formatter = logging.Formatter(
+        "%(asctime)s - %(levelname)s - %(correlation_id)s - %(message)s"
     )
-    return logging.getLogger(__name__)
+
+    file_handler = RotatingFileHandler(
+        log_file, maxBytes=5 * 1024 * 1024, backupCount=5
+    )
+    file_handler.setFormatter(formatter)
+
+    stream_handler = logging.StreamHandler()
+    stream_handler.setFormatter(formatter)
+
+    logger = logging.getLogger(__name__)
+    logger.setLevel(logging.INFO)
+    logger.addHandler(file_handler)
+    logger.addHandler(stream_handler)
+    logger.addFilter(CorrelationIdFilter())
+
+    return logger
 
 logger = setup_logging()
 
@@ -57,6 +82,8 @@ class TradingService:
         self.last_sync = None
         self.market_status = "unknown"
         self.current_config = {}
+        self.build_hash = os.environ.get("BUILD_HASH", "unknown")
+        self.config_version = os.environ.get("CONFIG_VERSION", "unknown")
 
         # Setup connectors and risk manager
         try:
@@ -336,32 +363,44 @@ class TradingAPIHandler(BaseHTTPRequestHandler):
 
     def do_OPTIONS(self):
         """Handle CORS preflight requests"""
-        self.send_response(200)
-        self._set_cors_headers()
-        self.end_headers()
+        correlation_id = self.headers.get("X-Request-ID", str(uuid4()))
+        token = correlation_id_var.set(correlation_id)
+        try:
+            self.send_response(200)
+            self._set_cors_headers()
+            self.end_headers()
+        finally:
+            correlation_id_var.reset(token)
 
     def do_HEAD(self):
         """Handle HEAD requests - same as GET but without response body"""
-        logger.info(f"Handling HEAD request for {self.path}")
-        parsed_path = urlparse(self.path)
-        path = parsed_path.path
+        correlation_id = self.headers.get("X-Request-ID", str(uuid4()))
+        token = correlation_id_var.set(correlation_id)
+        try:
+            logger.info(f"Handling HEAD request for {self.path}")
+            parsed_path = urlparse(self.path)
+            path = parsed_path.path
 
-        if path == '/health' or path == '/api/status':
-            self.send_response(200)
-            self.send_header('Content-type', 'application/json')
-            self._set_cors_headers()
-            self.end_headers()
-            logger.info(f"Responded 200 to HEAD {self.path}")
-        else:
-            self.send_response(404)
-            self._set_cors_headers()
-            self.end_headers()
-            logger.info(f"Responded 404 to HEAD {self.path}")
+            if path == '/health' or path == '/api/status':
+                self.send_response(200)
+                self.send_header('Content-type', 'application/json')
+                self._set_cors_headers()
+                self.end_headers()
+                logger.info(f"Responded 200 to HEAD {self.path}")
+            else:
+                self.send_response(404)
+                self._set_cors_headers()
+                self.end_headers()
+                logger.info(f"Responded 404 to HEAD {self.path}")
+        finally:
+            correlation_id_var.reset(token)
 
     def do_GET(self):
         """Handle GET requests"""
         parsed_path = urlparse(self.path)
         path = parsed_path.path
+        correlation_id = self.headers.get("X-Request-ID", str(uuid4()))
+        token = correlation_id_var.set(correlation_id)
         logger.info(f"GET request for {path}")
 
         try:
@@ -375,6 +414,8 @@ class TradingAPIHandler(BaseHTTPRequestHandler):
                     'market_status': self.trading_service.market_status,
                     'trading_active': self.trading_service.trading_active,
                     'enabled_pairs': list(self.trading_service.enabled_pairs),
+                    'build_hash': self.trading_service.build_hash,
+                    'config_version': self.trading_service.config_version,
                     'timestamp': datetime.now().isoformat()
                 }
                 self.wfile.write(json.dumps(response).encode())
@@ -389,6 +430,8 @@ class TradingAPIHandler(BaseHTTPRequestHandler):
                     'service': 'SEP Professional Trader-Bot',
                     'market_status': self.trading_service.market_status,
                     'trading_active': self.trading_service.trading_active,
+                    'build_hash': self.trading_service.build_hash,
+                    'config_version': self.trading_service.config_version,
                     'timestamp': datetime.now().isoformat()
                 }
                 self.wfile.write(json.dumps(response).encode())
@@ -486,11 +529,15 @@ class TradingAPIHandler(BaseHTTPRequestHandler):
             self.send_header('Content-type', 'application/json')
             self.end_headers()
             self.wfile.write(json.dumps({'error': str(e)}).encode())
+        finally:
+            correlation_id_var.reset(token)
 
     def do_POST(self):
         """Handle POST requests"""
         parsed_path = urlparse(self.path)
         path = parsed_path.path
+        correlation_id = self.headers.get("X-Request-ID", str(uuid4()))
+        token = correlation_id_var.set(correlation_id)
         logger.info(f"POST request for {path}")
 
         try:
@@ -564,7 +611,6 @@ class TradingAPIHandler(BaseHTTPRequestHandler):
                     self.send_header('Content-type', 'application/json')
                     self.end_headers()
                     self.wfile.write(json.dumps({'error': 'Invalid JSON'}).encode())
-
             else:
                 self.send_response(404)
                 self._set_cors_headers()
@@ -578,6 +624,8 @@ class TradingAPIHandler(BaseHTTPRequestHandler):
             self.send_header('Content-type', 'application/json')
             self.end_headers()
             self.wfile.write(json.dumps({'error': str(e)}).encode())
+        finally:
+            correlation_id_var.reset(token)
 
     def log_message(self, format, *args):
         """Override to use our logger"""
