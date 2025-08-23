@@ -1,0 +1,1 @@
+add_sep_test(market_cache_test SOURCES market_cache_test.cpp)

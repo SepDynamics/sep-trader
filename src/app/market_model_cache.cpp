@@ -6,6 +6,7 @@
 #include <fstream>
 #include <iomanip>
 #include <iostream>
+#include <algorithm>
 #include "util/nlohmann_json_safe.h"
 #include <thread>
 
@@ -13,8 +14,9 @@
 
 namespace sep::apps {
 
-MarketModelCache::MarketModelCache(std::shared_ptr<sep::connectors::OandaConnector> connector)
-    : oanda_connector_(connector) {
+MarketModelCache::MarketModelCache(std::shared_ptr<sep::connectors::OandaConnector> connector,
+                                   std::shared_ptr<IQuantumPipeline> pipeline)
+    : oanda_connector_(std::move(connector)), pipeline_(std::move(pipeline)) {
     std::filesystem::create_directories(cache_directory_);
 }
 
@@ -99,44 +101,35 @@ bool MarketModelCache::ensureCacheForLastWeek(const std::string& instrument) {
     return true;
 }
 
-void MarketModelCache::processAndCacheData(const std::vector<Candle>& raw_candles, const std::string& filepath) {
+void MarketModelCache::processBatch(const std::string& instrument, const std::vector<Candle>& candles) {
     processed_signals_.clear();
-    
-    // Use a simplified version of the proven pme_testbed_phase2 pipeline
-    // Process each candle to generate quantum signals
-    for (size_t i = 1; i < raw_candles.size(); ++i) {
-        const auto& current_candle = raw_candles[i];
-        const auto& prev_candle = raw_candles[i-1];
-        
-        // Simple placeholder signal generation based on price movement
-        // TODO: Replace with actual quantum pipeline when integrated
-        double price_change = (current_candle.close - prev_candle.close) / prev_candle.close;
-        
-        if (std::abs(price_change) > 0.0001) { // 0.01% threshold
-            sep::trading::QuantumTradingSignal signal;
-            
-            // Generate signal based on price movement
-            if (price_change > 0) {
-                signal.action = sep::trading::QuantumTradingSignal::BUY;
+    if (!pipeline_) return;
+    std::vector<SignalProbe> probes;
+    probes.reserve(candles.size());
+    for (const auto& c : candles) {
+        probes.push_back(SignalProbe{instrument, static_cast<uint64_t>(c.timestamp), c.close});
+    }
+    std::vector<SignalOut> outs;
+    if (pipeline_->evaluate_batch(probes, outs)) {
+        for (const auto& out : outs) {
+            sep::trading::QuantumTradingSignal s;
+            if (out.state == static_cast<uint8_t>(SignalState::Enter)) {
+                s.action = sep::trading::QuantumTradingSignal::BUY;
+            } else if (out.state == static_cast<uint8_t>(SignalState::Exit)) {
+                s.action = sep::trading::QuantumTradingSignal::SELL;
             } else {
-                signal.action = sep::trading::QuantumTradingSignal::SELL;
+                s.action = sep::trading::QuantumTradingSignal::HOLD;
             }
-            
-            // Calculate confidence based on magnitude of price change
-            double confidence = std::min(std::abs(price_change) * 10000, 0.99); // Normalize to 0-0.99
-            signal.identifiers.confidence = static_cast<float>(confidence);
-            signal.identifiers.coherence = 0.5f; // Placeholder
-            signal.identifiers.stability = 0.6f; // Placeholder
-            
-            processed_signals_[current_candle.time] = signal;
-        }
-        
-        // Progress indicator
-        if (i % 1000 == 0) {
-            std::cout << "[CACHE] 📈 Processed " << i << "/" << raw_candles.size() << " candles" << std::endl;
+            s.identifiers.confidence = static_cast<float>(std::clamp(out.score, 0.0, 1.0));
+            s.identifiers.coherence = 0.0f;
+            s.identifiers.stability = 0.0f;
+            processed_signals_[out.id] = s;
         }
     }
+}
 
+void MarketModelCache::processAndCacheData(const std::vector<Candle>& raw_candles, const std::string& filepath) {
+    processBatch("EUR_USD", raw_candles);
     std::cout << "[CACHE] ✅ Processing complete. Generated " << processed_signals_.size() << " signals." << std::endl;
     saveCache(filepath);
 }

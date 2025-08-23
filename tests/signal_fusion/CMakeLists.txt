@@ -1,0 +1,1 @@
+add_sep_test(signal_fusion_test SOURCES fusion_engine_test.cpp)

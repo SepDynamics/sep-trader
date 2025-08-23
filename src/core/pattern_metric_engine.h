@@ -16,6 +16,7 @@
 #include "core/processor.h"
 #include "core/quantum_processor_qfh.h"
 #include "core/signal.h"
+#include "core/signal_types.h"
 
 // Forward declaration to avoid circular includes
 namespace sep::quantum

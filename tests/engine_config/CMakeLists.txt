@@ -1,0 +1,1 @@
+add_sep_test(engine_config_test SOURCES engine_config_test.cpp)
