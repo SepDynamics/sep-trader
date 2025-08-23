@@ -13,6 +13,7 @@ import ConfigurationPanel from './components/ConfigurationPanel';
 import ConnectionStatusIndicator from './components/ConnectionStatusIndicator';
 import QuantumAnalysis from './components/QuantumAnalysis';
 import ManifoldVisualizer from './components/ManifoldVisualizer';
+import ManifoldKernel from './components/ManifoldKernel';
 import TestingSuite from './components/TestingSuite';
 import './styles/App.css';
 
@@ -55,6 +56,7 @@ const App = () => {
     {
       title: 'Analysis',
       items: [
+        { id: 'kernel', label: 'Manifold Kernel', icon: '🧠' },
         { id: 'quantum', label: 'Quantum Analysis', icon: '⚛️' },
         { id: 'manifold', label: 'Manifold Visualizer', icon: '🌐' },
         { id: 'performance', label: 'Performance', icon: '📈' },
@@ -115,6 +117,8 @@ const App = () => {
         return <MarketData />;
       case 'signals':
         return <TradingSignals />;
+      case 'kernel':
+        return <ManifoldKernel />;
       case 'quantum':
         return <QuantumAnalysis />;
       case 'manifold':
