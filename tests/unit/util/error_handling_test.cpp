@@ -53,11 +53,9 @@ TEST_F(ErrorHandlingTest, ErrorReporting) {
     cuda_ctx.message = "Test CUDA error";
     sep_error_report(cuda_ctx);
     
-    // Test checking for NULL pointer
-    int* ptr = nullptr;
-    // These macros would normally return, but in the test we just want to make sure they compile
-    // Since these are in a test function that returns void, we can't use the CHECK macros directly
-    // as they would cause a return statement in a void function
+    // Note: The CHECK macros would normally be tested here, but they can't be used
+    // directly in a test function that returns void as they would cause compilation errors
+    // The compilation of this test itself verifies the error handling headers are correct
     
     // All checks should pass without triggering errors
     SUCCEED();

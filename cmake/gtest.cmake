@@ -38,9 +38,7 @@ if(BUILD_TESTING)
         target_link_libraries(${name} PRIVATE
             GTest::gtest_main
             GTest::gtest
-            spdlog::spdlog
-            sep_core_deps
-            sep_fetchcontent_deps
+            sep_lib
             ${ARG_DEPENDENCIES}
         )
         
