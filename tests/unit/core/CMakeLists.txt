@@ -11,3 +11,8 @@ add_sep_test(result_types_test
     SOURCES result_types_test.cpp
     DEPENDENCIES sep_lib
 )
+# Placeholder for additional core tests
+# add_sep_test(core_example_test
+#     SOURCES core_example_test.cpp
+#     DEPENDENCIES sep_lib
+# )
