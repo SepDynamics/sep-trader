@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { WebSocketProvider } from './context/WebSocketContext';
 import { SymbolProvider } from './context/SymbolContext';
+import { ConfigProvider } from './context/ConfigContext';
 import HomeDashboard from './components/HomeDashboard';
 import TradingPanel from './components/TradingPanel';
 import SystemStatus from './components/SystemStatus';
@@ -65,6 +66,7 @@ const App = () => {
   return (
     <WebSocketProvider>
       <SymbolProvider>
+      <ConfigProvider>
       <div className={`app ${darkMode ? 'dark' : 'light'}`}>
         <header className="app-header">
           <div className="header-left">
@@ -117,6 +119,7 @@ const App = () => {
           </div>
         </footer>
       </div>
+      </ConfigProvider>
       </SymbolProvider>
     </WebSocketProvider>
   );

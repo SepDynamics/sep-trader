@@ -72,6 +72,14 @@ const ConfigurationPanel: React.FC = () => {
               />
             </div>
             <div className="field-group">
+              <label>Default Order Quantity:</label>
+              <input
+                type="number"
+                value={config.trading?.default_quantity ?? ''}
+                onChange={(e) => handleInputChange('trading', 'default_quantity', parseInt(e.target.value))}
+              />
+            </div>
+            <div className="field-group">
               <label>Stop Loss (%):</label>
               <input
                 type="number"

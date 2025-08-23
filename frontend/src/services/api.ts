@@ -61,6 +61,13 @@ class APIClient {
     });
   }
 
+  async submitOrder(order: any) {
+    return this.request('/api/place-order', {
+      method: 'POST',
+      body: JSON.stringify(order),
+    });
+  }
+
   async getPositions() {
     return this.request('/api/positions');
   }
@@ -164,6 +171,7 @@ export const {
   logout,
   getMarketData,
   placeOrder,
+  submitOrder,
   getPositions,
   getTradingSignals,
   getSystemStatus,
