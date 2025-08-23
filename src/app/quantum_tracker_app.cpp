@@ -293,18 +293,20 @@ void QuantumTrackerApp::loadHistoricalData() {
         real_market_data.volume = 1000; // Placeholder - needs real volume data
         real_market_data.atr = 0.0001;  // Should be calculated from real volatility data
         
-        quantum_tracker_->processNewMarketData(real_market_data, std::to_string(timestamps[i]));
+#ifdef SEP_USE_GUI
+        quantum_bridge_->processNewMarketData(real_market_data, std::to_string(timestamps[i]));
+#endif
         
         // Rate limit for visual feedback
         if (i % 100 == 0) {
             std::this_thread::sleep_for(std::chrono::milliseconds(1));
-            std::cout << "[QuantumTracker] Processed " << (i + 1) 
+            std::cout << "[QuantumTracker] Processed " << (i + 1)
                       << "/" << hourly_prices.size() << " rolling calculations" << std::endl;
         }
     }
-#else
-    std::cout << "[QuantumTracker] GUI disabled - skipping quantum tracker data processing" << std::endl;
-#endif
+    
+    std::cout << "[QuantumTracker] TICK-LEVEL historical analysis complete!" << std::endl;
+    std::cout << "  - Now ready for real-time tick processing with rolling windows" << std::endl;
     
     std::cout << "[QuantumTracker] TICK-LEVEL historical analysis complete!" << std::endl;
     std::cout << "  - Now ready for real-time tick processing with rolling windows" << std::endl;
@@ -321,35 +323,31 @@ void QuantumTrackerApp::startMarketDataStream() {
             tick_manager_->processNewTick(data);
         }
         
-#ifdef SEP_USE_GUI
-        // Feed data to quantum tracker for pattern analysis
-        quantum_tracker_->processNewMarketData(data);
-        
-        // Check for triple-confirmed signals and execute trades
-        if (quantum_tracker_ && quantum_tracker_->hasLatestSignal()) {
-            const auto& latest_signal = quantum_tracker_->getLatestSignal();
-            if (latest_signal.should_execute && 
-                latest_signal.mtf_confirmation.triple_confirmed &&
-                latest_signal.action != sep::trading::QuantumTradingSignal::HOLD) {
-                executeQuantumTrade(latest_signal);
+        // Feed data to quantum bridge for pattern analysis
+        if (quantum_bridge_) {
+            // Use proper QuantumSignalBridge interface - analyzeMarketData
+            std::vector<sep::connectors::MarketData> history;
+            std::vector<sep::apps::cuda::ForwardWindowResult> forward_results;
+            
+            auto signal = quantum_bridge_->analyzeMarketData(data, history, forward_results);
+            
+            // Check for triple-confirmed signals and execute trades
+            if (signal.should_execute &&
+                signal.mtf_confirmation.triple_confirmed &&
+                signal.action != sep::trading::QuantumTradingSignal::HOLD) {
+                executeQuantumTrade(signal);
             }
         }
-#endif
         
         // Log occasional data for debugging with tick info
         static int count = 0;
         if (++count % 100 == 0) {
             std::cout << "[QuantumTracker] Processed " << count << " TICKS. ";
             if (tick_manager_) {
-                std::cout << "Total ticks: " << tick_manager_->getTickCount() 
-                         << ", Hourly calcs: " << tick_manager_->getHourlyCalculations().size() << ". ";
+                std::cout << "Total ticks: " << tick_manager_->getTickCount()
+                         << ", Hourly calcs: " << tick_manager_->getHourlyCalculations().size();
             }
-#ifdef SEP_USE_GUI
-            std::cout << "Predictions: " << quantum_tracker_->getStats().total_predictions 
-                     << ", Accuracy: " << quantum_tracker_->getStats().accuracy_percentage << "%" << std::endl;
-#else
-            std::cout << "GUI disabled - no quantum tracker stats available" << std::endl;
-#endif
+            std::cout << std::endl;
         }
     });
 
@@ -456,7 +454,7 @@ void QuantumTrackerApp::shutdown() {
     }
 #endif
     
-    cleanupGraphics();
+    // Graphics cleanup moved to frontend - no longer needed here
     
     // Print final stats
 #ifdef SEP_USE_GUI
@@ -467,23 +465,6 @@ void QuantumTrackerApp::shutdown() {
         std::cout << "  Correct: " << stats.correct_predictions << std::endl;
         std::cout << "  Accuracy: " << stats.accuracy_percentage << "%" << std::endl;
         std::cout << "  Average Confidence: " << stats.average_confidence << std::endl;
-    }
-#endif
-}
-
-void QuantumTrackerApp::cleanupGraphics() {
-#ifdef SEP_USE_GUI
-    if (window_) {
-        // Cleanup ImGui
-        ImGui_ImplOpenGL3_Shutdown();
-        ImGui_ImplGlfw_Shutdown();
-        ImPlot::DestroyContext();
-        ImGui::DestroyContext();
-        
-        // Cleanup GLFW
-        glfwDestroyWindow(window_);
-        glfwTerminate();
-        window_ = nullptr;
     }
 #endif
 }

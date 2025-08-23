@@ -99,29 +99,33 @@ void sep_error_set_callback(void (*callback)(SEP_ERROR_CONTEXT));
  * @brief Report a system error (errno-based)
  */
 #define SEP_REPORT_SYSTEM_ERROR(level, error_code, message) \
-    sep_error_report((SEP_ERROR_CONTEXT){ \
-        __FILE__, \
-        __LINE__, \
-        __func__, \
-        (level), \
-        SEP_ERROR_CATEGORY_SYSTEM, \
-        (error_code), \
-        (message) \
-    })
+    do { \
+        SEP_ERROR_CONTEXT ctx; \
+        ctx.file = __FILE__; \
+        ctx.line = __LINE__; \
+        ctx.function = __func__; \
+        ctx.level = (level); \
+        ctx.category = SEP_ERROR_CATEGORY_SYSTEM; \
+        ctx.error_code = (error_code); \
+        ctx.message = (message); \
+        sep_error_report(ctx); \
+    } while (0)
 
 /**
  * @brief Report a CUDA error
  */
 #define SEP_REPORT_CUDA_ERROR(level, error_code, message) \
-    sep_error_report((SEP_ERROR_CONTEXT){ \
-        __FILE__, \
-        __LINE__, \
-        __func__, \
-        (level), \
-        SEP_ERROR_CATEGORY_CUDA, \
-        (error_code), \
-        (message) \
-    })
+    do { \
+        SEP_ERROR_CONTEXT ctx; \
+        ctx.file = __FILE__; \
+        ctx.line = __LINE__; \
+        ctx.function = __func__; \
+        ctx.level = (level); \
+        ctx.category = SEP_ERROR_CATEGORY_CUDA; \
+        ctx.error_code = (error_code); \
+        ctx.message = (message); \
+        sep_error_report(ctx); \
+    } while (0)
 
 /**
  * @brief Check return value and report error if condition is true
@@ -129,15 +133,15 @@ void sep_error_set_callback(void (*callback)(SEP_ERROR_CONTEXT));
 #define SEP_CHECK_ERROR(condition, level, category, error_code, message) \
     do { \
         if (condition) { \
-            sep_error_report((SEP_ERROR_CONTEXT){ \
-                __FILE__, \
-                __LINE__, \
-                __func__, \
-                (level), \
-                (category), \
-                (error_code), \
-                (message) \
-            }); \
+            SEP_ERROR_CONTEXT ctx; \
+            ctx.file = __FILE__; \
+            ctx.line = __LINE__; \
+            ctx.function = __func__; \
+            ctx.level = (level); \
+            ctx.category = (category); \
+            ctx.error_code = (error_code); \
+            ctx.message = (message); \
+            sep_error_report(ctx); \
             return (error_code); \
         } \
     } while (0)
