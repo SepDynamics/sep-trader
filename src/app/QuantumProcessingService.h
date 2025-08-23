@@ -11,6 +11,7 @@
 #include <cstdint>
 #include <glm/glm.hpp>
 #include <glm/vec3.hpp>
+#include <stdexcept>
 
 // Forward declarations from core quantum namespace
 namespace sep {
@@ -40,8 +41,19 @@ public:
      */
     virtual ~QuantumProcessingService() = default;
     
+    enum class State { Created, Initialized, Running, Stopped };
+
+#define REQUIRE_INIT() \
+    if (state_ != State::Initialized && state_ != State::Running) \
+        throw std::logic_error("Service not initialized")
+
     // Override isReady() to resolve the diamond inheritance issue
     bool isReady() const override;
+
+    // Explicit lifecycle management
+    Result<void> initialize() override;
+    Result<void> shutdown() override;
+    Result<void> start();
     
     // IQuantumProcessingService interface implementation
     Result<BinaryStateVector> processBinaryStateAnalysis(const QuantumState& state) override;
@@ -89,6 +101,8 @@ private:
     std::vector<QuantumFourierComponent> convertFromQFHResult(const ::sep::quantum::QFHResult& qfhResult);
     CoherenceMatrix buildCoherenceMatrixFromStability(double stability);
     StabilityMetrics buildStabilityFromProcessing(double stability, double coherence);
+
+    State state_;
 };
 
 } // namespace services

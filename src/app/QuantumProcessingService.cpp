@@ -9,7 +9,7 @@ namespace sep {
 namespace services {
 
 QuantumProcessingService::QuantumProcessingService()
-    : ServiceBase("QuantumProcessingService", "1.0.0") {
+    : ServiceBase("QuantumProcessingService", "1.0.0"), state_(State::Created) {
     // Initialize algorithm mappings
     algorithms_["QBSA"] = "Quantum Binary State Analysis";
     algorithms_["QFH"] = "Quantum Fourier Hierarchy";
@@ -31,7 +31,33 @@ Result<void> QuantumProcessingService::onShutdown() {
     return Result<void>{};
 }
 
+Result<void> QuantumProcessingService::initialize() {
+    if (auto res = ServiceBase::initialize(); res.isError()) {
+        return res;
+    }
+    state_ = State::Initialized;
+    return Result<void>{};
+}
+
+Result<void> QuantumProcessingService::start() {
+    REQUIRE_INIT();
+    state_ = State::Running;
+    return Result<void>{};
+}
+
+Result<void> QuantumProcessingService::shutdown() {
+    if (state_ == State::Stopped) {
+        return Result<void>{};
+    }
+    if (auto res = ServiceBase::shutdown(); res.isError()) {
+        return res;
+    }
+    state_ = State::Stopped;
+    return Result<void>{};
+}
+
 Result<BinaryStateVector> QuantumProcessingService::processBinaryStateAnalysis(const QuantumState& state) {
+    REQUIRE_INIT();
     try {
         // Check cache first
         auto cacheKey = state.stateIdentifier;
@@ -56,6 +82,7 @@ Result<BinaryStateVector> QuantumProcessingService::processBinaryStateAnalysis(c
 
 Result<std::vector<QuantumFourierComponent>> QuantumProcessingService::applyQuantumFourierHierarchy(
     const QuantumState& state, int hierarchyLevels) {
+    REQUIRE_INIT();
     try {
         // Validate input
         if (hierarchyLevels <= 0) {
@@ -74,6 +101,7 @@ Result<std::vector<QuantumFourierComponent>> QuantumProcessingService::applyQuan
 }
 
 Result<CoherenceMatrix> QuantumProcessingService::calculateCoherence(const QuantumState& state) {
+    REQUIRE_INIT();
     try {
         // Check cache first
         auto cacheKey = state.stateIdentifier;
@@ -98,6 +126,7 @@ Result<CoherenceMatrix> QuantumProcessingService::calculateCoherence(const Quant
 
 Result<StabilityMetrics> QuantumProcessingService::determineStability(
     const QuantumState& state, const std::vector<QuantumState>& historicalStates) {
+    REQUIRE_INIT();
     try {
         // Compute authentic stability metrics
         auto result = computeAuthenticStabilityMetrics(state, historicalStates);
@@ -111,6 +140,7 @@ Result<StabilityMetrics> QuantumProcessingService::determineStability(
 
 Result<QuantumState> QuantumProcessingService::evolveQuantumState(
     const QuantumState& state, const std::map<std::string, double>& evolutionParameters) {
+    REQUIRE_INIT();
     try {
         // Perform authentic quantum state evolution
         auto result = performAuthenticEvolution(state, evolutionParameters);
@@ -123,6 +153,7 @@ Result<QuantumState> QuantumProcessingService::evolveQuantumState(
 }
 
 Result<QuantumState> QuantumProcessingService::runQuantumPipeline(const QuantumState& state) {
+    REQUIRE_INIT();
     try {
         // Skip initialization check temporarily to resolve diamond inheritance issue
         // TODO: Implement proper initialization check without causing inheritance ambiguity
@@ -171,6 +202,7 @@ Result<QuantumState> QuantumProcessingService::runQuantumPipeline(const QuantumS
 }
 
 std::map<std::string, std::string> QuantumProcessingService::getAvailableAlgorithms() const {
+    REQUIRE_INIT();
     // Convert unordered_map to map for interface compatibility
     std::map<std::string, std::string> result;
     for (const auto& pair : algorithms_) {
@@ -181,8 +213,7 @@ std::map<std::string, std::string> QuantumProcessingService::getAvailableAlgorit
 
 // Implement isReady() to resolve diamond inheritance issue by explicitly forwarding to ServiceBase
 bool QuantumProcessingService::isReady() const {
-    // Delegate to ServiceBase implementation
-    return ServiceBase::isReady();
+    return state_ == State::Initialized || state_ == State::Running;
 }
 
 // Private authentic implementation methods
