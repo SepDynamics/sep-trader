@@ -473,32 +473,43 @@ bool DynamicPairManager::validatePairSymbolFormat(const std::string& symbol) con
 }
 
 bool DynamicPairManager::validateResourceRequirements(const DynamicPairConfig& config) const {
-    static_cast<void>(config);  // TODO: Implement resource requirement validation based on config
-    ResourceAllocation current = calculateCurrentUsage();
-    
-    // Check if adding this pair would exceed limits
-    return (current.max_total_pairs + 1 <= resource_allocation_.max_total_pairs) &&
-           (current.max_memory_per_pair_mb <= resource_allocation_.max_memory_per_pair_mb);
+    ResourceAllocation usage = calculateCurrentUsage();
+    usage.max_total_pairs += 1;
+    usage.max_hot_bytes += config.required_hot_bytes;
+    usage.max_streams += config.required_streams;
+    usage.max_batch_size = std::max(usage.max_batch_size, config.batch_size);
+    return validateResources(usage);
 }
 
 ResourceAllocation DynamicPairManager::calculateCurrentUsage() const {
     std::lock_guard<std::mutex> lock(config_mutex_);
-    
+
     ResourceAllocation usage;
     usage.max_total_pairs = dynamic_configs_.size();
-    
+
     // Count trading pairs
     for (const auto& stage_pair : pair_stages_) {
         if (stage_pair.second == PairLifecycleStage::TRADING) {
             usage.max_trading_pairs++;
         }
     }
-    
-    // Calculate other usage metrics (simplified)
+
+    // Simplified usage metrics
+    usage.max_hot_bytes = dynamic_configs_.size() * 1024; // placeholder
+    usage.max_streams = 0; // not tracked
+    usage.max_batch_size = 0;
     usage.max_memory_per_pair_mb = 128; // Placeholder
     usage.cpu_limit_percentage = 50.0; // Placeholder
-    
+
     return usage;
+}
+
+bool DynamicPairManager::validateResources(const ResourceAllocation& usage) const {
+    return usage.max_total_pairs <= resource_allocation_.max_total_pairs &&
+           usage.max_memory_per_pair_mb <= resource_allocation_.max_memory_per_pair_mb &&
+           usage.max_hot_bytes <= resource_allocation_.max_hot_bytes &&
+           usage.max_streams <= resource_allocation_.max_streams &&
+           usage.max_batch_size <= resource_allocation_.max_batch_size;
 }
 
 std::string DynamicPairManager::generateOperationId() {

@@ -1,0 +1,1 @@
+add_sep_test(dynamic_pair_manager_thresholds_test dynamic_pair_manager_thresholds_test.cpp)

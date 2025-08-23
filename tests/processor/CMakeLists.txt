@@ -1,0 +1,1 @@
+add_sep_test(processor_tier_test processor_tier_test.cpp)
