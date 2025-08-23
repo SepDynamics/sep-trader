@@ -15,6 +15,7 @@ Begin work on **Priority 2: Real Multi-Asset Correlation Implementation** descri
 - `oneTBB` failed to build with GCC-14 due to `-Werror=stringop-overflow` in `__atomic_store_1`. Added `-Wno-error=stringop-overflow` to project compile options; consider upstream patch or TBB upgrade for permanent fix.
 - `runTestDataSimulation()` in `src/app/quantum_tracker_app.cpp` referenced outdated `PatternData` fields and lacked required includes, breaking the build. Removed this development-only function to eliminate fake data generation and restore compilation.
 - Custom `pqxx_time_point_traits` used function-based `has_null()` which was not a constant expression, causing PostgreSQL integration to fail. Replaced it with `constexpr` flags `has_null`/`always_null` to satisfy `pqxx`'s `nullness` checks.
+- `src/core/remote_data_manager.cpp` included `<pqxx/pqxx>` before `pqxx_time_point_traits.h`, so PostgreSQL headers instantiated `nullness` without the specialization, triggering `has_null` constexpr errors. Removed the standalone include and pulled in `pqxx` through the traits header to ensure the specialization is visible.
 
 ## Priority 1: Remove Fake Data Generation [COMPLETED]
 
