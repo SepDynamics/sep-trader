@@ -35,25 +35,32 @@ cd sep-trader
 
 ## 📋 System Overview
 
-The **SEP Professional Trading System** is a sophisticated quantum-enhanced trading platform that combines:
+The **SEP Professional Trading System** is a modular trading platform composed of separate GPU and CPU services:
 
-- **🧠 Quantum Processing Engine**: Patent-pending Quantum Field Harmonics (QFH) technology
-- **🌐 Modern Web Interface**: Professional React/TypeScript dashboard
+- **🧠 Remote GPU Metrics Engine**: C++/CUDA service that generates trading metrics
+- **🖥️ CPU Trader Frontend**: React/TypeScript dashboard and CLI that operate on standard CPU hardware
+- **📊 Redis Metrics Pipeline**: Streams GPU-generated metrics to the server and UI
 - **⚡ Real-Time Operations**: WebSocket-based live trading and monitoring
 - **🐳 Containerized Deployment**: Docker-based local and production deployment
-- **☁️ Cloud-Native Architecture**: DigitalOcean droplet production deployment
+- **☁️ Cloud-Native Architecture**: Deployable on commodity cloud instances
 
 ### Architecture Highlights
 
 | Component | Technology | Purpose | Status |
 |-----------|------------|---------|--------|
-| **GPU Metrics Engine** | C++/CUDA | Generates trading metrics for Redis | ✅ Operational |
-| **Trader Service** | Python | CPU runtime with REST & WebSocket APIs | ✅ Operational |
-| **Web Dashboard** | React/TypeScript | Trading interface | ✅ Operational |
-| **Redis Cache** | Redis 7 | Shared metrics & session storage | ✅ Operational |
+| **GPU Metrics Engine** | C++/CUDA | Remote strategy and metric computation | ✅ Operational |
+| **Trader Frontend** | React/TypeScript | CPU-runnable interface and CLI | ✅ Operational |
+| **API Gateway** | Python/Flask | REST API and metric ingestion | ✅ Operational |
+| **Real-Time Streamer** | WebSocket/Python | Live data distribution | ✅ Operational |
+| **Redis Layer** | Redis 7 | Metrics bus and session cache | ✅ Operational |
 
-The GPU engine can run on a separate machine and push results to the Redis cache,
-letting the lightweight trader service operate on CPU-only hosts.
+### Current Components
+
+- **GPU Metrics Engine** – runs on dedicated GPU hardware and pushes performance metrics through Redis.
+- **Trader Frontend** – React/TypeScript dashboard and CLI that interact with the API over HTTP/WebSocket.
+- **API Gateway** – Python/Flask service that consumes Redis streams and exposes REST endpoints.
+- **Real-Time Streamer** – Python WebSocket service broadcasting live updates to clients.
+- **Redis Layer** – central cache and message bus linking GPU outputs to CPU services.
 
 ## 📚 Documentation Architecture
 
@@ -64,16 +71,6 @@ letting the lightweight trader service operate on CPU-only hosts.
 | **[System Overview](docs/00_SEP_PROFESSIONAL_SYSTEM_OVERVIEW.md)** | Complete system architecture and operational status | System Architects, Technical Leadership |
 | **[Deployment Guide](docs/01_DEPLOYMENT_INTEGRATION_GUIDE.md)** | Comprehensive deployment and integration procedures | DevOps Engineers, System Integrators |
 | **[Web Interface Architecture](docs/02_WEB_INTERFACE_ARCHITECTURE.md)** | Frontend architecture, API specs, real-time integration | Frontend Developers, API Integrators |
-
-### Legacy Documentation
-
-| Document | Content | Status |
-|----------|---------|--------|
-| [`docs/00_Project_Overview.md`](docs/00_Project_Overview.md) | Original project overview | 📚 Archived |
-| [`docs/01_System_Architecture.md`](docs/01_System_Architecture.md) | Legacy system architecture | 📚 Archived |
-| [`docs/02_Core_Technology.md`](docs/02_Core_Technology.md) | Core technology details | 📚 Archived |
-| [`docs/03_Trading_Strategy.md`](docs/03_Trading_Strategy.md) | Trading strategy documentation | 📚 Archived |
-| [`docs/04_Development_Guide.md`](docs/04_Development_Guide.md) | Development procedures | 📚 Archived |
 
 ## 🏗️ System Architecture
 
@@ -101,6 +98,10 @@ letting the lightweight trader service operate on CPU-only hosts.
 └────────────────────────────────┘
 ```
 
+### GPU/CPU Separation
+
+The GPU metrics engine operates as an independent service and communicates with the CPU-side API and WebSocket services through Redis streams. This separation allows metrics to be generated on remote GPU hardware and pushed to the server for distribution to connected clients.
+
 ## 🚀 Deployment Options
 
 ### 1. Local Development Environment
@@ -121,7 +122,7 @@ letting the lightweight trader service operate on CPU-only hosts.
 ```
 
 **Features:**
-- Full CUDA acceleration support
+- Connects to a remote GPU metrics engine or local GPU if available
 - Hot-reload development workflow
 - Local data persistence
 - Comprehensive debugging capabilities
