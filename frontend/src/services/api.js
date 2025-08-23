@@ -76,6 +76,10 @@ class APIClient {
     return this.request('/api/system-status');
   }
 
+  async getSystemStatusConfig() {
+    return this.request('/api/system-status/config');
+  }
+
   async getHealth() {
     return this.request('/api/health');
   }
@@ -137,6 +141,7 @@ export const {
   getPositions,
   getTradingSignals,
   getSystemStatus,
+  getSystemStatusConfig,
   getHealth,
   getPerformanceMetrics,
   getConfiguration,

@@ -408,6 +408,24 @@ class TradingAPIHandler(BaseHTTPRequestHandler):
                 }
                 self.wfile.write(json.dumps(response).encode())
 
+            elif path == '/api/system-status/config':
+                self.send_response(200)
+                self.send_header('Content-type', 'application/json')
+                self._set_cors_headers()
+                self.end_headers()
+                poll_interval = int(os.environ.get('SYSTEM_STATUS_POLL_INTERVAL_MS', '30000'))
+                components = [
+                    {'name': 'SEP Engine', 'key': 'engine_status'},
+                    {'name': 'Memory Tiers', 'key': 'memory_status'},
+                    {'name': 'Trading System', 'key': 'trading_status'},
+                    {'name': 'WebSocket Service', 'key': 'websocket'},
+                ]
+                response = {
+                    'poll_interval': poll_interval,
+                    'components': components,
+                }
+                self.wfile.write(json.dumps(response).encode())
+
             elif path == '/api/pairs':
                 self.send_response(200)
                 self.send_header('Content-type', 'application/json')
