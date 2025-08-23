@@ -1,13 +1,13 @@
 #!/bin/bash
 
-# SEP Trading System - DigitalOcean PostgreSQL Connection Test Script
-# ===================================================================
+# SEP Trading System - Valkey (Redis-compatible) Connection Test Script
+# =====================================================================
 #
-# This script tests the connection to DigitalOcean managed PostgreSQL
-# with SSL/TLS verification and provides detailed diagnostics.
+# This script tests the connection to the external Valkey database
+# with authentication and provides detailed diagnostics.
 #
 # Usage:
-#   ./scripts/test-db-connection.sh [config_file]
+#   ./scripts/test-valkey-connection.sh [config_file]
 #
 # Arguments:
 #   config_file: Path to environment configuration file (default: config/.sep-config.env)
@@ -72,7 +72,7 @@ validate_config() {
     
     if [ ! -f "$CONFIG_FILE" ]; then
         log_error "Configuration file not found: $CONFIG_FILE"
-        echo "Please create the configuration file or run: ./scripts/setup-digitalocean-config.sh"
+        echo "Please create the configuration file with Valkey credentials."
         return 1
     fi
     
@@ -90,11 +90,10 @@ validate_config() {
     
     # Validate required variables
     local required_vars=(
-        "DB_HOST"
-        "DB_PORT" 
-        "DB_USER"
-        "DB_PASSWORD"
-        "DB_NAME"
+        "REDIS_HOST"
+        "REDIS_PORT" 
+        "REDIS_USER"
+        "REDIS_PASSWORD"
     )
     
     local missing_vars=()
@@ -106,7 +105,7 @@ validate_config() {
     done
     
     if [ ${#missing_vars[@]} -gt 0 ]; then
-        log_error "Missing required configuration variables: ${missing_vars[*]}"
+        log_error "Missing required Valkey configuration variables: ${missing_vars[*]}"
         return 1
     fi
     
@@ -114,60 +113,12 @@ validate_config() {
     
     # Display connection details (without password)
     echo
-    echo "Connection Details:"
-    echo "  Host: $DB_HOST"
-    echo "  Port: $DB_PORT"
-    echo "  Database: $DB_NAME"
-    echo "  User: $DB_USER"
-    echo "  SSL Mode: ${DB_SSL_MODE:-require}"
-    echo "  SSL Cert: ${DB_SSL_ROOT_CERT:-not specified}"
+    echo "Valkey Connection Details:"
+    echo "  Host: $REDIS_HOST"
+    echo "  Port: $REDIS_PORT"
+    echo "  User: $REDIS_USER"
+    echo "  URL: ${REDIS_URL//$REDIS_PASSWORD/****}"
     echo
-}
-
-# =================================================================
-# SSL CERTIFICATE VALIDATION
-# =================================================================
-
-validate_ssl_certificate() {
-    log_test "Validating SSL certificate configuration"
-    
-    if [ -z "${DB_SSL_ROOT_CERT:-}" ]; then
-        log_warning "SSL root certificate path not specified"
-        return 0
-    fi
-    
-    if [ ! -f "$DB_SSL_ROOT_CERT" ]; then
-        log_error "SSL certificate file not found: $DB_SSL_ROOT_CERT"
-        echo "Please download the DigitalOcean CA certificate:"
-        echo "1. Go to DigitalOcean Control Panel > Databases"
-        echo "2. Click your cluster > Overview > Download CA certificate"
-        echo "3. Save as: $DB_SSL_ROOT_CERT"
-        return 1
-    fi
-    
-    # Validate certificate format
-    if ! openssl x509 -in "$DB_SSL_ROOT_CERT" -text -noout &>/dev/null; then
-        log_error "SSL certificate file is invalid or corrupted: $DB_SSL_ROOT_CERT"
-        return 1
-    fi
-    
-    # Check certificate expiration
-    local expiry_date
-    expiry_date=$(openssl x509 -in "$DB_SSL_ROOT_CERT" -noout -enddate | cut -d= -f2)
-    local expiry_epoch
-    expiry_epoch=$(date -d "$expiry_date" +%s)
-    local current_epoch
-    current_epoch=$(date +%s)
-    local days_until_expiry=$(( (expiry_epoch - current_epoch) / 86400 ))
-    
-    if [ $days_until_expiry -lt 0 ]; then
-        log_error "SSL certificate has expired on: $expiry_date"
-        return 1
-    elif [ $days_until_expiry -lt 30 ]; then
-        log_warning "SSL certificate expires in $days_until_expiry days: $expiry_date"
-    fi
-    
-    log_success "SSL certificate validation passed (expires: $expiry_date)"
 }
 
 # =================================================================
@@ -175,11 +126,11 @@ validate_ssl_certificate() {
 # =================================================================
 
 test_network_connectivity() {
-    log_test "Testing network connectivity to $DB_HOST:$DB_PORT"
+    log_test "Testing network connectivity to $REDIS_HOST:$REDIS_PORT"
     
     # Test basic network connectivity
-    if ! timeout 10 bash -c "exec 3<>/dev/tcp/$DB_HOST/$DB_PORT" 2>/dev/null; then
-        log_error "Cannot connect to $DB_HOST:$DB_PORT"
+    if ! timeout 10 bash -c "exec 3<>/dev/tcp/$REDIS_HOST/$REDIS_PORT" 2>/dev/null; then
+        log_error "Cannot connect to $REDIS_HOST:$REDIS_PORT"
         echo "Possible causes:"
         echo "- Incorrect hostname or port"
         echo "- Network connectivity issues"
@@ -193,136 +144,121 @@ test_network_connectivity() {
 }
 
 test_dns_resolution() {
-    log_test "Testing DNS resolution for $DB_HOST"
+    log_test "Testing DNS resolution for $REDIS_HOST"
     
     local ip_address
-    if ! ip_address=$(dig +short "$DB_HOST" | head -1); then
-        log_error "DNS resolution failed for $DB_HOST"
+    if ! ip_address=$(dig +short "$REDIS_HOST" | head -1); then
+        log_error "DNS resolution failed for $REDIS_HOST"
         return 1
     fi
     
     if [ -z "$ip_address" ]; then
-        log_error "No IP address resolved for $DB_HOST"
+        log_error "No IP address resolved for $REDIS_HOST"
         return 1
     fi
     
-    log_success "DNS resolution successful: $DB_HOST -> $ip_address"
+    log_success "DNS resolution successful: $REDIS_HOST -> $ip_address"
 }
 
 # =================================================================
-# DATABASE CONNECTION TESTS
+# VALKEY/REDIS CONNECTION TESTS
 # =================================================================
 
 test_basic_connection() {
-    log_test "Testing basic PostgreSQL connection"
+    log_test "Testing basic Valkey connection"
     
-    local ssl_args=""
-    if [ -n "${DB_SSL_ROOT_CERT:-}" ] && [ -f "$DB_SSL_ROOT_CERT" ]; then
-        ssl_args="--set=sslmode=${DB_SSL_MODE:-require} --set=sslrootcert=$DB_SSL_ROOT_CERT"
-    else
-        ssl_args="--set=sslmode=${DB_SSL_MODE:-require}"
-    fi
-    
-    local psql_output
-    if ! psql_output=$(PGPASSWORD="$DB_PASSWORD" psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" $ssl_args -c "SELECT 1;" 2>&1); then
-        log_error "Basic database connection failed"
+    local redis_output
+    if ! redis_output=$(redis-cli -h "$REDIS_HOST" -p "$REDIS_PORT" --user "$REDIS_USER" --pass "$REDIS_PASSWORD" ping 2>&1); then
+        log_error "Basic Valkey connection failed"
         echo "Common issues:"
         echo "- Incorrect credentials"
-        echo "- Database cluster not running"
+        echo "- Valkey service not running"
         echo "- IP address not in trusted sources"
-        echo "- SSL configuration issues"
-        if [ -n "$psql_output" ]; then
+        echo "- Authentication issues"
+        if [ -n "$redis_output" ]; then
             echo
-            echo -e "${RED}psql error output:${NC}"
-            # Indent the output for readability
-            echo "$psql_output" | sed 's/^/  /'
+            echo -e "${RED}redis-cli error output:${NC}"
+            echo "$redis_output" | sed 's/^/  /'
         fi
         return 1
     fi
     
-    log_success "Basic database connection test passed"
-}
-
-test_ssl_connection() {
-    log_test "Testing SSL/TLS connection security"
-    
-    local ssl_args=""
-    if [ -n "${DB_SSL_ROOT_CERT:-}" ] && [ -f "$DB_SSL_ROOT_CERT" ]; then
-        ssl_args="--set=sslmode=${DB_SSL_MODE:-require} --set=sslrootcert=$DB_SSL_ROOT_CERT"
+    if [ "$redis_output" = "PONG" ]; then
+        log_success "Basic Valkey connection test passed"
     else
-        ssl_args="--set=sslmode=${DB_SSL_MODE:-require}"
-    fi
-    
-    # Test SSL connection with certificate verification
-    local ssl_info
-    if ssl_info=$(PGPASSWORD="$DB_PASSWORD" psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" $ssl_args -c "SELECT ssl_version();" -t 2>/dev/null | xargs); then
-        log_success "SSL connection established with protocol: $ssl_info"
-    else
-        log_error "SSL connection test failed"
+        log_error "Unexpected response from Valkey: $redis_output"
         return 1
     fi
+}
+
+test_authentication() {
+    log_test "Testing Valkey authentication"
     
-    # Test SSL certificate verification (if verify-full mode)
-    if [ "${DB_SSL_MODE:-}" = "verify-full" ]; then
-        log_test "Testing SSL certificate verification (verify-full mode)"
-        if PGPASSWORD="$DB_PASSWORD" psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" --set=sslmode=verify-full --set=sslrootcert="$DB_SSL_ROOT_CERT" -c "SELECT 1;" &>/dev/null; then
-            log_success "SSL certificate verification passed"
-        else
-            log_error "SSL certificate verification failed"
-            return 1
+    # Test authentication with wrong credentials
+    if redis-cli -h "$REDIS_HOST" -p "$REDIS_PORT" --user "$REDIS_USER" --pass "wrongpassword" ping &>/dev/null; then
+        log_warning "Authentication test inconclusive - wrong password accepted"
+    else
+        log_success "Authentication properly rejects incorrect credentials"
+    fi
+    
+    # Test with correct credentials
+    if redis-cli -h "$REDIS_HOST" -p "$REDIS_PORT" --user "$REDIS_USER" --pass "$REDIS_PASSWORD" auth "$REDIS_USER" "$REDIS_PASSWORD" &>/dev/null; then
+        log_success "Authentication with correct credentials successful"
+    else
+        log_error "Authentication failed with correct credentials"
+        return 1
+    fi
+}
+
+test_valkey_info() {
+    log_test "Retrieving Valkey server information"
+    
+    local server_info
+    server_info=$(redis-cli -h "$REDIS_HOST" -p "$REDIS_PORT" --user "$REDIS_USER" --pass "$REDIS_PASSWORD" info server 2>/dev/null)
+    
+    if [ -n "$server_info" ]; then
+        local redis_version
+        redis_version=$(echo "$server_info" | grep "redis_version:" | cut -d: -f2 | tr -d '\r')
+        if [ -n "$redis_version" ]; then
+            log_success "Valkey server version: $redis_version"
         fi
+        
+        local redis_mode
+        redis_mode=$(echo "$server_info" | grep "redis_mode:" | cut -d: -f2 | tr -d '\r')
+        if [ -n "$redis_mode" ]; then
+            echo "Server mode: $redis_mode"
+        fi
+    else
+        log_error "Could not retrieve Valkey server information"
+        return 1
     fi
 }
 
-test_database_version() {
-    log_test "Retrieving database version and connection info"
+test_basic_operations() {
+    log_test "Testing basic Valkey operations"
     
-    local ssl_args=""
-    if [ -n "${DB_SSL_ROOT_CERT:-}" ] && [ -f "$DB_SSL_ROOT_CERT" ]; then
-        ssl_args="--set=sslmode=${DB_SSL_MODE:-require} --set=sslrootcert=$DB_SSL_ROOT_CERT"
-    else
-        ssl_args="--set=sslmode=${DB_SSL_MODE:-require}"
-    fi
+    local test_key="sep_test_$(date +%s)"
+    local test_value="test_value_$(date +%s)"
     
-    local version_info
-    version_info=$(PGPASSWORD="$DB_PASSWORD" psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" $ssl_args -c "SELECT version();" -t 2>/dev/null | head -1 | xargs)
-    
-    if [ -n "$version_info" ]; then
-        log_success "Database version: $version_info"
-    else
-        log_error "Could not retrieve database version"
+    # Test SET operation
+    if ! redis-cli -h "$REDIS_HOST" -p "$REDIS_PORT" --user "$REDIS_USER" --pass "$REDIS_PASSWORD" set "$test_key" "$test_value" &>/dev/null; then
+        log_error "Failed to SET test key"
         return 1
     fi
     
-    # Get connection count and limits
-    local connection_info
-    connection_info=$(PGPASSWORD="$DB_PASSWORD" psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" $ssl_args -c "SELECT current_setting('max_connections') as max_conn, count(*) as current_conn FROM pg_stat_activity;" -t 2>/dev/null)
+    # Test GET operation
+    local retrieved_value
+    retrieved_value=$(redis-cli -h "$REDIS_HOST" -p "$REDIS_PORT" --user "$REDIS_USER" --pass "$REDIS_PASSWORD" get "$test_key" 2>/dev/null)
     
-    if [ -n "$connection_info" ]; then
-        echo "Connection Info: $connection_info"
-    fi
-}
-
-# =================================================================
-# CONNECTION POOL TESTS
-# =================================================================
-
-test_connection_pool() {
-    if [ "${DB_POOL_ENABLED:-false}" != "true" ]; then
-        log_info "Connection pooling not enabled, skipping pool tests"
-        return 0
+    if [ "$retrieved_value" = "$test_value" ]; then
+        log_success "Basic SET/GET operations working correctly"
+    else
+        log_error "GET operation returned unexpected value: $retrieved_value"
+        return 1
     fi
     
-    log_test "Testing connection pool configuration"
-    
-    # Test if PgBouncer or connection pooling is available
-    # This would need to be implemented based on your specific setup
-    log_info "Connection pool testing would be implemented based on your pooling setup"
-    
-    # Example test for DigitalOcean connection pools
-    if [ -n "${DATABASE_POOL_URL:-}" ]; then
-        log_info "Connection pool URL configured: ${DATABASE_POOL_URL//$DB_PASSWORD/****}"
-    fi
+    # Cleanup test key
+    redis-cli -h "$REDIS_HOST" -p "$REDIS_PORT" --user "$REDIS_USER" --pass "$REDIS_PASSWORD" del "$test_key" &>/dev/null
 }
 
 # =================================================================
@@ -332,22 +268,15 @@ test_connection_pool() {
 test_connection_performance() {
     log_test "Testing connection performance"
     
-    local ssl_args=""
-    if [ -n "${DB_SSL_ROOT_CERT:-}" ] && [ -f "$DB_SSL_ROOT_CERT" ]; then
-        ssl_args="--set=sslmode=${DB_SSL_MODE:-require} --set=sslrootcert=$DB_SSL_ROOT_CERT"
-    else
-        ssl_args="--set=sslmode=${DB_SSL_MODE:-require}"
-    fi
-    
     # Measure connection time
     local start_time end_time duration
     start_time=$(date +%s.%N)
     
-    if PGPASSWORD="$DB_PASSWORD" psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" $ssl_args -c "SELECT pg_sleep(0.1);" &>/dev/null; then
+    if redis-cli -h "$REDIS_HOST" -p "$REDIS_PORT" --user "$REDIS_USER" --pass "$REDIS_PASSWORD" ping &>/dev/null; then
         end_time=$(date +%s.%N)
         duration=$(echo "$end_time - $start_time" | bc -l)
         
-        if (( $(echo "$duration > 5.0" | bc -l) )); then
+        if (( $(echo "$duration > 2.0" | bc -l) )); then
             log_warning "Connection time is slow: ${duration}s"
         else
             log_success "Connection time: ${duration}s"
@@ -363,7 +292,7 @@ test_connection_performance() {
 # =================================================================
 
 main() {
-    echo "SEP Trading System - DigitalOcean PostgreSQL Connection Test"
+    echo "SEP Trading System - Valkey Database Connection Test"
     print_separator
     echo "Configuration: $CONFIG_FILE"
     echo "Timestamp: $(date)"
@@ -372,13 +301,12 @@ main() {
     
     # Run all tests
     validate_config || exit 1
-    validate_ssl_certificate
     test_dns_resolution
     test_network_connectivity
     test_basic_connection
-    test_ssl_connection
-    test_database_version
-    test_connection_pool
+    test_authentication
+    test_valkey_info
+    test_basic_operations
     test_connection_performance
     
     # Print summary
@@ -391,7 +319,7 @@ main() {
     echo
     
     if [ $TESTS_FAILED -eq 0 ]; then
-        log_success "All tests passed! Database connection is ready for production."
+        log_success "All tests passed! Valkey database connection is ready for production."
         exit 0
     else
         log_error "Some tests failed. Please resolve the issues before proceeding."
@@ -400,13 +328,17 @@ main() {
 }
 
 # Check requirements
-if ! command -v psql &> /dev/null; then
-    log_error "psql client is not installed. Please install PostgreSQL client tools."
+if ! command -v redis-cli &> /dev/null; then
+    log_error "redis-cli client is not installed. Please install Redis client tools."
     exit 1
 fi
 
-if ! command -v openssl &> /dev/null; then
-    log_warning "openssl is not available. SSL certificate validation will be limited."
+if ! command -v dig &> /dev/null; then
+    log_warning "dig is not available. DNS resolution tests will be limited."
+fi
+
+if ! command -v bc &> /dev/null; then
+    log_warning "bc is not available. Performance timing will be limited."
 fi
 
 # Run main function

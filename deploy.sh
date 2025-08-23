@@ -189,14 +189,9 @@ health_check() {
         log_warning "WebSocket Service: Not accessible"
     fi
     
-    # Check Redis (if local)
-    if [ "$target" = "local" ] && nc -z localhost 6380 &> /dev/null; then
-        log_success "Redis: Healthy"
-    elif [ "$target" = "droplet" ] && nc -z "$DROPLET_IP" 6380 &> /dev/null; then
-        log_success "Redis: Healthy"
-    else
-        log_warning "Redis: Not accessible"
-    fi
+    # Check External Valkey Database (Redis-compatible)
+    # Note: External database connectivity will be validated by the application services
+    log_info "External Valkey Database: Using external DigitalOcean managed instance"
 }
 
 show_logs() {
