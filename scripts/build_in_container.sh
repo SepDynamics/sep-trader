@@ -20,7 +20,6 @@ cmake .. -G Ninja \
     -DCMAKE_BUILD_WITH_INSTALL_RPATH=ON \
     -DCMAKE_EXPORT_COMPILE_COMMANDS=TRUE \
     -DSEP_USE_CUDA=ON \
-    -DSEP_USE_GUI=OFF \
     -DCMAKE_CXX_FLAGS="-Wno-pedantic -Wno-unknown-warning-option -Wno-invalid-source-encoding -D_GLIBCXX_USE_CXX11_ABI=0" \
     -DCMAKE_CXX_STANDARD=20 \
     -DCMAKE_CUDA_FLAGS="-Wno-deprecated-gpu-targets -Xcompiler -Wno-pedantic -Xcompiler -Wno-unknown-warning-option -Xcompiler -Wno-invalid-source-encoding -D_GLIBCXX_USE_CXX11_ABI=0"
