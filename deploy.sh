@@ -13,7 +13,7 @@ BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
 # Configuration
-DROPLET_IP="165.227.109.187"
+DROPLET_IP="129.212.145.195"
 DROPLET_USER="root"
 PROJECT_NAME="sep-trading"
 LOCAL_COMPOSE_FILE="docker-compose.production.yml"
@@ -37,6 +37,7 @@ log_error() {
 }
 
 check_dependencies() {
+    local target=${1:-"local"}
     log_info "Checking system dependencies..."
     
     # Check Docker
@@ -51,8 +52,8 @@ check_dependencies() {
         exit 1
     fi
     
-    # Check ssh access to droplet
-    if [ -n "$DROPLET_IP" ] && ! ssh -o ConnectTimeout=10 -o StrictHostKeyChecking=no "$DROPLET_USER@$DROPLET_IP" "echo 'SSH OK'" &> /dev/null; then
+    # Check ssh access to droplet only for droplet deployments
+    if [ "$target" = "droplet" ] && [ -n "$DROPLET_IP" ] && ! ssh -o ConnectTimeout=10 -o StrictHostKeyChecking=no "$DROPLET_USER@$DROPLET_IP" "echo 'SSH OK'" &> /dev/null; then
         log_error "Cannot connect to droplet $DROPLET_IP via SSH."
         log_error "Please ensure SSH keys are configured and droplet is accessible."
         exit 1
@@ -313,7 +314,7 @@ show_help() {
 # Main script logic
 case "${1:-help}" in
     "local")
-        check_dependencies
+        check_dependencies "local"
         setup_local_environment
         start_local_services
         sleep 10
@@ -324,7 +325,7 @@ case "${1:-help}" in
         log_info "WebSocket: ws://localhost:8765"
         ;;
     "deploy")
-        check_dependencies
+        check_dependencies "droplet"
         deploy_to_droplet
         sleep 15
         health_check "droplet"

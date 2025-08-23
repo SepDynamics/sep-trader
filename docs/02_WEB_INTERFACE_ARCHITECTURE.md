@@ -566,7 +566,7 @@ const CORS_CONFIG = {
   origins: [
     'http://localhost:3000',  // Development frontend
     'http://localhost',       // Production frontend  
-    'http://165.227.109.187', // Remote production
+    'http://129.212.145.195', // Remote production
   ],
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   allowedHeaders: ['Content-Type', 'X-SEP-API-KEY'],

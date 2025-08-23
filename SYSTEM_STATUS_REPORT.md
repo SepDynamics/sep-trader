@@ -118,7 +118,7 @@ Damping - lambda: 0.436532, V_i: 0.0131728
 #### **Remote Connection Verification**
 ```bash
 🌐 Configuring remote trader connection...
-Remote IP: 165.227.109.187
+Remote IP: 129.212.145.195
 [2025-08-20 04:42:39.569] [info] Remote trader connection configured
 ```
 

@@ -41,7 +41,7 @@ cd sep-trader
 ### Step 2: Configure Remote Credentials
 ```bash
 # SSH to droplet
-ssh root@165.227.109.187
+ssh root@129.212.145.195
 
 # Configure OANDA credentials
 cd /opt/sep-trader
@@ -106,7 +106,7 @@ echo 'pattern test { print("Local system ready!") }' > test.sep
 ./scripts/sync_to_droplet.sh
 
 # 3. Monitor remote trading (SSH to droplet)
-ssh root@165.227.109.187
+ssh root@129.212.145.195
 cd /opt/sep-trader/sep-trader
 docker-compose logs -f sep-trader
 ```
@@ -114,15 +114,15 @@ docker-compose logs -f sep-trader
 ### System Monitoring
 ```bash
 # Check remote system health
-curl http://165.227.109.187/health
-curl http://165.227.109.187/api/status
+curl http://129.212.145.195/health
+curl http://129.212.145.195/api/status
 
 # View trading logs
-ssh root@165.227.109.187
+ssh root@129.212.145.195
 tail -f /opt/sep-trader/logs/trading_service.log
 
 # Monitor PostgreSQL
-ssh root@165.227.109.187
+ssh root@129.212.145.195
 sudo -u postgres psql sep_trading -c "SELECT count(*) FROM trades;"
 ```
 
@@ -195,8 +195,8 @@ curl -X POST http://localhost:8080/api/data/reload  # Reload configuration
 export LD_LIBRARY_PATH=./build/src/core:./build/src/config:./build/src/c_api
 
 # Droplet connection problems
-ssh-keygen -R 165.227.109.187  # Remove old host key
-ssh root@165.227.109.187
+ssh-keygen -R 129.212.145.195  # Remove old host key
+ssh root@129.212.145.195
 
 # Docker service issues
 docker-compose down && docker-compose up -d
@@ -208,7 +208,7 @@ docker-compose down && docker-compose up -d
 ./build/src/cli/trader-cli status
 
 # Remote system health
-curl http://165.227.109.187/health
+curl http://129.212.145.195/health
 
 # End-to-end workflow test
 ./scripts/sync_to_droplet.sh

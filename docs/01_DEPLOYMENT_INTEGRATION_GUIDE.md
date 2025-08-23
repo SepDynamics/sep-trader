@@ -178,7 +178,7 @@ The complete droplet deployment process is automated through `deploy_to_droplet_
 
 ```bash
 # Configure droplet details
-export DROPLET_IP="165.227.109.187"
+export DROPLET_IP="129.212.145.195"
 export DROPLET_USER="root"
 
 # Execute complete deployment
@@ -199,7 +199,7 @@ This script performs:
 #### Step 1: Droplet Preparation
 ```bash
 # SSH to droplet
-ssh root@165.227.109.187
+ssh root@129.212.145.195
 
 # System updates
 apt-get update && apt-get upgrade -y
@@ -263,9 +263,9 @@ docker-compose -f docker-compose.production.yml up -d
 #### Step 6: Production Validation
 ```bash
 # Service health checks
-curl -f http://165.227.109.187:5000/api/health
-curl -f http://165.227.109.187/health
-nc -z 165.227.109.187 8765
+curl -f http://129.212.145.195:5000/api/health
+curl -f http://129.212.145.195/health
+nc -z 129.212.145.195 8765
 
 # Container status
 docker-compose -f docker-compose.production.yml ps
@@ -314,7 +314,7 @@ DATABASE_URL=postgresql://user:pass@localhost:5432/sep_trading
 
 # API configuration
 API_KEY_HEADER=X-SEP-API-KEY
-CORS_ORIGINS=http://localhost,http://165.227.109.187
+CORS_ORIGINS=http://localhost,http://129.212.145.195
 ```
 
 #### Frontend Environment
@@ -325,8 +325,8 @@ REACT_APP_WS_URL=ws://localhost:8765
 REACT_APP_ENVIRONMENT=development
 
 # Production
-REACT_APP_API_URL=http://165.227.109.187:5000
-REACT_APP_WS_URL=ws://165.227.109.187:8765
+REACT_APP_API_URL=http://129.212.145.195:5000
+REACT_APP_WS_URL=ws://129.212.145.195:8765
 REACT_APP_ENVIRONMENT=production
 ```
 
