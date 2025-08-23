@@ -31,6 +31,8 @@ struct FusedSignal {
     std::vector<AssetSignal> contributing_signals;
     double cross_asset_coherence;   // Agreement level across correlated assets
     double signal_strength;         // Overall signal strength (0.0 to 1.0)
+    std::string input_hash;         // Hash of contributing signals
+    std::string config_version;     // Configuration version tag
 };
 
 struct CrossAssetCorrelation {
