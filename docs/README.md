@@ -21,12 +21,16 @@ cd sep-trader
 # Local development deployment
 ./install.sh --minimal --no-docker
 ./build.sh --no-docker
-./deploy.sh start
+./deploy.sh start    # launches Redis, trader service, WebSocket, and frontend
+
+# Optional: run GPU metrics engine (can run remotely with REDIS_HOST/PORT)
+./bin/quantum_pair_trainer &
 
 # Access the system
 # Web Interface: http://localhost
-# Backend API:   http://localhost:5000  
+# Backend API:   http://localhost:5000
 # WebSocket:     ws://localhost:8765
+# Redis:         redis://localhost:6380
 ```
 
 ## 📋 System Overview
@@ -70,38 +74,28 @@ The **SEP Professional Trading System** is a modular trading platform composed o
 
 ## 🏗️ System Architecture
 
-### Three-Tier Professional Architecture
+### Decoupled GPU/CPU Architecture
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                    Presentation Layer                       │
-│                                                             │
-│    React/TypeScript Web Dashboard + Mobile Interface       │
-│    • Real-time trading dashboard                           │
-│    • Performance analytics and charting                    │
-│    • Configuration management                              │
-│    • System monitoring and alerts                          │
-└─────────────────────┬───────────────────────────────────────┘
-                      │
-┌─────────────────────┴───────────────────────────────────────┐
-│                    Service Layer                            │
-│                                                             │
-│    Python/Flask Services + WebSocket Integration           │
-│    • RESTful API (15+ endpoints)                          │
-│    • Real-time WebSocket services                         │
-│    • CLI-Web integration bridge                           │
-│    • Authentication and session management                │
-└─────────────────────┬───────────────────────────────────────┘
-                      │
-┌─────────────────────┴───────────────────────────────────────┐
-│                     Core Engine Layer                       │
-│                                                             │
-│    C++/CUDA Quantum Processing Engine                      │
-│    • Quantum Field Harmonics (QFH) algorithms             │
-│    • Pattern recognition and signal generation            │
-│    • Risk management and position optimization            │
-│    • High-frequency data processing                       │
-└─────────────────────────────────────────────────────────────┘
+┌───────────────────────────┐
+│   GPU Metrics Engine      │
+│ (quantum_pair_trainer)    │
+└──────────────┬────────────┘
+               │ publishes metrics
+               ▼
+           ┌────────┐
+           │ Redis  │
+           └────┬───┘
+                │ consumes metrics
+┌───────────────▼───────────────┐
+│        Trader Service         │
+│  REST + WebSocket API (CPU)   │
+└───────────────┬───────────────┘
+                │
+                ▼
+┌────────────────────────────────┐
+│      React Web Dashboard       │
+└────────────────────────────────┘
 ```
 
 ### GPU/CPU Separation
@@ -122,8 +116,9 @@ The GPU metrics engine operates as an independent service and communicates with 
 
 # Services available at:
 # http://localhost      - Web Dashboard
-# http://localhost:5000 - API Backend  
+# http://localhost:5000 - API Backend
 # ws://localhost:8765   - WebSocket Service
+# redis://localhost:6380 - Redis Cache
 ```
 
 **Features:**
