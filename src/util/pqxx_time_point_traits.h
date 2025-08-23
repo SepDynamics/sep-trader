@@ -17,16 +17,16 @@ namespace pqxx {
 }
 
 namespace pqxx {
-    // Partial specialization for std::chrono::system_clock::time_point with any duration
+    // Partial specialization for std::chrono::sys_time (system_clock::time_point)
     template <typename Duration>
-    struct string_traits<std::chrono::time_point<std::chrono::system_clock, Duration>> {
-        using subject_type = std::chrono::time_point<std::chrono::system_clock, Duration>;
+    struct string_traits<std::chrono::sys_time<Duration>> {
+        using subject_type = std::chrono::sys_time<Duration>;
 
         static constexpr const char* name() noexcept { return "time_point"; }
 
         // Provide constexpr flags for pqxx::nullness detection
-        static constexpr bool has_null = true;
-        static constexpr bool always_null = false;
+        inline static constexpr bool has_null = true;
+        inline static constexpr bool always_null = false;
 
         static bool is_null(const subject_type& obj) {
             // A time_point is never conceptually "null". If you use epoch as a sentinel, check here.
