@@ -21,12 +21,16 @@ cd sep-trader
 # Local development deployment
 ./install.sh --minimal --no-docker
 ./build.sh --no-docker
-./deploy.sh start
+./deploy.sh start    # launches Redis, trader service, WebSocket, and frontend
+
+# Optional: run GPU metrics engine (can run remotely with REDIS_HOST/PORT)
+./bin/quantum_pair_trainer &
 
 # Access the system
 # Web Interface: http://localhost
-# Backend API:   http://localhost:5000  
+# Backend API:   http://localhost:5000
 # WebSocket:     ws://localhost:8765
+# Redis:         redis://localhost:6380
 ```
 
 ## 📋 System Overview
@@ -43,11 +47,13 @@ The **SEP Professional Trading System** is a sophisticated quantum-enhanced trad
 
 | Component | Technology | Purpose | Status |
 |-----------|------------|---------|--------|
-| **Core Engine** | C++/CUDA | Quantum pattern analysis | ✅ Operational |
+| **GPU Metrics Engine** | C++/CUDA | Generates trading metrics for Redis | ✅ Operational |
+| **Trader Service** | Python | CPU runtime with REST & WebSocket APIs | ✅ Operational |
 | **Web Dashboard** | React/TypeScript | Trading interface | ✅ Operational |
-| **API Services** | Python/Flask | REST API backend | ✅ Operational |
-| **Real-Time Service** | WebSocket/Python | Live data streaming | ✅ Operational |
-| **Cache Layer** | Redis 7 | Session & data caching | ✅ Operational |
+| **Redis Cache** | Redis 7 | Shared metrics & session storage | ✅ Operational |
+
+The GPU engine can run on a separate machine and push results to the Redis cache,
+letting the lightweight trader service operate on CPU-only hosts.
 
 ## 📚 Documentation Architecture
 
@@ -71,38 +77,28 @@ The **SEP Professional Trading System** is a sophisticated quantum-enhanced trad
 
 ## 🏗️ System Architecture
 
-### Three-Tier Professional Architecture
+### Decoupled GPU/CPU Architecture
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                    Presentation Layer                       │
-│                                                             │
-│    React/TypeScript Web Dashboard + Mobile Interface       │
-│    • Real-time trading dashboard                           │
-│    • Performance analytics and charting                    │
-│    • Configuration management                              │
-│    • System monitoring and alerts                          │
-└─────────────────────┬───────────────────────────────────────┘
-                      │
-┌─────────────────────┴───────────────────────────────────────┐
-│                    Service Layer                            │
-│                                                             │
-│    Python/Flask Services + WebSocket Integration           │
-│    • RESTful API (15+ endpoints)                          │
-│    • Real-time WebSocket services                         │
-│    • CLI-Web integration bridge                           │
-│    • Authentication and session management                │
-└─────────────────────┬───────────────────────────────────────┘
-                      │
-┌─────────────────────┴───────────────────────────────────────┐
-│                     Core Engine Layer                       │
-│                                                             │
-│    C++/CUDA Quantum Processing Engine                      │
-│    • Quantum Field Harmonics (QFH) algorithms             │
-│    • Pattern recognition and signal generation            │
-│    • Risk management and position optimization            │
-│    • High-frequency data processing                       │
-└─────────────────────────────────────────────────────────────┘
+┌───────────────────────────┐
+│   GPU Metrics Engine      │
+│ (quantum_pair_trainer)    │
+└──────────────┬────────────┘
+               │ publishes metrics
+               ▼
+           ┌────────┐
+           │ Redis  │
+           └────┬───┘
+                │ consumes metrics
+┌───────────────▼───────────────┐
+│        Trader Service         │
+│  REST + WebSocket API (CPU)   │
+└───────────────┬───────────────┘
+                │
+                ▼
+┌────────────────────────────────┐
+│      React Web Dashboard       │
+└────────────────────────────────┘
 ```
 
 ## 🚀 Deployment Options
@@ -119,8 +115,9 @@ The **SEP Professional Trading System** is a sophisticated quantum-enhanced trad
 
 # Services available at:
 # http://localhost      - Web Dashboard
-# http://localhost:5000 - API Backend  
+# http://localhost:5000 - API Backend
 # ws://localhost:8765   - WebSocket Service
+# redis://localhost:6380 - Redis Cache
 ```
 
 **Features:**
