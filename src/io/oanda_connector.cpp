@@ -971,3 +971,38 @@ void OandaConnector::saveToCache(const std::string& filename, const std::vector<
 
 } // namespace connectors
 }  // namespace sep
+
+std::vector<sep::connectors::OandaCandle> sep::connectors::OandaConnector::getHistoricalData(
+    const std::string& instrument,
+    const std::string& granularity,
+    int count) {
+
+    std::vector<OandaCandle> candles;
+
+    std::string endpoint = "/v3/instruments/" + instrument + "/candles";
+    endpoint += "?granularity=" + granularity;
+    endpoint += "&count=" + std::to_string(count);
+
+    try {
+        auto response = makeRequest(endpoint);
+        if (response.response_code == 200) {
+            auto json_response = nlohmann::json::parse(response.data);
+            if (json_response.contains("candles") && json_response["candles"].is_array()) {
+                for (const auto& candle_json : json_response["candles"]) {
+                    auto parsed_candle = parseCandle(candle_json);
+                    if (!parsed_candle.time.empty()) {
+                        candles.push_back(std::move(parsed_candle));
+                    }
+                }
+            }
+        } else {
+            std::cerr << "[OANDA] HTTP Error " << response.response_code << " for endpoint: " << endpoint << std::endl;
+            std::cerr << "[OANDA] Response: " << response.data << std::endl;
+        }
+    } catch (const std::exception& e) {
+        std::cerr << "[OANDA] Exception in getHistoricalData: " << e.what() << std::endl;
+        std::cerr << "[OANDA] Endpoint: " << endpoint << std::endl;
+    }
+    
+    return candles;
+}

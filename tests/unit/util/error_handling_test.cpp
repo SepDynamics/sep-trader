@@ -32,10 +32,10 @@ TEST_F(ErrorHandlingTest, Initialization) {
 // Test error reporting
 TEST_F(ErrorHandlingTest, ErrorReporting) {
     // Test reporting a system error
-    SEP_REPORT_SYSTEM_ERROR(SEP_ERROR_ERROR, EINVAL, "Test system error");
+    SEP_REPORT_SYSTEM_ERROR(SEP_ERROR_LEVEL::SEP_ERROR_ERROR, EINVAL, "Test system error");
     
     // Test reporting a CUDA error
-    SEP_REPORT_CUDA_ERROR(SEP_ERROR_ERROR, 1, "Test CUDA error");
+    SEP_REPORT_CUDA_ERROR(SEP_ERROR_LEVEL::SEP_ERROR_ERROR, 1, "Test CUDA error");
     
     // Test checking for NULL pointer
     int* ptr = nullptr;
@@ -79,7 +79,7 @@ TEST_F(ErrorHandlingTest, ErrorCallback) {
     sep_error_set_callback(callback);
     
     // Trigger an error
-    SEP_REPORT_SYSTEM_ERROR(SEP_ERROR_WARNING, EACCES, "Test callback");
+    SEP_REPORT_SYSTEM_ERROR(SEP_ERROR_LEVEL::SEP_ERROR_WARNING, EACCES, "Test callback");
     
     // Check that callback was called
     EXPECT_TRUE(callback_called);

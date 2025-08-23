@@ -102,10 +102,10 @@ if [ "$NATIVE_BUILD" = true ] || [ "$SKIP_DOCKER" = true ] || ! "$DOCKER_BIN" in
         -DCMAKE_C_COMPILER=gcc-11 \
         -DCMAKE_BUILD_WITH_INSTALL_RPATH=ON \
         -DCMAKE_EXPORT_COMPILE_COMMANDS=TRUE \
-        -DSEP_USE_GUI=OFF -DCMAKE_CXX_STANDARD=17 \
-        -DCMAKE_CXX_FLAGS="-std=c++17 -Wno-unknown-warning-option -Wno-invalid-source-encoding -D_GLIBCXX_USE_CXX11_ABI=0 -Wno-cpp" \
+        -DSEP_USE_GUI=OFF -DCMAKE_CXX_STANDARD=20 \
+        -DCMAKE_CXX_FLAGS="-std=c++20 -Wno-unknown-warning-option -Wno-invalid-source-encoding -D_GLIBCXX_USE_CXX11_ABI=0 -Wno-cpp" \
         -DCMAKE_CUDA_FLAGS="-Wno-deprecated-gpu-targets -Xcompiler -Wno-unknown-warning-option -Xcompiler -Wno-invalid-source-encoding -D_GLIBCXX_USE_CXX11_ABI=0 -Xcompiler -Wno-cpp -Xcompiler -D_DISABLE_FPCLASSIFY_FUNCTIONS=1 -Xcompiler -D__CUDA_INCLUDE_COMPILER_INTERNAL_HEADERS=1" \
-        -DCMAKE_CUDA_STANDARD=17 \
+        -DCMAKE_CUDA_STANDARD=20 \
         $CUDA_FLAGS
 
     # Build with ninja using system libraries
@@ -144,10 +144,10 @@ echo "Mounting local directory $(pwd) to /sep in the container."
         -DCMAKE_EXPORT_COMPILE_COMMANDS=TRUE \
         -DSEP_USE_CUDA=ON \
         -DSEP_USE_GUI=OFF \
-        -DCMAKE_CXX_STANDARD=17 \
-        -DCMAKE_CUDA_STANDARD=17 \
-        -DCMAKE_CXX_FLAGS="-std=c++17 -Wno-unknown-warning-option -Wno-invalid-source-encoding -D_GLIBCXX_USE_CXX11_ABI=0 -Wno-cpp" \
-        -DCMAKE_CUDA_FLAGS="-Wno-deprecated-gpu-targets -Xcompiler -Wno-unknown-warning-option -Xcompiler -Wno-invalid-source-encoding -D_GLIBCXX_USE_CXX11_ABI=0 -Xcompiler -Wno-cpp -std=c++17"
+        -DCMAKE_CXX_STANDARD=20 \
+        -DCMAKE_CUDA_STANDARD=20 \
+        -DCMAKE_CXX_FLAGS="-std=c++20 -Wno-unknown-warning-option -Wno-invalid-source-encoding -D_GLIBCXX_USE_CXX11_ABI=0 -Wno-cpp" \
+                -DCMAKE_CUDA_FLAGS="-Wno-deprecated-gpu-targets -Xcompiler -Wno-unknown-warning-option -Xcompiler -Wno-invalid-source-encoding -D_GLIBCXX_USE_CXX11_ABI=0 -Xcompiler -Wno-cpp -std=c++20"\
     
     ninja -k 0 2>&1 | tee /sep/output/build_log.txt
     

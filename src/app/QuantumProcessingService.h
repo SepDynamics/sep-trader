@@ -34,7 +34,7 @@ public:
     /**
      * Constructor
      */
-    QuantumProcessingService();
+    QuantumProcessingService() : ServiceBase("QuantumProcessingService", "1.0") {}
     
     /**
      * Destructor

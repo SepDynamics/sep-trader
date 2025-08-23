@@ -1,5 +1,6 @@
 #include "gtest/gtest.h"
 #include "util/compiler.h"
+#include "util/nodes.h"
 #include "util/time_series.h"
 #include <memory>
 #include <vector>

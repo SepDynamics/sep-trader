@@ -491,3 +491,19 @@ std::vector<EnhancedMarketModelCache::ProcessedSignal> EnhancedMarketModelCache:
 }
 
 } // namespace sep::cache
+
+std::vector<sep::Candle> sep::cache::EnhancedMarketModelCache::getRecentCandles(const std::string& pair, int count) {
+    std::vector<Candle> candles;
+    auto oanda_candles = oanda_connector_->getHistoricalData(pair, "M1", count);
+    for (const auto& o_candle : oanda_candles) {
+        Candle c;
+        c.time = o_candle.time;
+        c.open = o_candle.open;
+        c.high = o_candle.high;
+        c.low = o_candle.low;
+        c.close = o_candle.close;
+        c.volume = static_cast<double>(o_candle.volume);
+        candles.push_back(c);
+    }
+    return candles;
+}

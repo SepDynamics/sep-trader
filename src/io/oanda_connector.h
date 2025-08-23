@@ -76,6 +76,12 @@ public:
         const std::string& to
     );
 
+    std::vector<::sep::connectors::OandaCandle> getHistoricalData(
+        const std::string& instrument,
+        const std::string& granularity,
+        int count
+    );
+
     // Real-time streaming
     bool startPriceStream(const std::vector<std::string>& instruments);
     bool stopPriceStream();

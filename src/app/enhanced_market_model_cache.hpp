@@ -95,6 +95,7 @@ public:
     // Accessors
     const std::unordered_map<std::string, CacheEntry>& getCacheEntries() const { return cache_entries_; }
     std::vector<ProcessedSignal> getCorrelationEnhancedSignals(const std::string& instrument) const;
+    std::vector<Candle> getRecentCandles(const std::string& pair, int count);
     
     // Performance metrics
     struct CachePerformanceMetrics {
