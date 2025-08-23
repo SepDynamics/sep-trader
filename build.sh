@@ -103,7 +103,7 @@ if [ "$NATIVE_BUILD" = true ] || [ "$SKIP_DOCKER" = true ] || ! "$DOCKER_BIN" in
         -DCMAKE_BUILD_WITH_INSTALL_RPATH=ON \
         -DCMAKE_EXPORT_COMPILE_COMMANDS=TRUE \
         -DCMAKE_CXX_STANDARD=14 \
-        -DCMAKE_CXX_FLAGS="-std=c++14 -Wno-unknown-warning-option -Wno-invalid-source-encoding -Wno-cpp" \
+        -DCMAKE_CXX_FLAGS="-I/usr/include/c++/14/x86_64-redhat-linux -std=c++14 -Wno-unknown-warning-option -Wno-invalid-source-encoding -Wno-cpp" \
         -DCMAKE_CUDA_FLAGS="-Wno-deprecated-gpu-targets -Xcompiler -Wno-unknown-warning-option -Xcompiler -Wno-invalid-source-encoding -Xcompiler -Wno-cpp -Xcompiler -D_DISABLE_FPCLASSIFY_FUNCTIONS=1 -Xcompiler -D__CUDA_INCLUDE_COMPILER_INTERNAL_HEADERS=1" \
         -DCMAKE_CUDA_STANDARD=14 \
         $CUDA_FLAGS
