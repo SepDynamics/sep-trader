@@ -243,14 +243,15 @@ The frontend relies on backend REST APIs and WebSocket endpoints for data and li
 
 ## TradingPanel
 - **Context**: `useWebSocket` supplies `connected`, `marketData`, and `tradingSignals`.
-- **State**: `selectedSymbol` from shared context, `orderType` (`'market'`), `quantity` (`10000`), `price`, `side` (`'buy'`), `loading`, and `message`.
+- **State**: `selectedSymbol` from shared context, order form fields, `loading`, and `message`.
 - **Notes**:
   - Allowed currency pairs are imported from `src/config/symbols.ts`.
-  - After submitting an order, `quantity` resets to `100`.
+  - Orders post to the backend via the `submitOrder` API and use the `buildOrder` utility to assemble payloads.
+  - On success the `quantity` field resets to the `default_quantity` from `ConfigContext` (if provided).
 
 ## ConfigurationPanel
 - **State**: Provided through `ConfigContext` with `config`, `loading`, and `message` used for form control.
-- **Dynamic Configuration**: values load via `getConfig` and persist through `updateConfig`, replacing previous static defaults.
+- **Dynamic Configuration**: values load via `getConfig` and persist through `updateConfig`; includes editable trading defaults like `default_quantity`.
 
 ## HomeDashboard
 - **Context**: `useWebSocket` exposes connection state, system metrics, and live data.

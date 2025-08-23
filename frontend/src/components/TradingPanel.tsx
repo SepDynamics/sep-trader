@@ -2,51 +2,63 @@ import React, { useState, useEffect } from 'react';
 import { useWebSocket } from '../context/WebSocketContext';
 import { useSymbol } from '../context/SymbolContext';
 import { symbols } from '../config/symbols';
-import { apiClient } from '../services/api';
+import { submitOrder } from '../services/api';
+import { buildOrder } from '../utils/order';
+import { useConfig } from '../context/ConfigContext';
 import '../styles/TradingPanel.css';
 
-const TradingPanel = () => {
+const TradingPanel: React.FC = () => {
   const { connected, marketData, tradingSignals } = useWebSocket();
   const { selectedSymbol, setSelectedSymbol } = useSymbol();
-  const [orderType, setOrderType] = useState('market');
-  const [quantity, setQuantity] = useState(10000);
-  const [price, setPrice] = useState('');
-  const [side, setSide] = useState('buy');
-  const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState('');
+  const { config } = useConfig();
+  const [orderType, setOrderType] = useState<string>('market');
+  const [quantity, setQuantity] = useState<number>(10000);
+  const [price, setPrice] = useState<string>('');
+  const [side, setSide] = useState<string>('buy');
+  const [loading, setLoading] = useState<boolean>(false);
+  const [message, setMessage] = useState<string>('');
 
-  const handleSubmitOrder = async (e) => {
+  useEffect(() => {
+    const defaultQty = config.trading?.default_quantity;
+    if (typeof defaultQty === 'number') {
+      setQuantity(defaultQty);
+    }
+  }, [config.trading?.default_quantity]);
+
+  const handleSubmitOrder = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setMessage('');
 
     try {
-      const orderData = {
+      const orderData = buildOrder({
         symbol: selectedSymbol,
-        side: side,
-        quantity: parseInt(quantity),
+        side,
+        quantity: quantity,
         type: orderType,
-        ...(orderType === 'limit' && { price: parseFloat(price) })
-      };
+        price: orderType === 'limit' ? parseFloat(price) : undefined,
+      });
 
-      const response = await apiClient.submitOrder(orderData);
-      setMessage(`Order submitted successfully: ${response.data.message || 'Order processed'}`);
-      
-      // Reset form
-      setQuantity(100);
+      const response = await submitOrder(orderData);
+      setMessage(`Order submitted successfully: ${response.message || 'Order processed'}`);
+
+      const defaultQty = config.trading?.default_quantity;
+      if (typeof defaultQty === 'number') {
+        setQuantity(defaultQty);
+      }
       setPrice('');
-    } catch (error) {
-      setMessage(`Order failed: ${error.response?.data?.message || error.message}`);
+    } catch (error: any) {
+      setMessage(`Order failed: ${error?.response?.data?.message || error.message}`);
     } finally {
       setLoading(false);
     }
   };
 
-  const getCurrentPrice = (symbol) => {
+  const getCurrentPrice = (symbol: string) => {
     return marketData[symbol]?.price || 0;
   };
 
-  const formatCurrency = (value) => {
+  const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('en-US', {
       style: 'decimal',
       minimumFractionDigits: 4,
@@ -131,7 +143,7 @@ const TradingPanel = () => {
                     <input
                       type="number"
                       value={quantity}
-                      onChange={(e) => setQuantity(e.target.value)}
+                      onChange={(e) => setQuantity(parseInt(e.target.value))}
                       className="form-control"
                       min="1000"
                       step="1000"
