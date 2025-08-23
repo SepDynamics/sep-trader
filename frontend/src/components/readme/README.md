@@ -1,5 +1,7 @@
 # Components Overview
 
-## SystemStatus
-- Poll interval and component list are loaded from `/api/system-status/config`.
-- Refresh cadence is determined by the backend so the UI adapts without hardcoding values.
+Currency pairs are defined once in `src/config/symbols.ts` and shared across the UI.
+`SymbolContext` exposes the active `selectedSymbol` so components no longer maintain their own defaults.
+
+- **TradingPanel** populates its symbol selector from the shared list.
+- **MarketData** highlights data for the `selectedSymbol` and shows all configured pairs.

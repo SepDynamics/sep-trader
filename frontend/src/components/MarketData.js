@@ -1,9 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { useWebSocket } from '../context/WebSocketContext';
+import { useSymbol } from '../context/SymbolContext';
+import { symbols } from '../config/symbols';
 
 const MarketData = () => {
   const { connected, marketData } = useWebSocket();
-  const [selectedSymbol, setSelectedSymbol] = useState('EUR/USD');
+  const { selectedSymbol, setSelectedSymbol } = useSymbol();
 
   const formatPrice = (value) => {
     if (value === null || value === undefined) return '--';
@@ -39,27 +41,37 @@ const MarketData = () => {
           </span>
         </div>
       </div>
+      <div className="symbol-select">
+        <select value={selectedSymbol} onChange={(e) => setSelectedSymbol(e.target.value)}>
+          {symbols.map(sym => (
+            <option key={sym} value={sym}>{sym}</option>
+          ))}
+        </select>
+      </div>
 
       <div className="market-grid">
-        {Object.entries(marketData).map(([symbol, data]) => (
-          <div key={symbol} className="market-card">
-            <h3>{symbol}</h3>
-            <div className="price-info">
-              <div className="current-price">{formatPrice(data.price)}</div>
-              <div className={`price-change ${(data.change || 0) >= 0 ? 'positive' : 'negative'}`}>
-                {formatPercentage(data.change / 100)} ({formatPrice(data.change)})
+        {symbols.map(symbol => {
+          const data = marketData[symbol] || {};
+          return (
+            <div key={symbol} className={`market-card ${symbol === selectedSymbol ? 'selected' : ''}`}>
+              <h3>{symbol}</h3>
+              <div className="price-info">
+                <div className="current-price">{formatPrice(data.price)}</div>
+                <div className={`price-change ${(data.change || 0) >= 0 ? 'positive' : 'negative'}`}>
+                  {data.change !== undefined ? `${formatPercentage(data.change / 100)} (${formatPrice(data.change)})` : '--'}
+                </div>
+              </div>
+              <div className="market-details">
+                <div><label>Volume:</label> <span>{data.volume?.toLocaleString() || '--'}</span></div>
+                <div><label>High:</label> <span>{formatPrice(data.high)}</span></div>
+                <div><label>Low:</label> <span>{formatPrice(data.low)}</span></div>
+                <div><label>Spread:</label> <span>{data.spread ? formatPrice(data.spread) : '--'}</span></div>
               </div>
             </div>
-            <div className="market-details">
-              <div><label>Volume:</label> <span>{data.volume?.toLocaleString() || '--'}</span></div>
-              <div><label>High:</label> <span>{formatPrice(data.high)}</span></div>
-              <div><label>Low:</label> <span>{formatPrice(data.low)}</span></div>
-              <div><label>Spread:</label> <span>{data.spread ? formatPrice(data.spread) : '--'}</span></div>
-            </div>
-          </div>
-        ))}
-        
-        {Object.keys(marketData).length === 0 && (
+          );
+        })}
+
+        {symbols.every(sym => !marketData[sym]) && (
           <div className="no-data">
             <p>No market data available</p>
             <p>Connect to WebSocket service to see live market data</p>

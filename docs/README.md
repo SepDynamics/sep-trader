@@ -239,13 +239,13 @@ The frontend relies on backend REST APIs and WebSocket endpoints for data and li
 - **State**: `systemInfo`, `performance`, `loading`, and `error` manage initial data load and error handling.
 - **Hardcoded/Placeholders**:
   - Displays only the first four market symbols and first five signals.
-  - Quick action buttons ("Start Trading", "Pause System", etc.) have no handlers.
+  - Quick action buttons ("Start Trading", "Pause System", etc.) trigger backend operations.
 
 ## TradingPanel
 - **Context**: `useWebSocket` supplies `connected`, `marketData`, and `tradingSignals`.
-- **State**: `selectedSymbol` (`'EUR/USD'`), `orderType` (`'market'`), `quantity` (`10000`), `price`, `side` (`'buy'`), `loading`, and `message`.
-- **Hardcoded/Placeholders**:
-  - Currency `symbols` array and default order quantity.
+- **State**: `selectedSymbol` from shared context, `orderType` (`'market'`), `quantity` (`10000`), `price`, `side` (`'buy'`), `loading`, and `message`.
+- **Notes**:
+  - Allowed currency pairs are imported from `src/config/symbols.ts`.
   - After submitting an order, `quantity` resets to `100`.
 
 ## ConfigurationPanel
@@ -257,7 +257,7 @@ The frontend relies on backend REST APIs and WebSocket endpoints for data and li
 - **State**: `apiHealth`, `activeTab`, `selectedPairs`, `commandHistory`, `commandInput`, and `isExecutingCommand` control dashboard interaction.
 - **Hardcoded/Placeholders**:
   - `API_URL` defaults to `http://localhost:5000` if environment variable is missing.
-  - Quick actions ("Upload Training Data", "Start Model Training", etc.) are UI stubs.
+  - Quick actions ("Upload Training Data", "Start Model Training", etc.) call backend services.
 
 ## PerformanceMetrics
 - **Context**: Receives `connected` and `performanceData` from `useWebSocket`.
@@ -265,7 +265,7 @@ The frontend relies on backend REST APIs and WebSocket endpoints for data and li
 
 ## MarketData
 - **Context**: `useWebSocket` supplies live `marketData`.
-- **State**: `selectedSymbol` initialized to `'EUR/USD'` (unused by current layout).
+- **State**: `selectedSymbol` obtained from shared context and used to highlight the active pair.
 
 ## SystemStatus
 - **Context**: `useWebSocket` provides `connected` and `systemStatus`.
