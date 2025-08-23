@@ -8,6 +8,7 @@
 #include <functional>
 #include <any>
 #include <chrono>
+#include <mutex>
 
 namespace sep::config {
 
@@ -88,10 +89,89 @@ private:
     std::unique_ptr<Impl> impl_;
 };
 
+// Internal precedence helper
+inline int configSourcePrecedence(ConfigSource source) {
+    switch (source) {
+        case ConfigSource::DEFAULT: return 0;
+        case ConfigSource::FILE: return 1;
+        case ConfigSource::ENVIRONMENT: return 2;
+        case ConfigSource::COMMAND_LINE: return 3;
+        case ConfigSource::RUNTIME: return 4;
+        case ConfigSource::REMOTE: return 5;
+    }
+    return 0;
+}
+
 // Helper functions
 std::string configSourceToString(ConfigSource source);
 ConfigSource stringToConfigSource(const std::string& source_str);
 std::string configValueTypeToString(ConfigValueType type);
 ConfigValueType stringToConfigValueType(const std::string& type_str);
+
+} // namespace sep::config
+
+// ===== Template Implementations =====
+namespace sep::config {
+
+template<typename T>
+T DynamicConfigManager::getValue(const std::string& key, const T& default_value) const {
+    std::lock_guard<std::mutex> lock(impl_->mutex_);
+    auto it = impl_->config_values.find(key);
+    if (it == impl_->config_values.end()) {
+        return default_value;
+    }
+    try {
+        return std::any_cast<T>(it->second);
+    } catch (...) {
+        return default_value;
+    }
+}
+
+template<typename T>
+std::optional<T> DynamicConfigManager::getValue(const std::string& key) const {
+    std::lock_guard<std::mutex> lock(impl_->mutex_);
+    auto it = impl_->config_values.find(key);
+    if (it == impl_->config_values.end()) {
+        return std::nullopt;
+    }
+    try {
+        return std::any_cast<T>(it->second);
+    } catch (...) {
+        return std::nullopt;
+    }
+}
+
+template<typename T>
+bool DynamicConfigManager::setValue(const std::string& key, const T& value, ConfigSource source) {
+    std::lock_guard<std::mutex> lock(impl_->mutex_);
+    std::any old_value;
+    ConfigSource old_source = ConfigSource::DEFAULT;
+    auto it = impl_->config_values.find(key);
+    if (it != impl_->config_values.end()) {
+        old_value = it->second;
+        old_source = impl_->config_sources[key];
+        if (configSourcePrecedence(source) < configSourcePrecedence(old_source)) {
+            return false;
+        }
+    }
+
+    impl_->config_values[key] = value;
+    impl_->config_sources[key] = source;
+
+    for (const auto& cb_pair : impl_->callbacks) {
+        const auto& prefix = cb_pair.second.first;
+        if (key.rfind(prefix, 0) == 0) {
+            ConfigChangeEvent evt;
+            evt.key = key;
+            evt.old_value = old_value;
+            evt.new_value = value;
+            evt.source = source;
+            evt.timestamp = std::chrono::system_clock::now();
+            cb_pair.second.second(evt);
+        }
+    }
+
+    return true;
+}
 
 } // namespace sep::config
