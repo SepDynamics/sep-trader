@@ -1,37 +1,24 @@
-#include <string.h>
-#include <cstring> // For std::memcpy
-#include <ctime>
-#include <time.h>
-#include <unistd.h>
-#include <cstdlib>
 #include <algorithm>
 #include <cctype>
-
-#ifdef SEP_NO_REDIS
-#undef SEP_NO_REDIS
-#endif
-#define SEP_HAS_HIREDIS 1
-
 #include <cstdint>
+#include <cstdlib>
 #include <cstring>
+#include <ctime>
+#include <memory>
 #include <mutex>
+#include <sstream>
+#include <string>
+#include <unistd.h>
 
 #include "core/logging.h"
 #include "core/types.h"
 #include "util/redis_manager.h"
-#ifndef SEP_NO_REDIS
+#include "util/memory_tier_manager.hpp"
+
 #include <hiredis/hiredis.h>
-#define SEP_HAS_HIREDIS 1
-#else
-#define SEP_HAS_HIREDIS 0
-#endif
+
 // Define namespace alias to clarify that Manager is in the logging namespace
 namespace logging = sep::logging;
-#include <memory>
-#include <sstream>
-#include <string>
-
-#include "util/memory_tier_manager.hpp"
 
 namespace sep::persistence {
 
@@ -60,9 +47,8 @@ std::string RedisManager::Impl::normalizeTier(const std::string& tier) const
 
 RedisManager::Impl::Impl(const std::string& host, int port) : context_(nullptr), connected_(false)
 {
-#if SEP_HAS_HIREDIS
     auto logger = logging::Manager::getInstance().getLogger("redis");
-    context_ = redisConnect(host.c_str(), port); 
+    context_ = redisConnect(host.c_str(), port);
     if (context_ == nullptr || context_->err) {
         if (logger) {
             if (context_) {
@@ -77,19 +63,13 @@ RedisManager::Impl::Impl(const std::string& host, int port) : context_(nullptr),
             logger->info("Redis connection established");
         }
     }
-#else
-    (void)host;
-    (void)port;
-#endif
 }
 
 RedisManager::Impl::~Impl() {
-#if SEP_HAS_HIREDIS
     if (context_) {
         redisFree(context_);
         context_ = nullptr;
     }
-#endif
 }
 
 bool RedisManager::Impl::isConnected() const { return connected_; }
@@ -97,7 +77,6 @@ bool RedisManager::Impl::isConnected() const { return connected_; }
 void RedisManager::Impl::storePattern(std::uint64_t id, const PersistentPatternData& data,
                                       const std::string& tier)
 {
-#if SEP_HAS_HIREDIS
     if (!connected_ || !context_)
         return;
 
@@ -128,66 +107,54 @@ void RedisManager::Impl::storePattern(std::uint64_t id, const PersistentPatternD
     if (logger) {
         logger->debug("Stored pattern {} in tier {}", id, tier.c_str());
     }
-#else
-    (void)id;
-    (void)data;
-    (void)tier;
-#endif
 }
 
 std::optional<PersistentPatternData> RedisManager::Impl::loadPattern(std::uint64_t id,
                                                                      const std::string& tier)
 {
-#if SEP_HAS_HIREDIS
-if (!connected_ || !context_)
-    return std::nullopt;
+    if (!connected_ || !context_)
+        return std::nullopt;
 
-std::lock_guard<std::mutex> lock(mutex_);
+    std::lock_guard<std::mutex> lock(mutex_);
 
-auto pattern_key = getPatternKey(id, tier);
+    auto pattern_key = getPatternKey(id, tier);
 
-redisReply* reply = static_cast<redisReply*>(redisCommand(context_, "EXISTS %s", pattern_key.c_str()));
-if (!reply || reply->type != REDIS_REPLY_INTEGER || reply->integer == 0) {
+    redisReply* reply = static_cast<redisReply*>(redisCommand(context_, "EXISTS %s", pattern_key.c_str()));
+    if (!reply || reply->type != REDIS_REPLY_INTEGER || reply->integer == 0) {
+        if (reply)
+            freeReplyObject(reply);
+        return std::nullopt;
+    }
+    freeReplyObject(reply);
+
+    PersistentPatternData pattern_data{};
+
+    // Get coherence
+    reply = static_cast<redisReply*>(redisCommand(context_, "HGET %s coherence", pattern_key.c_str()));
+    if (reply && reply->type == REDIS_REPLY_STRING)
+        pattern_data.coherence = std::stof(reply->str);
     if (reply)
         freeReplyObject(reply);
-    return std::nullopt;
-}
-freeReplyObject(reply);
 
-PersistentPatternData pattern_data{};
+    // Get stability
+    reply = static_cast<redisReply*>(redisCommand(context_, "HGET %s stability", pattern_key.c_str()));
+    if (reply && reply->type == REDIS_REPLY_STRING)
+        pattern_data.stability = std::stof(reply->str);
+    if (reply)
+        freeReplyObject(reply);
 
-// Get coherence
-reply = static_cast<redisReply*>(redisCommand(context_, "HGET %s coherence", pattern_key.c_str()));
-if (reply && reply->type == REDIS_REPLY_STRING)
-    pattern_data.coherence = std::stof(reply->str);
-if (reply)
-    freeReplyObject(reply);
+    // Get generation count
+    reply = static_cast<redisReply*>(redisCommand(context_, "HGET %s generation_count", pattern_key.c_str()));
+    if (reply && reply->type == REDIS_REPLY_STRING)
+        pattern_data.generation_count = std::stoi(reply->str);
+    if (reply)
+        freeReplyObject(reply);
 
-// Get stability
-reply = static_cast<redisReply*>(redisCommand(context_, "HGET %s stability", pattern_key.c_str()));
-if (reply && reply->type == REDIS_REPLY_STRING)
-    pattern_data.stability = std::stof(reply->str);
-if (reply)
-    freeReplyObject(reply);
-
-// Get generation count
-reply = static_cast<redisReply*>(redisCommand(context_, "HGET %s generation_count", pattern_key.c_str()));
-if (reply && reply->type == REDIS_REPLY_STRING)
-    pattern_data.generation_count = std::stoi(reply->str);
-if (reply)
-    freeReplyObject(reply);
-
-return pattern_data;
-#else
-    (void)id;
-    (void)tier;
-    return std::nullopt;
-#endif
+    return pattern_data;
 }
 
 std::vector<std::uint64_t> RedisManager::Impl::getPatternIds(const std::string& tier)
 {
-#if SEP_HAS_HIREDIS
     std::vector<std::uint64_t> ids;
     if (!connected_ || !context_)
         return ids;
@@ -207,15 +174,10 @@ std::vector<std::uint64_t> RedisManager::Impl::getPatternIds(const std::string& 
         freeReplyObject(reply);
 
     return ids;
-#else
-    (void)tier;
-    return {};
-#endif
 }
 
 void RedisManager::Impl::removePattern(std::uint64_t id, const std::string& tier)
 {
-#if SEP_HAS_HIREDIS
     if (!connected_ || !context_)
         return;
 
@@ -230,10 +192,6 @@ void RedisManager::Impl::removePattern(std::uint64_t id, const std::string& tier
     reply = static_cast<redisReply*>(redisCommand(context_, "DEL %s", pattern_key.c_str()));
     if (reply)
         freeReplyObject(reply);
-#else
-    (void)id;
-    (void)tier;
-#endif
 }
 
 void RedisManager::Impl::bulkStore(
@@ -260,7 +218,6 @@ std::vector<PersistentPatternData> RedisManager::Impl::bulkLoad(
 
 void RedisManager::Impl::storeHash(const std::string& key, const std::vector<std::pair<std::string, std::string>>& fields)
 {
-#if SEP_HAS_HIREDIS
     if (!connected_ || !context_)
         return;
 
@@ -284,10 +241,6 @@ void RedisManager::Impl::storeHash(const std::string& key, const std::vector<std
     if (logger) {
         logger->debug("Stored hash {} with {} fields", key, fields.size());
     }
-#else
-    (void)key;
-    (void)fields;
-#endif
 }
 
 // RedisManager implementation
