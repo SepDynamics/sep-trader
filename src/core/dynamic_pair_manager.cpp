@@ -494,12 +494,26 @@ ResourceAllocation DynamicPairManager::calculateCurrentUsage() const {
         }
     }
 
-    // Simplified usage metrics
-    usage.max_hot_bytes = dynamic_configs_.size() * 1024; // placeholder
-    usage.max_streams = 0; // not tracked
-    usage.max_batch_size = 0;
-    usage.max_memory_per_pair_mb = 128; // Placeholder
-    usage.cpu_limit_percentage = 50.0; // Placeholder
+    // Aggregate resource usage from active pair configurations
+    size_t total_hot_bytes = 0;
+    size_t total_streams = 0;
+    size_t max_batch = 0;
+    size_t max_hot_bytes_per_pair = 0;
+
+    for (const auto& kv : dynamic_configs_) {
+        const auto& cfg = kv.second;
+        total_hot_bytes += cfg.required_hot_bytes;
+        total_streams += cfg.required_streams;
+        max_batch = std::max(max_batch, cfg.batch_size);
+        max_hot_bytes_per_pair = std::max(max_hot_bytes_per_pair, cfg.required_hot_bytes);
+    }
+
+    usage.max_hot_bytes = total_hot_bytes;
+    usage.max_streams = total_streams;
+    usage.max_batch_size = max_batch;
+    usage.max_memory_per_pair_mb =
+        max_hot_bytes_per_pair > 0 ? max_hot_bytes_per_pair / (1024 * 1024) : 0;
+    usage.cpu_limit_percentage = 0.0; // CPU usage tracking not yet implemented
 
     return usage;
 }

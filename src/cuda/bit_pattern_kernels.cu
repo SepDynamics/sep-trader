@@ -66,10 +66,10 @@ __global__ void analyzeBitPatternsKernel(const uint8_t* d_bits,
             result.entropy = 0.0f;
         }
 
-        // Coherence and Stability logic (simplified for now, will port full logic later)
-        // This part will be replaced by the actual pattern detection logic
-        result.coherence = 0.5f; // Placeholder
-        result.stability = 0.5f; // Placeholder
+        // Basic coherence and stability estimates based on bit distribution
+        float imbalance = fabsf(static_cast<float>(ones - zeros)) / window_size;
+        result.coherence = 1.0f - imbalance;
+        result.stability = 1.0f - result.entropy;
 
         // Set confidence based on window size and pattern consistency
         result.confidence = fminf(1.0f, static_cast<float>(window_size) / 10.0f) * result.coherence;
