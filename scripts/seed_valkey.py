@@ -8,7 +8,7 @@ def seed_valkey():
     """
     Seeds Valkey with EUR/USD data from a JSON file.
     """
-    valkey_url = os.getenv("VALKEY_URL", "redis://redis:6379/0")
+    valkey_url = os.getenv("VALKEY_URL", "redis://localhost:6379/0")
     instrument = "EUR_USD"
     key = f"market:price:{instrument}"
     json_file_path = os.path.join(os.path.dirname(__file__), '..', 'eur_usd_m1_48h.json')
