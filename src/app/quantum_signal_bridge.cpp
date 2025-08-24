@@ -54,11 +54,6 @@ void from_json(const json& j, Candle& c) {
     }
 }
 
-<<<<<<< .merge_file_64S2FF
-=======
-
->>>>>>> .merge_file_7S4Yg5
-
 namespace sep::trading {
 
 QuantumSignalBridge::QuantumSignalBridge() : patterns_file_path_("quantum_patterns.json") {

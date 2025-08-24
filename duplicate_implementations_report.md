@@ -31,15 +31,10 @@ This document tracks outstanding code quality concerns in the SEP Engine codebas
   (`src/core/pattern_types.h`, `src/core/types_serialization.cpp`).
 - Unused DSL aggregation and data transformation stubs removed (`src/util/aggregation.*`, `src/util/data_transformation.*`).
 - Unimplemented market data DSL builtins removed (`src/util/interpreter.cpp`).
-- Testbed OANDA market data helper migrated to production with real ATR
-  (`src/app/quantum_signal_bridge.cpp`).
+- QuantumSignalBridge cleaned: migrated testbed OANDA helper to production with real ATR and removed duplicate market data fetch functions, placeholder ATR, obsolete asset processing stubs, and unused prototype fetcher (`src/app/quantum_signal_bridge.cpp`).
 - Unused evolutionary helper declarations and mock trade simulation removed (`src/core/evolution.h`, `src/util/interpreter.cpp`).
 - Duplicate quantum coherence manager removed (`src/util/quantum_coherence_manager.*`) in favor of the core implementation.
 - Magic numbers in OANDA connector replaced with constants (`src/io/oanda_connector.cpp`, `src/io/oanda_constants.h`).
-- Removed duplicate market data fetch function and placeholder ATR
-  (`src/app/quantum_signal_bridge.cpp`).
-- Obsolete asset processing stub and associated testbed helper removed
-  (`src/app/quantum_signal_bridge.cpp`).
 - Testbed-only DSL builtin eliminated to avoid mock execution paths
   (`src/util/interpreter.cpp`).
 - Unused spdlog isolation stub removed (`src/util/spdlog_isolation.h`).
@@ -50,16 +45,11 @@ This document tracks outstanding code quality concerns in the SEP Engine codebas
 - Duplicate CPU window calculation path consolidated into a single helper (`src/app/tick_data_manager.cpp`).
 - Unused remote data manager interface and synchronizer stubs removed (`src/core/remote_data_manager.hpp`, `src/core/remote_synchronizer.*`).
 - Outdated Redis metrics API removed to reflect Valkey-only integration (`frontend/src/services/api.ts`).
-<<<<<<< .merge_file_648rKg
 - Unused QuantumProcessingService and duplicate service-layer types removed (`src/app/QuantumProcessingService.*`, `src/app/QuantumTypes.h`, `src/app/PatternTypes.h`, `tests/app/quantum_processing_service_guard_test.cpp`).
 - Trade update handler now stores recent updates instead of logging to console (`frontend/src/context/WebSocketContext.js`).
 - Unimplemented WeeklyDataFetcher configuration and cache helpers removed (`src/core/weekly_data_fetcher.*`).
 - Removed redundant amplitude renormalization and stale CUDA stub reference
   (`src/app/QuantumProcessingService.cpp`, `src/core/cuda_impl.h`).
-=======
-- Redundant Valkey metric fallback helper removed (`src/util/interpreter.cpp`).
-- Unused prototype market data fetcher removed (`src/app/quantum_signal_bridge.cpp`).
->>>>>>> .merge_file_PJOpw2
 
 ## Recommendations
 1. Remove remaining hardcoded values via configuration.
