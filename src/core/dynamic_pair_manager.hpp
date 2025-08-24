@@ -6,7 +6,6 @@
 #include "core/sep_precompiled.h"
 #include "core/pair_manager.hpp"
 #include "core/trading_state.hpp"
-#include "core/weekly_cache_manager.hpp"
 
 namespace sep::trading {
 
@@ -166,12 +165,6 @@ public:
     bool isStreamActive(const std::string& pair_symbol) const;
     std::vector<std::string> getActiveStreams() const;
     
-    // Cache integration
-    bool ensureCacheForPair(const std::string& pair_symbol);
-    bool validateCacheForPair(const std::string& pair_symbol) const;
-    bool warmupCacheForPair(const std::string& pair_symbol);
-    void preemptiveCacheRefresh();
-    
     // Trading integration
     bool isPairTradingReady(const std::string& pair_symbol) const;
     std::vector<std::string> getTradingReadyPairs() const;
@@ -195,8 +188,6 @@ public:
     // System integration
     void integratePairManager(std::shared_ptr<sep::core::PairManager> pair_manager);
     void integrateTradingState(std::shared_ptr<sep::core::TradingState> trading_state);
-    void integrateCacheManager(std::shared_ptr<sep::cache::WeeklyCacheManager> cache_manager);
-    bool hasRequiredIntegrations() const;
     
     // Performance and monitoring
     size_t getTotalOperationsPerformed() const;
@@ -242,7 +233,6 @@ private:
     // External integrations
     std::shared_ptr<sep::core::PairManager> pair_manager_;
     std::shared_ptr<sep::core::TradingState> trading_state_;
-    std::shared_ptr<sep::cache::WeeklyCacheManager> cache_manager_;
     
     // Event callbacks
     std::vector<::sep::trading::PairLifecycleCallback> lifecycle_callbacks_;

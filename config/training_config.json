@@ -47,22 +47,6 @@
     "auth_token_file": "/sep/config/remote_auth.token"
   },
   
-  "weekly_data_fetcher": {
-    "oanda_config_file": "/sep/config/OANDA.env",
-    "default_history_days": 7,
-    "supported_instruments": [
-      "EUR_USD", "GBP_USD", "USD_JPY", "AUD_USD", "USD_CHF", "USD_CAD",
-      "NZD_USD", "EUR_GBP", "EUR_JPY", "GBP_JPY", "AUD_JPY", "EUR_CHF",
-      "GBP_CHF", "CHF_JPY", "EUR_AUD", "GBP_AUD", "USD_SGD", "EUR_SEK",
-      "USD_NOK", "USD_DKK", "EUR_NOK", "EUR_DKK", "GBP_CAD", "GBP_CHF"
-    ],
-    "granularities": ["M1", "M5", "M15", "H1", "H4", "D"],
-    "cache_directory": "/sep/cache/weekly_data",
-    "compress_data": true,
-    "parallel_fetchers": 6,
-    "fetch_timeout_seconds": 120
-  },
-  
   "live_tuning": {
     "enabled": true,
     "tuning_interval_minutes": 15,
@@ -90,7 +74,6 @@
   },
   
   "cache_management": {
-    "weekly_cache_validation": true,
     "auto_cleanup_days": 30,
     "cache_size_limit_gb": 50,
     "compression_level": 6,
