@@ -13,7 +13,7 @@ services:
       - PYTHONPATH=/app
       - PORT=5000
     env_file:
-      - ./config/.sep-config-local.env
+      - ./config/.sep-config.env
     volumes:
       - ./config:/app/config:ro
       - ./data:/app/data
@@ -26,7 +26,6 @@ services:
       timeout: 10s
       retries: 3
       start_period: 40s
-    depends_on:
     networks:
       - sep-network
 
@@ -42,7 +41,7 @@ services:
       - WS_HOST=0.0.0.0
       - WS_PORT=8765
     env_file:
-      - ./config/.sep-config-local.env
+      - ./config/.sep-config.env
     # Healthcheck disabled - WebSocket service doesn't have a standard HTTP endpoint
     # The service is working correctly as evidenced by the logs
     networks:
@@ -62,10 +61,8 @@ services:
       - REACT_APP_WS_URL=ws://localhost:8765
       - REACT_APP_ENVIRONMENT=development
     depends_on:
-      trading-backend:
-        condition: service_healthy
-      websocket-service:
-        condition: service_started
+      - trading-backend
+      - websocket-service
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:80/health"]
       interval: 30s
