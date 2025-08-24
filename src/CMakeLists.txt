@@ -103,15 +103,9 @@ else()
   set(SEP_RUNTIME_LIBPATH "${CMAKE_BINARY_DIR}/lib")
 endif()
 
+# Set RPATH for installed binaries
 set(CMAKE_INSTALL_RPATH "${SEP_RUNTIME_LIBPATH}:$ORIGIN/../lib")
 message(STATUS "SEP Runtime Library Path: ${SEP_RUNTIME_LIBPATH}")
-
-# Main CLI interface - consolidates cli_main and app_main functionality
-add_sep_executable(sep SOURCES app/cli_main.cpp)
-target_link_libraries(sep PRIVATE sep_lib)
-set_target_properties(sep PROPERTIES
-    INSTALL_RPATH "${SEP_RUNTIME_LIBPATH}:$ORIGIN/../lib"
-    BUILD_RPATH "${SEP_RUNTIME_LIBPATH}")
 
 # Data downloader utility
 add_sep_executable(data_downloader SOURCES app/data_downloader.cpp)

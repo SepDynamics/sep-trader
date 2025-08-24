@@ -2,7 +2,7 @@
 # Trace macro definitions and header includes to identify std namespace pollution.
 set -euo pipefail
 
-SRC=${1:-src/app/cli_main.cpp}
+SRC=${1:-src/app/trader_cli.cpp}
 TMP_DIR=$(mktemp -d)
 
 echo "[macro] generating macro dump for $SRC"
