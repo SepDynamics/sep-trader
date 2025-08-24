@@ -22,7 +22,8 @@ const ValkeyPipelineManager = () => {
     connected,
     quantumSignals,
     valkeyMetrics,
-    livePatterns
+    livePatterns,
+    sendMessage
   } = useWebSocket();
 
   const [pipelineStatus, setPipelineStatus] = useState('initializing');
@@ -39,21 +40,35 @@ const ValkeyPipelineManager = () => {
   useEffect(() => {
     const interval = setInterval(() => {
       // Simulate OANDA feed rate (keys/second)
-      setOandaFeedRate(prev => Math.max(0, prev + (Math.random() - 0.5) * 2));
+      const newFeedRate = Math.max(0, oandaFeedRate + (Math.random() - 0.5) * 2);
+      setOandaFeedRate(newFeedRate);
       
       // Simulate Valkey key growth
       setValkeyKeyCount(prev => prev + Math.floor(Math.random() * 5));
 
       // Simulate server metrics
-      setServerMetrics({
+      const newServerMetrics = {
         memory: 45 + Math.random() * 20, // 45-65%
         cpu: 25 + Math.random() * 30,    // 25-55%
         diskUsage: 60 + Math.random() * 15, // 60-75%
         networkIO: Math.random() * 100   // 0-100 MB/s
-      });
+      };
+      setServerMetrics(newServerMetrics);
+
+      // Send feed rate data through WebSocket
+      if (connected && sendMessage) {
+        sendMessage({
+          type: 'valkey_metrics',
+          data: {
+            feedRate: newFeedRate,
+            keyCount: valkeyKeyCount + Math.floor(Math.random() * 5),
+            serverMetrics: newServerMetrics
+          }
+        });
+      }
 
       // Update pipeline status based on conditions
-      if (connected && oandaFeedRate > 1) {
+      if (connected && newFeedRate > 1) {
         setPipelineStatus('active');
       } else if (connected) {
         setPipelineStatus('waiting');
@@ -63,7 +78,7 @@ const ValkeyPipelineManager = () => {
     }, 2000);
 
     return () => clearInterval(interval);
-  }, [connected, oandaFeedRate]);
+  }, [connected, oandaFeedRate, valkeyKeyCount, sendMessage]);
 
   // Analyze current Valkey key distribution by age (entropy bands)
   const valkeyDistribution = useMemo(() => {
