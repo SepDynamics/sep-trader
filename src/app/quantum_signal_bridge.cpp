@@ -1013,7 +1013,7 @@ void sep::trading::QuantumSignalBridge::loadOptimalConfig() {
     }
 }
 
-}
+} // namespace sep::trading
 
 sep::trading::QuantumIdentifiers sep::trading::QuantumSignalBridge::processAsset(const std::string& asset) {
     if (!initialized_) {

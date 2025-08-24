@@ -161,8 +161,6 @@ public:
         size_t window_size = 50
     );
     
-    // Placeholder for de-stubbing
-    QuantumIdentifiers processAsset(const std::string& asset);
     void setConfidenceThreshold(float threshold) { confidence_threshold_ = threshold; }
     void setCoherenceThreshold(float threshold) { coherence_threshold_ = threshold; }
     void setStabilityThreshold(float threshold) { stability_threshold_ = threshold; }
