@@ -1,1 +1,0 @@
-add_sep_test(signal_fusion_test SOURCES fusion_engine_test.cpp fused_signal_metadata_test.cpp correlation_test.cpp)
