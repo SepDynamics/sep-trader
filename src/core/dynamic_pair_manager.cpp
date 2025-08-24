@@ -336,16 +336,6 @@ PairOperationResult DynamicPairManager::performAddPair(const DynamicPairConfig& 
         dynamic_configs_[config.symbol] = config;
     }
     
-    updateOperationProgress(operation, 60.0, "Setting up data streams");
-    
-    // Simulate stream setup
-    std::this_thread::sleep_for(std::chrono::milliseconds(500));
-    
-    updateOperationProgress(operation, 80.0, "Validating cache requirements");
-    
-    // Simulate cache validation
-    std::this_thread::sleep_for(std::chrono::milliseconds(300));
-    
     updateOperationProgress(operation, 95.0, "Finalizing pair setup");
     
     // Transition to ready state
@@ -370,12 +360,7 @@ PairOperationResult DynamicPairManager::performRemovePair(const std::string& pai
     // Transition to removing stage
     transitionPairStage(pair_symbol, PairLifecycleStage::REMOVING);
     
-    updateOperationProgress(operation, 50.0, "Cleaning up resources");
-    
-    // Simulate resource cleanup
-    std::this_thread::sleep_for(std::chrono::milliseconds(300));
-    
-    updateOperationProgress(operation, 80.0, "Removing from system");
+    updateOperationProgress(operation, 50.0, "Removing from system");
     
     // Remove from configurations
     {

@@ -236,7 +236,7 @@ bool QuantumTrainingCoordinator::rollbackModel(const char* pair_symbol, const ch
             snprintf(session.current_phase, sizeof(session.current_phase), "rollback_to_%s",
                      version);
 
-            // Simulate rollback process - in production this would:
+            // TODO: implement rollback process:
             // 1. Stop current training
             // 2. Load specified model version
             // 3. Restore training state
@@ -360,26 +360,13 @@ bool QuantumTrainingCoordinator::performAutomaticHyperparameterTuning(const char
     strcpy(session.pair_symbol, pair_symbol);
     strcpy(session.training_mode, "hyperparameter_tuning");
     strcpy(session.status, "tuning");
-    strcpy(session.current_phase, "grid_search");
+    strcpy(session.current_phase, "initialized");
 
     // Generate session ID based on pair symbol and current time
     time_t now = time(nullptr);
     snprintf(session.session_id, sizeof(session.session_id), "hpt_%s_%ld", pair_symbol, now);
 
-    // Simulate hyperparameter tuning phases
-    // Phase 1: Initial parameter sweep
-    strcpy(session.current_phase, "parameter_sweep");
-    session.progress_percentage = 25.0f;
-
-    // Phase 2: Focused optimization
-    strcpy(session.current_phase, "focused_optimization");
-    session.progress_percentage = 60.0f;
-
-    // Phase 3: Validation
-    strcpy(session.current_phase, "validation");
-    session.progress_percentage = 90.0f;
-
-    // Complete tuning
+    // Finalize tuning session without simulated phases
     strcpy(session.status, "tuning_complete");
     strcpy(session.current_phase, "optimized");
     session.progress_percentage = 100.0f;
