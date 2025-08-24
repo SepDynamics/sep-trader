@@ -484,24 +484,11 @@ QuantumState QuantumProcessingService::performAuthenticEvolution(
     for (const auto& amplitude : result.amplitudes) {
         normalization += std::norm(amplitude);
     }
-    
+
     if (normalization > 0.0) {
         double norm_factor = 1.0 / std::sqrt(normalization);
         for (auto& amplitude : result.amplitudes) {
             amplitude *= norm_factor;
-        }
-    }
-    
-    // Normalize amplitudes
-    double totalProb = 0.0;
-    for (const auto& amp : result.amplitudes) {
-        totalProb += std::norm(amp);
-    }
-    
-    if (totalProb > 0.0) {
-        double normFactor = 1.0 / std::sqrt(totalProb);
-        for (auto& amp : result.amplitudes) {
-            amp *= normFactor;
         }
     }
     
