@@ -2,6 +2,7 @@
 
 #include <iostream>
 #include <stdexcept>
+#include <cstdint>
 
 #include "core/cuda_error.cuh"
 #include "device_buffer.h"
