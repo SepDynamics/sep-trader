@@ -101,8 +101,7 @@ public:
     MarketData getMarketData(const std::string& instrument);
     int getVolatilityLevel(double current_atr, const std::string& instrument);
 
-    // Sample Data
-    void setupSampleData(const std::string& instrument, const std::string& granularity, const std::string& output_file);
+    // Historical data utilities
     bool fetchHistoricalData(const std::string& instrument, const std::string& output_file);
     bool saveEURUSDM1_48h(const std::string& output_file = "eur_usd_m1_48h.json");
 
