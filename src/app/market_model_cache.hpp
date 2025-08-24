@@ -27,8 +27,10 @@ public:
 
 private:
     bool loadCacheFromValkey(const std::string& cache_key);
-    bool saveCacheToValkey(const std::string& cache_key) const;
-    void processAndCacheData(const std::vector<Candle>& raw_candles, const std::string& cache_key);
+    bool saveCacheToValkey(const std::string& instrument, const std::string& cache_key) const;
+    void processAndCacheData(const std::string& instrument,
+                             const std::vector<Candle>& raw_candles,
+                             const std::string& cache_key);
     std::string getCacheKeyForLastWeek(const std::string& instrument) const;
     
     // Valkey connection management

@@ -85,7 +85,7 @@ bool MarketModelCache::ensureCacheForLastWeek(const std::string& instrument) {
     }
 
     std::cout << "[CACHE] ⚡ Processing " << raw_candles.size() << " candles through quantum pipeline..." << std::endl;
-    processAndCacheData(raw_candles, cache_key);
+    processAndCacheData(instrument, raw_candles, cache_key);
     return true;
 }
 
@@ -116,20 +116,22 @@ void MarketModelCache::processBatch(const std::string& instrument, const std::ve
     }
 }
 
-void MarketModelCache::processAndCacheData(const std::vector<Candle>& raw_candles, const std::string& cache_key) {
-    processBatch("EUR_USD", raw_candles);
+void MarketModelCache::processAndCacheData(const std::string& instrument,
+                                           const std::vector<Candle>& raw_candles,
+                                           const std::string& cache_key) {
+    processBatch(instrument, raw_candles);
     std::cout << "[CACHE] ✅ Processing complete. Generated " << processed_signals_.size() << " signals." << std::endl;
-    saveCacheToValkey(cache_key);
+    saveCacheToValkey(instrument, cache_key);
 }
 
-bool MarketModelCache::saveCacheToValkey(const std::string& cache_key) const {
+bool MarketModelCache::saveCacheToValkey(const std::string& instrument, const std::string& cache_key) const {
     if (!valkey_context_) {
         std::cerr << "[CACHE] ❌ No Valkey connection available for saving" << std::endl;
         return false;
     }
     
     nlohmann::json j;
-    j["metadata"]["instrument"] = "EUR_USD";
+    j["metadata"]["instrument"] = instrument;
     j["metadata"]["created_at"] = std::chrono::duration_cast<std::chrono::seconds>(
         std::chrono::system_clock::now().time_since_epoch()).count();
     j["metadata"]["signal_count"] = processed_signals_.size();

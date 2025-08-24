@@ -2,13 +2,13 @@
 // Displays real-time OANDA candle data from Valkey server with 2-week history
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { 
-  LineChart, 
-  Line, 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip, 
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
   ResponsiveContainer,
   Brush,
   Area,
@@ -16,18 +16,19 @@ import {
 } from 'recharts';
 import { useWebSocket } from '../context/WebSocketContext';
 import { apiClient } from '../services/api';
-import { symbols, symbolInfo } from '../config/symbols';
+import { symbolInfo } from '../config/symbols';
+import { useSymbol } from '../context/SymbolContext';
 import { TrendingUp, Database, Clock, BarChart3 } from 'lucide-react';
 
 const OandaCandleChart = ({ height = 400, showControls = true }) => {
   const [candleData, setCandleData] = useState([]);
-  const [selectedInstrument, setSelectedInstrument] = useState('EUR_USD');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [viewMode, setViewMode] = useState('line'); // 'line' or 'area'
   const [timeRange, setTimeRange] = useState('2weeks'); // '1week', '2weeks'
-  
+
   const { valkeyMetrics, connected } = useWebSocket();
+  const { selectedSymbol, setSelectedSymbol, symbols } = useSymbol();
 
   // Fetch candle data from Valkey
   const fetchCandleData = useCallback(async () => {
@@ -40,10 +41,10 @@ const OandaCandleChart = ({ height = 400, showControls = true }) => {
       const twoWeeksAgo = now - (14 * 24 * 60 * 60 * 1000);
       
       // First fetch fresh data from OANDA if needed
-      await apiClient.fetchCandleData([selectedInstrument]);
-      
+      await apiClient.fetchCandleData([selectedSymbol]);
+
       // Then get stored candles from Valkey
-      const response = await apiClient.getStoredCandles(selectedInstrument);
+      const response = await apiClient.getStoredCandles(selectedSymbol);
       
       if (response && response.candles) {
         // Transform OANDA candle format to chart format
@@ -61,7 +62,7 @@ const OandaCandleChart = ({ height = 400, showControls = true }) => {
             close: parseFloat(candle.mid?.c || candle.c || candle.close || 0),
             volume: parseInt(candle.volume || 0),
             // Add Valkey key identifier (timestamp-based)
-            valkeyKey: `oanda:${selectedInstrument}:${new Date(candle.time || candle.timestamp).getTime()}`,
+            valkeyKey: `oanda:${selectedSymbol}:${new Date(candle.time || candle.timestamp).getTime()}`,
             index
           }))
           .sort((a, b) => a.timestamp - b.timestamp);
@@ -69,7 +70,7 @@ const OandaCandleChart = ({ height = 400, showControls = true }) => {
         setCandleData(transformedData);
       } else {
         // No data available from Valkey server
-        setError(`No candle data available for ${selectedInstrument} in Valkey server`);
+        setError(`No candle data available for ${selectedSymbol} in Valkey server`);
         setCandleData([]);
       }
       
@@ -80,7 +81,7 @@ const OandaCandleChart = ({ height = 400, showControls = true }) => {
     } finally {
       setLoading(false);
     }
-  }, [selectedInstrument]);
+  }, [selectedSymbol]);
 
 
   // Load data on component mount and instrument change
@@ -139,7 +140,7 @@ const OandaCandleChart = ({ height = 400, showControls = true }) => {
   };
 
   const formatPrice = (price) => {
-    const precision = symbolInfo[selectedInstrument]?.precision || 5;
+    const precision = symbolInfo[selectedSymbol]?.precision || 5;
     return price?.toFixed(precision) || '0.00000';
   };
 
@@ -194,8 +195,8 @@ const OandaCandleChart = ({ height = 400, showControls = true }) => {
           <div className="flex items-center gap-3">
             {/* Instrument Selector */}
             <select
-              value={selectedInstrument}
-              onChange={(e) => setSelectedInstrument(e.target.value)}
+              value={selectedSymbol}
+              onChange={(e) => setSelectedSymbol(e.target.value)}
               className="bg-gray-800 border border-gray-600 rounded px-3 py-1 text-sm text-white"
             >
               {symbols.map(symbol => (
@@ -231,7 +232,7 @@ const OandaCandleChart = ({ height = 400, showControls = true }) => {
       <div className="flex items-center justify-between mb-4 p-3 bg-gray-800/50 rounded-lg">
         <div className="flex items-center gap-4">
           <div>
-            <div className="text-sm text-gray-400">{symbolInfo[selectedInstrument]?.name || selectedInstrument}</div>
+            <div className="text-sm text-gray-400">{symbolInfo[selectedSymbol]?.name || selectedSymbol}</div>
             <div className="text-2xl font-bold text-white">
               {formatPrice(currentPrice)}
             </div>
