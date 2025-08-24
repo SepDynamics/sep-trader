@@ -270,12 +270,6 @@ struct StreamDecl : Node {
     std::unordered_map<std::string, std::string> params;
 };
 
-struct MemoryDecl : Node
-{
-    std::string name;
-    // TODO: Define memory block properties
-};
-
 struct PatternDecl : Node {
     std::string name;
     std::string parent_pattern;  // Name of the pattern being inherited from
