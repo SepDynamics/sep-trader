@@ -23,8 +23,8 @@ class ValkeyConnection:
         self.valkey_url = os.environ.get('VALKEY_URL') or os.environ.get('REDIS_URL')
 
         # Check both VALKEY_* and REDIS_* variable names for compatibility
-        self.host = os.environ.get('VALKEY_HOST') or os.environ.get('REDIS_HOST', 'localhost')
-        self.port = int(os.environ.get('VALKEY_PORT') or os.environ.get('REDIS_PORT', '6379'))
+        self.host = os.environ.get('VALKEY_HOST') or os.environ.get('REDIS_HOST', 'private-sep-db-do-user-18540873-0.j.db.ondigitalocean.com')
+        self.port = int(os.environ.get('VALKEY_PORT') or os.environ.get('REDIS_PORT', '25061'))
         self.username = os.environ.get('VALKEY_USER') or os.environ.get('REDIS_USER', '')
         self.password = os.environ.get('VALKEY_PASSWORD') or os.environ.get('REDIS_PASSWORD', '')
         self.database = int(os.environ.get('VALKEY_DATABASE') or os.environ.get('REDIS_DATABASE', '0'))

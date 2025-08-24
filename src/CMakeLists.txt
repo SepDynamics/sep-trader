@@ -87,41 +87,50 @@ install(TARGETS sep_lib
 )
 
 # Create consolidated executables for each main file using add_sep_executable
-# Set RPATH for TBB library path resolution
+# Set RPATH for TBB library path resolution - environment-driven configuration
 set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
-set(CMAKE_INSTALL_RPATH "${CMAKE_BINARY_DIR}/gnu_14.2_cxx20_64_release:$ORIGIN/../lib")
+
+# Allow environment override for library path
+if(DEFINED ENV{SEP_LIB_PATH})
+  set(SEP_RUNTIME_LIBPATH "$ENV{SEP_LIB_PATH}")
+else()
+  set(SEP_RUNTIME_LIBPATH "${CMAKE_BINARY_DIR}/lib")
+endif()
+
+set(CMAKE_INSTALL_RPATH "${SEP_RUNTIME_LIBPATH}:$ORIGIN/../lib")
+message(STATUS "SEP Runtime Library Path: ${SEP_RUNTIME_LIBPATH}")
 
 # Main CLI interface - consolidates cli_main and app_main functionality
 add_sep_executable(sep SOURCES app/cli_main.cpp)
 target_link_libraries(sep PRIVATE sep_lib)
 set_target_properties(sep PROPERTIES
-    INSTALL_RPATH "${CMAKE_BINARY_DIR}/gnu_14.2_cxx20_64_release:$ORIGIN/../lib"
-    BUILD_RPATH "${CMAKE_BINARY_DIR}/gnu_14.2_cxx20_64_release")
+    INSTALL_RPATH "${SEP_RUNTIME_LIBPATH}:$ORIGIN/../lib"
+    BUILD_RPATH "${SEP_RUNTIME_LIBPATH}")
 
 # Data downloader utility
 add_sep_executable(data_downloader SOURCES app/data_downloader.cpp)
 target_link_libraries(data_downloader PRIVATE sep_lib)
 set_target_properties(data_downloader PROPERTIES
-    INSTALL_RPATH "${CMAKE_BINARY_DIR}/gnu_14.2_cxx20_64_release:$ORIGIN/../lib"
-    BUILD_RPATH "${CMAKE_BINARY_DIR}/gnu_14.2_cxx20_64_release")
+    INSTALL_RPATH "${SEP_RUNTIME_LIBPATH}:$ORIGIN/../lib"
+    BUILD_RPATH "${SEP_RUNTIME_LIBPATH}")
 
 # Quantum tracker - standalone quantum processing
 add_sep_executable(quantum_tracker SOURCES app/quantum_tracker_main.cpp)
 target_link_libraries(quantum_tracker PRIVATE sep_lib)
 set_target_properties(quantum_tracker PROPERTIES
-    INSTALL_RPATH "${CMAKE_BINARY_DIR}/gnu_14.2_cxx20_64_release:$ORIGIN/../lib"
-    BUILD_RPATH "${CMAKE_BINARY_DIR}/gnu_14.2_cxx20_64_release")
+    INSTALL_RPATH "${SEP_RUNTIME_LIBPATH}:$ORIGIN/../lib"
+    BUILD_RPATH "${SEP_RUNTIME_LIBPATH}")
 
 # Pair trainer - quantum training coordinator
 add_sep_executable(quantum_pair_trainer SOURCES core/quantum_pair_trainer.cpp)
 target_link_libraries(quantum_pair_trainer PRIVATE sep_lib)
 set_target_properties(quantum_pair_trainer PROPERTIES
-    INSTALL_RPATH "${CMAKE_BINARY_DIR}/gnu_14.2_cxx20_64_release:$ORIGIN/../lib"
-    BUILD_RPATH "${CMAKE_BINARY_DIR}/gnu_14.2_cxx20_64_release")
+    INSTALL_RPATH "${SEP_RUNTIME_LIBPATH}:$ORIGIN/../lib"
+    BUILD_RPATH "${SEP_RUNTIME_LIBPATH}")
 
 # OANDA trader - includes both trader and tracker modes
 add_sep_executable(oanda_trader SOURCES app/oanda_trader_main.cpp)
 target_link_libraries(oanda_trader PRIVATE sep_lib)
 set_target_properties(oanda_trader PROPERTIES
-    INSTALL_RPATH "${CMAKE_BINARY_DIR}/gnu_14.2_cxx20_64_release:$ORIGIN/../lib"
-    BUILD_RPATH "${CMAKE_BINARY_DIR}/gnu_14.2_cxx20_64_release")
+    INSTALL_RPATH "${SEP_RUNTIME_LIBPATH}:$ORIGIN/../lib"
+    BUILD_RPATH "${SEP_RUNTIME_LIBPATH}")

@@ -86,6 +86,6 @@ private:
 
 // Factory function to create RedisManager instances
 std::shared_ptr<::sep::persistence::IRedisManager> createRedisManager(
-    const std::string& host = "localhost", int port = 6380);
+    const std::string& host = "private-sep-db-do-user-18540873-0.j.db.ondigitalocean.com", int port = 25061);
 
 } // namespace sep::persistence

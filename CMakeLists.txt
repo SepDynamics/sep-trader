@@ -3,17 +3,22 @@ cmake_minimum_required(VERSION 3.15)
 # Fewer surprise warnings from third-party junk
 set(CMAKE_WARN_DEPRECATED OFF CACHE BOOL "Suppress deprecation warnings" FORCE)
 
-# Compilers BEFORE project(): lock GCC-14 if present; otherwise allow nvcc to cope later
+# Environment-driven compiler configuration
 if(UNIX AND NOT APPLE)
-  if(EXISTS "/usr/bin/gcc-14")
-    set(CMAKE_C_COMPILER        "/usr/bin/gcc-14")
-    set(CMAKE_CXX_COMPILER      "/usr/bin/g++-14")
-    # Host compiler for CUDA will be respected later if CUDA is enabled
-    set(CMAKE_CUDA_HOST_COMPILER "/usr/bin/g++-14")
-    message(STATUS "Using GCC-14 on Linux (CUDA 12.9 compatible)")
+  # Allow environment override of compiler paths
+  set(SEP_GCC_PATH "$ENV{SEP_GCC_PATH}")
+  if(NOT SEP_GCC_PATH)
+    set(SEP_GCC_PATH "/usr/bin")
+  endif()
+  
+  if(EXISTS "${SEP_GCC_PATH}/gcc-14")
+    set(CMAKE_C_COMPILER        "${SEP_GCC_PATH}/gcc-14")
+    set(CMAKE_CXX_COMPILER      "${SEP_GCC_PATH}/g++-14")
+    set(CMAKE_CUDA_HOST_COMPILER "${SEP_GCC_PATH}/g++-14")
+    message(STATUS "Using GCC-14 from ${SEP_GCC_PATH} (CUDA 12.9 compatible)")
   else()
     list(APPEND CMAKE_CUDA_FLAGS "--allow-unsupported-compiler")
-    message(STATUS "GCC-14 not found; allowing unsupported compiler for CUDA toolchain")
+    message(STATUS "GCC-14 not found at ${SEP_GCC_PATH}; allowing unsupported compiler for CUDA toolchain")
   endif()
 endif()
 
@@ -38,10 +43,28 @@ include(GNUInstallDirs)
 # Provide project root path to C++ sources
 add_compile_definitions(PROJECT_ROOT="${CMAKE_SOURCE_DIR}")
 
-# Common directories used across the project
-set(CACHE_DIR "${CMAKE_SOURCE_DIR}/cache/")
-set(CONFIG_DIR "${CMAKE_SOURCE_DIR}/config/")
-set(LOG_DIR "${CMAKE_SOURCE_DIR}/logs/")
+# Environment-driven directory configuration
+if(DEFINED ENV{SEP_CACHE_DIR})
+  set(CACHE_DIR "$ENV{SEP_CACHE_DIR}")
+else()
+  set(CACHE_DIR "${CMAKE_SOURCE_DIR}/cache/")
+endif()
+
+if(DEFINED ENV{SEP_CONFIG_DIR})
+  set(CONFIG_DIR "$ENV{SEP_CONFIG_DIR}")
+else()
+  set(CONFIG_DIR "${CMAKE_SOURCE_DIR}/config/")
+endif()
+
+if(DEFINED ENV{SEP_LOG_DIR})
+  set(LOG_DIR "$ENV{SEP_LOG_DIR}")
+else()
+  set(LOG_DIR "${CMAKE_SOURCE_DIR}/logs/")
+endif()
+
+message(STATUS "SEP Cache Directory: ${CACHE_DIR}")
+message(STATUS "SEP Config Directory: ${CONFIG_DIR}")
+message(STATUS "SEP Log Directory: ${LOG_DIR}")
 
 # C++ standard
 set(CMAKE_CXX_STANDARD 20)
@@ -77,8 +100,14 @@ if(SEP_USE_CUDA)
     endif()
 
     set(CMAKE_CUDA_COMPILER "$ENV{CUDA_HOME}/bin/nvcc")
-    if(UNIX AND NOT APPLE AND EXISTS "/usr/bin/g++-14")
-        set(CMAKE_CUDA_HOST_COMPILER "/usr/bin/g++-14")
+    if(UNIX AND NOT APPLE)
+        # Use environment-driven GCC path for CUDA host compiler
+        if(NOT SEP_GCC_PATH)
+            set(SEP_GCC_PATH "/usr/bin")
+        endif()
+        if(EXISTS "${SEP_GCC_PATH}/g++-14")
+            set(CMAKE_CUDA_HOST_COMPILER "${SEP_GCC_PATH}/g++-14")
+        endif()
     endif()
 
     set(CMAKE_CUDA_ARCHITECTURES "61;86;89" CACHE STRING "Supported CUDA architectures")

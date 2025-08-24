@@ -47,6 +47,11 @@ data.sqlite-journal
 cache/
 ruby/
 
+# Environment files with secrets
+.sep-config.env
+*.env
+!*.env.template
+
 # OS generated files
 .DS_Store
 .DS_Store?
