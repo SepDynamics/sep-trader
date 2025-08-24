@@ -6,7 +6,6 @@ This document tracks outstanding code quality concerns in the SEP Engine codebas
 ## Code Quality Issues
 
 ### Hardcoded Values
-- `src/io/oanda_connector.cpp` - Hardcoded URLs and magic numbers.
 - `src/cuda/kernels.cu` - Hardcoded block and grid sizes.
 
 ### Inconsistent Implementations
@@ -38,6 +37,7 @@ This document tracks outstanding code quality concerns in the SEP Engine codebas
   (`src/app/quantum_signal_bridge.cpp`).
 - Unused evolutionary helper declarations and mock trade simulation removed (`src/core/evolution.h`, `src/util/interpreter.cpp`).
 - Duplicate quantum coherence manager removed (`src/util/quantum_coherence_manager.*`) in favor of the core implementation.
+- Magic numbers in OANDA connector replaced with constants (`src/io/oanda_connector.cpp`, `src/io/oanda_constants.h`).
 - Removed duplicate market data fetch function and placeholder ATR
   (`src/app/quantum_signal_bridge.cpp`).
 
