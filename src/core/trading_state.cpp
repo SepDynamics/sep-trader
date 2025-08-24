@@ -3,6 +3,7 @@
 #include <sstream>
 #include <iostream>
 #include <iomanip>
+#include "util/nlohmann_json_safe.h"
 
 namespace sep::core {
 
@@ -322,55 +323,22 @@ std::string TradingState::serializeState() const {
 }
 
 bool TradingState::deserializeState(const std::string& json_data) {
-    // Simple JSON parsing - would use proper JSON library in production
     try {
-        // Extract key values using simple string operations
-        // This is a minimal implementation for demonstration
-        
-        if (json_data.find("\"emergency_stop\": true") != std::string::npos) {
-            emergency_stop_.store(true);
-        }
-        
-        if (json_data.find("\"trading_paused\": true") != std::string::npos) {
-            trading_paused_.store(true);
-        }
-        
-        if (json_data.find("\"global_trading_enabled\": true") != std::string::npos) {
-            global_trading_enabled_.store(true);
-        }
-        
-        if (json_data.find("\"maintenance_mode\": true") != std::string::npos) {
-            maintenance_mode_.store(true);
-        }
-        
-        if (json_data.find("\"configuration_valid\": true") != std::string::npos) {
-            configuration_valid_.store(true);
-        }
-        
-        // Parse numeric values
-        std::regex risk_regex(R"("risk_level":\s*([0-9.]+))");
-        std::smatch match;
-        if (std::regex_search(json_data, match, risk_regex)) {
-            risk_level_.store(std::stod(match[1].str()));
-        }
-        
-        std::regex positions_regex(R"("max_positions":\s*(\d+))");
-        if (std::regex_search(json_data, match, positions_regex)) {
-            max_positions_.store(std::stoull(match[1].str()));
-        }
-        
-        std::regex trades_regex(R"("total_trades":\s*(\d+))");
-        if (std::regex_search(json_data, match, trades_regex)) {
-            total_trades_.store(std::stoull(match[1].str()));
-        }
-        
-        std::regex errors_regex(R"("total_errors":\s*(\d+))");
-        if (std::regex_search(json_data, match, errors_regex)) {
-            total_errors_.store(std::stoull(match[1].str()));
-        }
-        
+        auto j = nlohmann::json::parse(json_data);
+
+        emergency_stop_.store(j.value("emergency_stop", false));
+        trading_paused_.store(j.value("trading_paused", false));
+        global_trading_enabled_.store(j.value("global_trading_enabled", false));
+        maintenance_mode_.store(j.value("maintenance_mode", false));
+        configuration_valid_.store(j.value("configuration_valid", false));
+
+        risk_level_.store(j.value("risk_level", 0.0));
+        max_positions_.store(j.value("max_positions", 0ULL));
+        total_trades_.store(j.value("total_trades", 0ULL));
+        total_errors_.store(j.value("total_errors", 0ULL));
+
         return true;
-    } catch (const std::exception& e) {
+    } catch (const nlohmann::json::exception& e) {
         std::cerr << "Error parsing trading state JSON: " << e.what() << std::endl;
         return false;
     }
