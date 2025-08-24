@@ -36,6 +36,10 @@ This document tracks outstanding code quality concerns in the SEP Engine codebas
 - Unimplemented market data DSL builtins removed (`src/util/interpreter.cpp`).
 - Testbed OANDA market data helper migrated to production with real ATR
   (`src/app/quantum_signal_bridge.cpp`).
+- Removed unused logging and Khronos stubs (`src/util/spdlog_isolation.h`,
+  `src/util/khrplatform.h`).
+- Consolidated market data fetching to compute real ATR values
+  (`src/app/quantum_signal_bridge.cpp`).
 
 ## Recommendations
 1. Remove remaining hardcoded values via configuration.
