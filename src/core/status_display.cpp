@@ -74,20 +74,9 @@ bool StatusDisplay::showTuningStatus() {
     printStatusHeader("Live Tuning Status");
     
     bool tuning_active = false;  // Simplified for now
-    
+
     std::cout << "\n🎯 LIVE TUNING:" << std::endl;
     printStatusLine("Status", tuning_active ? "Active" : "Inactive", tuning_active);
-    
-    if (tuning_active) {
-        printStatusLine("Tuning Pairs", "3", true);
-        printStatusLine("Iteration", "42", true);
-        printStatusLine("Last Update", "2 minutes ago", true);
-        
-        std::cout << "\n📈 CURRENT PERFORMANCE:" << std::endl;
-        printStatusLine("EUR_USD Accuracy", "68.5%", true);
-        printStatusLine("GBP_USD Accuracy", "71.2%", true);
-        printStatusLine("USD_JPY Accuracy", "66.8%", true);
-    }
     
     return true;
 }
