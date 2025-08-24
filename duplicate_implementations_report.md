@@ -24,13 +24,11 @@ This document tracks outstanding code quality concerns in the SEP Engine codebas
 - Placeholder training CLI and duplicate MemoryTierService implementation removed (`src/app/cli_main.cpp`, `src/app/MemoryTierService.*`).
 - Duplicate CLI removed (`src/app/trader_cli_simple.cpp`, `src/app/trader_cli_simple.hpp`).
 - Unused frontend testing component removed (`frontend/src/components/TestingSuite.jsx`).
-<<<<<<< .merge_file_LczHpH
 - Unused CUDA placeholder removed (`src/core/quantum_pattern_cuda.cu`).
 - DSL builtin now uses `data_downloader` for real OANDA data (`src/util/interpreter.cpp`).
-=======
 - Default API base URL removed to enforce explicit configuration (`frontend/src/services/api.ts`).
 - Redis stub context eliminated to ensure real integration (`src/util/redis_manager.*`).
->>>>>>> .merge_file_ypfuF5
+- Removed obsolete backtesting and training stubs (`src/core/backtesting_engine.hpp`, `src/core/quantum_pair_trainer.*`, `src/core/temporal_data_validator.hpp`).
 
 ## Recommendations
 1. Remove remaining hardcoded values via configuration.

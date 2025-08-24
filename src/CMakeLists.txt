@@ -114,13 +114,6 @@ set_target_properties(data_downloader PROPERTIES
     INSTALL_RPATH "${SEP_RUNTIME_LIBPATH}:$ORIGIN/../lib"
     BUILD_RPATH "${SEP_RUNTIME_LIBPATH}")
 
-# Pair trainer - quantum training coordinator
-add_sep_executable(quantum_pair_trainer SOURCES core/quantum_pair_trainer.cpp)
-target_link_libraries(quantum_pair_trainer PRIVATE sep_lib)
-set_target_properties(quantum_pair_trainer PROPERTIES
-    INSTALL_RPATH "${SEP_RUNTIME_LIBPATH}:$ORIGIN/../lib"
-    BUILD_RPATH "${SEP_RUNTIME_LIBPATH}")
-
 # OANDA trader - includes both trader and tracker modes
 add_sep_executable(oanda_trader SOURCES app/oanda_trader_main.cpp)
 target_link_libraries(oanda_trader PRIVATE sep_lib)
