@@ -1,30 +1,51 @@
 #include "core/sep_precompiled.h"
 
+#include <chrono>
+#include <cstdlib>
+#include <iomanip>
+#include <iostream>
+#include <sstream>
+
+using sep::connectors::OandaConnector;
+
+namespace {
+std::string formatTimestamp(const std::chrono::system_clock::time_point &tp) {
+    auto time_t = std::chrono::system_clock::to_time_t(tp);
+    std::stringstream ss;
+    ss << std::put_time(std::gmtime(&time_t), "%Y-%m-%dT%H:%M:%SZ");
+    return ss.str();
+}
+} // namespace
+
 int main() {
-    // Replace with your actual API key and account ID for testing
-    std::string api_key = "9e406b9a85efc53a6e055f7a30136e8e-3ef8b49b63d878ee273e8efa201e1536";
-    std::string account_id = "101-001-31229774-001";
+    const char *api_key = std::getenv("OANDA_API_KEY");
+    const char *account_id = std::getenv("OANDA_ACCOUNT_ID");
+    if (!api_key || !account_id) {
+        std::cerr << "OANDA_API_KEY and OANDA_ACCOUNT_ID must be set in environment." << std::endl;
+        return 1;
+    }
 
-    sep::connectors::OandaConnector connector(api_key, account_id, true);
-
+    OandaConnector connector(api_key, account_id, true);
     if (!connector.initialize()) {
         std::cerr << "Failed to initialize OandaConnector: " << connector.getLastError() << std::endl;
         return 1;
     }
 
-    std::cout << "OandaConnector initialized successfully." << std::endl;
+    auto now = std::chrono::system_clock::now();
+    auto start = now - std::chrono::hours(48);
+    auto from = formatTimestamp(start);
+    auto to = formatTimestamp(now);
 
-    // Setup 48-hour sample data for EUR_USD
-    connector.setupSampleData("EUR_USD", "M1", "eur_usd_m1_48h.json");
-
-    if (connector.hasError()) {
-        std::cerr << "Error setting up sample data: " << connector.getLastError() << std::endl;
+    auto candles = connector.getHistoricalData("EUR_USD", "M1", from, to);
+    if (candles.empty()) {
+        std::cerr << "Failed to fetch historical data: " << connector.getLastError() << std::endl;
+        connector.shutdown();
         return 1;
     }
 
-    std::cout << "Sample data setup complete." << std::endl;
+    std::cout << "Fetched " << candles.size() << " candles for EUR_USD." << std::endl;
 
     connector.shutdown();
-
     return 0;
 }
+

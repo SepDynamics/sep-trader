@@ -9,16 +9,7 @@ const QuantumAnalysis = () => {
   useEffect(() => {
     fetch('/api/system/quantum-metrics')
       .then((res) => res.json())
-      .then((data) =>
-        setAnalysisData({
-          qbsa_results: {},
-          qfh_patterns: [],
-          coherence_metrics: {},
-          pattern_evolution: [],
-          stability_index: 0,
-          ...data,
-        })
-      )
+      .then((data) => setAnalysisData(data))
       .catch(() => setAnalysisData(null));
   }, []);
 
@@ -77,10 +68,10 @@ const QuantumAnalysis = () => {
             </div>
           </div>
           <div className="card-value text-blue-400">
-            {formatNumber(analysisData.qbsa_results.coherence_score || 0.4687)}
+            {formatNumber(analysisData?.qbsa_results?.coherence_score ?? 0)}
           </div>
           <div className="text-sm text-gray-400">
-            Based on {analysisData.qbsa_results.analyzed_patterns || 8432} patterns
+            Based on {(analysisData?.qbsa_results?.analyzed_patterns ?? 0).toLocaleString()} patterns
           </div>
         </div>
 
@@ -91,8 +82,8 @@ const QuantumAnalysis = () => {
               <span className="card-title">Stability Index</span>
             </div>
           </div>
-          <div className={`card-value ${getStabilityColor(analysisData.stability_index)}`}>
-            {formatPercentage(analysisData.stability_index)}
+          <div className={`card-value ${getStabilityColor(analysisData?.stability_index ?? 0)}`}>
+            {formatPercentage(analysisData?.stability_index ?? 0)}
           </div>
           <div className="text-sm text-gray-400">
             Quantum field stability
@@ -107,7 +98,7 @@ const QuantumAnalysis = () => {
             </div>
           </div>
           <div className="card-value text-purple-400">
-            {(analysisData.qbsa_results.binary_states || 15625).toLocaleString()}
+            {(analysisData?.qbsa_results?.binary_states ?? 0).toLocaleString()}
           </div>
           <div className="text-sm text-gray-400">
             QBSA processed states
@@ -122,7 +113,7 @@ const QuantumAnalysis = () => {
             </div>
           </div>
           <div className="card-value text-yellow-400">
-            {analysisData.qbsa_results.flip_events || 234}
+            {analysisData?.qbsa_results?.flip_events ?? 0}
           </div>
           <div className="text-sm text-gray-400">
             Recent quantum flips
@@ -140,7 +131,7 @@ const QuantumAnalysis = () => {
             </h3>
           </div>
           <div className="space-y-3">
-            {analysisData.qfh_patterns.map((pattern) => (
+            {(analysisData?.qfh_patterns || []).map((pattern) => (
               <div key={pattern.id} className="signal-card">
                 <div className="flex-1">
                   <div className="flex items-center justify-between mb-2">
@@ -174,7 +165,7 @@ const QuantumAnalysis = () => {
             </h3>
           </div>
           <div className="space-y-4">
-            {Object.entries(analysisData.coherence_metrics).map(([key, value]) => {
+            {Object.entries(analysisData?.coherence_metrics || {}).map(([key, value]) => {
               const label = key.split('_').map(word => 
                 word.charAt(0).toUpperCase() + word.slice(1)
               ).join(' ');
@@ -207,7 +198,7 @@ const QuantumAnalysis = () => {
           </h3>
         </div>
         <div className="h-64 flex items-end justify-between gap-2 p-4">
-          {analysisData.pattern_evolution.map((point, index) => (
+          {(analysisData?.pattern_evolution || []).map((point, index) => (
             <div key={index} className="flex flex-col items-center flex-1">
               <div
                 className="w-full bg-gradient-to-t from-green-500 to-green-300 rounded-t transition-all hover:from-green-400 hover:to-green-200"
@@ -241,42 +232,42 @@ const QuantumAnalysis = () => {
         <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
           <div className="text-center p-4 bg-gray-800 rounded-lg">
             <div className="text-2xl font-bold text-purple-400 mb-1">
-              {(analysisData.qbsa_results.binary_states || 15625).toLocaleString()}
+              {(analysisData?.qbsa_results?.binary_states ?? 0).toLocaleString()}
             </div>
             <div className="text-sm text-gray-400">Binary States</div>
           </div>
           
           <div className="text-center p-4 bg-gray-800 rounded-lg">
             <div className="text-2xl font-bold text-blue-400 mb-1">
-              {(analysisData.qbsa_results.analyzed_patterns || 8432).toLocaleString()}
+              {(analysisData?.qbsa_results?.analyzed_patterns ?? 0).toLocaleString()}
             </div>
             <div className="text-sm text-gray-400">Analyzed Patterns</div>
           </div>
           
           <div className="text-center p-4 bg-gray-800 rounded-lg">
             <div className="text-2xl font-bold text-green-400 mb-1">
-              {formatNumber(analysisData.qbsa_results.stability_ratio || 0.7234)}
+              {formatNumber(analysisData?.qbsa_results?.stability_ratio ?? 0)}
             </div>
             <div className="text-sm text-gray-400">Stability Ratio</div>
           </div>
           
           <div className="text-center p-4 bg-gray-800 rounded-lg">
             <div className="text-2xl font-bold text-yellow-400 mb-1">
-              {analysisData.qbsa_results.flip_events || 234}
+              {analysisData?.qbsa_results?.flip_events ?? 0}
             </div>
             <div className="text-sm text-gray-400">Flip Events</div>
           </div>
           
           <div className="text-center p-4 bg-gray-800 rounded-lg">
             <div className="text-2xl font-bold text-red-400 mb-1">
-              {analysisData.qbsa_results.rupture_events || 12}
+              {analysisData?.qbsa_results?.rupture_events ?? 0}
             </div>
             <div className="text-sm text-gray-400">Rupture Events</div>
           </div>
           
           <div className="text-center p-4 bg-gray-800 rounded-lg">
             <div className="text-2xl font-bold text-blue-400 mb-1">
-              {formatNumber(analysisData.qbsa_results.coherence_score || 0.4687)}
+              {formatNumber(analysisData?.qbsa_results?.coherence_score ?? 0)}
             </div>
             <div className="text-sm text-gray-400">Coherence Score</div>
           </div>
