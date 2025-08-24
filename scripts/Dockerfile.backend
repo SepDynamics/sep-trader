@@ -25,7 +25,7 @@ COPY bin/ /app/bin/
 COPY config/ /app/config/
 
 # Create necessary directories
-RUN mkdir -p /app/data /app/logs
+RUN mkdir -p /app/data /app/logs /app/output
 
 # Set environment variables
 ENV PYTHONPATH=/app

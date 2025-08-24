@@ -110,9 +110,11 @@ setup_local_environment() {
     # Create necessary directories
     mkdir -p data/redis
     mkdir -p logs
+    mkdir -p output
     
     # Set proper permissions
     chmod 777 data/redis
+    chmod 777 output
     
     log_success "Local environment setup completed"
 }

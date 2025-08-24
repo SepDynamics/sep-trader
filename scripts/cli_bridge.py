@@ -50,7 +50,7 @@ class CLIBridge:
     
     def __init__(self):
         self.sep_root = Path(__file__).parent.parent
-        self.cli_executable = self.sep_root / "bin" / "trader_cli"
+        self.cli_executable = self.sep_root / "bin" / "quantum_tracker"
         
         # Command whitelist for security
         self.allowed_commands = {

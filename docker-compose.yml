@@ -41,6 +41,7 @@ services:
       - ./config:/app/config:ro
       - ./data:/app/data
       - ./logs:/app/logs
+      - ./output:/app/output
       - ./bin:/app/bin:ro
     depends_on:
       redis:
