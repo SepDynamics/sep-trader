@@ -14,10 +14,7 @@ export const ManifoldProvider = ({ children }) => {
   } = useWebSocket();
 
   // Enhanced manifold state management
-  const [manifestoData, setManifestoData] = useState(new Map());
-  const [identityTimelines, setIdentityTimelines] = useState(new Map());
   const [ruptureEvents, setRuptureEvents] = useState([]);
-  const [patternEvolution, setPatternEvolution] = useState([]);
   const [selectedIdentity, setSelectedIdentity] = useState(null);
 
   // Process quantum signals into identity timelines
@@ -165,8 +162,7 @@ export const ManifoldProvider = ({ children }) => {
     processedIdentities,
     manifoldBands,
     ruptureEvents,
-    patternEvolution,
-    
+
     // Selection state
     selectedIdentity,
     setSelectedIdentity,

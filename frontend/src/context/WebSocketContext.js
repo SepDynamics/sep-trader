@@ -25,12 +25,6 @@ export const WebSocketProvider = ({ children }) => {
   const [valkeyMetrics, setValkeyMetrics] = useState({});
   const [livePatterns, setLivePatterns] = useState({});
   
-  // Enhanced states for backwards computation & manifold streaming
-  const [manifoldStream, setManifoldStream] = useState({});
-  const [pinStates, setPinStates] = useState(new Map());
-  const [signalEvolution, setSignalEvolution] = useState(new Map());
-  const [backwardsDerivations, setBackwardsDerivations] = useState(new Map());
-  
   // Connection management
   const reconnectTimeoutRef = useRef(null);
   const reconnectAttemptsRef = useRef(0);
