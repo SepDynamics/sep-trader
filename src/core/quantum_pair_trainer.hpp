@@ -9,6 +9,8 @@
 #include <cstddef>  // For size_t
 #include <cstdint>
 
+struct Candle;
+
 // Forward declarations only - no templates
 namespace sep {
 namespace engine {
@@ -19,7 +21,6 @@ namespace quantum {
 class QFHBasedProcessor;
 struct QFHOptions;
 struct QFHResult;
-struct Pattern;
 
 namespace manifold {
 class QuantumManifoldOptimizer;
@@ -29,7 +30,6 @@ class PatternEvolutionBridge;
 }  // namespace quantum
 
 namespace connectors {
-struct MarketData;
 class OandaConnector;
 }  // namespace connectors
 
@@ -42,21 +42,6 @@ class IDataAccessService;
 }
 
 namespace trading {
-// Simple POD structures to avoid template issues
-struct PatternDiscoveryResult {
-    uint32_t pattern_id;
-    double confidence_score;
-    double stability_metric;
-    uint64_t discovered_timestamp;  // Unix timestamp instead of chrono
-};
-
-struct OptimizationResult {
-    uint32_t iteration_count;
-    double final_score;
-    double* parameter_array;  // Raw array instead of vector
-    size_t parameter_count;
-};
-
 struct TrainingSession {
     uint64_t training_start_timestamp;
     uint64_t training_end_timestamp;
@@ -66,12 +51,7 @@ struct TrainingSession {
 
 struct PairTrainingResult {
     char pair_symbol[16];  // Fixed size instead of std::string
-    double success_score;
-    uint32_t pattern_count;
-    PatternDiscoveryResult* discovered_patterns;  // Raw array
-    size_t patterns_size;
     TrainingSession session_info;
-    OptimizationResult optimization_details;
 };
 
 /**
@@ -111,20 +91,12 @@ class QuantumPairTrainer {
     bool is_initialized_;
     bool is_training_;
 
-  public:
-    sep::connectors::MarketData* fetchTrainingData(const char* pair_symbol, size_t* data_count);
-
   private:
     // Private implementation methods
     bool initializeComponents();
     void cleanupComponents();
-    uint8_t* convertToBitstream(const sep::connectors::MarketData* data, size_t data_count,
-                                size_t* bitstream_size);
+    uint8_t* convertToBitstream(const ::Candle* data, size_t data_count, size_t* bitstream_size);
     sep::quantum::QFHResult* performQFHAnalysis(const uint8_t* bitstream, size_t bitstream_size);
-    sep::quantum::Pattern* discoverPatterns(const sep::connectors::MarketData* data,
-                                            size_t data_count, size_t* pattern_count);
-    OptimizationResult optimizeParameters(const sep::connectors::MarketData* data,
-                                          size_t data_count);
 };
 }  // namespace trading
 }  // namespace sep
