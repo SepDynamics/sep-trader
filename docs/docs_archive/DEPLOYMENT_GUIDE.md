@@ -30,9 +30,9 @@ Before deploying to the remote droplet, verify your local build works:
 ./build.sh
 
 # Verify successful executables
-ls -la /sep/build/src/cli/trader-cli                    # ✅ Working
-ls -la /sep/build/src/apps/oanda_trader/oanda_trader    # ✅ Working  
-ls -la /sep/build/src/apps/oanda_trader/quantum_tracker # ✅ Working
+ls -la /_sep/testbed/build/src/cli/trader-cli                    # ✅ Working
+ls -la /_sep/testbed/build/src/apps/oanda_trader/oanda_trader    # ✅ Working
+ls -la /_sep/testbed/build/src/apps/oanda_trader/quantum_tracker # ✅ Working
 ```
 
 ### Step 2: Test Core Functionality

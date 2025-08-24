@@ -58,7 +58,7 @@ private:
     std::shared_ptr<sep::connectors::OandaConnector> oanda_connector_;
     std::shared_ptr<sep::apps::MarketModelCache> base_cache_;
     std::unordered_map<std::string, CacheEntry> cache_entries_;
-    std::string cache_directory_ = "/sep/cache/enhanced_market_model/";
+    std::string cache_directory_ = "/_sep/testbed/cache/enhanced_market_model/";
     
     // Correlation analysis parameters
     static constexpr double MIN_CORRELATION_THRESHOLD = 0.3;
