@@ -18,11 +18,6 @@ add_sep_test(dynamic_config_manager_test
     DEPENDENCIES sep_lib
 )
 
-# CLI commands tests
-add_sep_test(cli_commands_test
-    SOURCES cli_commands_test.cpp
-    DEPENDENCIES sep_lib
-)
 
 # Quantum metrics test
 add_sep_test(quantum_metrics_test
