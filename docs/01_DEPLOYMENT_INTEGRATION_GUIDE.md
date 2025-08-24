@@ -79,8 +79,8 @@ cd sep-trader
 ./install.sh --minimal --no-docker
 ./build.sh --no-docker
 
-# 3. Environment Configuration  
-cp .sep-config.env.example .sep-config.env
+# 3. Environment Configuration
+cp config/.sep-config.env.template .sep-config.env
 # Edit configuration as needed
 
 # 4. Service Deployment

@@ -12,7 +12,7 @@ This directory contains the React + TypeScript front‑end for the SEP Professio
 ```bash
 cd frontend
 npm install        # or pnpm install
-cp .env.example .env  # edit API / WS URLs if necessary
+cp .env.template .env  # edit API / WS URLs if necessary
 npm start          # Runs the app in development mode on http://localhost:3000
 ```
 
