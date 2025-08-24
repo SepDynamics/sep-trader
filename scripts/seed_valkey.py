@@ -37,7 +37,14 @@ def seed_valkey():
         try:
             # Original format: "2025-08-20T03:01:00.000000000Z"
             # Replace 'Z' with '+00:00' to make it compatible with fromisoformat
-            dt_object = datetime.fromisoformat(record['time'].replace('Z', '+00:00'))
+            time_str = record['time'].replace('Z', '+00:00')
+            # In some Python versions, fromisoformat can't handle 9 digits of precision.
+            # We truncate to 6 digits (microseconds) for compatibility.
+            if '.' in time_str:
+                parts = time_str.split('.')
+                time_str = parts[0] + '.' + parts[1][:6] + parts[1][9:]
+            
+            dt_object = datetime.fromisoformat(time_str)
             timestamp_ms = int(dt_object.timestamp() * 1000)
 
             candle = {
