@@ -148,7 +148,7 @@ class Engine {
 
 
 
-  void ingestFile(const std::string &dataPath, bool legacy = false);
+  void ingestFile(const std::string &dataPath);
 
   void ingestFromDirectory(const std::string &dirPath, bool recursive = true);
 

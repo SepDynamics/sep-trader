@@ -549,9 +549,6 @@ tr:hover {
     grid-template-columns: 1fr;
   }
   
-  .test-controls {
-    flex-direction: column;
-  }
   
   .main-container {
     flex-direction: column;
