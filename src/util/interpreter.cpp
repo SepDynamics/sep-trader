@@ -177,33 +177,6 @@ void Interpreter::register_builtins() {
         }
     };
     
-    // REAL Trading Functions - Your actual working engine
-    builtins_["engine::run_pme_testbed"] = [](const std::vector<Value>& args) -> Value {
-        std::cout << "DSL: Running REAL PME testbed analysis..." << std::endl;
-        
-        if (args.empty()) {
-            throw std::runtime_error("run_pme_testbed requires a data file path argument");
-        }
-
-        std::string data_file;
-        try {
-            data_file = std::any_cast<std::string>(args[0]);
-        } catch (const std::bad_any_cast&) {
-            throw std::runtime_error("Invalid argument type for run_pme_testbed");
-        }
-        
-        std::string cmd = "timeout 30 ./_sep/testbed/pme_testbed_phase2 " + data_file + " 2>/dev/null | tail -5";
-        
-        int result = std::system(cmd.c_str());
-        if (result == 0) {
-            std::cout << "DSL: Real trading analysis completed successfully" << std::endl;
-            return 1.0;  // Success
-        } else {
-            std::cout << "DSL: Trading analysis failed" << std::endl;
-            return 0.0;  // Failure
-        }
-    };
-    
     builtins_["engine::get_trading_accuracy"] = [this, &engine](const std::vector<Value>& args) -> Value {
         sep::engine::TradingAccuracyRequest request;
         request.confidence_level = 0.5; // Default confidence level
