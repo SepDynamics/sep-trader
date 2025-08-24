@@ -25,8 +25,6 @@ This guide outlines core processing kernels, memory buffers, and deployment comp
 
 ## Trading-computation Kernels
 - Tick-window kernels above provide volatility metrics.
-- `MultiAssetSignalFusion` on the CPU side updates a correlation cache and computes Pearson correlations per pair.
-- Source: [`src/apps/oanda_trader/multi_asset_signal_fusion.cpp`](../src/apps/oanda_trader/multi_asset_signal_fusion.cpp)
 
 ## GPU Memory Buffers
 - `PinnedBuffer` uses `cudaHostAlloc` for fast host–device transfers.

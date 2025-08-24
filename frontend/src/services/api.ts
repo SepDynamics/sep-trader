@@ -1,7 +1,10 @@
 // SEP Trading System - API Service
 // Centralized API client for all backend communications
 
-const API_BASE_URL = process.env.REACT_APP_API_URL || '';
+const API_BASE_URL = process.env.REACT_APP_API_URL;
+if (!API_BASE_URL) {
+  throw new Error('REACT_APP_API_URL is not configured');
+}
 
 class APIClient {
   baseURL: string;
