@@ -20,11 +20,6 @@ private:
     int execute_command(const char* command);
     int handle_status() const;
     int handle_pairs() const;
-    int handle_config() const;
-    int handle_train() const;
-    int handle_analyze() const;
-    int handle_daemon_mode() const;
-    int handle_foreground_mode() const;
 
     // Simple C-style members
     bool verbose_;
