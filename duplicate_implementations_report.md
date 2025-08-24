@@ -41,7 +41,11 @@ This document tracks outstanding code quality concerns in the SEP Engine codebas
 - Removed duplicate market data fetch function and placeholder ATR
   (`src/app/quantum_signal_bridge.cpp`).
 - Unused spdlog isolation stub removed (`src/util/spdlog_isolation.h`).
+<<<<<<< .merge_file_wmvsHh
 - Deprecated header shims consolidated under unified include (`src/util/cuda_safe_includes.h`, `src/util/header_fix.h`, `src/util/force_array.h`, `src/util/functional_safe.h`).
+=======
+- Legacy memory tier lookup map removed (`src/util/memory_tier_manager.*`).
+>>>>>>> .merge_file_M4fsmQ
 
 ## Recommendations
 1. Remove remaining hardcoded values via configuration.

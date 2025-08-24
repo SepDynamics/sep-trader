@@ -23,10 +23,6 @@ This guide outlines core processing kernels, memory buffers, and deployment comp
 - Launch wrappers are in `kernels.cu`.
 - Sources: [`src/cuda/kernels/quantum/qbsa_kernel.cu`](../src/cuda/kernels/quantum/qbsa_kernel.cu), [`src/cuda/kernels/quantum/qsh_kernel.cu`](../src/cuda/kernels/quantum/qsh_kernel.cu)
 
-## Pattern-processing Kernels
-- `analyzeBitPatternsKernel` counts bit flips, ruptures, entropy, and placeholder coherence metrics in a window.
-- Source: [`src/cuda/kernels/pattern/bit_pattern_kernel.cu`](../src/cuda/kernels/pattern/bit_pattern_kernel.cu)
-
 ## Trading-computation Kernels
 - Tick-window kernels above provide volatility metrics.
 - `MultiAssetSignalFusion` on the CPU side updates a correlation cache and computes Pearson correlations per pair.
