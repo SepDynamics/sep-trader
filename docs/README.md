@@ -7,7 +7,6 @@ The SEP Trading Engine is a CUDA-accelerated trading platform that applies Quant
 - `./build.sh` compiles all targets.
 - Compiled executables are stored in `bin/`:
   - `sep` – main engine service
-  - `oanda_trader` – broker integration
   - `quantum_pair_trainer` – model training
   - `quantum_tracker` – live signal monitor
   - `data_downloader` – historical fetch utility

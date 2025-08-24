@@ -10,6 +10,12 @@
 #include "core/types.h"
 #include "core/processor.h"
 
+namespace sep::quantum {
+struct QuantumState;
+void to_json(nlohmann::json& j, const QuantumState& state);
+void from_json(const nlohmann::json& j, QuantumState& state);
+} // namespace sep::quantum
+
 using namespace glm;
 
 namespace sep::compat {

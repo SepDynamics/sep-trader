@@ -777,13 +777,15 @@ bool OandaConnector::fetchHistoricalData(const std::string& instrument,
     DataParser parser;
     parser.saveValidatedCandlesJSON(out, output_file);
     return true;
-    // --- Data Validation Implementations ---
+}
 
-    int64_t OandaConnector::parseTimestamp(const std::string& time_str) {
+// --- Data Validation Implementations ---
+
+int64_t OandaConnector::parseTimestamp(const std::string& time_str) {
         return sep::common::time_point_to_nanoseconds(sep::common::parseTimestamp(time_str));
     }
 
-    DataValidationResult OandaConnector::validateCandle(const OandaCandle& candle) {
+DataValidationResult OandaConnector::validateCandle(const OandaCandle& candle) {
         DataValidationResult result{true, {}, {}};
         // Only validate the essential invariant: high >= low
         if (candle.high < candle.low) {
@@ -799,7 +801,7 @@ bool OandaConnector::fetchHistoricalData(const std::string& instrument,
         return result;
     }
 
-    DataValidationResult OandaConnector::validateCandleSequence(
+DataValidationResult OandaConnector::validateCandleSequence(
         const std::vector<OandaCandle>& candles, const std::string& granularity) {
         DataValidationResult result{true, {}, {}};
         if (candles.size() < 2u)
@@ -835,7 +837,7 @@ bool OandaConnector::fetchHistoricalData(const std::string& instrument,
         return result;
     }
 
-    std::vector<double> OandaConnector::calculateHistoricalATRs(
+std::vector<double> OandaConnector::calculateHistoricalATRs(
         const std::vector<OandaCandle>& candles) {
         std::vector<double> atrs;
         if (candles.size() < 15u)
@@ -864,7 +866,7 @@ bool OandaConnector::fetchHistoricalData(const std::string& instrument,
         return atrs;
     }
 
-    std::string OandaConnector::getCacheFilename(const std::string& instrument,
+std::string OandaConnector::getCacheFilename(const std::string& instrument,
                                                  const std::string& granularity,
                                                  const std::string& from, const std::string& to) {
         std::string filename = instrument + "_" + granularity;
@@ -878,7 +880,7 @@ bool OandaConnector::fetchHistoricalData(const std::string& instrument,
         return cache_path_ + "/" + filename + ".json";
     }
 
-    std::vector<OandaCandle> OandaConnector::loadFromCache(const std::string& filename) {
+std::vector<OandaCandle> OandaConnector::loadFromCache(const std::string& filename) {
         std::vector<OandaCandle> candles;
         std::ifstream in_stream(filename);
         if (!in_stream.is_open()) {
@@ -898,8 +900,8 @@ bool OandaConnector::fetchHistoricalData(const std::string& instrument,
         return candles;
     }
 
-    void OandaConnector::saveToCache(const std::string& filename,
-                                     const std::vector<OandaCandle>& candles) {
+void OandaConnector::saveToCache(const std::string& filename,
+                                 const std::vector<OandaCandle>& candles) {
         nlohmann::json json_output;
         for (const auto& c : candles) {
             nlohmann::json candle_json;

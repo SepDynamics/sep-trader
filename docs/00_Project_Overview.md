@@ -26,7 +26,6 @@ This separation ensures both high performance for model training and cost-effect
 | `trader-cli` | 1.4MB | Main trading CLI interface and system administration | ✅ Operational |
 | `data_downloader` | 449KB | Market data fetching and caching tool | ✅ Operational |
 | `sep_dsl_interpreter` | 1.2MB | Domain-specific language for trading strategies | ✅ Operational |
-| `oanda_trader` | 2.1MB | Complete OANDA trading application with GUI | ✅ Operational |
 | `quantum_tracker` | 1.6MB | Real-time transition tracking system | ✅ Operational |
 
 ## 4. 🔧 Installation & Setup
@@ -87,7 +86,6 @@ To run the fully autonomous trading system:
 source OANDA.env
 
 # Start the autonomous quantum tracker
-./build/src/apps/oanda_trader/quantum_tracker
 ```
 
 ## 6. 📊 Performance Metrics (Validated)
