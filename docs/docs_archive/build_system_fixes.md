@@ -1,5 +1,9 @@
 # SEP Build System Fixes - Array Header Protection
 
+> **Note:** The legacy `array_protection.h` shim has been removed. Modern
+> builds rely on `core/sep_precompiled.h` to provide all necessary
+> `std::array` declarations without additional forced includes.
+
 ## Issue Description
 
 The compilation system encountered critical failures related to the absence of `std::array` declarations, particularly affecting:
@@ -14,31 +18,7 @@ This issue manifested with errors such as `error: 'std::array' has not been decl
 
 A multi-layered approach was implemented to resolve the issue:
 
-### 1. Global Forced Inclusion
-
-The top-level CMakeLists.txt includes mechanisms to force-include the array header globally:
-
-```cmake
-# GLOBAL FIX: Force include array header using precompiled header approach
-add_compile_definitions(
-    FORCE_INCLUDE_ARRAY=1
-)
-
-# Force include array_protection.h for all compilation units
-include_directories(BEFORE ${CMAKE_SOURCE_DIR}/src)
-add_compile_options(-include ${CMAKE_SOURCE_DIR}/src/array_protection.h)
-```
-
-### 2. CUDA-Specific Protection
-
-CUDA compilation receives additional protection through specialized flags:
-
-```cmake
-# Force include array_protection.h for CUDA compilation
-set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -include ${CMAKE_SOURCE_DIR}/src/array_protection.h")
-```
-
-### 3. JSON Library Wrapper
+### 1. JSON Library Wrapper
 
 A safe wrapper for the JSON library ensures proper include order:
 
@@ -62,7 +42,7 @@ A safe wrapper for the JSON library ensures proper include order:
 #endif // NLOHMANN_JSON_SAFE_INCLUDED
 ```
 
-### 4. Direct Header Patching
+### 2. Direct Header Patching
 
 Source patching of nlohmann headers ensures array inclusion even if other mechanisms fail:
 
@@ -73,7 +53,7 @@ string(REPLACE "#include <algorithm> // reverse" "#include <algorithm> // revers
 file(WRITE "${nlohmann_json_SOURCE_DIR}/include/nlohmann/detail/output/serializer.hpp" "${SERIALIZER_CONTENT}")
 ```
 
-### 5. Component-Specific Precompiled Headers
+### 3. Component-Specific Precompiled Headers
 
 Individual components use the safe wrapper as their precompiled header:
 
