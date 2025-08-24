@@ -3,6 +3,7 @@ import { WebSocketProvider } from './context/WebSocketContext';
 import { SymbolProvider } from './context/SymbolContext';
 import { ConfigProvider } from './context/ConfigContext';
 import SEPDashboard from './components/SEPDashboard';
+import HomeDashboard from './components/HomeDashboard';
 import PatternAnalysis from './components/PatternAnalysis';
 import ValkeyPipelineManager from './components/ValkeyPipelineManager';
 import ManifoldKernel from './components/ManifoldKernel';
@@ -57,7 +58,7 @@ const App = () => {
   const renderActiveComponent = () => {
     switch (activeSection) {
       case 'dashboard':
-        return <SEPDashboard />;
+        return <HomeDashboard />;
       case 'pipeline':
         return <ValkeyPipelineManager />;
       case 'pairs':
@@ -71,7 +72,7 @@ const App = () => {
       case 'system':
         return <SystemMonitor />;
       default:
-        return <SEPDashboard />;
+        return <HomeDashboard />;
     }
   };
 

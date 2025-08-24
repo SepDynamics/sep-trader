@@ -31,4 +31,5 @@ export const useSymbol = () => {
   return context;
 };
 
+export { SymbolContext };
 export default SymbolContext;
