@@ -3,7 +3,6 @@
 #include <algorithm>
 #include <cmath>
 #include <cstdlib>
-#include <iomanip>
 #include <iostream>
 #include <regex>
 #include <stdexcept>
@@ -14,7 +13,6 @@
 #include "core/facade.h"
 #include "core/pattern_metric_engine.h"
 #include "util/redis_manager.h"
-#include "util/memory_tier_manager.hpp"
 
 namespace {
     // Helper function to get configuration value from engine facade
@@ -48,42 +46,6 @@ namespace {
         } catch (...) {
             return default_value;
         }
-    }
-    
-    // Helper function to get trading data from Valkey
-    double get_valkey_trading_metric(const std::string& metric_key, double fallback_value = 0.0) {
-        try {
-            // Get Redis manager instance
-            auto redis_manager = sep::persistence::createRedisManager();
-            if (!redis_manager || !redis_manager->isConnected()) {
-                std::cout << "ℹ️  INFO: Valkey not connected, using fallback for " << metric_key << std::endl;
-                return fallback_value;
-            }
-            
-            // Try to get trading data from Redis using hash operations
-            std::vector<std::pair<std::string, std::string>> trading_data;
-            redis_manager->storeHash("trading:metrics", {});  // This will retrieve if key exists
-            
-            // For now, return calculated value based on memory tier utilization as proxy
-            auto& mem_mgr = sep::memory::MemoryTierManager::getInstance();
-            double utilization = mem_mgr.getTotalUtilization();
-            
-            if (metric_key == "account_balance") {
-                // Use system utilization to estimate realistic balance
-                return 8500.0 + (utilization * 3000.0);  // Range: 8500-11500
-            } else if (metric_key == "current_drawdown") {
-                // Drawdown correlates inversely with system efficiency
-                return std::max(0.001, (1.0 - utilization) * 0.15);  // Range: 0.001-0.15
-            } else if (metric_key == "position_count") {
-                // Position count based on system activity
-                return std::max(0.0, std::round(utilization * 5.0));  // Range: 0-5
-            }
-            
-        } catch (const std::exception& e) {
-            std::cout << "⚠️  Warning: Error accessing Valkey for " << metric_key << ": " << e.what() << std::endl;
-        }
-        
-        return fallback_value;
     }
     
     // Helper function to check market session status using real-time data
@@ -1582,49 +1544,7 @@ void Interpreter::register_builtins() {
     };
     
     // ===== TRADING-SPECIFIC FUNCTIONS FOR SEP DSL PLATFORM =====
-    
-    // Account management functions
-    builtins_["get_account_balance"] = [](const std::vector<Value>& args) -> Value {
-        (void)args; // Suppress unused parameter warning
-        std::cout << "DSL: Getting account balance from Valkey..." << std::endl;
-        // Query real balance from Valkey with fallback to calculated value
-        return get_valkey_trading_metric("account_balance", 10000.0);
-    };
-    
-    builtins_["get_current_drawdown"] = [](const std::vector<Value>& args) -> Value {
-        (void)args; // Suppress unused parameter warning
-        std::cout << "DSL: Calculating current drawdown from trading data..." << std::endl;
-        // Calculate real drawdown from Valkey trading history
-        return get_valkey_trading_metric("current_drawdown", 0.02);
-    };
-    
-    builtins_["get_position_count"] = [](const std::vector<Value>& args) -> Value {
-        (void)args; // Suppress unused parameter warning
-        std::cout << "DSL: Getting open position count from Valkey..." << std::endl;
-        // Query real position count from Valkey trading data
-        return get_valkey_trading_metric("position_count", 2.0);
-    };
-    
-    // Position sizing and risk management
-    builtins_["calculate_position_size"] = [](const std::vector<Value>& args) -> Value {
-        if (args.empty()) {
-            throw std::runtime_error("calculate_position_size() expects signal_strength argument");
-        }
-        
-        double signal_strength = std::any_cast<double>(args[0]);
-        double account_balance = 10000.0; // Demo balance
-        double base_risk = 0.02; // 2% base risk
-        
-        // Confidence-based position sizing
-        double confidence_multiplier = signal_strength > 0.8 ? 1.5 : 1.0;
-        double position_size = account_balance * base_risk * confidence_multiplier;
-        
-        std::cout << "DSL: Calculated position size: $" << position_size 
-                  << " (signal: " << signal_strength << ")" << std::endl;
-        
-        return position_size;
-    };
-    
+
     // Trade execution functions
     builtins_["execute_trade"] = [](const std::vector<Value>& args) -> Value {
         if (args.size() < 5) {
@@ -1750,57 +1670,6 @@ void Interpreter::register_builtins() {
             // Fall through to default
         }
         return "historical_data_" + instrument + "_" + timeframe; // Fallback
-    };
-    
-    // Strategy performance tracking
-    builtins_["log_trade_result"] = [](const std::vector<Value>& args) -> Value {
-        if (args.size() < 3) {
-            throw std::runtime_error("log_trade_result() expects (instrument, direction, profit) arguments");
-        }
-        
-        std::string instrument = std::any_cast<std::string>(args[0]);
-        std::string direction = std::any_cast<std::string>(args[1]);
-        double profit = std::any_cast<double>(args[2]);
-        
-        std::cout << "DSL: Logging trade result: " << instrument << " " 
-                  << direction << " P&L: $" << profit << std::endl;
-        
-        // In production, log to performance database
-        return 1.0; // Success
-    };
-    
-    builtins_["get_strategy_stats"] = [](const std::vector<Value>& args) -> Value {
-        (void)args; // Suppress unused parameter warning
-        std::cout << "DSL: Retrieving strategy performance from Valkey..." << std::endl;
-        
-        try {
-            // Get real strategy performance from quantum pattern analysis
-            auto& mem_mgr = sep::memory::MemoryTierManager::getInstance();
-            double system_efficiency = mem_mgr.getTotalUtilization();
-            double system_stability = 1.0 - mem_mgr.getTotalFragmentation();
-            
-            // Calculate performance metrics based on system health
-            double overall_accuracy = std::min(95.0, 35.0 + (system_efficiency * 50.0));
-            double high_conf_accuracy = std::min(98.0, 55.0 + (system_stability * 35.0));
-            double signal_rate = std::min(25.0, 15.0 + (system_efficiency * 15.0));
-            double profitability = overall_accuracy * high_conf_accuracy / 20.0;
-            
-            std::cout << "  Overall Accuracy: " << std::fixed << std::setprecision(2)
-                     << overall_accuracy << "%" << std::endl;
-            std::cout << "  High-Confidence Accuracy: " << high_conf_accuracy << "%" << std::endl;
-            std::cout << "  Signal Rate: " << signal_rate << "%" << std::endl;
-            std::cout << "  Profitability Score: " << profitability << std::endl;
-            
-            return high_conf_accuracy; // Return high-confidence accuracy
-        } catch (...) {
-            // Fallback to reasonable defaults
-            std::cout << "  Overall Accuracy: 41.83% (cached)" << std::endl;
-            std::cout << "  High-Confidence Accuracy: 60.73% (cached)" << std::endl;
-            std::cout << "  Signal Rate: 19.1% (cached)" << std::endl;
-            std::cout << "  Profitability Score: 204.94 (cached)" << std::endl;
-            
-            return 60.73;
-        }
     };
     
     // String length function for DSL pattern names
