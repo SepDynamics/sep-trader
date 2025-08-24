@@ -1752,43 +1752,6 @@ void Interpreter::register_builtins() {
         return "historical_data_" + instrument + "_" + timeframe; // Fallback
     };
     
-    builtins_["simulate_trade_outcome"] = [](const std::vector<Value>& args) -> Value {
-        if (args.empty()) {
-            throw std::runtime_error("simulate_trade_outcome() expects data_point argument");
-        }
-        
-        // Simulate trade outcome for backtesting
-        // Use real market movements from the pattern engine
-        // This would integrate with actual market data and pattern analysis
-        // For now, we'll use a more sophisticated approach than simple random
-        static sep::quantum::PatternMetricEngine metricEngine;
-        static bool initialized = false;
-        if (!initialized) {
-            metricEngine.init(nullptr); // Initialize for CPU operation
-            initialized = true;
-        }
-        
-        // Simulate a more realistic outcome based on pattern analysis
-        // In a real implementation, this would use actual market data
-        double outcome = 0.0;
-        
-        // Get current metrics from the engine
-        const auto& metrics = metricEngine.computeMetrics();
-        if (!metrics.empty()) {
-            // Use coherence and stability to determine outcome
-            double coherence = metrics[0].coherence;
-            double stability = metrics[0].stability;
-            
-            // More coherent and stable patterns suggest positive outcomes
-            outcome = (coherence * 0.6 + stability * 0.4) * 100.0 - 50.0;
-        } else {
-            // Fallback to a more balanced random approach
-            outcome = (static_cast<double>(rand() % 100) - 50.0) * 0.6;
-        }
-        
-        return outcome;
-    };
-    
     // Strategy performance tracking
     builtins_["log_trade_result"] = [](const std::vector<Value>& args) -> Value {
         if (args.size() < 3) {

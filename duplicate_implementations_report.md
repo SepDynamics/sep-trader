@@ -36,12 +36,10 @@ This document tracks outstanding code quality concerns in the SEP Engine codebas
 - Unimplemented market data DSL builtins removed (`src/util/interpreter.cpp`).
 - Testbed OANDA market data helper migrated to production with real ATR
   (`src/app/quantum_signal_bridge.cpp`).
-<<<<<<< .merge_file_bNyucU
+- Unused evolutionary helper declarations and mock trade simulation removed (`src/core/evolution.h`, `src/util/interpreter.cpp`).
 - Duplicate quantum coherence manager removed (`src/util/quantum_coherence_manager.*`) in favor of the core implementation.
-=======
 - Removed duplicate market data fetch function and placeholder ATR
   (`src/app/quantum_signal_bridge.cpp`).
->>>>>>> .merge_file_ymcYhP
 
 ## Recommendations
 1. Remove remaining hardcoded values via configuration.

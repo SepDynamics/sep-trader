@@ -71,11 +71,7 @@ Pattern blendCrossover(const Pattern& parent1, const Pattern& parent2, float alp
 float coherenceFitness(const Pattern& pattern);
 float stabilityFitness(const Pattern& pattern);
 float complexityFitness(const Pattern& pattern);
-std::vector<Pattern> createRandomPopulation(size_t size);
-void applySpike(Pattern& neuron, float input, float decay, float threshold);
-void hebbianUpdate(const Pattern& pre, Pattern& post, float rate);
-void applyGravity(Pattern& pattern, const glm::vec3& center, float strength);
-void randomPerturbation(Pattern& pattern, float amplitude);
+// Removed unused experimental evolution helpers
 } // namespace evolution
 
 BatchProcessingResult evolve(const EvolutionParams& params);
