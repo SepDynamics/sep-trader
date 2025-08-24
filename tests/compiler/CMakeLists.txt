@@ -1,1 +1,0 @@
-add_sep_test(compiler_statement_test SOURCES statement_test.cpp)

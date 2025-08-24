@@ -5,8 +5,6 @@ include(CTest)
 include(${CMAKE_SOURCE_DIR}/cmake/gtest.cmake)
 
 # Organize tests by type
-add_subdirectory(stdlib)
-add_subdirectory(compiler)
 add_subdirectory(interpreter)
 add_subdirectory(unit)
 add_subdirectory(integration)

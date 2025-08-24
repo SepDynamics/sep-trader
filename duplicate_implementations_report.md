@@ -18,7 +18,8 @@ This document tracks outstanding code quality concerns in the SEP Engine codebas
 - `src/cuda/CMakeLists.txt` - `sep_cuda` library includes `.cu.fixed` files.
 
 ## Recent Cleanup
-- Obsolete core primitive declarations removed (`src/util/core_primitives.h`).
+- Legacy DSL bytecode and primitive modules removed (`src/util/compiler.*`,
+  `src/util/core_primitives.*`, `src/util/stdlib.*`, `src/util/time_series.*`).
 - Mock health monitor implementation removed (`src/app/health_monitor_c_impl.c`).
 - Stub data provider enum removed (`src/core/cache_metadata.hpp`).
 - Placeholder training CLI and duplicate MemoryTierService implementation removed (`src/app/cli_main.cpp`, `src/app/MemoryTierService.*`).
