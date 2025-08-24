@@ -40,7 +40,6 @@ During our initial scan, we identified the following mock implementations and re
      - `IQuantumProcessingService`
      - `IPatternRecognitionService`
      - `ITradingLogicService`
-     - `IMemoryTierService`
      - `IDataAccessService`
    - Legacy `src/services` directory removed during cleanup
 
