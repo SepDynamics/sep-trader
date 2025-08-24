@@ -35,55 +35,6 @@ struct BatchProcessingResult : public ProcessingResult {
     std::vector<ProcessingResult> results{};
 };
 
-namespace pattern {
-
-// Base pattern processor class
-class PatternProcessor {
-public:
-    enum class Implementation {
-        CPU,
-        GPU,
-        QUANTUM
-    };
-
-    explicit PatternProcessor(Implementation impl = Implementation::CPU);
-    virtual ~PatternProcessor() = default;
-
-    virtual sep::SEPResult init(quantum::GPUContext* ctx);
-    virtual void evolvePatterns();
-    virtual compat::PatternData mutatePattern(const compat::PatternData& parent);
-
-    sep::SEPResult addPattern(const compat::PatternData& pattern);
-    const std::vector<compat::PatternData>& getPatterns() const;
-
-    // Convenience method to evolve patterns and return the results
-    virtual const std::vector<compat::PatternData>& process()
-    {
-        evolvePatterns();
-        return patterns_;
-    }
-    
-protected:
-    Implementation implementation_;
-    std::vector<compat::PatternData> patterns_;
-};
-
-// CPU implementation of pattern processor
-class CPUPatternProcessor : public PatternProcessor {
-public:
-    explicit CPUPatternProcessor();
-    ~CPUPatternProcessor() override = default;
-
-    sep::SEPResult init(quantum::GPUContext* ctx) override;
-    void evolvePatterns() override;
-    compat::PatternData mutatePattern(const compat::PatternData& parent) override;
-    
-protected:
-    std::vector<compat::PatternData>& patterns_;
-};
-
-} // namespace pattern
-
 namespace quantum {
 
 struct ProcessingConfig {
