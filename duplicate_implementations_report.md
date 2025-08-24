@@ -50,16 +50,12 @@ This document tracks outstanding code quality concerns in the SEP Engine codebas
 - Duplicate CPU window calculation path consolidated into a single helper (`src/app/tick_data_manager.cpp`).
 - Unused remote data manager interface and synchronizer stubs removed (`src/core/remote_data_manager.hpp`, `src/core/remote_synchronizer.*`).
 - Outdated Redis metrics API removed to reflect Valkey-only integration (`frontend/src/services/api.ts`).
-<<<<<<< .merge_file_648rKg
 - Unused QuantumProcessingService and duplicate service-layer types removed (`src/app/QuantumProcessingService.*`, `src/app/QuantumTypes.h`, `src/app/PatternTypes.h`, `tests/app/quantum_processing_service_guard_test.cpp`).
 - Trade update handler now stores recent updates instead of logging to console (`frontend/src/context/WebSocketContext.js`).
 - Unimplemented WeeklyDataFetcher configuration and cache helpers removed (`src/core/weekly_data_fetcher.*`).
-- Removed redundant amplitude renormalization and stale CUDA stub reference
-  (`src/app/QuantumProcessingService.cpp`, `src/core/cuda_impl.h`).
-=======
+- Removed redundant amplitude renormalization and stale CUDA stub reference (`src/app/QuantumProcessingService.cpp`, `src/core/cuda_impl.h`).
 - Redundant Valkey metric fallback helper removed (`src/util/interpreter.cpp`).
 - Unused prototype market data fetcher removed (`src/app/quantum_signal_bridge.cpp`).
->>>>>>> .merge_file_PJOpw2
 
 ## Recommendations
 1. Remove remaining hardcoded values via configuration.
