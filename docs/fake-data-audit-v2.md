@@ -32,22 +32,18 @@ This document provides a fresh assessment of all fake/synthetic/simulated data g
    - Mock file data support via `OANDA_MOCK_FILE` environment variable
    - Fake simulation fallback when API credentials missing
 
-4. **src/core/weekly_data_fetcher_fixed.cpp** (Lines 90-112)
-   - Mock data file processing logic
-   - Stub implementation with simulated candle counts
-
-5. **src/core/batch_processor.cpp** (Lines 130-132)
+4. **src/core/batch_processor.cpp** (Lines 130-132)
    - Simulated pattern execution instead of real DSL interpreter
 
 **HIGH PRIORITY** (Application Layer Stubs):
-6. **src/app/sep_engine_app.cpp** (Lines 42-45, 225-227, 236-237, 281-293, 297-309)
+5. **src/app/sep_engine_app.cpp** (Lines 42-45, 225-227, 236-237, 281-293, 297-309)
    - Simulation mode infrastructure throughout application
    - Historical and file simulation modes with placeholder logic
 
-7. **src/core/pattern_evolution_trainer.cpp** (Lines 6-8)
+6. **src/core/pattern_evolution_trainer.cpp** (Lines 6-8)
    - Complete stub implementation with unused parameter suppression
 
-8. **src/app/quantum_signal_bridge.cpp** (Lines 1016-1018)
+7. **src/app/quantum_signal_bridge.cpp** (Lines 1016-1018)
    - Dummy asset processing data return
    - TODO comment acknowledging stub status
 

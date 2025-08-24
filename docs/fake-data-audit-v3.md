@@ -30,12 +30,7 @@ This document provides a comprehensive assessment of the SEP Engine codebase aft
    - ❌ **UNCHANGED** - Mock file data support via `OANDA_MOCK_FILE`
    - ❌ **UNCHANGED** - "Replace fake simulation" comment still present
 
-3. **src/core/weekly_data_fetcher_fixed.cpp** (Lines 1-3, 90-112)  
-   - ❌ **UNCHANGED** - File header: "Minimal stub implementation"
-   - ❌ **UNCHANGED** - Mock data file processing logic
-   - ❌ **UNCHANGED** - Simulated candle counts
-
-4. **src/core/batch_processor.cpp** (Lines 130-132)
+3. **src/core/batch_processor.cpp** (Lines 130-132)
    - ❌ **UNCHANGED** - "simulate execution with basic coherence analysis"
    - ❌ **UNCHANGED** - "In a real implementation, this would use the DSL interpreter"
 

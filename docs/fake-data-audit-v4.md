@@ -24,17 +24,12 @@ The **systematic deprecation** of **simulated data modalities** across the SEP E
    - **Real data sourcing** from **external APIs**
    - **HTTP client integration** for **live market data**
 
-3. **`src/core/weekly_data_fetcher_fixed.cpp`** - ✅ **COMPLETE**
-   - **Stub implementation replaced** with **functional data fetching**
-   - **Real trading pair processing** with **error handling**
-   - **Production-ready** data pipeline
-
-4. **`src/core/batch_processor.cpp`** - ✅ **COMPLETE**
+3. **`src/core/batch_processor.cpp`** - ✅ **COMPLETE**
    - **Real DSL execution engine** implemented
    - **Parser-interpreter pipeline** operational
    - **Valkey-derived metrics extraction** functional
 
-5. **`src/core/pattern_evolution_trainer.cpp`** - ✅ **COMPLETE**
+4. **`src/core/pattern_evolution_trainer.cpp`** - ✅ **COMPLETE**
    - **Real pattern evolution mechanism** implemented
    - **PatternEvolutionBridge integration** functional
    - **Valkey-sourced pattern processing** operational
