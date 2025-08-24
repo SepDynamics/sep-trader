@@ -114,9 +114,9 @@ start_local_services() {
     
     # Start services using docker-compose
     if command -v docker-compose &> /dev/null; then
-        docker-compose -p "$PROJECT_NAME" up -d
+        docker-compose -p "$PROJECT_NAME" up -d --build
     else
-        docker compose -p "$PROJECT_NAME" up -d
+        docker compose -p "$PROJECT_NAME" up -d --build
     fi
     
     log_success "Local services started"
