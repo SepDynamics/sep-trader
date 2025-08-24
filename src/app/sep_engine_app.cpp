@@ -224,9 +224,12 @@ bool SepEngineApp::initializeHistoricalSimMode() {
     
     // Initialize data management components
     // Initialize simulation-specific components
-    // TODO: Fix UnifiedDataManager namespace issue
-    // unified_data_manager_ = std::make_unique<sep::core::UnifiedDataManager>(config);
+    sep::trading::UnifiedDataConfig config;
+    config.cache_dir = "cache/unified/";
+    config.enable_local_cache = true;
+    config.max_cache_size = 1024 * 1024 * 100; // 100MB
     
+    unified_data_manager_ = std::make_unique<sep::trading::UnifiedDataManager>(config);
     tick_data_manager_ = std::make_unique<sep::apps::TickDataManager>();
     cache_ = std::make_unique<sep::apps::MarketModelCache>(oanda_connector_);
     

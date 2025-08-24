@@ -129,9 +129,9 @@ private:
     bool historical_sim_mode_ = false;
     bool file_sim_mode_ = false;
     
-    std::unique_ptr<sep::core::UnifiedDataManager> unified_data_manager_;
-    std::unique_ptr<sep::connectors::TickDataManager> tick_data_manager_;
-    std::unique_ptr<sep::trading::MarketModelCache> cache_;
+    std::unique_ptr<sep::trading::UnifiedDataManager> unified_data_manager_;
+    std::unique_ptr<sep::apps::TickDataManager> tick_data_manager_;
+    std::unique_ptr<sep::apps::MarketModelCache> cache_;
     
     // Simulation control
     std::atomic<bool> should_stop_{false};

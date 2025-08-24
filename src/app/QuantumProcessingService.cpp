@@ -638,28 +638,33 @@ QuantumState QuantumProcessingService::convertFromGLMPattern(const glm::vec3& pa
 BinaryStateVector QuantumProcessingService::convertFromBitVector(const std::vector<std::uint32_t>& bits) {
     BinaryStateVector result;
     
-    // Convert bit vector to binary state vector
-    result.stateVector = bits;
-    result.dimensions = bits.size();
-    
-    // Calculate basic metrics from bit pattern
-    size_t totalBits = 0;
-    size_t setBits = 0;
-    
+    // Convert uint32_t bit vector to binary state vector with int values
+    result.binaryValues.reserve(bits.size() * 32);
     for (uint32_t value : bits) {
-        // Count bits in each uint32_t
+        // Convert each uint32_t to individual bits
         for (int i = 0; i < 32; ++i) {
-            totalBits++;
-            if (value & (1U << i)) {
-                setBits++;
-            }
+            result.binaryValues.push_back((value & (1U << i)) ? 1 : 0);
         }
     }
     
-    // Calculate binary metrics
-    result.entropy = (totalBits > 0) ? static_cast<double>(setBits) / totalBits : 0.0;
-    result.parity = (setBits % 2 == 0) ? 0 : 1;
-    result.hammingWeight = setBits;
+    result.vectorSize = result.binaryValues.size();
+    
+    // Calculate confidence based on bit distribution
+    size_t setBits = 0;
+    for (int bit : result.binaryValues) {
+        if (bit == 1) setBits++;
+    }
+    
+    // Use entropy as confidence metric (normalized)
+    if (result.vectorSize > 0) {
+        double ratio = static_cast<double>(setBits) / result.vectorSize;
+        // Use entropy-like measure as confidence (0 to 1)
+        result.confidence = (ratio > 0 && ratio < 1) ?
+            -(ratio * std::log2(ratio) + (1-ratio) * std::log2(1-ratio)) :
+            0.0;
+    } else {
+        result.confidence = 0.0;
+    }
     
     return result;
 }
