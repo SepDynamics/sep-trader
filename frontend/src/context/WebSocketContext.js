@@ -528,4 +528,5 @@ export const usePerformanceData = () => {
   return performanceData;
 };
 
+export { WebSocketContext };
 export default WebSocketContext;
