@@ -41,7 +41,7 @@ namespace {
     constexpr uint32_t COHERENCE_UPDATE_BATCH_SIZE = 128;
     constexpr float MIN_COHERENCE_FOR_PERSISTENCE = 0.1f;
     
-    // Memory tier coherence thresholds (example values)
+    // Baseline memory tier coherence thresholds
     constexpr float LTM_COHERENCE_THRESHOLD = 0.8f;
     constexpr float MTM_COHERENCE_THRESHOLD = 0.5f;
     constexpr float STM_COHERENCE_THRESHOLD = 0.2f;
@@ -324,7 +324,7 @@ private:
             data.access_count++;
             data.last_access_tick = global_tick_;
 
-            // Update fragmentation score (example: inverse of stability)
+            // Update fragmentation score as inverse of stability
             data.fragmentation_score = 1.0f - data.stability;
         } else {
             // Insert new pattern
@@ -399,7 +399,7 @@ private:
             total_entanglements += pair.second.entangled_patterns.size();
         }
 
-        // Compute fragmented patterns (example: fragmentation score > 0.5)
+        // Compute fragmented patterns with fragmentation score > 0.5
         uint64_t fragmented_count = 0;
         for (auto it = coherence_map_.begin(); it != coherence_map_.end(); ++it) {
             const auto& pair = *it;
@@ -638,7 +638,7 @@ private:
     }
     
     float computeEntanglement(const sep::quantum::Pattern& p1, const sep::quantum::Pattern& p2) const {
-        // Quantum entanglement calculation - simplified example using inverse distance
+        // Quantum entanglement calculation using inverse distance approximation
         float distance = glm::distance(p1.position, p2.position);
         float phase_correlation = std::abs(std::cos(p1.quantum_state.phase - p2.quantum_state.phase));
         
