@@ -1715,29 +1715,6 @@ void Interpreter::register_builtins() {
         }
     };
     
-    // Market data functions
-    builtins_["get_current_price"] = [](const std::vector<Value>& args) -> Value {
-        if (args.empty()) {
-            throw std::runtime_error("get_current_price() expects instrument argument");
-        }
-
-        std::string instrument = std::any_cast<std::string>(args[0]);
-        (void)instrument; // placeholder until real data source integrated
-        throw std::runtime_error("get_current_price() not connected to real data");
-    };
-
-    builtins_["get_average_true_range"] = [](const std::vector<Value>& args) -> Value {
-        if (args.size() < 2) {
-            throw std::runtime_error("get_average_true_range() expects (instrument, periods) arguments");
-        }
-
-        std::string instrument = std::any_cast<std::string>(args[0]);
-        double periods = std::any_cast<double>(args[1]);
-        (void)instrument;
-        (void)periods;
-        throw std::runtime_error("get_average_true_range() not connected to real data");
-    };
-    
     // Advanced trading functions
     builtins_["check_market_hours"] = [](const std::vector<Value>& args) -> Value {
         (void)args; // Suppress unused parameter warning
