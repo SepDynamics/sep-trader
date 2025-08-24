@@ -196,11 +196,11 @@ The following areas need systematic investigation:
 - **Description**: Contains "Von Neumann kernel pattern matching simulation"
 - **Status**: NEEDS INVESTIGATION - may be residual from de-stubbing
 
-### 21. frontend/src/components/QuantumAnalysis.jsx - MOCK DATA FALLBACK
-- **Lines**: 18-58
-- **Type**: Mock data fallback system
-- **Description**: Uses `mockData` when WebSocket not connected, includes fake qfh_patterns, coherence metrics, etc.
-- **Status**: NEEDS FIXING - Should use cached/default data instead of mock
+### 21. frontend/src/components/QuantumAnalysis.jsx - LIVE API METRICS
+- **Lines**: 10-58
+- **Type**: API data display
+- **Description**: Fetches `/api/system/quantum-metrics` and renders results without synthetic defaults.
+- **Status**: FIXED - Removed mock data fallback
 
 ---
 
@@ -250,13 +250,12 @@ The following areas need systematic investigation:
 
 ## ADDITIONAL FINDINGS - Hardcoded/Sample Data
 
-### 27. src/app/data_downloader.cpp - SAMPLE DATA SETUP
-- **Lines**: 17-22
-- **Type**: Sample data setup system
+### 27. src/app/data_downloader.cpp - REAL OANDA DATA
+- **Lines**: n/a
+- **Type**: Historical data fetch
 - **Description**:
-  - "Setup 48-hour sample data for EUR_USD"
-  - `connector.setupSampleData("EUR_USD", "M1", "eur_usd_m1_48h.json")`
-- **Status**: NEEDS FIXING - Should use real OANDA data
+  - Uses `getHistoricalData` with environment credentials
+- **Status**: FIXED - Removed sample dataset dependency
 
 ### 28. src/util/interpreter.cpp - HARDCODED FUNCTION FALLBACKS
 - **Lines**: 2246
@@ -287,20 +286,18 @@ The following areas need systematic investigation:
 4. **src/core/quantum_pair_trainer.cpp** - Simulated historical data generation
 5. **src/app/enhanced_market_model_cache.cpp** - Demo data generation system
 6. **src/app/market_model_cache.cpp** - Remaining demo candle fallbacks
-7. **src/app/data_downloader.cpp** - Sample data setup
-8. **frontend/src/components/QuantumAnalysis.jsx** - Mock data fallback
 
 ### MEDIUM PRIORITY (Test Data Fallbacks):
-9. **src/app/quantum_tracker_app.cpp** - Multiple test data fallback systems
-10. **src/app/sep_engine_app.cpp** - Local test data usage
-11. **src/app/quantum_signal_bridge.cpp** - Test data analysis references
-12. **src/core/weekly_data_fetcher.cpp** - Mock file support (partial)
+8. **src/app/quantum_tracker_app.cpp** - Multiple test data fallback systems
+9. **src/app/sep_engine_app.cpp** - Local test data usage
+10. **src/app/quantum_signal_bridge.cpp** - Test data analysis references
+11. **src/core/weekly_data_fetcher.cpp** - Mock file support (partial)
 
 ### LOW PRIORITY (Review/Investigate):
-13. **frontend/src/components/ManifoldKernel.jsx** - Possible simulation residue
-14. **frontend/src/components/ManifoldVisualizer.jsx** - Possible simulation residue
-15. **src/app/market_regime_adaptive.cpp** - Mock data references in comments
-16. **src/core/facade.cpp** - Simplistic hardcoded calculations
+12. **frontend/src/components/ManifoldKernel.jsx** - Possible simulation residue
+13. **frontend/src/components/ManifoldVisualizer.jsx** - Possible simulation residue
+14. **src/app/market_regime_adaptive.cpp** - Mock data references in comments
+15. **src/core/facade.cpp** - Simplistic hardcoded calculations
 
 ---
 
