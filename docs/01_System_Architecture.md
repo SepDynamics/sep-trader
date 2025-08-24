@@ -33,7 +33,7 @@ The system processes both real-time and historical market data. The core of the 
 The system uses a robust, enterprise-grade data layer:
 
 *   **PostgreSQL + TimescaleDB:** The primary database for time-series market data.
-*   **Redis:** A high-speed, in-memory cache for frequently accessed data.
+*   **Valkey:** A high-speed, Redis-compatible in-memory cache for frequently accessed data.
 *   **HWLOC:** Used to enable NUMA-aware processing for performance optimization.
 
 ## 4. Cloud Deployment and Architecture

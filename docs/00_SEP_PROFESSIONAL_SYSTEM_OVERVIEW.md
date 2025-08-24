@@ -42,7 +42,7 @@ The system implements a **three-tier professional architecture**:
 | **Trading Service API** | Python/Flask | REST API, system integration | ✅ Operational |
 | **WebSocket Service** | Python/WebSockets | Real-time data streaming | ✅ Operational |
 | **Web Dashboard** | React/TypeScript | Management interface | ✅ Operational |
-| **Redis Cache** | Redis 7 | Session storage, caching | ✅ Operational |
+| **Valkey Cache** | Valkey (Redis-compatible) | Session storage, caching | ✅ Operational |
 
 ### Service Architecture
 
@@ -84,10 +84,10 @@ The system implements a **three-tier professional architecture**:
 
 ```yaml
 Services:
-- redis (6380): Redis cache and session storage
 - trading-backend (5000): Flask API service
-- websocket-service (8765): Real-time data service  
+- websocket-service (8765): Real-time data service
 - frontend (80/443): Nginx-served React application
+- external valkey: Valkey key-value store (configure `VALKEY_URL`)
 
 Network: sep-network (172.25.0.0/16)
 Volumes: Local bind mounts for development
@@ -96,11 +96,11 @@ Volumes: Local bind mounts for development
 #### Production Environment (`docker-compose.production.yml`)
 
 ```yaml
-Services: 
-- redis (6380): Redis with persistent storage
+Services:
 - trading-backend (5000): Production Flask API
 - websocket-service (8765): Production WebSocket service
 - frontend (80/443): Production web application
+- external valkey: Managed Valkey instance (set `VALKEY_URL`)
 
 Network: sep-network (172.25.0.0/16)
 Volumes: Persistent volume storage on /mnt/volume_nyc3_01
@@ -161,7 +161,7 @@ The system features a sophisticated **CLI Bridge** (`scripts/cli_bridge.py`) tha
 ```
 Market Data → SEP Engine → Trading Decisions
      ↓              ↓            ↓
-WebSocket ← Redis Cache ← Trading Service API
+WebSocket ← Valkey Store ← Trading Service API
      ↓
 Web Dashboard (Real-time Updates)
 ```
@@ -179,7 +179,7 @@ Web Dashboard (Real-time Updates)
 - **API Key Authentication**: Secure service-to-service communication
 - **CORS Configuration**: Professional cross-origin resource sharing
 - **Rate Limiting**: API endpoint protection
-- **Session Management**: Redis-based session handling
+- **Session Management**: Valkey-based session handling
 
 ### Monitoring and Observability
 - **Health Checks**: Comprehensive service health monitoring

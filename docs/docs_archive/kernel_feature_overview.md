@@ -37,7 +37,7 @@ This guide outlines core processing kernels, memory buffers, and deployment comp
 - Source: [`_sep/testbed/cuda_marketdata_harness.cu`](../_sep/testbed/cuda_marketdata_harness.cu)
 
 ## Hybrid Architecture and Data Flow
-- `sync_to_droplet.sh` ships outputs, configs, and models to the remote droplet while excluding `.env` files and optionally exporting Redis snapshots.
+- `sync_to_droplet.sh` ships outputs, configs, and models to the remote droplet while excluding `.env` files and optionally exporting Valkey snapshots.
 - Source: [`scripts/sync_to_droplet.sh`](../scripts/sync_to_droplet.sh)
 
 ## Deployment and Hardening
