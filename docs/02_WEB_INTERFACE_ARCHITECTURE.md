@@ -332,45 +332,7 @@ const PerformanceAnalytics: React.FC<PerformanceAnalyticsProps> = ({
 
 ### State Management
 
-#### Trading Context
-```typescript
-interface TradingContextType {
-  tradingStatus: TradingStatus
-  positions: Position[]
-  signals: TradingSignal[]
-  startTrading: (config: TradingConfig) => Promise<void>
-  stopTrading: () => Promise<void>
-  closePosition: (positionId: string) => Promise<void>
-}
-
-export const TradingProvider: React.FC<PropsWithChildren> = ({ children }) => {
-  const [tradingStatus, setTradingStatus] = useState<TradingStatus>()
-  const [positions, setPositions] = useState<Position[]>([])
-  const [signals, setSignals] = useState<TradingSignal[]>([])
-  
-  // WebSocket integration for real-time updates
-  useEffect(() => {
-    const ws = new WebSocketService()
-    ws.subscribe('trade-signals', handleSignalUpdate)
-    ws.subscribe('positions', handlePositionUpdate)
-    
-    return () => ws.disconnect()
-  }, [])
-  
-  return (
-    <TradingContext.Provider value={{ 
-      tradingStatus, 
-      positions, 
-      signals, 
-      startTrading, 
-      stopTrading, 
-      closePosition 
-    }}>
-      {children}
-    </TradingContext.Provider>
-  )
-}
-```
+Trading control hooks have been removed pending integration with a real trading backend. Current state management focuses on configuration data.
 
 #### Configuration Context
 ```typescript
@@ -505,45 +467,7 @@ export const usePerformance = () => {
 
 ## Security and Authentication
 
-### API Authentication
-```typescript
-// Authentication service
-class AuthService {
-  private apiKey: string | null = null
-  
-  setApiKey(key: string): void {
-    this.apiKey = key
-    localStorage.setItem('sep-api-key', key)
-  }
-  
-  getApiKey(): string | null {
-    return this.apiKey || localStorage.getItem('sep-api-key')
-  }
-  
-  isAuthenticated(): boolean {
-    return !!this.getApiKey()
-  }
-  
-  logout(): void {
-    this.apiKey = null
-    localStorage.removeItem('sep-api-key')
-  }
-}
-
-// Authentication header injection using native fetch
-async function authorizedFetch(url: string, options: RequestInit = {}) {
-  const apiKey = authService.getApiKey()
-  const headers: Record<string, string> = {
-    'Content-Type': 'application/json',
-    ...(options.headers as Record<string, string> || {}),
-  }
-  if (apiKey) {
-    headers['X-SEP-API-KEY'] = apiKey
-  }
-  const response = await fetch(url, { ...options, headers })
-  return response.json()
-}
-```
+Authentication is not yet implemented; the frontend communicates with trusted backend services.
 
 ### CORS Configuration
 ```typescript
@@ -555,41 +479,14 @@ const CORS_CONFIG = {
     'http://129.212.145.195', // Remote production
   ],
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
-  allowedHeaders: ['Content-Type', 'X-SEP-API-KEY'],
+  allowedHeaders: ['Content-Type'],
   credentials: true
 }
 ```
 
 ## Error Handling and Resilience
 
-### API Error Handling
-```typescript
-interface ApiError {
-  message: string
-  code: string
-  details?: object
-}
-
-// Centralized error handling
-api.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    const apiError: ApiError = {
-      message: error.response?.data?.message || 'Unknown error',
-      code: error.response?.status?.toString() || 'NETWORK_ERROR',
-      details: error.response?.data
-    }
-    
-    // Global error handling
-    if (apiError.code === '401') {
-      authService.logout()
-      window.location.href = '/login'
-    }
-    
-    return Promise.reject(apiError)
-  }
-)
-```
+Error handling is performed at call sites using standard fetch error checks.
 
 ### WebSocket Reconnection
 ```typescript
