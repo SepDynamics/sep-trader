@@ -17,6 +17,9 @@ class CoherenceManager {
         std::size_t max_patterns{1000};
         float anomaly_threshold{0.1f};
         bool enable_cuda{false};
+        float ltm_coherence_threshold{0.8f};
+        float mtm_coherence_threshold{0.5f};
+        float stm_coherence_threshold{0.2f};
     };
 
     enum class AnomalyType {
