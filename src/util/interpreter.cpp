@@ -1715,61 +1715,12 @@ void Interpreter::register_builtins() {
         }
     };
     
-    // Market data functions
-    builtins_["get_current_price"] = [](const std::vector<Value>& args) -> Value {
-        if (args.empty()) {
-            throw std::runtime_error("get_current_price() expects instrument argument");
-        }
-
-        std::string instrument = std::any_cast<std::string>(args[0]);
-        (void)instrument; // placeholder until real data source integrated
-        throw std::runtime_error("get_current_price() not connected to real data");
-    };
-
-    builtins_["get_average_true_range"] = [](const std::vector<Value>& args) -> Value {
-        if (args.size() < 2) {
-            throw std::runtime_error("get_average_true_range() expects (instrument, periods) arguments");
-        }
-
-        std::string instrument = std::any_cast<std::string>(args[0]);
-        double periods = std::any_cast<double>(args[1]);
-        (void)instrument;
-        (void)periods;
-        throw std::runtime_error("get_average_true_range() not connected to real data");
-    };
-    
-    // Advanced trading functions
+    // Trading utilities
     builtins_["check_market_hours"] = [](const std::vector<Value>& args) -> Value {
         (void)args; // Suppress unused parameter warning
         std::cout << "DSL: Checking real market hours..." << std::endl;
         // Check actual Forex market sessions (24/5 trading)
         return is_market_open() ? 1.0 : 0.0;
-    };
-    
-    builtins_["place_stop_loss"] = [](const std::vector<Value>& args) -> Value {
-        if (args.size() < 3) {
-            throw std::runtime_error("place_stop_loss() expects (instrument, price, trade_id) arguments");
-        }
-        
-        std::string instrument = std::any_cast<std::string>(args[0]);
-        double price = std::any_cast<double>(args[1]);
-        double trade_id = std::any_cast<double>(args[2]);
-        
-        std::cout << "DSL: Placing stop loss at " << price << " for trade " << trade_id << std::endl;
-        return 1.0; // Success
-    };
-    
-    builtins_["place_take_profit"] = [](const std::vector<Value>& args) -> Value {
-        if (args.size() < 3) {
-            throw std::runtime_error("place_take_profit() expects (instrument, price, trade_id) arguments");
-        }
-        
-        std::string instrument = std::any_cast<std::string>(args[0]);
-        double price = std::any_cast<double>(args[1]);
-        double trade_id = std::any_cast<double>(args[2]);
-        
-        std::cout << "DSL: Placing take profit at " << price << " for trade " << trade_id << std::endl;
-        return 1.0; // Success
     };
     
     // Multi-timeframe data support
