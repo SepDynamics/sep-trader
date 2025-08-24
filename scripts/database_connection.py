@@ -20,12 +20,15 @@ class ValkeyConnection:
     def __init__(self):
         """Initialize Valkey connection with configuration from environment"""
         # Load configuration from environment or config files
+        self.valkey_url = os.environ.get('VALKEY_URL') or os.environ.get('REDIS_URL')
+
         # Check both VALKEY_* and REDIS_* variable names for compatibility
         self.host = os.environ.get('VALKEY_HOST') or os.environ.get('REDIS_HOST', 'localhost')
         self.port = int(os.environ.get('VALKEY_PORT') or os.environ.get('REDIS_PORT', '6379'))
         self.username = os.environ.get('VALKEY_USER') or os.environ.get('REDIS_USER', '')
         self.password = os.environ.get('VALKEY_PASSWORD') or os.environ.get('REDIS_PASSWORD', '')
         self.database = int(os.environ.get('VALKEY_DATABASE') or os.environ.get('REDIS_DATABASE', '0'))
+        self.use_ssl = os.environ.get('REDIS_SSL', 'false').lower() in ('true', '1', 't')
         
         # Load from config file if available
         self._load_config_from_file()
@@ -74,32 +77,44 @@ class ValkeyConnection:
     def _initialize_connection(self):
         """Initialize Redis/Valkey connection"""
         try:
-            connection_kwargs = {
-                'host': self.host,
-                'port': self.port,
-                'db': self.database,
-                'decode_responses': True,
-                'socket_timeout': 10,
-                'socket_connect_timeout': 10,
-                'retry_on_timeout': True,
-                'health_check_interval': 30,
-                'ssl': True,  # Enable SSL for managed databases
-                'ssl_check_hostname': False,  # Disable hostname verification for managed databases
-                'ssl_cert_reqs': None  # Disable certificate verification
-            }
-            
-            if self.username:
-                connection_kwargs['username'] = self.username
-            if self.password:
-                connection_kwargs['password'] = self.password
-            
-            self.redis_client = redis.Redis(**connection_kwargs)
-            
+            if self.valkey_url:
+                self.redis_client = redis.from_url(self.valkey_url, decode_responses=True)
+                # Extract host and port for logging
+                conn_kwargs = self.redis_client.get_connection_kwargs()
+                self.host = conn_kwargs.get('host', 'unknown')
+                self.port = conn_kwargs.get('port', 0)
+                self.database = conn_kwargs.get('db', 0)
+                logger.info(f"✅ Valkey connection established via URL - {self.host}:{self.port}/{self.database}")
+            else:
+                connection_kwargs = {
+                    'host': self.host,
+                    'port': self.port,
+                    'db': self.database,
+                    'decode_responses': True,
+                    'socket_timeout': 10,
+                    'socket_connect_timeout': 10,
+                    'retry_on_timeout': True,
+                    'health_check_interval': 30,
+                }
+
+                if self.use_ssl:
+                    connection_kwargs.update({
+                        'ssl': True,
+                        'ssl_check_hostname': False,
+                        'ssl_cert_reqs': None
+                    })
+                
+                if self.username:
+                    connection_kwargs['username'] = self.username
+                if self.password:
+                    connection_kwargs['password'] = self.password
+                
+                self.redis_client = redis.Redis(**connection_kwargs)
+                logger.info(f"✅ Valkey connection established - {self.host}:{self.port}/{self.database} (SSL: {self.use_ssl})")
+
             # Test connection
             self.redis_client.ping()
             self.connected = True
-            
-            logger.info(f"✅ Valkey connection established - {self.host}:{self.port}/{self.database}")
             
         except Exception as e:
             logger.error(f"Failed to connect to Valkey database: {e}")
