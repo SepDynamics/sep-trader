@@ -54,14 +54,20 @@ update_github() {
 
 # Function to update server with latest changes
 update_server() {
+    local rebuild_flag=$1
     log_info "Updating server with latest changes..."
+
+    local remote_command="./deploy.sh local"
+    if [ "$rebuild_flag" = true ]; then
+        remote_command="./deploy.sh local --rebuild"
+    fi
     
     # SSH into server and pull latest changes
-    ssh -o StrictHostKeyChecking=no "$DROPLET_USER@$DROPLET_IP" << 'EOF'
+    ssh -o StrictHostKeyChecking=no "$DROPLET_USER@$DROPLET_IP" << EOF
         cd /sep
         git pull origin main
         echo "Server updated with latest changes"
-       ./deploy.sh local
+       $remote_command
 
 EOF
     
@@ -73,19 +79,22 @@ check_dependencies() {
     log_info "Checking system dependencies..."
     
     # Check Docker
-    if ! command -v docker &> /dev/null; then
+    if ! command -v docker &> /dev/null;
+ then
         log_error "Docker is not installed. Please install Docker first."
         exit 1
     fi
     
     # Check Docker Compose
-    if ! command -v docker-compose &> /dev/null && ! docker compose version &> /dev/null; then
+    if ! command -v docker-compose &> /dev/null && ! docker compose version &> /dev/null;
+ then
         log_error "Docker Compose is not installed. Please install Docker Compose first."
         exit 1
     fi
     
     # Check ssh access to droplet only for droplet deployments
-    if [ "$target" = "droplet" ] && [ -n "$DROPLET_IP" ] && ! ssh -o ConnectTimeout=10 -o StrictHostKeyChecking=no "$DROPLET_USER@$DROPLET_IP" "echo 'SSH OK'" &> /dev/null; then
+    if [ "$target" = "droplet" ] && [ -n "$DROPLET_IP" ] && ! ssh -o ConnectTimeout=10 -o StrictHostKeyChecking=no "$DROPLET_USER@$DROPLET_IP" "echo 'SSH OK'" &> /dev/null;
+ then
         log_error "Cannot connect to droplet $DROPLET_IP via SSH."
         log_error "Please ensure SSH keys are configured and droplet is accessible."
         exit 1
@@ -110,18 +119,30 @@ setup_local_environment() {
 
 # Function to start local services
 start_local_services() {
+    local rebuild_flag=$1
     log_info "Starting local services..."
-    
-    # Force rebuild of images
-    log_info "Forcing rebuild of Docker images..."
-    if command -v docker-compose &> /dev/null; then
-        docker-compose -p "$PROJECT_NAME" build --no-cache
-        docker-compose -p "$PROJECT_NAME" up -d --force-recreate
+
+    if [ "$rebuild_flag" = true ]; then
+        # Force rebuild of images
+        log_info "Forcing rebuild of Docker images..."
+        if command -v docker-compose &> /dev/null;
+ then
+            docker-compose -p "$PROJECT_NAME" build --no-cache
+            docker-compose -p "$PROJECT_NAME" up -d --force-recreate
+        else
+            docker compose -p "$PROJECT_NAME" build --no-cache
+            docker compose -p "$PROJECT_NAME" up -d --force-recreate
+        fi
     else
-        docker compose -p "$PROJECT_NAME" build --no-cache
-        docker compose -p "$PROJECT_NAME" up -d --force-recreate
+        log_info "Starting services with --build..."
+        if command -v docker-compose > /dev/null;
+ then
+            docker-compose -p "$PROJECT_NAME" up -d --build
+        else
+            docker compose -p "$PROJECT_NAME" up -d --build
+        fi
     fi
-    
+
     log_success "Local services started"
 }
 
@@ -135,7 +156,8 @@ stop_services() {
             "cd /opt/sep-trader && docker-compose -f docker-compose.production.yml down"
     else
         log_info "Stopping local services..."
-        if command -v docker-compose &> /dev/null; then
+        if command -v docker-compose &> /dev/null;
+ then
             docker-compose -p "$PROJECT_NAME" down
         else
             docker compose -p "$PROJECT_NAME" down
@@ -150,7 +172,7 @@ stop_services() {
 show_help() {
     echo "SEP Professional Trading System Deployment Script"
     echo ""
-    echo "Usage: $0 [COMMAND]"
+    echo "Usage: $0 [COMMAND] [--rebuild]"
     echo ""
     echo "Commands:"
     echo "  local         - Start services locally"
@@ -159,17 +181,29 @@ show_help() {
     echo "  clean         - Stop services and remove containers"
     echo "  help          - Show this help message"
     echo ""
+    echo "Options:"
+    echo "  --rebuild     - Force a full rebuild of Docker images from scratch"
+    echo ""
     echo "Examples:"
-    echo "  $0 local      # Start services locally"
-    echo "  $0 remote     # Update GitHub and server"
+    echo "  $0 local"
+    echo "  $0 local --rebuild"
+    echo "  $0 remote"
+    echo "  $0 remote --rebuild"
 }
 
 # Main script logic
-case "${1:-help}" in
+COMMAND=${1:-help}
+REBUILD=false
+
+if [ "$2" = "--rebuild" ]; then
+    REBUILD=true
+fi
+
+case "$COMMAND" in
     "local")
         check_dependencies "local"
         setup_local_environment
-        start_local_services
+        start_local_services "$REBUILD"
         sleep 10
         log_success "SEP Trading System is running locally!"
         log_info "Frontend: http://localhost"
@@ -178,13 +212,14 @@ case "${1:-help}" in
         ;;
     "remote")
         update_github
-        update_server
+        update_server "$REBUILD"
         ;;
     "stop")
         stop_services "local"
         ;;
     "clean")
-        if command -v docker-compose &> /dev/null; then
+        if command -v docker-compose &> /dev/null;
+ then
             docker-compose -p "$PROJECT_NAME" down -v --remove-orphans
         else
             docker compose -p "$PROJECT_NAME" down -v --remove-orphans
