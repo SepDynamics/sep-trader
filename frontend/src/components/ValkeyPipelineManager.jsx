@@ -36,25 +36,22 @@ const ValkeyPipelineManager = () => {
     networkIO: 0
   });
 
-  // Simulate real-time pipeline monitoring
+  // Request metrics and update pipeline status
   useEffect(() => {
     const interval = setInterval(() => {
-      // Get real metrics from Valkey server via WebSocket
       if (connected && sendMessage) {
-        // Request real server metrics from backend
         sendMessage({
           type: 'get_valkey_metrics',
           data: { request: 'server_stats' }
         });
-        
+
         sendMessage({
           type: 'get_valkey_metrics',
           data: { request: 'key_count' }
         });
       }
 
-      // Update pipeline status based on conditions
-      if (connected && newFeedRate > 1) {
+      if (connected && oandaFeedRate > 1) {
         setPipelineStatus('active');
       } else if (connected) {
         setPipelineStatus('waiting');
@@ -65,6 +62,23 @@ const ValkeyPipelineManager = () => {
 
     return () => clearInterval(interval);
   }, [connected, oandaFeedRate, valkeyKeyCount, sendMessage]);
+
+  // Ingest metrics from backend
+  useEffect(() => {
+    if (!valkeyMetrics) return;
+
+    if (typeof valkeyMetrics.feed_rate === 'number') {
+      setOandaFeedRate(valkeyMetrics.feed_rate);
+    }
+
+    if (typeof valkeyMetrics.key_count === 'number') {
+      setValkeyKeyCount(valkeyMetrics.key_count);
+    }
+
+    if (valkeyMetrics.server_stats) {
+      setServerMetrics(prev => ({ ...prev, ...valkeyMetrics.server_stats }));
+    }
+  }, [valkeyMetrics]);
 
   // Analyze current Valkey key distribution by age (entropy bands)
   const valkeyDistribution = useMemo(() => {
