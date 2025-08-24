@@ -23,6 +23,12 @@ add_sep_test(cli_commands_test
     SOURCES cli_commands_test.cpp
     DEPENDENCIES sep_lib
 )
+
+# Quantum metrics test
+add_sep_test(quantum_metrics_test
+    SOURCES quantum_metrics_test.cpp
+    DEPENDENCIES sep_lib
+)
 # Placeholder for additional core tests
 # add_sep_test(core_example_test
 #     SOURCES core_example_test.cpp
