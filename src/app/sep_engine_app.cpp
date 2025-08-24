@@ -29,20 +29,8 @@ void signalHandler(int signal) {
     std::exit(signal);
 }
 
-SepEngineApp::SepEngineApp(Mode mode, bool headless)
-    : mode_(mode), headless_mode_(headless) {
-    // Set global instance for signal handling
-    g_app_instance = this;
-    
-    // Register signal handlers
-    std::signal(SIGINT, signalHandler);
-    std::signal(SIGTERM, signalHandler);
-}
-
-SepEngineApp::SepEngineApp(Mode mode, const std::string& simulate_start_time, int simulation_duration_hours)
-    : mode_(mode), headless_mode_(true),
-      simulation_start_time_(simulate_start_time),
-      simulation_duration_hours_(simulation_duration_hours) {
+SepEngineApp::SepEngineApp(bool headless)
+    : headless_mode_(headless) {
     // Set global instance for signal handling
     g_app_instance = this;
     
@@ -67,49 +55,24 @@ bool SepEngineApp::initialize() {
     std::cout << "===============================================" << std::endl;
     std::cout << "   SEP Engine - Unified Application v1.0      " << std::endl;
     std::cout << "===============================================" << std::endl;
-    
+
     // Initialize common components
     sep_engine_ = std::make_unique<sep::core::Engine>();
-    
+
     try {
         initializeQuantumBridge();
         initializeCuda();
-        
-        // Mode-specific initialization
-        switch (mode_) {
-            case Mode::LIVE:
-                std::cout << "[SEP] Initializing Live Trading Mode..." << std::endl;
-                return initializeLiveMode();
-                
-            case Mode::HISTORICAL_SIM:
-                std::cout << "[SEP] Initializing Historical Simulation Mode..." << std::endl;
-                return initializeHistoricalSimMode();
-                
-            case Mode::FILE_SIM:
-                std::cout << "[SEP] Initializing File Simulation Mode..." << std::endl;
-                return initializeFileSimMode();
-        }
+        std::cout << "[SEP] Initializing Live Trading Mode..." << std::endl;
+        return initializeLiveMode();
     } catch (const std::exception& e) {
         last_error_ = "Initialization failed: " + std::string(e.what());
         return false;
     }
-    
-    return false;
 }
 
 void SepEngineApp::run() {
     if (!is_running_.exchange(true)) {
-        switch (mode_) {
-            case Mode::LIVE:
-                runLiveMode();
-                break;
-            case Mode::HISTORICAL_SIM:
-                runHistoricalSimMode();
-                break;
-            case Mode::FILE_SIM:
-                runFileSimMode();
-                break;
-        }
+        runLiveMode();
         is_running_ = false;
     }
 }
@@ -209,52 +172,6 @@ bool SepEngineApp::initializeLiveMode() {
     return true;
 }
 
-bool SepEngineApp::initializeHistoricalSimMode() {
-    historical_sim_mode_ = true;
-    
-    // Initialize OANDA connector for data fetching
-    const char* api_key = std::getenv("OANDA_API_KEY");
-    const char* account_id = std::getenv("OANDA_ACCOUNT_ID");
-    if (!api_key || !account_id) {
-        last_error_ = "OANDA_API_KEY and OANDA_ACCOUNT_ID needed for historical data";
-        return false;
-    }
-    
-    oanda_connector_ = std::make_unique<sep::connectors::OandaConnector>(api_key, account_id);
-    
-    // Initialize data management components
-    // Initialize simulation-specific components
-    sep::trading::UnifiedDataConfig config;
-    config.cache_dir = "cache/unified/";
-    config.enable_local_cache = true;
-    config.max_cache_size = 1024 * 1024 * 100; // 100MB
-    
-    unified_data_manager_ = std::make_unique<sep::trading::UnifiedDataManager>(config);
-    tick_data_manager_ = std::make_unique<sep::apps::TickDataManager>();
-    cache_ = std::make_unique<sep::apps::MarketModelCache>(std::shared_ptr<sep::connectors::OandaConnector>(oanda_connector_.get(), [](auto*){}));
-    
-    // Set quantum bridge thresholds for simulation
-    quantum_bridge_->setConfidenceThreshold(0.65f);
-    quantum_bridge_->setCoherenceThreshold(0.30f);
-    quantum_bridge_->setStabilityThreshold(0.0f);
-    
-    return true;
-}
-
-bool SepEngineApp::initializeFileSimMode() {
-    file_sim_mode_ = true;
-    
-    std::cout << "[FILE-SIM] Using local test data for rapid backtesting" << std::endl;
-    std::cout << "[FILE-SIM] GUI disabled, running in CLI-only mode" << std::endl;
-    
-    // Initialize minimal components for file simulation
-    cache_ = std::make_unique<sep::apps::MarketModelCache>(
-        std::shared_ptr<sep::connectors::OandaConnector>(oanda_connector_.get(), [](auto*){})
-    );
-    
-    return true;
-}
-
 void SepEngineApp::runLiveMode() {
     std::cout << "[LIVE] Starting live trading mode..." << std::endl;
     
@@ -275,37 +192,6 @@ void SepEngineApp::runLiveMode() {
         } catch (const std::exception& e) {
             std::cerr << "[LIVE] Error in trading loop: " << e.what() << std::endl;
         }
-    }
-}
-
-void SepEngineApp::runHistoricalSimMode() {
-    std::cout << "[HISTORICAL-SIM] Starting historical simulation..." << std::endl;
-    
-    // Run historical simulation with the configured time range
-    // This would contain the main simulation loop from QuantumTrackerApp
-    while (!should_stop_) {
-        try {
-            // Process historical data and generate signals
-            // Update WebSocket clients with simulation progress
-            std::this_thread::sleep_for(std::chrono::milliseconds(50));
-        } catch (const std::exception& e) {
-            std::cerr << "[HISTORICAL-SIM] Error in simulation: " << e.what() << std::endl;
-        }
-    }
-}
-
-void SepEngineApp::runFileSimMode() {
-    std::cout << "[FILE-SIM] Starting file simulation..." << std::endl;
-    
-    // Run file-based simulation for rapid testing
-    // This would process local test files quickly
-    try {
-        // Load test data from files
-        // Process and generate signals
-        // Output results
-        std::cout << "[FILE-SIM] Simulation completed successfully" << std::endl;
-    } catch (const std::exception& e) {
-        std::cerr << "[FILE-SIM] Error in file simulation: " << e.what() << std::endl;
     }
 }
 

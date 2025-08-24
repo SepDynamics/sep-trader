@@ -161,24 +161,6 @@ body.light-theme {
   50% { opacity: 0.5; }
 }
 
-/* Test Button */
-.test-button {
-  padding: 0.75rem 1.5rem;
-  background: var(--gradient-primary);
-  border: none;
-  border-radius: 8px;
-  color: white;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s;
-  font-size: 0.875rem;
-}
-
-.test-button:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-hover);
-}
-
 /* Main Container */
 .main-container {
   display: flex;
@@ -414,55 +396,6 @@ tr:hover {
   color: var(--warning); 
 }
 
-/* Testing Panel */
-.testing-panel {
-  background: rgba(26, 35, 50, 0.95);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 1.5rem;
-  margin-top: 2rem;
-}
-
-.test-controls {
-  display: flex;
-  gap: 1rem;
-  margin-bottom: 1.5rem;
-  flex-wrap: wrap;
-}
-
-.test-results {
-  background: rgba(15, 24, 35, 0.95);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 1rem;
-  font-family: 'Monaco', 'Menlo', monospace;
-  font-size: 0.875rem;
-  line-height: 1.6;
-  max-height: 400px;
-  overflow-y: auto;
-}
-
-.test-log {
-  margin: 0.5rem 0;
-  padding: 0.5rem;
-  border-left: 3px solid var(--border);
-}
-
-.test-log.success {
-  border-left-color: var(--success);
-  background: rgba(34, 197, 94, 0.05);
-}
-
-.test-log.error {
-  border-left-color: var(--danger);
-  background: rgba(239, 68, 68, 0.05);
-}
-
-.test-log.warning {
-  border-left-color: var(--warning);
-  background: rgba(245, 158, 11, 0.05);
-}
-
 /* Tabs */
 .tabs {
   display: flex;
@@ -660,7 +593,6 @@ tr:hover {
 
 /* Focus States */
 .nav-item:focus,
-.test-button:focus,
 .tab:focus,
 .retry-button:focus {
   outline: 2px solid var(--primary);
@@ -674,26 +606,22 @@ html {
 
 /* Custom Scrollbars */
 .sidebar::-webkit-scrollbar,
-.test-results::-webkit-scrollbar,
 .content::-webkit-scrollbar {
   width: 6px;
 }
 
 .sidebar::-webkit-scrollbar-track,
-.test-results::-webkit-scrollbar-track,
 .content::-webkit-scrollbar-track {
   background: var(--bg-secondary);
 }
 
 .sidebar::-webkit-scrollbar-thumb,
-.test-results::-webkit-scrollbar-thumb,
 .content::-webkit-scrollbar-thumb {
   background: var(--border);
   border-radius: 3px;
 }
 
 .sidebar::-webkit-scrollbar-thumb:hover,
-.test-results::-webkit-scrollbar-thumb:hover,
 .content::-webkit-scrollbar-thumb:hover {
   background: var(--text-muted);
 }
