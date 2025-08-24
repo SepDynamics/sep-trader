@@ -1,62 +1,14 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { useWebSocket } from '../context/WebSocketContext';
 import { Brain, Activity, TrendingUp, Zap, Target, Shield } from 'lucide-react';
 
 const QuantumAnalysis = () => {
   const { systemMetrics, connected } = useWebSocket();
-  const [analysisData, setAnalysisData] = useState({
-    qfh_patterns: [],
-    qbsa_results: {},
-    coherence_metrics: {},
-    stability_index: 0,
-    pattern_evolution: [],
-    entropy_levels: []
-  });
+  const analysisData = systemMetrics;
 
-  // Simulate quantum analysis data if not available from WebSocket
-  useEffect(() => {
-    if (!connected) {
-      const mockData = {
-        qfh_patterns: [
-          { id: 1, pattern: 'Harmonic Resonance', confidence: 87.3, frequency: 2.4, amplitude: 0.65 },
-          { id: 2, pattern: 'Field Convergence', confidence: 74.2, frequency: 1.8, amplitude: 0.42 },
-          { id: 3, pattern: 'Quantum Fluctuation', confidence: 91.5, frequency: 3.2, amplitude: 0.78 },
-          { id: 4, pattern: 'Phase Alignment', confidence: 68.9, frequency: 1.5, amplitude: 0.33 }
-        ],
-        qbsa_results: {
-          binary_states: 15625,
-          analyzed_patterns: 8432,
-          coherence_score: 0.4687,
-          stability_ratio: 0.7234,
-          flip_events: 234,
-          rupture_events: 12
-        },
-        coherence_metrics: {
-          temporal_coherence: 0.85,
-          spatial_coherence: 0.72,
-          spectral_coherence: 0.91,
-          cross_coherence: 0.68
-        },
-        stability_index: 0.7234,
-        pattern_evolution: [
-          { timestamp: Date.now() - 300000, stability: 0.65 },
-          { timestamp: Date.now() - 240000, stability: 0.71 },
-          { timestamp: Date.now() - 180000, stability: 0.68 },
-          { timestamp: Date.now() - 120000, stability: 0.74 },
-          { timestamp: Date.now() - 60000, stability: 0.72 },
-          { timestamp: Date.now(), stability: 0.76 }
-        ],
-        entropy_levels: [
-          { frequency: 0.5, entropy: 0.12 },
-          { frequency: 1.0, entropy: 0.08 },
-          { frequency: 1.5, entropy: 0.15 },
-          { frequency: 2.0, entropy: 0.10 },
-          { frequency: 2.5, entropy: 0.09 }
-        ]
-      };
-      setAnalysisData(mockData);
-    }
-  }, [connected]);
+  if (!analysisData) {
+    return <div>{connected ? 'Loading...' : 'Data unavailable'}</div>;
+  }
 
   const formatPercentage = (value) => {
     return (value * 100).toFixed(1) + '%';
