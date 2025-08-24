@@ -163,12 +163,6 @@ public:
     bool isStreamActive(const std::string& pair_symbol) const;
     std::vector<std::string> getActiveStreams() const;
     
-    // Cache integration
-    bool ensureCacheForPair(const std::string& pair_symbol);
-    bool validateCacheForPair(const std::string& pair_symbol) const;
-    bool warmupCacheForPair(const std::string& pair_symbol);
-    void preemptiveCacheRefresh();
-    
     // Trading integration
     bool isPairTradingReady(const std::string& pair_symbol) const;
     std::vector<std::string> getTradingReadyPairs() const;

@@ -74,7 +74,6 @@
   },
   
   "cache_management": {
-    "weekly_cache_validation": true,
     "auto_cleanup_days": 30,
     "cache_size_limit_gb": 50,
     "compression_level": 6,
