@@ -47,24 +47,6 @@ namespace {
         }
     }
     
-    // Helper function to get trading data from Valkey
-    double get_valkey_trading_metric(const std::string& metric_key, double fallback_value = 0.0) {
-        try {
-            auto redis_manager = sep::persistence::createRedisManager();
-            if (!redis_manager || !redis_manager->isConnected()) {
-                std::cout << "ℹ️  INFO: Valkey not connected, returning fallback for " << metric_key << std::endl;
-                return fallback_value;
-            }
-
-            // Real trading metrics retrieval is not yet implemented.
-            // Avoid generating synthetic values to prevent misleading data.
-        } catch (const std::exception& e) {
-            std::cout << "⚠️  Warning: Error accessing Valkey for " << metric_key << ": " << e.what() << std::endl;
-        }
-
-        return fallback_value;
-    }
-    
     // Helper function to check market session status using real-time data
     bool is_market_open() {
         try {

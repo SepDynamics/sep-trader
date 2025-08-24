@@ -46,6 +46,8 @@ This document tracks outstanding code quality concerns in the SEP Engine codebas
 - Duplicate CPU window calculation path consolidated into a single helper (`src/app/tick_data_manager.cpp`).
 - Unused remote data manager interface and synchronizer stubs removed (`src/core/remote_data_manager.hpp`, `src/core/remote_synchronizer.*`).
 - Outdated Redis metrics API removed to reflect Valkey-only integration (`frontend/src/services/api.ts`).
+- Redundant Valkey metric fallback helper removed (`src/util/interpreter.cpp`).
+- Unused prototype market data fetcher removed (`src/app/quantum_signal_bridge.cpp`).
 
 ## Recommendations
 1. Remove remaining hardcoded values via configuration.
