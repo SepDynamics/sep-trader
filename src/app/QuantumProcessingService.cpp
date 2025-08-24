@@ -668,7 +668,6 @@ BinaryStateVector QuantumProcessingService::convertFromBitVector(const std::vect
     
     return result;
 }
-}
 
 } // namespace services
 } // namespace sep

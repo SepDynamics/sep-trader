@@ -231,7 +231,7 @@ bool SepEngineApp::initializeHistoricalSimMode() {
     
     unified_data_manager_ = std::make_unique<sep::trading::UnifiedDataManager>(config);
     tick_data_manager_ = std::make_unique<sep::apps::TickDataManager>();
-    cache_ = std::make_unique<sep::apps::MarketModelCache>(oanda_connector_);
+    cache_ = std::make_unique<sep::apps::MarketModelCache>(std::shared_ptr<sep::connectors::OandaConnector>(oanda_connector_.get(), [](auto*){}));
     
     // Set quantum bridge thresholds for simulation
     quantum_bridge_->setConfidenceThreshold(0.65f);
