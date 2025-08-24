@@ -118,13 +118,6 @@ class APIClient {
   }
 
   // Trading Operations
-  async placeOrder(order: any) {
-    return this.request('/api/place-order', {
-      method: 'POST',
-      body: JSON.stringify(order),
-    });
-  }
-
   async submitOrder(order: any) {
     return this.request('/api/place-order', {
       method: 'POST',
@@ -253,7 +246,6 @@ export const {
   getCandleData,
   fetchCandleData,
   getStoredCandles,
-  placeOrder,
   submitOrder,
   getPositions,
   getTradingSignals,

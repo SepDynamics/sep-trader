@@ -25,24 +25,21 @@ inline DataSource stringToDataSource(const std::string& str) {
     return DataSource::UNKNOWN;
 }
 
-// Provider of market data. We specifically track OANDA vs testing stubs.
+// Provider of market data. Currently only real providers are tracked.
 enum class DataProvider {
     OANDA,
-    STUB,
     UNKNOWN
 };
 
 inline std::string dataProviderToString(DataProvider provider) {
     switch (provider) {
         case DataProvider::OANDA: return "oanda";
-        case DataProvider::STUB: return "stub";
         default: return "unknown";
     }
 }
 
 inline DataProvider stringToDataProvider(const std::string& str) {
     if (str == "oanda" || str == "OANDA") return DataProvider::OANDA;
-    if (str == "stub" || str == "STUB") return DataProvider::STUB;
     return DataProvider::UNKNOWN;
 }
 

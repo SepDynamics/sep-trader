@@ -21,6 +21,7 @@ This document tracks outstanding code quality concerns in the SEP Engine codebas
 ## Recent Cleanup
 - Obsolete core primitive declarations removed (`src/util/core_primitives.h`).
 - Mock health monitor implementation removed (`src/app/health_monitor_c_impl.c`).
+- Stub data provider enum removed (`src/core/cache_metadata.hpp`).
 - Placeholder training CLI and duplicate MemoryTierService implementation removed (`src/app/cli_main.cpp`, `src/app/MemoryTierService.*`).
 - Duplicate CLI removed (`src/app/trader_cli_simple.cpp`, `src/app/trader_cli_simple.hpp`).
 - Unused frontend testing component removed (`frontend/src/components/TestingSuite.jsx`).
