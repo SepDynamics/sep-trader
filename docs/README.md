@@ -45,8 +45,8 @@ npm start       # launch development server
 Runtime settings are configured via environment variables. In development, create `frontend/.env`:
 
 ```
-REACT_APP_API_URL=http://localhost:5000
-REACT_APP_WS_URL=ws://localhost:8765
+REACT_APP_API_URL=<backend-api-url>
+REACT_APP_WS_URL=<websocket-url>
 ```
 
 For production builds:

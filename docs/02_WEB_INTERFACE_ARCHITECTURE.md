@@ -483,7 +483,7 @@ export const useTradingData = () => {
     
     // Real-time updates
     const ws = new WebSocketService()
-    ws.connect('ws://localhost:8765/trade-signals')
+    ws.connect(`${process.env.REACT_APP_WS_URL}/trade-signals`)
       .then(() => {
         ws.subscribe('trading-status', (data) => {
           setTradingData(prev => ({ ...prev, ...data }))
@@ -507,7 +507,7 @@ export const usePerformance = () => {
     
     // Real-time performance updates
     const ws = new WebSocketService()
-    ws.connect('ws://localhost:8765/performance')
+    ws.connect(`${process.env.REACT_APP_WS_URL}/performance`)
       .then(() => {
         ws.subscribe('metrics-update', setMetrics)
         ws.subscribe('history-update', (data) => {

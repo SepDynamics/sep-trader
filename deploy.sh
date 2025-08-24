@@ -196,8 +196,8 @@ case "$COMMAND" in
         sleep 10
         log_success "SEP Trading System is running locally!"
         log_info "Frontend: http://localhost"
-        log_info "Backend API: http://localhost:5000"
-        log_info "WebSocket: ws://localhost:8765"
+        log_info "Backend API: ${REACT_APP_API_URL:-<not configured>}"
+        log_info "WebSocket: ${REACT_APP_WS_URL:-<not configured>}"
         ;;
     "remote")
         update_github
