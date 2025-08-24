@@ -1,22 +1,4 @@
 services:
-  # Redis/Valkey database for local development
-  redis:
-    image: redis:7-alpine
-    container_name: sep-redis
-    restart: unless-stopped
-    ports:
-      - "6379:6379"
-    command: redis-server --appendonly yes
-    volumes:
-      - redis_data:/data
-    networks:
-      - sep-network
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 10s
-      timeout: 5s
-      retries: 3
-
   # Trading backend service
   trading-backend:
     build:
@@ -31,10 +13,6 @@ services:
       - SEP_CONFIG_PATH=/app/config
       - PYTHONPATH=/app
       - PORT=5000
-      - REDIS_URL=redis://redis:6379/0
-      - REDIS_HOST=redis
-      - REDIS_PORT=6379
-      - REDIS_DATABASE=0
     env_file:
       - ./config/.sep-config.env
     volumes:
@@ -43,9 +21,6 @@ services:
       - ./logs:/app/logs
       - ./output:/app/output
       - ./bin:/app/bin:ro
-    depends_on:
-      redis:
-        condition: service_healthy
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:5000/api/health"]
       interval: 30s
@@ -110,6 +85,4 @@ networks:
       config:
         - subnet: 172.25.0.0/16
 
-volumes:
-  redis_data:
-    driver: local
+# No volumes needed - using remote Valkey/Redis service
