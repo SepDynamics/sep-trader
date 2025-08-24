@@ -19,17 +19,6 @@ This guide clarifies the distinction between legitimate backtesting/simulation a
 - Validates performance claims (60.73% accuracy)
 - Essential for strategy development
 
-### **File Simulation Mode**
-**Purpose**: Weekend development using cached real market data
-**Files**:
-- `/sep/src/apps/oanda_trader/quantum_tracker_app.cpp` - File simulation mode
-- `/sep/assets/test_data/eur_usd_m1_48h.json` - Real EUR/USD data cache
-
-**Characteristics**:
-- Uses previously fetched real OANDA data
-- Enables development when markets are closed
-- Deterministic for debugging and testing
-
 ## ❌ DEVELOPMENT STUBS (Fixed/Replaced)
 
 ### **Training Simulation Stubs** ✅ FIXED
