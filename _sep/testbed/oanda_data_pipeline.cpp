@@ -38,8 +38,8 @@ std::vector<std::string> generateSignals(const std::vector<double>& prices, cons
 
 int main()
 {
-    // Ingest historical OANDA data from assets
-    std::ifstream file("../assets/test_data/eur_usd_m1_48h.json");
+    // Ingest historical OANDA data from test data assets
+    std::ifstream file("test_data/eur_usd_m1_48h.json");
     if (!file.is_open())
     {
         std::cerr << "Failed to open data file\n";
