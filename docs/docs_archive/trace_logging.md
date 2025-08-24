@@ -7,7 +7,7 @@ Define `SEP_ENABLE_TRACE` at compile time to activate logging:
 ```
 cmake -DSEP_ENABLE_TRACE=ON ...
 ```
-When enabled, calls to `sep::testbed::trace` emit messages to `std::clog`.
+When enabled, calls to `sep::trace::log` emit messages to `std::clog`.
 
 ## Instrumented Stages
 Current instrumentation covers:

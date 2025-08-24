@@ -18,13 +18,53 @@
 #include "cuda/bit_pattern_kernels.h"
 #include "core/pattern_processor.h"
 #include "core/quantum_manifold_optimizer.h"
-#include "../../_sep/testbed/oanda_market_data_helper.hpp"
 #include "core/signal.h"
 #include "core/types_serialization.h"
 #include "io/oanda_connector.h"
 #include "app/realtime_aggregator.hpp"
 
 using json = nlohmann::json;
+
+static std::vector<sep::connectors::MarketData> fetchRecentMarketData(
+    sep::connectors::OandaConnector& connector,
+    const std::string& pair_symbol,
+    size_t hours_back) {
+    auto now = std::chrono::system_clock::now();
+    auto start_time = now - std::chrono::hours(hours_back);
+
+    auto formatTimestamp = [](const std::chrono::system_clock::time_point& tp) {
+        auto time_t = std::chrono::system_clock::to_time_t(tp);
+        std::stringstream ss;
+        ss << std::put_time(std::gmtime(&time_t), "%Y-%m-%dT%H:%M:%SZ");
+        return ss.str();
+    };
+
+    std::string from_str = formatTimestamp(start_time);
+    std::string to_str = formatTimestamp(now);
+
+    auto oanda_candles = connector.getHistoricalData(pair_symbol, "M1", from_str, to_str);
+    if (oanda_candles.empty()) {
+        throw std::runtime_error("No historical data returned from OANDA");
+    }
+
+    std::vector<sep::connectors::MarketData> market_data;
+    market_data.reserve(oanda_candles.size());
+    for (const auto& candle : oanda_candles) {
+        sep::connectors::MarketData md;
+        md.instrument = pair_symbol;
+        md.timestamp = std::chrono::duration_cast<std::chrono::milliseconds>(
+                            sep::common::parseTimestamp(candle.time).time_since_epoch())
+                            .count();
+        md.mid = candle.close;
+        md.bid = candle.low;
+        md.ask = candle.high;
+        md.volume = candle.volume;
+        md.atr = 0.0; // TODO: compute ATR
+        market_data.push_back(md);
+    }
+
+    return market_data;
+}
 
 void from_json(const json& j, Candle& c) {
     std::string time_str;
@@ -1040,7 +1080,7 @@ sep::trading::QuantumIdentifiers sep::trading::QuantumSignalBridge::processAsset
             try {
                 sep::connectors::OandaConnector connector(api_key, account_id);
                 if (connector.initialize()) {
-                    recent_data = sep::testbed::fetchMarketData(connector, asset, 1);
+                    recent_data = fetchRecentMarketData(connector, asset, 1);
                     connector.shutdown();
                 }
             } catch (const std::exception& e) {

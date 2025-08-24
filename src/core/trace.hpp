@@ -3,15 +3,15 @@
 #include <iostream>
 
 namespace sep {
-namespace testbed {
+namespace trace {
 
 #ifdef SEP_ENABLE_TRACE
-inline void trace(std::string_view stage, std::string_view detail) {
+inline void log(std::string_view stage, std::string_view detail) {
     std::clog << "[TRACE] " << stage << ": " << detail << '\n';
 }
 #else
-inline void trace(std::string_view, std::string_view) noexcept {}
+inline void log(std::string_view, std::string_view) noexcept {}
 #endif
 
-} // namespace testbed
+} // namespace trace
 } // namespace sep

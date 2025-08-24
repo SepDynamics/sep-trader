@@ -17,11 +17,7 @@ During our initial scan, we identified the following mock implementations and re
 
 ### Data Source Mocks
 
-1. **OANDA Market Data Helper** (`_sep/testbed/oanda_market_data_helper.hpp`)
-   - Contains a placeholder ATR value set to 0.0 instead of real computation
-   - Used for test data transformation
-
-2. **Cache Validation** (Referenced in `tests/data_pipeline/test_data_integrity.cpp`)
+1. **Cache Validation** (Referenced in `tests/data_pipeline/test_data_integrity.cpp`)
    - Ensures cached entries originate from recognized providers (e.g., OANDA)
    - Stub provider references removed to prevent mock data usage
 
@@ -67,7 +63,6 @@ During our initial scan, we identified the following mock implementations and re
 | Component | Location | Type | Purpose | Status |
 |-----------|----------|------|---------|--------|
 | PlaceholderDetection | `_sep/testbed/placeholder_detection.h` | Utility | Detect placeholder values in production | Identified |
-| OandaMarketDataHelper | `_sep/testbed/oanda_market_data_helper.hpp` | Helper | Transform market data with placeholder ATR | Identified |
 | CacheValidator | Referenced in tests | Validation | Validate real data providers | Updated |
 | ServiceInterfaces | `src/app/*` | Interface | Define service contracts | Consolidated |
 | MemoryTierServiceStub | `src/app/MemoryTierService.*` | Service | Mock memory tier management | Removed |
