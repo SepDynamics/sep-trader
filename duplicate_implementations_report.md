@@ -50,6 +50,7 @@ This document tracks outstanding code quality concerns in the SEP Engine codebas
 - Unimplemented WeeklyDataFetcher configuration and cache helpers removed (`src/core/weekly_data_fetcher.*`).
 - Removed redundant amplitude renormalization and stale CUDA stub reference
   (`src/app/QuantumProcessingService.cpp`, `src/core/cuda_impl.h`).
+- Unimplemented CUDA path in MemoryTierManager now returns `NOT_IMPLEMENTED` instead of logging (`src/util/memory_tier_manager.cpp`).
 
 ## Recommendations
 1. Remove remaining hardcoded values via configuration.
