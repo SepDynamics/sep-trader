@@ -52,7 +52,6 @@ The system implements a **three-tier professional architecture**:
 - **Port**: 5000
 - **Endpoints**: 
   - `/api/status` - System status and metrics
-  - `/api/trading/*` - Trading operations and management
   - `/api/performance/*` - Performance analytics
   - `/api/config/*` - Configuration management
   - `/api/health` - Health check endpoint

@@ -124,27 +124,6 @@ class APIClient {
     });
   }
 
-  async getPositions() {
-    return this.request('/api/positions');
-  }
-
-  async getTradingSignals() {
-    return this.request('/api/trading-signals');
-  }
-
-  // Quick Actions
-  async startTrading() {
-    return this.request('/api/trading/start', { method: 'POST' });
-  }
-
-  async stopTrading() {
-    return this.request('/api/trading/stop', { method: 'POST' });
-  }
-
-  async pauseSystem() {
-    return this.request('/api/system/pause', { method: 'POST' });
-  }
-
   async uploadTrainingData(payload = {}) {
     return this.request('/api/training/upload', {
       method: 'POST',
@@ -242,14 +221,9 @@ export const {
   fetchCandleData,
   getStoredCandles,
   submitOrder,
-  getPositions,
-  getTradingSignals,
   getSystemStatus,
   getSystemStatusConfig,
   getHealth,
-  startTrading,
-  stopTrading,
-  pauseSystem,
   uploadTrainingData,
   startModelTraining,
   generateReport,

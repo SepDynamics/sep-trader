@@ -349,13 +349,7 @@ GET  /api/health          # Health check
 GET  /api/status          # System status
 GET  /api/system/info     # System information
 
-# Trading operations
-GET  /api/trading/status       # Trading status
-POST /api/trading/start        # Start trading
-POST /api/trading/stop         # Stop trading
-POST /api/trading/positions    # Position management
-
-# Performance analytics  
+# Performance analytics
 GET  /api/performance/metrics     # Performance metrics
 GET  /api/performance/current    # Current performance
 GET  /api/performance/history    # Historical performance

@@ -94,36 +94,6 @@ Response: {
 }
 ```
 
-##### Trading Operations
-```typescript
-// Trading status and control
-GET  /api/trading/status
-Response: {
-  is_trading: boolean,
-  current_position: Position | null,
-  last_signal: TradingSignal | null,
-  session_stats: SessionStats
-}
-
-POST /api/trading/start
-Body: { strategy?: string, parameters?: object }
-Response: { success: boolean, message: string }
-
-POST /api/trading/stop  
-Response: { success: boolean, message: string }
-
-GET  /api/trading/positions
-Response: {
-  open_positions: Position[],
-  closed_positions: Position[],
-  total_value: number
-}
-
-POST /api/trading/position/close
-Body: { position_id: string }
-Response: { success: boolean, position: Position }
-```
-
 ##### Performance Analytics
 ```typescript
 // Performance metrics and analytics
