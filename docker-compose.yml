@@ -4,7 +4,6 @@ services:
     build:
       context: .
       dockerfile: scripts/Dockerfile.backend
-    container_name: sep-trading-backend
     restart: unless-stopped
     ports:
       - "5000:5000"
