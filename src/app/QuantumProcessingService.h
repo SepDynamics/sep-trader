@@ -1,7 +1,6 @@
 #pragma once
 
-#include "app/ServiceBase.h"
-#include "IQuantumProcessingService.h"
+#include "ServiceBase.h"
 #include "core/result_types.h"
 #include "core/qfh.h"
 #include "core/quantum_processor_qfh.h"
@@ -12,6 +11,9 @@
 #include <glm/glm.hpp>
 #include <glm/vec3.hpp>
 #include <stdexcept>
+#include <vector>
+#include <map>
+#include <string>
 
 // Forward declarations from core quantum namespace
 namespace sep {
@@ -29,7 +31,7 @@ namespace services {
  * Implementation of the Quantum Processing Service
  * Provides concrete implementations of quantum algorithms and processing
  */
-class QuantumProcessingService : public ServiceBase, public IQuantumProcessingService {
+class QuantumProcessingService : public ServiceBase {
 public:
     /**
      * Constructor
@@ -47,28 +49,28 @@ public:
     if (state_ != State::Initialized && state_ != State::Running) \
         throw std::logic_error("Service not initialized")
 
-    // Override isReady() to resolve the diamond inheritance issue
+    // Override isReady() to reflect internal state
     bool isReady() const override;
 
     // Explicit lifecycle management
     Result<void> initialize() override;
     Result<void> shutdown() override;
     Result<void> start();
-    
-    // IQuantumProcessingService interface implementation
-    Result<BinaryStateVector> processBinaryStateAnalysis(const QuantumState& state) override;
+
+    // Quantum processing operations
+    Result<BinaryStateVector> processBinaryStateAnalysis(const QuantumState& state);
     Result<std::vector<QuantumFourierComponent>> applyQuantumFourierHierarchy(
         const QuantumState& state,
-        int hierarchyLevels) override;
-    Result<CoherenceMatrix> calculateCoherence(const QuantumState& state) override;
+        int hierarchyLevels);
+    Result<CoherenceMatrix> calculateCoherence(const QuantumState& state);
     Result<StabilityMetrics> determineStability(
         const QuantumState& state,
-        const std::vector<QuantumState>& historicalStates) override;
+        const std::vector<QuantumState>& historicalStates);
     Result<QuantumState> evolveQuantumState(
         const QuantumState& state,
-        const std::map<std::string, double>& evolutionParameters) override;
-    Result<QuantumState> runQuantumPipeline(const QuantumState& state) override;
-    std::map<std::string, std::string> getAvailableAlgorithms() const override;
+        const std::map<std::string, double>& evolutionParameters);
+    Result<QuantumState> runQuantumPipeline(const QuantumState& state);
+    std::map<std::string, std::string> getAvailableAlgorithms() const;
 
 protected:
     // ServiceBase interface implementation
