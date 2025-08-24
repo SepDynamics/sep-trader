@@ -67,6 +67,7 @@ This document tracks outstanding code quality concerns in the SEP Engine codebas
 - Leftover pattern analysis function removed from EngineFacade (`src/core/facade.cpp`).
 - Fixed misplaced validation helpers in OANDA connector (`src/io/oanda_connector.cpp`).
 - Resolved merge artifact that duplicated validation logic in OANDA connector (`src/io/oanda_connector.cpp`).
+- Unused configuration helper functions removed to eliminate dead code (`src/util/interpreter.cpp`).
 
 ## Recommendations
 1. Remove remaining hardcoded values via configuration.
