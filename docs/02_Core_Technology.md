@@ -65,6 +65,21 @@ const double k1 = 0.3;  // Entropy weight
 const double k2 = 0.2;  // Coherence weight
 ```
 
+### Signal Thresholds
+
+The `PatternMetricEngine` evaluates trading signals using configurable thresholds
+for coherence, stability, and entropy.
+
+```cpp
+struct SignalThresholds {
+    float buy_min_coherence{0.7f};
+    float buy_min_stability{0.6f};
+    float buy_max_entropy{0.3f};
+    float sell_max_stability{0.3f};
+    float sell_min_entropy{0.7f};
+};
+```
+
 ## 5. SEP Framework Theory
 
 The SEP framework provides a new paradigm for understanding reality as a bounded computational system. It is a synthesis of ideas from mathematics, physics, and philosophy, and is built on five core postulates:
