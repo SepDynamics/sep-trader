@@ -19,6 +19,8 @@ This document tracks outstanding code quality concerns in the SEP Engine codebas
 - Unused CUDA placeholder removed (`src/core/quantum_pattern_cuda.cu`).
 - DSL builtin now uses `data_downloader` for real OANDA data (`src/util/interpreter.cpp`).
 - Default API base URL removed to enforce explicit configuration (`frontend/src/services/api.ts`).
+- Unused Axios dependency removed; API client now uses native fetch (`frontend/package.json`,
+  `docs/02_WEB_INTERFACE_ARCHITECTURE.md`).
 - Redis stub context eliminated to ensure real integration (`src/util/redis_manager.*`).
 - Stub CLI commands and duplicate kernel implementations removed (`src/core/cli_commands.*`, `src/core/kernel_implementations.cu`, `tests/unit/core/cli_commands_test.cpp`).
 - Sample EUR/USD data helper and duplicate dataset removed (`src/io/oanda_connector.*`, `eur_usd_m1_48h.json`).

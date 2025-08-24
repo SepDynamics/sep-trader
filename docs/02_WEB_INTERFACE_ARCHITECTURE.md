@@ -15,12 +15,12 @@ The SEP Professional Trading System features a modern, production-ready web inte
 | Component | Technology | Version | Purpose |
 |-----------|------------|---------|---------|
 | **Core Framework** | React | 18.2+ | Component-based UI framework |
-| **Language** | TypeScript | 5.0+ | Type-safe JavaScript development |
+| **Language** | TypeScript | 4.9+ | Type-safe JavaScript development |
 | **State Management** | React Context + Hooks | Native | Centralized application state |
-| **HTTP Client** | Axios | 1.4+ | RESTful API communication |
+| **HTTP Client** | Native fetch API | ES6+ | RESTful API communication |
 | **WebSocket Client** | Native WebSocket API | ES6+ | Real-time data streaming |
-| **Styling** | CSS Modules + Styled Components | Latest | Modular and dynamic styling |
-| **Build Tool** | Vite | 4.0+ | Fast development and production builds |
+| **Styling** | Tailwind CSS + styled-components | Latest | Utility-first and dynamic styling |
+| **Build Tool** | Create React App (react-scripts) | 5.0+ | Development and production builds |
 | **Deployment** | Nginx | 1.20+ | Production web server |
 
 ### Application Architecture
@@ -31,11 +31,11 @@ The SEP Professional Trading System features a modern, production-ready web inte
 ├─────────────────┬───────────────────┬───────────────────┤
 │   Components    │   State Management │   Services        │
 │                 │                   │                   │
-│ • Dashboard     │ • TradingContext  │ • ApiService      │
-│ • Trading       │ • ConfigContext   │ • WebSocketService│
-│ • Performance   │ • SystemContext   │ • AuthService     │
-│ • Configuration │ • ErrorContext    │ • StorageService  │
-│ • Monitoring    │                   │                   │
+│ • HomeDashboard │ • ConfigContext   │ • ApiClient       │
+│ • Identity      │ • SymbolContext   │                   │
+│ • Metrics       │ • WebSocketContext│                   │
+│ • Charts        │ • ManifoldContext │                   │
+│                 │                   │                   │
 └─────────────────┴───────────────────┴───────────────────┘
 ```
 
@@ -44,35 +44,16 @@ The SEP Professional Trading System features a modern, production-ready web inte
 ```
 frontend/
 ├── src/
-│   ├── components/           # Reusable UI components
-│   │   ├── common/          # Shared components (buttons, forms, etc.)
-│   │   ├── dashboard/       # Dashboard-specific components
-│   │   ├── trading/         # Trading interface components
-│   │   ├── performance/     # Performance monitoring components
-│   │   └── configuration/   # System configuration components
-│   ├── contexts/            # React context providers
-│   │   ├── TradingContext.tsx
-│   │   ├── ConfigContext.tsx
-│   │   └── SystemContext.tsx
-│   ├── services/            # API and service layer
-│   │   ├── api.ts          # RESTful API client
-│   │   ├── websocket.ts    # WebSocket service
-│   │   └── auth.ts         # Authentication service
-│   ├── types/               # TypeScript type definitions
-│   │   ├── trading.ts
-│   │   ├── performance.ts
-│   │   └── system.ts
-│   ├── hooks/               # Custom React hooks
-│   │   ├── useTradingData.ts
-│   │   ├── useWebSocket.ts
-│   │   └── usePerformance.ts
-│   └── utils/               # Utility functions
-│       ├── formatters.ts
-│       ├── validators.ts
-│       └── constants.ts
-├── public/                  # Static assets
-├── nginx.conf              # Production nginx configuration
-└── Dockerfile             # Container build configuration
+│   ├── components/        # Reusable UI components
+│   ├── context/           # React context providers
+│   ├── hooks/             # Custom React hooks
+│   ├── services/          # API client and service layer
+│   ├── styles/            # CSS and styling resources
+│   ├── utils/             # Utility helpers
+│   └── index.js           # Application entry point
+├── public/               # Static assets
+├── nginx.conf            # Production nginx configuration
+└── package.json          # Project configuration
 ```
 
 ## API Architecture
