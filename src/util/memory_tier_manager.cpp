@@ -114,17 +114,12 @@ MemoryTierManager::MemoryTierManager(const Config &cfg)
         ::sep::memory::MemoryBlock *MemoryTierManager::findBlockByPtr(void *ptr)
         {
             auto it = lookup_map_.find(ptr);
-            if (it != lookup_map_.end())
-            {
-                return it->second;
-            }
-            auto it2 = legacy_lookup_map_.find(ptr);
-            if (it2 != legacy_lookup_map_.end())
-            {
-                return it2->second;
-            }
-            return nullptr;
+        if (it != lookup_map_.end())
+        {
+            return it->second;
         }
+        return nullptr;
+    }
 
         ::sep::memory::MemoryTier *MemoryTierManager::getTier(::sep::memory::MemoryTierEnum tier)
         {
@@ -231,9 +226,6 @@ MemoryTierManager::MemoryTierManager(const Config &cfg)
 
         void MemoryTierManager::rebuildLookup()
         {
-            // Clear the old lookup map but keep the old pointers in the legacy map
-            // to handle transition periods.
-            legacy_lookup_map_ = std::move(lookup_map_);
             lookup_map_.clear();
 
             auto process_tier = [this](::sep::memory::MemoryTier *tier) {
@@ -377,9 +369,6 @@ MemoryTierManager::MemoryTierManager(const Config &cfg)
 
             // Save entry in the lookup map
             lookup_map_[out_block->ptr] = out_block;
-
-            // Put the old entry in the legacy map temporarily
-            legacy_lookup_map_[block->ptr] = out_block;
 
             // Release the old block
             src_tier->deallocate(block);

@@ -266,20 +266,6 @@ namespace memory {
 
         std::unordered_map<void *, ::sep::memory::MemoryBlock *> lookup_map_;
 
-        // Legacy pointer lookup table used during tier transitions. When blocks
-
-        // move between tiers the old pointer remains valid for a short period so
-
-        // tests can resolve both the new and previous addresses. This map stores
-
-        // those temporary associations until the next rebuild. The entries are
-
-        // cleared whenever rebuildLookup() is invoked to keep stale pointers from
-
-        // accumulating across multiple promotions or defragmentation cycles.
-
-        std::unordered_map<void *, ::sep::memory::MemoryBlock *> legacy_lookup_map_;
-
 
 
     private:

@@ -41,6 +41,7 @@ This document tracks outstanding code quality concerns in the SEP Engine codebas
 - Removed duplicate market data fetch function and placeholder ATR
   (`src/app/quantum_signal_bridge.cpp`).
 - Unused spdlog isolation stub removed (`src/util/spdlog_isolation.h`).
+- Legacy memory tier lookup map removed (`src/util/memory_tier_manager.*`).
 
 ## Recommendations
 1. Remove remaining hardcoded values via configuration.
