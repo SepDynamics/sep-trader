@@ -5,7 +5,14 @@ import { useSymbol } from '../context/SymbolContext';
 import { Symbol } from '../config/symbols';
 
 const HomeDashboard: React.FC = () => {
-  const { selectedSymbol, setSelectedSymbol, symbols } = useSymbol();
+  const { selectedSymbol, setSelectedSymbol, symbols, isValidSymbol } = useSymbol();
+
+  const handleSymbolChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const value = e.target.value;
+    if (isValidSymbol(value)) {
+      setSelectedSymbol(value);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gray-950 text-gray-200 flex flex-col font-sans">
@@ -21,7 +28,7 @@ const HomeDashboard: React.FC = () => {
                 <select
                   className="bg-gray-800/70 border border-gray-600 rounded-md px-3 py-1.5 text-sm font-medium text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-150"
                   value={selectedSymbol}
-                  onChange={(e) => setSelectedSymbol(e.target.value as Symbol)}
+                  onChange={handleSymbolChange}
                   disabled // UNTIL other pairs are seeded and verified
                 >
                   {symbols.map(s => <option key={s} value={s}>{s.replace('_', '/')}</option>)}              
