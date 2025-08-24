@@ -37,16 +37,6 @@ namespace {
         return str_value == "true" || str_value == "1";
     }
     
-    // Helper function to get configuration value as double from engine facade
-    double get_config_double(const std::string& param_name, double default_value = 0.0) {
-        std::string str_value = get_config_string(param_name, std::to_string(default_value));
-        try {
-            return std::stod(str_value);
-        } catch (...) {
-            return default_value;
-        }
-    }
-    
     // Helper function to check market session status using real-time data
     bool is_market_open() {
         try {
@@ -67,16 +57,6 @@ namespace {
             return true;
         } catch (...) {
             return true;  // Default to open if calculation fails
-        }
-    }
-    
-    // Helper function to get configuration value as int from engine facade
-    int get_config_int(const std::string& param_name, int default_value = 0) {
-        std::string str_value = get_config_string(param_name, std::to_string(default_value));
-        try {
-            return std::stoi(str_value);
-        } catch (...) {
-            return default_value;
         }
     }
     
