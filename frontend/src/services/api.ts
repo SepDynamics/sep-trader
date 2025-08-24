@@ -50,10 +50,14 @@ class APIClient {
 
   // Market Data
   async getMarketData(instrument: string, from: number, to: number) {
-    const params = new URLSearchParams();
-    params.append('instrument', instrument);
-    params.append('from', from.toString());
-    params.append('to', to.toString());
+    const formattedInstrument = instrument.replace('/', '_');
+    const params = new URLSearchParams({
+      instrument: formattedInstrument,
+      from: from.toString(),
+      to: to.toString(),
+    });
+    // This assumes your backend serves from /api/market-data
+    // Your nginx.conf already proxies /api/ to the backend.
     return this.request(`/api/market-data?${params.toString()}`);
   }
 
