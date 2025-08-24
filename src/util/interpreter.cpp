@@ -47,24 +47,6 @@ namespace {
         }
     }
     
-    // Helper function to get trading data from Valkey
-    double get_valkey_trading_metric(const std::string& metric_key, double fallback_value = 0.0) {
-        try {
-            auto redis_manager = sep::persistence::createRedisManager();
-            if (!redis_manager || !redis_manager->isConnected()) {
-                std::cout << "ℹ️  INFO: Valkey not connected, returning fallback for " << metric_key << std::endl;
-                return fallback_value;
-            }
-
-            // Real trading metrics retrieval is not yet implemented.
-            // Avoid generating synthetic values to prevent misleading data.
-        } catch (const std::exception& e) {
-            std::cout << "⚠️  Warning: Error accessing Valkey for " << metric_key << ": " << e.what() << std::endl;
-        }
-
-        return fallback_value;
-    }
-    
     // Helper function to check market session status using real-time data
     bool is_market_open() {
         try {
@@ -174,33 +156,6 @@ void Interpreter::register_builtins() {
             return response.pattern.coherence;
         } else {
             throw std::runtime_error("Engine call failed for measure_coherence");
-        }
-    };
-    
-    // REAL Trading Functions - Your actual working engine
-    builtins_["engine::run_pme_testbed"] = [](const std::vector<Value>& args) -> Value {
-        std::cout << "DSL: Running REAL PME testbed analysis..." << std::endl;
-        
-        if (args.empty()) {
-            throw std::runtime_error("run_pme_testbed requires a data file path argument");
-        }
-
-        std::string data_file;
-        try {
-            data_file = std::any_cast<std::string>(args[0]);
-        } catch (const std::bad_any_cast&) {
-            throw std::runtime_error("Invalid argument type for run_pme_testbed");
-        }
-        
-        std::string cmd = "timeout 30 ./_sep/testbed/pme_testbed_phase2 " + data_file + " 2>/dev/null | tail -5";
-        
-        int result = std::system(cmd.c_str());
-        if (result == 0) {
-            std::cout << "DSL: Real trading analysis completed successfully" << std::endl;
-            return 1.0;  // Success
-        } else {
-            std::cout << "DSL: Trading analysis failed" << std::endl;
-            return 0.0;  // Failure
         }
     };
     
