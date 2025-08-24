@@ -33,6 +33,7 @@ This guide clarifies the distinction between legitimate backtesting/simulation a
 
 ### **Mock/Test Data**
 All previously identified mock or test data paths have been removed or corrected.
+- Python OANDA connector now requires live API credentials; simulation fallbacks removed (`scripts/oanda_connector.py`).
 
 ## 🔄 DATA FLOW VERIFICATION
 

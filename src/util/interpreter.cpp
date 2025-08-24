@@ -3067,13 +3067,8 @@ void Interpreter::visit_async_function_declaration(const ast::AsyncFunctionDecla
 }
 
 Value Interpreter::visit_await_expression(const ast::AwaitExpression& node) {
-    // For now, we'll simulate async by just evaluating the expression normally
-    // In a real implementation, this would handle async/await semantics
+    // Current implementation evaluates synchronously without async semantics
     Value result = evaluate(*node.expression);
-    
-    // Simulate async delay (for demonstration)
-    std::cout << "[ASYNC] Awaiting expression..." << std::endl;
-    
     return result;
 }
 
