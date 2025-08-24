@@ -484,8 +484,13 @@ bool DynamicPairManager::validateResourceRequirements(const DynamicPairConfig& c
 ResourceAllocation DynamicPairManager::calculateCurrentUsage() const {
     std::lock_guard<std::mutex> lock(config_mutex_);
 
-    ResourceAllocation usage;
+    ResourceAllocation usage{};
     usage.max_total_pairs = dynamic_configs_.size();
+    usage.max_trading_pairs = 0;
+    usage.max_hot_bytes = 0;
+    usage.max_streams = 0;
+    usage.max_batch_size = 0;
+    usage.max_memory_per_pair_mb = 0;
 
     // Count trading pairs
     for (const auto& stage_pair : pair_stages_) {
@@ -494,12 +499,15 @@ ResourceAllocation DynamicPairManager::calculateCurrentUsage() const {
         }
     }
 
-    // Simplified usage metrics
-    usage.max_hot_bytes = dynamic_configs_.size() * 1024; // placeholder
-    usage.max_streams = 0; // not tracked
-    usage.max_batch_size = 0;
-    usage.max_memory_per_pair_mb = 128; // Placeholder
-    usage.cpu_limit_percentage = 50.0; // Placeholder
+    // Accumulate resource usage from current configs
+    for (const auto& cfg_pair : dynamic_configs_) {
+        const auto& cfg = cfg_pair.second;
+        usage.max_hot_bytes += cfg.required_hot_bytes;
+        usage.max_streams += cfg.required_streams;
+        usage.max_batch_size = std::max(usage.max_batch_size, cfg.batch_size);
+        size_t mem_mb = cfg.required_hot_bytes / (1024 * 1024);
+        usage.max_memory_per_pair_mb = std::max(usage.max_memory_per_pair_mb, mem_mb);
+    }
 
     return usage;
 }

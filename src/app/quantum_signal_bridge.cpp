@@ -18,7 +18,7 @@
 #include "cuda/bit_pattern_kernels.h"
 #include "core/pattern_processor.h"
 #include "core/quantum_manifold_optimizer.h"
-#include "core/oanda_market_data_helper.hpp"
+#include "../../_sep/testbed/oanda_market_data_helper.hpp"
 #include "core/signal.h"
 #include "core/types_serialization.h"
 #include "io/oanda_connector.h"
