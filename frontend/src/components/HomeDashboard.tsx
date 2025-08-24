@@ -250,8 +250,9 @@ const HomeDashboard: React.FC = () => {
                     {(() => {
                       const signals = Object.values(quantumSignals);
                       if (signals.length === 0) return '0.000';
-                      const totalEntropy = signals.reduce((sum, s: any) => {
-                        return sum + Number(s.entropy || 0.5);
+                      const totalEntropy = signals.reduce((sum: number, s: any): number => {
+                        const entropyValue = Number(s.entropy || 0.5);
+                        return sum + entropyValue;
                       }, 0);
                       return (totalEntropy / signals.length).toFixed(3);
                     })()}
