@@ -1,5 +1,5 @@
 services:
-  # Trading backend service
+  # Trading backend service (uses external DigitalOcean Valkey database)
   trading-backend:
     build:
       context: .
@@ -12,8 +12,17 @@ services:
       - SEP_CONFIG_PATH=/app/config
       - PYTHONPATH=/app
       - PORT=5000
+      # Override database config for local development
+      - VALKEY_HOST=valkey
+      - VALKEY_PORT=6379
+      - VALKEY_PASSWORD=local_dev_password
+      - VALKEY_DATABASE=0
+      - REDIS_URL=redis://:local_dev_password@valkey:6379/0
     env_file:
       - ./config/.sep-config.env
+    depends_on:
+      valkey:
+        condition: service_healthy
     volumes:
       - ./config:/app/config:ro
       - ./data:/app/data
@@ -63,6 +72,7 @@ services:
     depends_on:
       - trading-backend
       - websocket-service
+      - valkey
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:80/health"]
       interval: 30s
@@ -77,3 +87,7 @@ networks:
     ipam:
       config:
         - subnet: 172.25.0.0/16
+
+volumes:
+  valkey_data:
+    driver: local
