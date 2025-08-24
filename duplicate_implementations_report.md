@@ -18,6 +18,7 @@ This document tracks outstanding code quality concerns in the SEP Engine codebas
 - Unused frontend testing component removed (`frontend/src/components/TestingSuite.jsx`).
 - Unused CUDA placeholder removed (`src/core/quantum_pattern_cuda.cu`).
 - DSL builtin now uses `data_downloader` for real OANDA data (`src/util/interpreter.cpp`).
+ - Deprecated QuantumProcessorCUDA stub removed (`src/core/quantum_processor_cuda.*`) and all references cleaned.
 - Default API base URL removed to enforce explicit configuration (`frontend/src/services/api.ts`).
 - Unused Axios dependency removed; API client now uses native fetch (`frontend/package.json`,
   `docs/02_WEB_INTERFACE_ARCHITECTURE.md`).
