@@ -172,14 +172,9 @@ private:
     void debug_print_instruction(const Instruction& instr) const;
     void debug_print_stack() const;
     
-    // Built-in function implementations
+    // Built-in function registration
     void register_default_builtins();
-    Value builtin_measure_coherence(const std::vector<Value>& args);
-    Value builtin_measure_entropy(const std::vector<Value>& args);
-    Value builtin_extract_bits(const std::vector<Value>& args);
-    Value builtin_qfh_analyze(const std::vector<Value>& args);
-    Value builtin_manifold_optimize(const std::vector<Value>& args);
-    
+
     // Error handling
     void runtime_error(const std::string& message);
     void type_error(const std::string& expected, const Value& got);
