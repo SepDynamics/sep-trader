@@ -15,9 +15,6 @@ services:
       - VALKEY_URL=${VALKEY_URL:-redis://localhost:6379}
     env_file:
       - ./config/.sep-config.env
-    depends_on:
-      valkey:
-        condition: service_healthy
     volumes:
       - ./config:/app/config:ro
       - ./data:/app/data
@@ -68,7 +65,6 @@ services:
     depends_on:
       - trading-backend
       - websocket-service
-      - valkey
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:80/health"]
       interval: 30s
@@ -84,6 +80,3 @@ networks:
       config:
         - subnet: 172.25.0.0/16
 
-volumes:
-  valkey_data:
-    driver: local
