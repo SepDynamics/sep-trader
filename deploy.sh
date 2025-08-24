@@ -50,7 +50,6 @@ update_github() {
     git push origin main
     
     log_success "GitHub repository updated successfully!"
-    ./deploy.sh local
 }
 
 # Function to update server with latest changes
@@ -59,9 +58,11 @@ update_server() {
     
     # SSH into server and pull latest changes
     ssh -o StrictHostKeyChecking=no "$DROPLET_USER@$DROPLET_IP" << 'EOF'
-        cd /opt/sep-trader
+        cd /sep
         git pull origin main
         echo "Server updated with latest changes"
+       ./deploy.sh local
+
 EOF
     
     log_success "Server updated successfully!"
