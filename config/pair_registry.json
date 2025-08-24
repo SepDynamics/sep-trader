@@ -5,12 +5,35 @@
     "USD_JPY",
     "AUD_USD",
     "USD_CHF",
-    "USD_CAD"
+    "USD_CAD",
+    "EUR_GBP",
+    "EUR_JPY",
+    "EUR_AUD",
+    "EUR_CHF",
+    "GBP_JPY",
+    "GBP_AUD",
+    "AUD_JPY",
+    "NZD_USD",
+    "USD_NOK",
+    "USD_SEK"
+  ],
+  "all_possible_pairs": [
+    "EUR_USD", "GBP_USD", "USD_JPY", "AUD_USD", "USD_CHF", "USD_CAD",
+    "EUR_GBP", "EUR_JPY", "EUR_AUD", "EUR_CHF", "GBP_JPY", "GBP_AUD",
+    "AUD_JPY", "NZD_USD", "USD_NOK", "USD_SEK"
   ],
   "risk_settings": {
     "max_position_size": 10000,
     "max_drawdown": 0.02,
-    "position_timeout": 3600
+    "position_timeout": 3600,
+    "max_pairs_active": 8,
+    "pair_correlation_limit": 0.8
   },
-  "last_updated": "2025-08-20T00:56:30Z"
+  "data_pipeline": {
+    "fetch_interval_minutes": 1,
+    "historical_hours": 24,
+    "valkey_expiration_seconds": 3600,
+    "websocket_port": 8765
+  },
+  "last_updated": "2025-08-23T23:58:00Z"
 }
