@@ -17,7 +17,7 @@ During our initial scan, we identified the following mock implementations and re
 
 ### Data Source Mocks
 
-1. **OANDA Market Data Helper**
+1. **Cache Validation** (Referenced in `tests/data_pipeline/test_data_integrity.cpp`)
    - Previously located at `_sep/testbed/oanda_market_data_helper.hpp` with a placeholder ATR value
    - Now integrated into `src/app/quantum_signal_bridge.cpp` with real ATR computation
 

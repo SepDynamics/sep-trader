@@ -52,8 +52,6 @@ public:
     // Core functionality - connector required for proper initialization
     bool initialize(sep::connectors::OandaConnector* connector);
     
-    // Test function to verify header changes are detected
-    bool test_build_detection() { return true; }
     UnifiedCacheStatus getCacheStatus() const;
     bool saveCacheData(const std::string& symbol, const std::vector<double>& data);
     std::vector<double> loadCacheData(const std::string& symbol);

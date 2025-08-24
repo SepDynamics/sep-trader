@@ -5,7 +5,7 @@
 
 namespace sep::trading {
 std::string runSignalPipeline(const std::string& pair, const std::vector<double>& prices) {
-    sep::testbed::trace("fetch", std::to_string(prices.size()) + " prices");
+    sep::trace::log("fetch", std::to_string(prices.size()) + " prices");
     CurrencyQuantumProcessor processor;
     auto signals = processor.processQuantumSignals(pair, prices);
     PairOptimizationEngine engine;
