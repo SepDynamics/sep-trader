@@ -677,14 +677,10 @@ sep::SEPResult MemoryTierManager::processMemoryBlocks(void *input_data, void *ou
             }
         }
 
-        // If CUDA stream is provided and we have CUDA support in the future,
-        // we can dispatch to GPU kernels here
+        // Explicitly report lack of CUDA processing support
         if (stream && proc_config && proc_config->enable_cuda)
         {
-            // Future: Launch CUDA kernels for parallel processing
-            // For now, just log that CUDA was requested but not available
-            std::cerr << "[MemoryTierManager] CUDA processing requested but not implemented yet"
-                      << std::endl;
+            return sep::SEPResult::NOT_IMPLEMENTED;
         }
 
         return sep::SEPResult::SUCCESS;
