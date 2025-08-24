@@ -248,7 +248,10 @@ const HomeDashboard: React.FC = () => {
                   <span className="text-gray-400">Avg Entropy:</span>
                   <span className="text-red-400">
                     {Object.keys(quantumSignals).length > 0 ?
-                      (Object.values(quantumSignals).reduce((sum: number, s: any) => sum + Number(s.entropy || 0.5), 0) / Object.keys(quantumSignals).length).toFixed(3) :
+                      (Object.values(quantumSignals).reduce((sum: number, s: any) => {
+                        const entropyValue = Number(s.entropy || 0.5);
+                        return sum + entropyValue;
+                      }, 0) / Object.keys(quantumSignals).length).toFixed(3) :
                       '0.000'
                     }
                   </span>
