@@ -117,25 +117,19 @@ The following areas need systematic investigation:
   - Fallback when OANDA API credentials missing
 - **Status**: Mock support OK, but needs proper fallback handling
 
-#### 9. src/core/weekly_data_fetcher_fixed.cpp
-- **Lines**: 90-112
-- **Type**: Stub implementation with mock support
-- **Description**: Minimal stub with simulated candle counts
-- **Status**: NEEDS FIXING
-
-#### 10. src/app/market_model_cache.cpp - PARTIALLY FIXED ✅❌
+#### 9. src/app/market_model_cache.cpp - PARTIALLY FIXED ✅❌
 - **Lines**: 83-109
 - **Type**: Demo candle generation fallback
 - **Description**: Generates 1000 demo EUR_USD candles when OANDA unavailable
 - **Status**: PARTIALLY FIXED (we fixed one section, but more exists)
 
-#### 11. src/app/enhanced_market_model_cache.cpp
+#### 10. src/app/enhanced_market_model_cache.cpp
 - **Lines**: 233-280
 - **Type**: Demo data generation system
 - **Description**: Generates realistic demo data for multiple instruments
 - **Status**: NEEDS FIXING
 
-#### 12. src/app/quantum_tracker_app.cpp - MAJOR SIMULATION SYSTEM
+#### 11. src/app/quantum_tracker_app.cpp - MAJOR SIMULATION SYSTEM
 - **Lines**: Multiple simulation-related functions
 - **Type**: Complete simulation framework
 - **Description**:
@@ -145,37 +139,31 @@ The following areas need systematic investigation:
   - Simulated trade logging
 - **Status**: SIMULATION FRAMEWORK - May be intentional
 
-#### 13. src/core/facade.cpp
+#### 12. src/core/facade.cpp
 - **Lines**: 225-227
 - **Type**: Simplified demonstration logic
 - **Description**: Creates bit patterns "for demonstration"
 - **Status**: NEEDS REVIEW
 
-#### 14. src/core/cache_validator.cpp
+#### 13. src/core/cache_validator.cpp
 - **Lines**: 229-236
 - **Type**: Stub provider rejection logic
 - **Description**: Rejects data entries with "stub" provider
 - **Status**: VALIDATION LOGIC - OK
 
-#### 15. src/core/batch_processor.cpp - FIXED ✅
+#### 14. src/core/batch_processor.cpp - FIXED ✅
 - **Lines**: 130-132
 - **Type**: Simulated pattern execution
 - **Description**: Basic coherence analysis simulation
 - **Status**: FIXED
 
-#### 16. src/app/market_regime_adaptive.cpp
-- **Lines**: 114-116
-- **Type**: Mock data reference in comments
-- **Description**: Comments mention using "mock data" analysis
-- **Status**: NEEDS REVIEW
-
-#### 17. src/app/PatternRecognitionService.cpp
+#### 15. src/app/PatternRecognitionService.cpp
 - **Lines**: 382-384
 - **Type**: Simplified demonstration algorithm
 - **Description**: Simple clustering "for demonstration"
 - **Status**: NEEDS ENHANCEMENT
 
-#### 18. src/app/forward_window_kernels.cpp
+#### 16. src/app/forward_window_kernels.cpp
 - **Lines**: 80, 139, 185
 - **Type**: Simulation function and random pattern detection
 - **Description**:
@@ -190,19 +178,19 @@ The following areas need systematic investigation:
 
 ## FRONTEND (frontend/) - Additional Findings
 
-### 19. frontend/src/components/ManifoldKernel.jsx - POSSIBLE ISSUE
+### 17. frontend/src/components/ManifoldKernel.jsx - POSSIBLE ISSUE
 - **Lines**: 138-140
 - **Type**: Real-time kernel activity simulation
 - **Description**: Contains "Real-time kernel activity simulation" in useEffect
 - **Status**: NEEDS INVESTIGATION - may be residual from de-stubbing
 
-### 20. frontend/src/components/ManifoldVisualizer.jsx - POSSIBLE ISSUE
+### 18. frontend/src/components/ManifoldVisualizer.jsx - POSSIBLE ISSUE
 - **Lines**: 69-71
 - **Type**: Von Neumann kernel pattern matching simulation
 - **Description**: Contains "Von Neumann kernel pattern matching simulation"
 - **Status**: NEEDS INVESTIGATION - may be residual from de-stubbing
 
-### 21. frontend/src/components/QuantumAnalysis.jsx - MOCK DATA FALLBACK
+### 19. frontend/src/components/QuantumAnalysis.jsx - MOCK DATA FALLBACK
 - **Lines**: 18-58
 - **Type**: Mock data fallback system
 - **Description**: Uses `mockData` when WebSocket not connected, includes fake qfh_patterns, coherence metrics, etc.
@@ -293,21 +281,19 @@ The following areas need systematic investigation:
 4. **src/core/quantum_pair_trainer.cpp** - Simulated historical data generation
 5. **src/app/enhanced_market_model_cache.cpp** - Demo data generation system
 6. **src/app/market_model_cache.cpp** - Remaining demo candle fallbacks
-7. **src/core/weekly_data_fetcher_fixed.cpp** - Stub implementation
-8. **src/app/data_downloader.cpp** - Sample data setup
-9. **frontend/src/components/QuantumAnalysis.jsx** - Mock data fallback
+7. **src/app/data_downloader.cpp** - Sample data setup
+8. **frontend/src/components/QuantumAnalysis.jsx** - Mock data fallback
 
 ### MEDIUM PRIORITY (Test Data Fallbacks):
-10. **src/app/quantum_tracker_app.cpp** - Multiple test data fallback systems
-11. **src/app/sep_engine_app.cpp** - Local test data usage
-12. **src/app/quantum_signal_bridge.cpp** - Test data analysis references
-13. **src/core/weekly_data_fetcher.cpp** - Mock file support (partial)
+9. **src/app/quantum_tracker_app.cpp** - Multiple test data fallback systems
+10. **src/app/sep_engine_app.cpp** - Local test data usage
+11. **src/app/quantum_signal_bridge.cpp** - Test data analysis references
+12. **src/core/weekly_data_fetcher.cpp** - Mock file support (partial)
 
 ### LOW PRIORITY (Review/Investigate):
-14. **frontend/src/components/ManifoldKernel.jsx** - Possible simulation residue
-15. **frontend/src/components/ManifoldVisualizer.jsx** - Possible simulation residue
-16. **src/app/market_regime_adaptive.cpp** - Mock data references in comments
-17. **src/core/facade.cpp** - Simplistic hardcoded calculations
+13. **frontend/src/components/ManifoldKernel.jsx** - Possible simulation residue
+14. **frontend/src/components/ManifoldVisualizer.jsx** - Possible simulation residue
+15. **src/core/facade.cpp** - Simplistic hardcoded calculations
 
 ---
 
