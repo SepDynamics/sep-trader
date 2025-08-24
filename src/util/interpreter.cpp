@@ -270,11 +270,10 @@ void Interpreter::register_builtins() {
     
     builtins_["fetch_live_oanda_data"] = [](const std::vector<Value>&) -> Value {
         std::cout << "DSL: Fetching LIVE data from your OANDA account..." << std::endl;
-        
-        // Use your actual OANDA historical fetcher with your real API key
-        // Use the working quantum_tracker system for OANDA data
-        std::string cmd = "cd /sep && source ./config/OANDA.env && timeout 60 ./build/src/trading/quantum_pair_trainer train EUR_USD";
-        
+
+        // Use the production data_downloader with real API credentials
+        std::string cmd = "cd /sep && source ./config/OANDA.env && timeout 60 ./build/src/apps/data_downloader";
+
         int result = std::system(cmd.c_str());
         if (result == 0) {
             std::cout << "DSL: Successfully fetched live OANDA data" << std::endl;
