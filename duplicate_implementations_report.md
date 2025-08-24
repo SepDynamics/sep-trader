@@ -28,6 +28,8 @@ This document tracks outstanding code quality concerns in the SEP Engine codebas
 - Sample EUR/USD data helper and duplicate dataset removed (`src/io/oanda_connector.*`, `eur_usd_m1_48h.json`).
 - Redundant TraderCLI implementation and unused entry point removed (`src/app/trader_cli.*`, `src/app/app_main.cpp`).
 - Legacy dashboard component removed (`frontend/src/components/Dashboard.js`).
+- Redundant JavaScript SymbolContext removed (`frontend/src/context/SymbolContext.js`)
+  in favor of the typed implementation.
 
 ## Recommendations
 1. Remove remaining hardcoded values via configuration.
