@@ -26,6 +26,7 @@ This document tracks outstanding code quality concerns in the SEP Engine codebas
 - Stub CLI commands and duplicate kernel implementations removed (`src/core/cli_commands.*`, `src/core/kernel_implementations.cu`, `tests/unit/core/cli_commands_test.cpp`).
 - Sample EUR/USD data helper and duplicate dataset removed (`src/io/oanda_connector.*`, `eur_usd_m1_48h.json`).
 - Redundant TraderCLI implementation and unused entry point removed (`src/app/trader_cli.*`, `src/app/app_main.cpp`).
+- Legacy SEP CLI and test removed (`src/app/sep_cli.cpp`, `tests/unit/app/trader_cli_test.cpp`).
 - Legacy dashboard component removed (`frontend/src/components/Dashboard.js`).
 - Redundant JavaScript SymbolContext removed (`frontend/src/context/SymbolContext.js`)
   in favor of the typed implementation.
