@@ -8,9 +8,6 @@ This document tracks outstanding code quality concerns in the SEP Engine codebas
 ### Hardcoded Values
 - `src/cuda/kernels.cu` - Hardcoded block and grid sizes.
 
-### Inconsistent Implementations
-- `src/app/dsl_main.cpp` and `src/app/oanda_trader_main.cpp` use different error handling mechanisms.
-
 ## Recent Cleanup
 - Legacy DSL bytecode and primitive modules removed (`src/util/compiler.*`,
   `src/util/core_primitives.*`, `src/util/stdlib.*`, `src/util/time_series.*`).
@@ -41,6 +38,8 @@ This document tracks outstanding code quality concerns in the SEP Engine codebas
 - Removed duplicate market data fetch function and placeholder ATR
   (`src/app/quantum_signal_bridge.cpp`).
 - Unused spdlog isolation stub removed (`src/util/spdlog_isolation.h`).
+- Incomplete DSL entry point removed (`src/app/dsl_main.cpp`).
+- Redundant top-level CLI entry point removed (`src/app/sep_main.cpp`).
 
 ## Recommendations
 1. Remove remaining hardcoded values via configuration.
