@@ -3,26 +3,26 @@
 #include <glm/glm.hpp>
 
 #include "core/common.h"  // defines sep::SEPResult
-#include "manager.h"
-#include "core/types.h"
 #include "core/pattern_evolution_bridge.h"
 #include "core/quantum_processor_qfh.h"
+#include "core/types.h"
+#include "manager.h"
 
 using ::sep::memory::MemoryTierEnum;
-#include <mutex>
-#include <unordered_map>
-#include <chrono>
 #include <algorithm>
 #include <atomic>
-#include <cstdint>
+#include <chrono>
 #include <cmath>
+#include <cstdint>
+#include <mutex>
+#include <unordered_map>
 
 namespace {
 inline float deterministicNoise(uint64_t& state) {
     state = state * 1664525u + 1013904223u;
     return static_cast<float>(state & 0xFFFFFFFFu) / static_cast<float>(0xFFFFFFFFu);
 }
-}
+}  // namespace
 
 namespace sep::quantum {
 
@@ -36,7 +36,7 @@ struct {
 } qcfg;
 
 class ProcessorImpl {
-public:
+  public:
     explicit ProcessorImpl(const ProcessingConfig& config)
         : config_(config), initialized_(false), gpu_context_(nullptr), hooks_(nullptr) {}
 
@@ -61,8 +61,7 @@ public:
         return sep::SEPResult::SUCCESS;
     }
 
-    sep::SEPResult removePattern(const std::string& pattern_id)
-    {
+    sep::SEPResult removePattern(const std::string& pattern_id) {
         std::lock_guard<std::mutex> lock(mutex_);
         auto it = pattern_map_.find(pattern_id);
         if (it == pattern_map_.end()) {
@@ -73,8 +72,7 @@ public:
         return sep::SEPResult::SUCCESS;
     }
 
-    sep::SEPResult updatePattern(const std::string& pattern_id, const Pattern& pattern)
-    {
+    sep::SEPResult updatePattern(const std::string& pattern_id, const Pattern& pattern) {
         std::lock_guard<std::mutex> lock(mutex_);
         auto it = pattern_map_.find(pattern_id);
         if (it == pattern_map_.end()) {
@@ -84,8 +82,7 @@ public:
         return sep::SEPResult::SUCCESS;
     }
 
-    Pattern getPattern(const std::string& pattern_id) const
-    {
+    Pattern getPattern(const std::string& pattern_id) const {
         std::lock_guard<std::mutex> lock(mutex_);
         auto it = pattern_map_.find(pattern_id);
         if (it == pattern_map_.end()) {
@@ -94,8 +91,7 @@ public:
         return patterns_[it->second];
     }
 
-    std::vector<Pattern> getPatterns() const
-    {
+    std::vector<Pattern> getPatterns() const {
         std::lock_guard<std::mutex> lock(mutex_);
         std::vector<Pattern> result;
         for (const auto& pattern : patterns_) {
@@ -106,8 +102,7 @@ public:
         return result;
     }
 
-    std::vector<Pattern> getPatternsByTier(Pattern::MemoryTier tier) const
-    {
+    std::vector<Pattern> getPatternsByTier(Pattern::MemoryTier tier) const {
         std::lock_guard<std::mutex> lock(mutex_);
         std::vector<Pattern> result;
         for (const auto& pattern : patterns_) {
@@ -123,8 +118,7 @@ public:
         return patterns_.size();
     }
 
-    ProcessingResult processPattern(const std::string& pattern_id)
-    {
+    ProcessingResult processPattern(const std::string& pattern_id) {
         std::lock_guard<std::mutex> lock(mutex_);
         auto it = pattern_map_.find(pattern_id);
         if (it == pattern_map_.end()) {
@@ -137,8 +131,7 @@ public:
         return {true, pattern, ""};
     }
 
-    BatchProcessingResult processBatch(const std::vector<std::string>& pattern_ids)
-    {
+    BatchProcessingResult processBatch(const std::vector<std::string>& pattern_ids) {
         BatchProcessingResult result;
         result.success = true;
         for (const auto& id : pattern_ids) {
@@ -165,8 +158,7 @@ public:
         return result;
     }
 
-    ProcessingResult evolvePattern(const std::string& pattern_id)
-    {
+    ProcessingResult evolvePattern(const std::string& pattern_id) {
         std::lock_guard<std::mutex> lock(mutex_);
         auto it = pattern_map_.find(pattern_id);
         if (it == pattern_map_.end()) {
@@ -178,8 +170,7 @@ public:
         return {true, pattern, ""};
     }
 
-    ProcessingResult collapsePattern(const std::string& pattern_id)
-    {
+    ProcessingResult collapsePattern(const std::string& pattern_id) {
         std::lock_guard<std::mutex> lock(mutex_);
         auto it = pattern_map_.find(pattern_id);
         if (it == pattern_map_.end()) {
@@ -188,13 +179,12 @@ public:
         Pattern& pattern = patterns_[it->second];
         pattern.quantum_state.coherence = 0.0f;
         pattern.last_modified = getCurrentTimestamp();
-        
+
         return {true, pattern, ""};
     }
 
     ProcessingResult entanglePatterns(const std::string& pattern_id1,
-                                      const std::string& pattern_id2)
-    {
+                                      const std::string& pattern_id2) {
         std::lock_guard<std::mutex> lock(mutex_);
         auto it1 = pattern_map_.find(pattern_id1);
         auto it2 = pattern_map_.find(pattern_id2);
@@ -203,13 +193,14 @@ public:
         }
         Pattern& p1 = patterns_[it1->second];
         Pattern& p2 = patterns_[it2->second];
-        p1.relationships.push_back(PatternRelationship{it2->second, 1.0, RelationshipType::ENTANGLEMENT});
-        p2.relationships.push_back(PatternRelationship{it1->second, 1.0, RelationshipType::ENTANGLEMENT});
+        p1.relationships.push_back(
+            PatternRelationship{it2->second, 1.0, RelationshipType::ENTANGLEMENT});
+        p2.relationships.push_back(
+            PatternRelationship{it1->second, 1.0, RelationshipType::ENTANGLEMENT});
         return {true, p1, ""};
     }
 
-    ProcessingResult mutatePattern(const std::string& parent_id)
-    {
+    ProcessingResult mutatePattern(const std::string& parent_id) {
         std::lock_guard<std::mutex> lock(mutex_);
         auto it = pattern_map_.find(parent_id);
         if (it == pattern_map_.end()) {
@@ -237,13 +228,12 @@ public:
 
     void demotePatterns() {
         std::lock_guard<std::mutex> lock(mutex_);
-        for (auto& pattern : patterns_)
-        {
+        for (auto& pattern : patterns_) {
             // Note: Memory tier logic removed since memory_tier is no longer part of QuantumState
             // This method will update patterns based on coherence thresholds
             if (pattern.quantum_state.coherence < qcfg.mtm_coherence_threshold) {
                 // Could implement alternative demotion logic here
-                pattern.quantum_state.stability *= 0.9; // Reduce stability as demotion
+                pattern.quantum_state.stability *= 0.9;  // Reduce stability as demotion
             }
         }
     }
@@ -260,8 +250,7 @@ public:
     }
 
     sep::SEPResult addRelationship(const std::string& pattern_id1, const std::string& pattern_id2,
-                                   float strength, RelationshipType type)
-    {
+                                   float strength, RelationshipType type) {
         std::lock_guard<std::mutex> lock(mutex_);
         auto it1 = pattern_map_.find(pattern_id1);
         auto it2 = pattern_map_.find(pattern_id2);
@@ -275,8 +264,7 @@ public:
         return sep::SEPResult::SUCCESS;
     }
 
-    float calculateCoherence(const std::string& pattern_id1, const std::string& pattern_id2) const
-    {
+    float calculateCoherence(const std::string& pattern_id1, const std::string& pattern_id2) const {
         std::lock_guard<std::mutex> lock(mutex_);
         auto it1 = pattern_map_.find(pattern_id1);
         auto it2 = pattern_map_.find(pattern_id2);
@@ -291,15 +279,13 @@ public:
         return 0.7f * state_coherence + 0.3f * position_coherence;
     }
 
-    std::string getStatus() const
-    {
+    std::string getStatus() const {
         std::lock_guard<std::mutex> lock(mutex_);
         std::string status = "Quantum Processor Status:\n";
         status += "  Total patterns: " + std::to_string(patterns_.size()) + "\n";
         status += "  Max patterns: " + std::to_string(config_.max_patterns) + "\n";
         status += "  GPU enabled: " + std::string(config_.enable_cuda ? "Yes" : "No") + "\n";
         size_t stm_count = 0, mtm_count = 0, ltm_count = 0;
-        size_t host_count = 0, device_count = 0, unified_count = 0;
         for (const auto& pattern : patterns_) {
             // Note: Memory tier logic removed since memory_tier is no longer part of QuantumState
             // Classification now based on coherence levels
@@ -310,18 +296,10 @@ public:
             } else {
                 ltm_count++;
             }
-            
-            // Memory tier information not available in current Pattern structure
-            // TODO: Add memory_tier field to Pattern or derive from other fields
-            // For now, increment host_count as default
-            host_count++;
         }
         status += "  STM patterns: " + std::to_string(stm_count) + "\n";
         status += "  MTM patterns: " + std::to_string(mtm_count) + "\n";
         status += "  LTM patterns: " + std::to_string(ltm_count) + "\n";
-        status += "  HOST patterns: " + std::to_string(host_count) + "\n";
-        status += "  DEVICE patterns: " + std::to_string(device_count) + "\n";
-        status += "  UNIFIED patterns: " + std::to_string(unified_count) + "\n";
         return status;
     }
 
@@ -335,10 +313,11 @@ public:
         config_ = config;
     }
 
-private:
+  private:
     void evolveQuantumState(QuantumState& state) {
         state.entropy *= 0.95f;  // Decay
-        float coherence_change = state.stability * 0.05f - (1.0f - state.stability) * 0.01f;  // Slower decay
+        float coherence_change =
+            state.stability * 0.05f - (1.0f - state.stability) * 0.01f;              // Slower decay
         state.coherence = glm::clamp(state.coherence + coherence_change, 0.1, 1.0);  // Min 0.1
         state.stability = glm::mix(state.stability, state.coherence, 0.1f);
         state.generation++;
@@ -346,10 +325,12 @@ private:
 
     void mutateQuantumState(QuantumState& state) {
         static uint64_t noise_state = 0;
-        
+
         auto rnd = [&]() { return deterministicNoise(noise_state); };
-        state.coherence = glm::clamp(state.coherence + (rnd() * 0.4f - 0.2f), 0.1, 1.0);  // Wider range
-        state.stability = glm::clamp(state.stability + (rnd() * 2.0f - 1.0f) * config_.mutation_rate * 0.5f, 0.0, 1.0);
+        state.coherence =
+            glm::clamp(state.coherence + (rnd() * 0.4f - 0.2f), 0.1, 1.0);  // Wider range
+        state.stability = glm::clamp(
+            state.stability + (rnd() * 2.0f - 1.0f) * config_.mutation_rate * 0.5f, 0.0, 1.0);
         state.entropy = glm::clamp(state.entropy + rnd() * 0.3 - 0.15, 0.0, 1.0);
         state.mutation_rate *= (1.0f + (rnd() * 2.0f - 1.0f) * 0.1f);
         state.mutation_count++;
@@ -359,7 +340,7 @@ private:
         auto& state = pattern.quantum_state;
         // Note: Memory tier logic removed since memory_tier is no longer part of QuantumState
         // Alternative logic could be implemented here based on coherence and stability
-        
+
         // Update access frequency based on coherence changes instead
         static double last_coherence = 0.0;
         if (std::abs(state.coherence - last_coherence) > 0.1) {
@@ -375,23 +356,23 @@ private:
         }
     }
 
-    ProcessingResult createErrorResult(const std::string& error) const
-    {
+    ProcessingResult createErrorResult(const std::string& error) const {
         ProcessingResult result;
         result.success = false;
         result.error_message = error;
         return result;
     }
 
-    std::string generatePatternId() const
-    {
+    std::string generatePatternId() const {
         static std::atomic<uint64_t> counter{0};
-        return "pat_" + std::to_string(getCurrentTimestamp()) + "_" + std::to_string(counter.fetch_add(1));
+        return "pat_" + std::to_string(getCurrentTimestamp()) + "_" +
+               std::to_string(counter.fetch_add(1));
     }
 
     uint64_t getCurrentTimestamp() const {
         auto now = std::chrono::system_clock::now();
-        return std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()).count();
+        return std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch())
+            .count();
     }
 
     ProcessingConfig config_;
@@ -403,77 +384,90 @@ private:
     core::SystemHooks* hooks_;
 };
 
-Processor::Processor(const ProcessingConfig& config) : impl_(std::make_unique<ProcessorImpl>(config)) {}
+Processor::Processor(const ProcessingConfig& config)
+    : impl_(std::make_unique<ProcessorImpl>(config)) {}
 Processor::~Processor() = default;
 Processor::Processor(Processor&&) noexcept = default;
 Processor& Processor::operator=(Processor&&) noexcept = default;
-sep::SEPResult Processor::init(GPUContext* gpu_context) { return impl_->init(gpu_context); }
-void Processor::setHooks(core::SystemHooks* hooks) { impl_->setHooks(hooks); }
-sep::SEPResult Processor::addPattern(const Pattern& pattern) { return impl_->addPattern(pattern); }
-sep::SEPResult Processor::removePattern(const std::string& pattern_id)
-{
+sep::SEPResult Processor::init(GPUContext* gpu_context) {
+    return impl_->init(gpu_context);
+}
+void Processor::setHooks(core::SystemHooks* hooks) {
+    impl_->setHooks(hooks);
+}
+sep::SEPResult Processor::addPattern(const Pattern& pattern) {
+    return impl_->addPattern(pattern);
+}
+sep::SEPResult Processor::removePattern(const std::string& pattern_id) {
     return impl_->removePattern(pattern_id);
 }
-sep::SEPResult Processor::updatePattern(const std::string& pattern_id, const Pattern& pattern)
-{
+sep::SEPResult Processor::updatePattern(const std::string& pattern_id, const Pattern& pattern) {
     return impl_->updatePattern(pattern_id, pattern);
 }
-Pattern Processor::getPattern(const std::string& pattern_id) const
-{
+Pattern Processor::getPattern(const std::string& pattern_id) const {
     return impl_->getPattern(pattern_id);
 }
 
-std::vector<Pattern> Processor::getPatterns() const { return impl_->getPatterns(); }
-std::vector<Pattern> Processor::getPatternsByTier(Pattern::MemoryTier tier) const
-{
+std::vector<Pattern> Processor::getPatterns() const {
+    return impl_->getPatterns();
+}
+std::vector<Pattern> Processor::getPatternsByTier(Pattern::MemoryTier tier) const {
     return impl_->getPatternsByTier(tier);
 }
-size_t Processor::getPatternCount() const { return impl_->getPatternCount(); }
-ProcessingResult Processor::processPattern(const std::string& pattern_id)
-{
+size_t Processor::getPatternCount() const {
+    return impl_->getPatternCount();
+}
+ProcessingResult Processor::processPattern(const std::string& pattern_id) {
     return impl_->processPattern(pattern_id);
 }
 
-BatchProcessingResult Processor::processBatch(const std::vector<std::string>& pattern_ids)
-{
+BatchProcessingResult Processor::processBatch(const std::vector<std::string>& pattern_ids) {
     return impl_->processBatch(pattern_ids);
 }
 
-BatchProcessingResult Processor::processAll() { return impl_->processAll(); }
-ProcessingResult Processor::evolvePattern(const std::string& pattern_id)
-{
+BatchProcessingResult Processor::processAll() {
+    return impl_->processAll();
+}
+ProcessingResult Processor::evolvePattern(const std::string& pattern_id) {
     return impl_->evolvePattern(pattern_id);
 }
-ProcessingResult Processor::collapsePattern(const std::string& pattern_id)
-{
+ProcessingResult Processor::collapsePattern(const std::string& pattern_id) {
     return impl_->collapsePattern(pattern_id);
 }
 ProcessingResult Processor::entanglePatterns(const std::string& pattern_id1,
-                                             const std::string& pattern_id2)
-{
+                                             const std::string& pattern_id2) {
     return impl_->entanglePatterns(pattern_id1, pattern_id2);
 }
-ProcessingResult Processor::mutatePattern(const std::string& parent_id)
-{
+ProcessingResult Processor::mutatePattern(const std::string& parent_id) {
     return impl_->mutatePattern(parent_id);
 }
-void Processor::promotePatterns() { impl_->promotePatterns(); }
-void Processor::demotePatterns() { impl_->demotePatterns(); }
-void Processor::removeWeakPatterns() { impl_->removeWeakPatterns(); }
+void Processor::promotePatterns() {
+    impl_->promotePatterns();
+}
+void Processor::demotePatterns() {
+    impl_->demotePatterns();
+}
+void Processor::removeWeakPatterns() {
+    impl_->removeWeakPatterns();
+}
 sep::SEPResult Processor::addRelationship(const std::string& pattern_id1,
                                           const std::string& pattern_id2, float strength,
-                                          RelationshipType type)
-{
+                                          RelationshipType type) {
     return impl_->addRelationship(pattern_id1, pattern_id2, strength, type);
 }
 float Processor::calculateCoherence(const std::string& pattern_id1,
-                                    const std::string& pattern_id2) const
-{
+                                    const std::string& pattern_id2) const {
     return impl_->calculateCoherence(pattern_id1, pattern_id2);
 }
-std::string Processor::getStatus() const { return impl_->getStatus(); }
-ProcessingConfig Processor::getConfig() const { return impl_->getConfig(); }
-void Processor::updateConfig(const ProcessingConfig& config) { impl_->updateConfig(config); }
+std::string Processor::getStatus() const {
+    return impl_->getStatus();
+}
+ProcessingConfig Processor::getConfig() const {
+    return impl_->getConfig();
+}
+void Processor::updateConfig(const ProcessingConfig& config) {
+    impl_->updateConfig(config);
+}
 
 std::unique_ptr<Processor> createCPUProcessor(const ProcessingConfig& config) {
     ProcessingConfig cpu_config = config;
@@ -488,15 +482,13 @@ std::unique_ptr<Processor> createGPUProcessor(const ProcessingConfig& config) {
 }
 
 // Implementation of the createProcessor functions that are referenced but not defined
-std::unique_ptr<Processor> createProcessor(const ProcessingConfig& config)
-{
+std::unique_ptr<Processor> createProcessor(const ProcessingConfig& config) {
     return std::make_unique<Processor>(config);
 }
 
-std::unique_ptr<Processor> createProcessor()
-{
+std::unique_ptr<Processor> createProcessor() {
     ProcessingConfig default_config;
     return std::make_unique<Processor>(default_config);
 }
 
-} // namespace sep::quantum
+}  // namespace sep::quantum

@@ -10,9 +10,8 @@ namespace core {
 
 // Default compression implementation using simple RLE
 class DefaultCompressor : public CompressionStrategy {
-public:
-    std::vector<uint8_t> compress(const void* data, size_t size) override
-    {
+  public:
+    std::vector<uint8_t> compress(const void* data, size_t size) override {
         const uint8_t* bytes = static_cast<const uint8_t*>(data);
         std::vector<uint8_t> compressed;
         compressed.reserve(size);
@@ -34,28 +33,28 @@ public:
     }
 
     bool decompress(const std::vector<uint8_t>& compressed, void* output,
-                    size_t outputSize) override
-    {
+                    size_t outputSize) override {
         uint8_t* out = static_cast<uint8_t*>(output);
         size_t outPos = 0;
-        
+
         for (size_t i = 0; i < compressed.size(); i += 2) {
-            if (i + 1 >= compressed.size()) return false;
-            
+            if (i + 1 >= compressed.size())
+                return false;
+
             uint8_t count = compressed[i];
             uint8_t value = compressed[i + 1];
-            
-            if (outPos + count > outputSize) return false;
-            
+
+            if (outPos + count > outputSize)
+                return false;
+
             std::fill_n(out + outPos, count, value);
             outPos += count;
         }
-        
+
         return outPos == outputSize;
     }
 
-    sep::memory::CompressionMethod getMethod() const override
-    {
+    sep::memory::CompressionMethod getMethod() const override {
         return sep::memory::CompressionMethod::None;
     }
 
@@ -63,14 +62,13 @@ public:
         return stats_;
     }
 
-private:
+  private:
     CompressionStats stats_{};
 };
 
 // Factory method implementation
 std::unique_ptr<CompressionStrategy> CompressionFactory::create(
-    sep::memory::CompressionMethod method)
-{
+    sep::memory::CompressionMethod method) {
     switch (method) {
         case sep::memory::CompressionMethod::ZSTD:
         case sep::memory::CompressionMethod::None:
@@ -80,16 +78,21 @@ std::unique_ptr<CompressionStrategy> CompressionFactory::create(
     }
 }
 
-sep::memory::CompressionMethod CompressionFactory::analyzeData(const void* /*data*/,
-                                                               size_t /*size*/)
-{
-    // Minimal heuristic: always return None
+sep::memory::CompressionMethod CompressionFactory::analyzeData(const void* data, size_t size) {
+    if (!data || size == 0) {
+        return sep::memory::CompressionMethod::None;
+    }
+
+    // Choose compression based on normalized entropy of the input
+    float entropy = compression_utils::calculateNormalizedEntropy(data, size);
+    if (entropy < 0.75f) {
+        return sep::memory::CompressionMethod::ZSTD;
+    }
     return sep::memory::CompressionMethod::None;
 }
 
 float CompressionFactory::estimateCompressionRatio(const void* data, size_t size,
-                                                   sep::memory::CompressionMethod method)
-{
+                                                   sep::memory::CompressionMethod method) {
     if (!data || size == 0) {
         return 0.0f;
     }
@@ -195,5 +198,5 @@ std::vector<uint8_t> upsample(const std::vector<uint8_t>& data, size_t original_
 
 }  // namespace compression_utils
 
-} // namespace core
-} // namespace sep
+}  // namespace core
+}  // namespace sep
