@@ -6,7 +6,6 @@
 #include "core/sep_precompiled.h"
 #include "core/core.h"
 #include "core/cuda_helpers.h"
-#include "core/cuda_sep.h"
 #include "core/cuda_types.hpp"
 #include "memory.h"
 #include "core/types.h"
