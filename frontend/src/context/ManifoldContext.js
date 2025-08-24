@@ -15,7 +15,6 @@ export const ManifoldProvider = ({ children }) => {
 
   // Enhanced manifold state management
   const [ruptureEvents, setRuptureEvents] = useState([]);
-  const [selectedIdentity, setSelectedIdentity] = useState(null);
 
   // Process quantum signals into identity timelines
   const processedIdentities = useMemo(() => {
@@ -169,10 +168,6 @@ export const ManifoldProvider = ({ children }) => {
     manifoldBands,
     ruptureEvents,
 
-    // Selection state
-    selectedIdentity,
-    setSelectedIdentity,
-    
     // Helper functions
     getIdentityHistory,
     getIdentityByKey,

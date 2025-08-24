@@ -36,9 +36,7 @@ const MetricTimeSeries = ({ metric = 'entropy', instrument = 'EUR_USD', timeWind
     processedIdentities,
     manifoldBands,
     ruptureEvents,
-    getIdentityHistory,
-    selectedIdentity,
-    setSelectedIdentity
+    getIdentityHistory
   } = useManifold();
 
   const { connected } = useWebSocket();

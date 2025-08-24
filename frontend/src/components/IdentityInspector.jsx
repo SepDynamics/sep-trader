@@ -25,8 +25,6 @@ const IdentityInspector = () => {
   const {
     processedIdentities,
     manifoldBands,
-    selectedIdentity,
-    setSelectedIdentity,
     getIdentityByKey,
     getIdentityHistory,
     canDeriveBackwards,
