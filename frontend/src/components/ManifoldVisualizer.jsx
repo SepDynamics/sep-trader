@@ -84,7 +84,7 @@ const ManifoldVisualizer = () => {
         0.1;
 
       return {
-        patternId: pattern.id || Math.random().toString(36).substr(2, 9),
+        patternId: pattern.id || `pattern_${Date.now()}_${pattern.valkeyKey || 'unknown'}`,
         currentPath: {
           coherence: pattern.coherence,
           entropy: pattern.entropy || 0.5,

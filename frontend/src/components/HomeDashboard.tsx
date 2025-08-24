@@ -3,6 +3,7 @@ import RealTimeMarketFeed from './RealTimeMarketFeed';
 import ManifoldVisualizer from './ManifoldVisualizer';
 import MetricTimeSeries from './MetricTimeSeries';
 import IdentityInspector from './IdentityInspector';
+import OandaCandleChart from './OandaCandleChart';
 import AppHeader from './AppHeader';
 import { ManifoldProvider } from '../context/ManifoldContext';
 import { useSymbol } from '../context/SymbolContext';
@@ -16,13 +17,14 @@ import {
   TrendingUp,
   Zap,
   Clock,
-  ArrowRight
+  ArrowRight,
+  BarChart3
 } from 'lucide-react';
 
 const HomeDashboard: React.FC = () => {
   const { selectedSymbol, setSelectedSymbol, symbols, isValidSymbol } = useSymbol();
   const { connected, quantumSignals, livePatterns } = useWebSocket();
-  const [activeView, setActiveView] = useState<'market' | 'manifold' | 'timeseries' | 'inspector'>('market');
+  const [activeView, setActiveView] = useState<'market' | 'manifold' | 'timeseries' | 'inspector' | 'candles'>('market');
   const [selectedMetric, setSelectedMetric] = useState<'entropy' | 'stability' | 'coherence'>('entropy');
 
   const handleSymbolChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -57,6 +59,12 @@ const HomeDashboard: React.FC = () => {
       label: 'Inspector',
       icon: Eye,
       description: 'Detailed quantum identity analysis'
+    },
+    {
+      id: 'candles' as const,
+      label: 'OANDA Candles',
+      icon: BarChart3,
+      description: 'Real-time OANDA candle data from Valkey server'
     }
   ];
 
@@ -70,6 +78,8 @@ const HomeDashboard: React.FC = () => {
         return <MetricTimeSeries metric={selectedMetric} instrument={selectedSymbol} />;
       case 'inspector':
         return <IdentityInspector />;
+      case 'candles':
+        return <OandaCandleChart />;
       default:
         return <RealTimeMarketFeed />;
     }

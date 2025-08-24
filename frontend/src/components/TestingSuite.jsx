@@ -113,7 +113,7 @@ const TestingSuite = ({ activeTab = 'unit-tests' }) => {
             const warnings = tests.filter(t => t.status === 'warning').length;
             
             setTestStats({
-              coverage: Math.random() * 20 + 75, // 75-95%
+              coverage: 0, // Will be populated from real test data
               passed: passed,
               failed: failed,
               total: tests.length,

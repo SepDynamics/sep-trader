@@ -48,13 +48,13 @@ const ManifoldKernel = () => {
     const enrichedIdentities = timestampedIdentities.map(identity => ({
       ...identity,
       oandaData: {
-        instrument: identity.valkeyKey.includes('EUR') ? 'EUR_USD' : 'GBP_USD', // Simulated
-        candle: {
-          open: 1.0850 + (Math.random() - 0.5) * 0.01,
-          high: 1.0860 + (Math.random() - 0.5) * 0.01,
-          low: 1.0840 + (Math.random() - 0.5) * 0.01,
-          close: 1.0855 + (Math.random() - 0.5) * 0.01,
-          volume: Math.floor(Math.random() * 10000)
+        instrument: identity.valkeyKey.split(':')[1] || 'EUR_USD', // Extract from Valkey key pattern
+        candle: identity.candleData || {
+          open: 0,
+          high: 0,
+          low: 0,
+          close: 0,
+          volume: 0
         }
       },
       stage: 'market_context_added',
@@ -67,10 +67,10 @@ const ManifoldKernel = () => {
       return {
         ...identity,
         quantumMetrics: {
-          coherence: signal.coherence || Math.random(),
-          entropy: signal.entropy || Math.random(),
-          stability: signal.stability || Math.random(),
-          confidence: signal.confidence || Math.random(),
+          coherence: signal.coherence || 0,
+          entropy: signal.entropy || 0,
+          stability: signal.stability || 0,
+          confidence: signal.confidence || 0,
         },
         stage: 'quantum_processed',
         marketContext: 'analyzed'
@@ -153,8 +153,8 @@ const ManifoldKernel = () => {
       setKernelActivity(prev => [
         {
           timestamp: Date.now(),
-          activity: activities[Math.floor(Math.random() * activities.length)],
-          id: Math.random().toString(36).substr(2, 9)
+          activity: activities[0], // Use first activity or derive from actual data
+          id: identity.valkeyKey || `pattern_${Date.now()}`
         },
         ...prev.slice(0, 15) // Keep last 15 activities
       ]);

@@ -136,14 +136,14 @@ BatchResult BatchProcessor::process_single_pattern(const BatchPattern& pattern) 
         double coherence_value = 0.0;
         
         if (pattern.pattern_code.find("measure_coherence") != std::string::npos) {
-            // Simulate coherence measurement - use simplified version for batch
-            coherence_value = 0.6 + (rand() % 40) / 100.0;  // Random value 0.6-1.0
+            // Use actual pattern analysis to calculate coherence from real data
+            coherence_value = pattern.valkey_coherence.value_or(0.0);
         } else if (pattern.pattern_code.find("measure_entropy") != std::string::npos) {
-            // Simulate entropy measurement  
-            coherence_value = 0.3 + (rand() % 70) / 100.0;  // Random value 0.3-1.0
+            // Use actual entropy calculation from pattern data
+            coherence_value = pattern.valkey_entropy.value_or(0.0);
         } else {
-            // Default: use QFH analysis simulation
-            coherence_value = 0.5 + (rand() % 50) / 100.0;  // Random value 0.5-1.0
+            // Use real QFH analysis result from pattern processing
+            coherence_value = pattern.qfh_result.value_or(0.0);
         }
         
         return BatchResult(pattern.pattern_id, true, coherence_value);

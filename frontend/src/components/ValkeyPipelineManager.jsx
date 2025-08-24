@@ -39,31 +39,17 @@ const ValkeyPipelineManager = () => {
   // Simulate real-time pipeline monitoring
   useEffect(() => {
     const interval = setInterval(() => {
-      // Simulate OANDA feed rate (keys/second)
-      const newFeedRate = Math.max(0, oandaFeedRate + (Math.random() - 0.5) * 2);
-      setOandaFeedRate(newFeedRate);
-      
-      // Simulate Valkey key growth
-      setValkeyKeyCount(prev => prev + Math.floor(Math.random() * 5));
-
-      // Simulate server metrics
-      const newServerMetrics = {
-        memory: 45 + Math.random() * 20, // 45-65%
-        cpu: 25 + Math.random() * 30,    // 25-55%
-        diskUsage: 60 + Math.random() * 15, // 60-75%
-        networkIO: Math.random() * 100   // 0-100 MB/s
-      };
-      setServerMetrics(newServerMetrics);
-
-      // Send feed rate data through WebSocket
+      // Get real metrics from Valkey server via WebSocket
       if (connected && sendMessage) {
+        // Request real server metrics from backend
         sendMessage({
-          type: 'valkey_metrics',
-          data: {
-            feedRate: newFeedRate,
-            keyCount: valkeyKeyCount + Math.floor(Math.random() * 5),
-            serverMetrics: newServerMetrics
-          }
+          type: 'get_valkey_metrics',
+          data: { request: 'server_stats' }
+        });
+        
+        sendMessage({
+          type: 'get_valkey_metrics',
+          data: { request: 'key_count' }
         });
       }
 

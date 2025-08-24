@@ -87,21 +87,22 @@ bool MarketModelCache::ensureCacheForLastWeek(const std::string& instrument) {
         double base_price = 1.1585; // Realistic EUR_USD price
         
         for (int i = 0; i < 1000; ++i) {
-            Candle demo_candle;
-            demo_candle.time = "2025-08-01T" + std::to_string(20 + (i / 60)) + ":" + 
-                              std::to_string((i % 60)) + ":00.000000000Z";
+            // Retrieve actual candle data from Valkey server
+            Candle valkey_candle;
+            std::string candle_key = "oanda:candle:" + instrument + ":" + std::to_string(i);
             
-            // Generate realistic price movement
-            double movement = (std::rand() % 20 - 10) * 0.00001; // ±10 pips
-            base_price += movement;
-            
-            demo_candle.open = base_price;
-            demo_candle.high = base_price + (std::rand() % 5) * 0.00001;
-            demo_candle.low = base_price - (std::rand() % 5) * 0.00001;
-            demo_candle.close = base_price + (std::rand() % 10 - 5) * 0.00001;
-            demo_candle.volume = 100 + (std::rand() % 200);
-            
-            raw_candles.push_back(demo_candle);
+            if (valkey_client_->exists(candle_key)) {
+                auto candle_data = valkey_client_->hgetall(candle_key);
+                
+                valkey_candle.time = candle_data["time"];
+                valkey_candle.open = std::stod(candle_data["open"]);
+                valkey_candle.high = std::stod(candle_data["high"]);
+                valkey_candle.low = std::stod(candle_data["low"]);
+                valkey_candle.close = std::stod(candle_data["close"]);
+                valkey_candle.volume = std::stoi(candle_data["volume"]);
+                
+                raw_candles.push_back(valkey_candle);
+            }
         }
         
         std::cout << "[CACHE] 🎲 Generated " << raw_candles.size() << " demo candles for testing" << std::endl;
