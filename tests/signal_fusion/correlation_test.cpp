@@ -40,14 +40,12 @@ TEST_F(MultiAssetFusionTest, PositiveCorrelation) {
     for (int i = 0; i < 100; ++i) {
         double price = 1.0 + i * 0.01;
         Candle c1{};
-        c1.time = std::to_string(i);
         c1.timestamp = 0;
         c1.open = c1.high = c1.low = c1.close = price;
         c1.volume = 0.0;
         candles1.push_back(c1);
 
         Candle c2{};
-        c2.time = std::to_string(i);
         c2.timestamp = 0;
         c2.open = c2.high = c2.low = c2.close = price;
         c2.volume = 0.0;
@@ -68,14 +66,12 @@ TEST_F(MultiAssetFusionTest, NegativeCorrelation) {
     std::vector<Candle> candles1, candles2;
     for (int i = 0; i < 100; ++i) {
         Candle c1{};
-        c1.time = std::to_string(i);
         c1.timestamp = 0;
         c1.open = c1.high = c1.low = c1.close = 1.0 + i * 0.01;
         c1.volume = 0.0;
         candles1.push_back(c1);
 
         Candle c2{};
-        c2.time = std::to_string(i);
         c2.timestamp = 0;
         c2.open = c2.high = c2.low = c2.close = 1.0 - i * 0.01;
         c2.volume = 0.0;
@@ -97,14 +93,12 @@ TEST_F(MultiAssetFusionTest, ZeroCorrelation) {
     srand(0);
     for (int i = 0; i < 100; ++i) {
         Candle c1{};
-        c1.time = std::to_string(i);
         c1.timestamp = 0;
         c1.open = c1.high = c1.low = c1.close = static_cast<double>(rand()) / RAND_MAX;
         c1.volume = 0.0;
         candles1.push_back(c1);
 
         Candle c2{};
-        c2.time = std::to_string(i);
         c2.timestamp = 0;
         c2.open = c2.high = c2.low = c2.close = static_cast<double>(rand()) / RAND_MAX;
         c2.volume = 0.0;

@@ -214,7 +214,7 @@ bool EnhancedMarketModelCache::fetchAssetData(const std::string& instrument, std
     auto oanda_candles = oanda_connector_->getHistoricalData(instrument, "M1", "", "");
     for (const auto& o_candle : oanda_candles) {
         Candle c;
-        c.time = o_candle.time;
+        c.timestamp = parseTimestamp(o_candle.time);
         c.open = o_candle.open;
         c.high = o_candle.high;
         c.low = o_candle.low;
@@ -420,7 +420,7 @@ std::vector<Candle> sep::cache::EnhancedMarketModelCache::getRecentCandles(const
     auto oanda_candles = oanda_connector_->getHistoricalData(pair, "M1", count);
     for (const auto& o_candle : oanda_candles) {
         Candle c;
-        c.time = o_candle.time;
+        c.timestamp = parseTimestamp(o_candle.time);
         c.open = o_candle.open;
         c.high = o_candle.high;
         c.low = o_candle.low;

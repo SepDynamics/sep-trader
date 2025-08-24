@@ -60,7 +60,7 @@ bool MarketModelCache::ensureCacheForLastWeek(const std::string& instrument) {
     // Convert OandaCandle to local Candle format
     for (const auto& o_candle : oanda_candles) {
         Candle c;
-        c.time = o_candle.time;
+        c.timestamp = parseTimestamp(o_candle.time);
         c.open = o_candle.open;
         c.high = o_candle.high;
         c.low = o_candle.low;

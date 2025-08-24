@@ -37,5 +37,9 @@
         "ltm_coherence_threshold": 0.9,
         "mtm_coherence_threshold": 0.6,
         "stability_threshold": 0.8
+    },
+    "valkey": {
+        "host": "127.0.0.1",
+        "port": 6379
     }
 }
