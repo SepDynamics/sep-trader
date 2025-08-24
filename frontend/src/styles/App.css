@@ -713,30 +713,6 @@ html {
   font-size: 1rem;
   font-weight: 500;
 }
-/* Simplified Layout Styles */
-.simple-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1rem 2rem;
-  background: var(--bg-secondary);
-  border-bottom: 1px solid var(--border);
-}
-
-.simple-header h1 {
-  font-size: 1.5rem;
-  font-weight: 600;
-  color: var(--primary);
-  margin: 0;
-}
-
-.connection-status {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 0.875rem;
-  color: var(--text-secondary);
-}
 
 .status-dot {
   width: 8px;
