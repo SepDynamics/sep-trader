@@ -329,8 +329,6 @@ namespace sep::quantum
             current_metrics_.push_back(m);
         }
 
-        // Cannot call generateSignals() from const method
-        // generateSignals();
         return current_metrics_;
     }
 
