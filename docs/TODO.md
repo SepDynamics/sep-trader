@@ -72,7 +72,7 @@ Below is a **structured execution plan** for building a suite of visual aids to 
 ### Summary of Key Repo Citations
 
 * **Frontend API consumption** – The UI uses `/api/market-data`, `/api/performance/current`, `/api/system-status`, and `/api/place-order`, confirming where data comes from.
-* **TODO tasks** – The docs/TODO file lists essential tasks for the UI: rendering tabs, building each component, hooking WebSocket, adding Redis metrics, theme support, tests, and documentation.
+* **TODO tasks** – The docs/TODO file lists essential tasks for the UI: rendering tabs, building each component, hooking WebSocket, adding Valkey metrics, theme support, tests, and documentation.
 * **Metric definitions** – The core engine computes coherence, stability, and entropy by measuring pattern variance, consistency, and entropy of bit patterns.
 * **UI/backend separation** – The external API ensures that the front-end only renders data; all heavy computation happens in the engine.
 
