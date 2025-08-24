@@ -4,7 +4,7 @@
 #include <glm/glm.hpp>
 #include <vector>
 
-#include "core/cuda_sep.h"
+#include "core/core.h"
 #include "core/standard_includes.h"
 #include "core/types.h"
 #include "core/pattern_evolution_bridge.h"

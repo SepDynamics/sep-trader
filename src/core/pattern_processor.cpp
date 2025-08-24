@@ -93,7 +93,7 @@ double PatternProcessor::matchHistoricalPaths(const std::vector<double>& current
 // Merged from: src/core/pattern_processor.cpp
 #include "core/common.h"
 #include "core/cuda_helpers.h"
-#include "core/cuda_sep.h"
+#include "core/core.h"
 #include "core/pattern_types.h"
 #include "core/types.h"
 #include "core/config.h"

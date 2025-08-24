@@ -1,12 +1,7 @@
 #pragma once
 
-#ifdef __CUDACC__
-#include <cuda_runtime.h>
-
-#include "core/cuda_helpers.h"
-#include "core/cuda_sep.h"
-#endif
 #include "core/core.h"
+#include "core/cuda_helpers.h"
 
 namespace sep::cuda {
 

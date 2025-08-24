@@ -2,7 +2,7 @@
 
 #include "core/allocation_metrics.h"
 #include "core/common.h"
-#include "core/cuda_sep.h"
+#include "core/core.h"
 #include "core/logging.h"
 #include "core/macros.h"
 #include "core/types.h"

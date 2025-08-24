@@ -33,7 +33,6 @@
 #include "core/config.h"
 #include "core/core.h"
 #include "cuda_api.hpp"
-#include "core/cuda_sep.h"
 #include "core/dag_graph.h"
 #include "core/data_parser.h"
 #include "core/engine.h"

@@ -35,7 +35,7 @@ This guide clarifies the distinction between legitimate backtesting/simulation a
 ### **Mock/Test Data** ✅ IDENTIFIED
 **Files requiring validation**:
 - `/sep/src/engine/batch/batch_processor.cpp` - "Simulate execution" comments
-- `/sep/src/cli/trader_cli.cpp` - Mock health data (CPU usage = 45.0)
+- `/sep/src/cli/trader_cli.cpp` - Static status output only; no real metrics
 - `/sep/src/training/weekly_data_fetcher.cpp` - "Simulate data fetching"
 
 ## 🔄 DATA FLOW VERIFICATION
@@ -49,14 +49,8 @@ This guide clarifies the distinction between legitimate backtesting/simulation a
 
 ### **Testing Commands**
 ```bash
-# Verify real OANDA integration
+# Verify CLI status output
 ./build/src/cli/trader-cli status
-
-# Test real data fetching
-./build/src/cli/trader-cli train EUR_USD --hours 1
-
-# Validate system with real credentials
-./build/src/cli/trader-cli start
 ```
 
 ## 📊 PERFORMANCE VALIDATION

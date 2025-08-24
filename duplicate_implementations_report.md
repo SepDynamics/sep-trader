@@ -30,6 +30,7 @@ This document tracks outstanding code quality concerns in the SEP Engine codebas
 - Redis stub context eliminated to ensure real integration (`src/util/redis_manager.*`).
 - Stub CLI commands and duplicate kernel implementations removed (`src/core/cli_commands.*`, `src/core/kernel_implementations.cu`, `tests/unit/core/cli_commands_test.cpp`).
 - Sample EUR/USD data helper and duplicate dataset removed (`src/io/oanda_connector.*`, `eur_usd_m1_48h.json`).
+- Unimplemented CLI command handlers pruned (`src/app/trader_cli.cpp`, `src/app/trader_cli.hpp`).
 
 ## Recommendations
 1. Remove remaining hardcoded values via configuration.
