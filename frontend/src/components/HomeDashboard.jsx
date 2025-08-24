@@ -1,7 +1,9 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Activity, TrendingUp, TrendingDown, DollarSign, AlertCircle, Play, Pause, Settings, BarChart3, Brain, Clock, ChevronUp, ChevronDown, CheckCircle, XCircle, RefreshCw, Database, Cpu, HardDrive, Zap, Target, Shield, Eye, Terminal, Upload, FileText, GitBranch, Server } from 'lucide-react';
 import { useWebSocket } from '../context/WebSocketContext';
+import { useSymbol } from '../context/SymbolContext';
 import QuickActionButton from './QuickActionButton';
+import RealTimeMarketFeed from './RealTimeMarketFeed';
 import { uploadTrainingData, startModelTraining, generateReport, getConfig, getSystemStatus } from '../services/api';
 
 // This dashboard connects to your actual backend services
@@ -17,6 +19,8 @@ const HomeDashboard = () => {
     tradingSignals,
     systemMetrics
   } = useWebSocket();
+  
+  const { selectedSymbol } = useSymbol();
 
   const [apiHealth, setApiHealth] = useState('checking');
   
@@ -393,33 +397,10 @@ const HomeDashboard = () => {
         <div className="col-span-6">
           {activeTab === 'overview' && (
             <div className="space-y-4">
-              {/* Market Overview */}
+              {/* Real-time Market Feed */}
               <div className="bg-gray-900 rounded-lg p-4">
-                <h3 className="text-lg font-medium mb-4">Market Overview</h3>
-                <div className="grid grid-cols-3 gap-4">
-                  {systemStatus.pairs?.map(pair => (
-                    <div key={pair} className="bg-gray-800 rounded-lg p-3">
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="font-medium text-sm">{pair}</span>
-                        <Activity className="w-4 h-4 text-green-400" />
-                      </div>
-                      {marketData[pair] && (
-                        <div className="space-y-1 text-xs">
-                          <div className="flex justify-between">
-                            <span className="text-gray-400">Price</span>
-                            <span>{marketData[pair].price?.toFixed(5)}</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-gray-400">24h</span>
-                            <span className={marketData[pair].change_24h >= 0 ? 'text-green-400' : 'text-red-400'}>
-                              {formatPercentage(marketData[pair].change_24h / 100)}
-                            </span>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
+                <h3 className="text-lg font-medium mb-4">Real-time Market Feed</h3>
+                <RealTimeMarketFeed />
               </div>
 
               {/* Recent Signals */}

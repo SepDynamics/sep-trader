@@ -3,7 +3,7 @@ import { WebSocketProvider } from './context/WebSocketContext';
 import { SymbolProvider } from './context/SymbolContext';
 import { ConfigProvider } from './context/ConfigContext';
 import SEPDashboard from './components/SEPDashboard';
-import HomeDashboard from './components/HomeDashboard';
+import HomeDashboard from './components/HomeDashboard.jsx';
 import PatternAnalysis from './components/PatternAnalysis';
 import ValkeyPipelineManager from './components/ValkeyPipelineManager';
 import ManifoldKernel from './components/ManifoldKernel';
