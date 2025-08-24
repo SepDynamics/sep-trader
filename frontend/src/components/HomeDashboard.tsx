@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import RealTimeMarketFeed from './RealTimeMarketFeed';
 import ManifoldVisualizer from './ManifoldVisualizer';
 import MetricTimeSeries from './MetricTimeSeries';
 import IdentityInspector from './IdentityInspector';
@@ -18,13 +17,12 @@ import {
   Zap,
   Clock,
   ArrowRight,
-  BarChart3
 } from 'lucide-react';
 
 const HomeDashboard: React.FC = () => {
   const { selectedSymbol, setSelectedSymbol, symbols, isValidSymbol } = useSymbol();
   const { connected, quantumSignals, livePatterns } = useWebSocket();
-  const [activeView, setActiveView] = useState<'market' | 'manifold' | 'timeseries' | 'inspector' | 'candles'>('market');
+  const [activeView, setActiveView] = useState<'market' | 'manifold' | 'timeseries' | 'inspector'>('market');
   const [selectedMetric, setSelectedMetric] = useState<'entropy' | 'stability' | 'coherence'>('entropy');
 
   const handleSymbolChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -38,9 +36,9 @@ const HomeDashboard: React.FC = () => {
   const views = [
     {
       id: 'market' as const,
-      label: 'Market Feed',
+      label: 'OANDA Candles',
       icon: TrendingUp,
-      description: 'Real-time market data and price movements'
+      description: 'Real-time OANDA candle data from Valkey server'
     },
     {
       id: 'manifold' as const,
@@ -60,28 +58,20 @@ const HomeDashboard: React.FC = () => {
       icon: Eye,
       description: 'Detailed quantum identity analysis'
     },
-    {
-      id: 'candles' as const,
-      label: 'OANDA Candles',
-      icon: BarChart3,
-      description: 'Real-time OANDA candle data from Valkey server'
-    }
   ];
 
   const renderActiveView = () => {
     switch (activeView) {
       case 'market':
-        return <RealTimeMarketFeed />;
+        return <OandaCandleChart />;
       case 'manifold':
         return <ManifoldVisualizer />;
       case 'timeseries':
         return <MetricTimeSeries metric={selectedMetric} instrument={selectedSymbol} />;
       case 'inspector':
         return <IdentityInspector />;
-      case 'candles':
+        default:
         return <OandaCandleChart />;
-      default:
-        return <RealTimeMarketFeed />;
     }
   };
 
@@ -204,14 +194,14 @@ const HomeDashboard: React.FC = () => {
                         className: "w-6 h-6"
                       })
                     }
-                    {activeView === 'market' && `${selectedSymbol.replace('_', '/')} Market Feed`}
+                    {activeView === 'market' && `${selectedSymbol.replace('_', '/')} OANDA Candles`}
                     {activeView === 'timeseries' && `${selectedMetric.charAt(0).toUpperCase() + selectedMetric.slice(1)} Analysis`}
                   </h2>
                   
                   {activeView === 'market' && (
                     <div className="flex items-center gap-2 text-sm text-gray-400">
                       <Clock className="w-4 h-4" />
-                      <span>Live Updates Every 500ms</span>
+                      <span>Auto-refresh every 60s</span>
                     </div>
                   )}
                 </div>
