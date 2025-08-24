@@ -914,6 +914,41 @@ class TradingAPIHandler(BaseHTTPRequestHandler):
                     self.end_headers()
                     self.wfile.write(json.dumps({'error': str(e)}).encode())
 
+            elif path.startswith('/api/market/'):
+                # Extract instrument from path: /api/market/{instrument} - frontend compatibility
+                instrument = path.split('/api/market/')[-1]
+                query_params = dict(param.split('=') for param in urlparse(self.path).query.split('&') if '=' in param) if urlparse(self.path).query else {}
+                
+                to_ts = int(query_params.get('to', time.time() * 1000))
+                from_ts = int(query_params.get('from', to_ts - 48 * 3600 * 1000))
+                
+                key = f"market:price:{instrument}"
+                
+                try:
+                    with self.trading_service.database.get_client() as r:
+                        raw_rows = r.zrangebyscore(key, from_ts, to_ts)
+                        rows = [json.loads(row) for row in raw_rows]
+                    
+                    self.send_response(200)
+                    self.send_header('Content-type', 'application/json')
+                    self._set_cors_headers()
+                    self.end_headers()
+                    
+                    response = {
+                        "instrument": instrument,
+                        "from": from_ts,
+                        "to": to_ts,
+                        "rows": rows
+                    }
+                    self.wfile.write(json.dumps(response).encode())
+                except Exception as e:
+                    logger.error(f"Error getting market data for {instrument}: {e}")
+                    self.send_response(500)
+                    self.send_header('Content-type', 'application/json')
+                    self._set_cors_headers()
+                    self.end_headers()
+                    self.wfile.write(json.dumps({'error': str(e)}).encode())
+
             elif path.startswith('/api/candles/'):
                 # Extract instrument from path: /api/candles/{instrument}
                 instrument = path.split('/api/candles/')[-1]
