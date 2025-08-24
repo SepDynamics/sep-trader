@@ -12,11 +12,6 @@ This document tracks outstanding code quality concerns in the SEP Engine codebas
 ### Inconsistent Implementations
 - `src/app/dsl_main.cpp` and `src/app/oanda_trader_main.cpp` use different error handling mechanisms.
 
-### Incorrect Source Files in CMakeLists.txt
-- `src/CMakeLists.txt` - `trader_cli` executable includes `cuda/quantum_training.cu`.
-- `src/app/CMakeLists.txt` - `oanda_trader` executable includes `main.cpp`.
-- `src/cuda/CMakeLists.txt` - `sep_cuda` library includes `.cu.fixed` files.
-
 ## Recent Cleanup
 - Obsolete core primitive declarations removed (`src/util/core_primitives.h`).
 - Mock health monitor implementation removed (`src/app/health_monitor_c_impl.c`).
@@ -30,10 +25,10 @@ This document tracks outstanding code quality concerns in the SEP Engine codebas
 - Redis stub context eliminated to ensure real integration (`src/util/redis_manager.*`).
 - Stub CLI commands and duplicate kernel implementations removed (`src/core/cli_commands.*`, `src/core/kernel_implementations.cu`, `tests/unit/core/cli_commands_test.cpp`).
 - Sample EUR/USD data helper and duplicate dataset removed (`src/io/oanda_connector.*`, `eur_usd_m1_48h.json`).
-- Unimplemented CLI command handlers pruned (`src/app/trader_cli.cpp`, `src/app/trader_cli.hpp`).
+- Redundant TraderCLI implementation and unused entry point removed (`src/app/trader_cli.*`, `src/app/app_main.cpp`).
+- Legacy dashboard component removed (`frontend/src/components/Dashboard.js`).
 
 ## Recommendations
 1. Remove remaining hardcoded values via configuration.
 2. Standardize error handling.
-3. Correct source file references in CMakeLists.
 
