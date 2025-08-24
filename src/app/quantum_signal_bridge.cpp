@@ -12,6 +12,7 @@
 #include <iomanip>
 #include <iostream>
 #include <sstream>
+#include <stdexcept>
 
 #include "app/candle_types.h"
 
@@ -93,6 +94,61 @@ void from_json(const json& j, Candle& c) {
         j.at("close").get_to(c.close);
     }
 }
+
+namespace {
+std::vector<sep::connectors::MarketData> fetchMarketData(
+    sep::connectors::OandaConnector& connector,
+    const std::string& pair_symbol,
+    size_t hours_back) {
+    using namespace std::chrono;
+
+    auto now = system_clock::now();
+    auto start_time = now - hours(hours_back);
+
+    auto formatTimestamp = [](const system_clock::time_point& tp) {
+        auto time_t = system_clock::to_time_t(tp);
+        std::stringstream ss;
+        ss << std::put_time(std::gmtime(&time_t), "%Y-%m-%dT%H:%M:%SZ");
+        return ss.str();
+    };
+
+    std::string from_str = formatTimestamp(start_time);
+    std::string to_str = formatTimestamp(now);
+
+    auto oanda_candles = connector.getHistoricalData(pair_symbol, "M1", from_str, to_str);
+    if (oanda_candles.empty()) {
+        throw std::runtime_error("No historical data returned from OANDA");
+    }
+
+    std::vector<sep::connectors::MarketData> market_data;
+    market_data.reserve(oanda_candles.size());
+
+    double atr = 0.0;
+    const size_t period = 14;
+    for (const auto& candle : oanda_candles) {
+        sep::connectors::MarketData md;
+        md.instrument = pair_symbol;
+        md.timestamp = duration_cast<milliseconds>(parseTimestamp(candle.time).time_since_epoch()).count();
+        md.mid = candle.close;
+        md.bid = candle.low;
+        md.ask = candle.high;
+        md.volume = candle.volume;
+
+        double tr;
+        if (market_data.empty()) {
+            tr = candle.high - candle.low;
+        } else {
+            double prev_close = market_data.back().mid;
+            tr = std::max({candle.high - candle.low, std::abs(candle.high - prev_close), std::abs(candle.low - prev_close)});
+        }
+        atr = market_data.empty() ? tr : atr + (tr - atr) / std::min(period, market_data.size() + 1.0);
+        md.atr = atr;
+        market_data.push_back(md);
+    }
+
+    return market_data;
+}
+} // anonymous namespace
 
 namespace sep::trading {
 
