@@ -66,7 +66,7 @@ class OandaConnector:
             self._setup_session()
             self.connected = self._test_connection()
         else:
-            logger.warning("OANDA credentials not found - running in simulation mode")
+            logger.warning("OANDA credentials not found - connector not initialized")
     
     def _load_config(self, config_path: str):
         """Load OANDA API configuration from environment file"""
@@ -133,13 +133,8 @@ class OandaConnector:
     def get_account_info(self) -> Optional[Dict]:
         """Get current account information"""
         if not self.connected:
-            logger.warning("OANDA not connected - returning mock account info")
-            return {
-                'balance': '10000.0',
-                'currency': 'USD',
-                'marginAvailable': '10000.0',
-                'openTradeCount': '0'
-            }
+            logger.error("OANDA not connected")
+            return None
         
         try:
             url = f"{self.api_base}/v3/accounts/{self.account_id}"
@@ -166,14 +161,8 @@ class OandaConnector:
             Tuple of (bid, ask) prices or None
         """
         if not self.connected:
-            # Return mock prices for simulation
-            mock_prices = {
-                'EUR_USD': (1.0850, 1.0852),
-                'GBP_USD': (1.2650, 1.2652),
-                'USD_JPY': (149.20, 149.22),
-                'AUD_USD': (0.6450, 0.6452)
-            }
-            return mock_prices.get(instrument, (1.0000, 1.0002))
+            logger.error("OANDA not connected")
+            return None
         
         try:
             url = f"{self.api_base}/v3/accounts/{self.account_id}/pricing"
@@ -209,17 +198,8 @@ class OandaConnector:
             Order response dictionary or None
         """
         if not self.connected:
-            logger.info(f"🔄 SIMULATION: Market order {instrument} {units} units")
-            # Return mock successful order
-            return {
-                'orderFillTransaction': {
-                    'id': f'mock_{datetime.now().timestamp()}',
-                    'instrument': instrument,
-                    'units': str(units),
-                    'price': '1.0851' if units > 0 else '1.0850',
-                    'time': datetime.now().isoformat() + 'Z'
-                }
-            }
+            logger.error("OANDA not connected")
+            return None
         
         try:
             # Build order request
@@ -264,7 +244,8 @@ class OandaConnector:
     def get_open_positions(self) -> List[Dict]:
         """Get all open positions"""
         if not self.connected:
-            return []  # Return empty list for simulation
+            logger.error("OANDA not connected")
+            return []
         
         try:
             url = f"{self.api_base}/v3/accounts/{self.account_id}/openPositions"
@@ -292,8 +273,8 @@ class OandaConnector:
             Close response dictionary or None
         """
         if not self.connected:
-            logger.info(f"🔄 SIMULATION: Closing position {instrument}")
-            return {'closingTransaction': {'id': f'close_mock_{datetime.now().timestamp()}'}}
+            logger.error("OANDA not connected")
+            return None
         
         try:
             url = f"{self.api_base}/v3/accounts/{self.account_id}/positions/{instrument}/close"
@@ -341,36 +322,8 @@ class OandaConnector:
             List of candle dictionaries or None
         """
         if not self.connected:
-            # Return mock candles for simulation
-            logger.info(f"🔄 SIMULATION: Getting {count} {granularity} candles for {instrument}")
-            mock_candles = []
-            base_time = datetime.now().timestamp()
-            
-            # Generate mock OHLC data
-            base_price = 1.0850 if 'EUR_USD' in instrument else 1.2650
-            for i in range(count):
-                time_offset = i * 300  # 5 minutes apart
-                candle_time = datetime.fromtimestamp(base_time - time_offset).strftime('%Y-%m-%dT%H:%M:%S.000000000Z')
-                
-                # Simple mock price movement
-                price_var = 0.001 * (i % 10 - 5) / 10
-                open_price = base_price + price_var
-                close_price = open_price + 0.0005 * ((i % 3) - 1)
-                high_price = max(open_price, close_price) + 0.0002
-                low_price = min(open_price, close_price) - 0.0002
-                
-                mock_candles.append({
-                    'time': candle_time,
-                    'mid': {
-                        'o': f"{open_price:.5f}",
-                        'h': f"{high_price:.5f}",
-                        'l': f"{low_price:.5f}",
-                        'c': f"{close_price:.5f}"
-                    },
-                    'volume': 100 + (i % 50)
-                })
-            
-            return mock_candles[::-1]  # Return in chronological order
+            logger.error("OANDA not connected")
+            return None
         
         try:
             url = f"{self.api_base}/v3/instruments/{instrument}/candles"
@@ -421,16 +374,8 @@ class OandaConnector:
             List of instrument dictionaries or None
         """
         if not self.connected:
-            # Return mock instruments for simulation
-            logger.info("🔄 SIMULATION: Returning mock instruments")
-            return [
-                {'name': 'EUR_USD', 'displayName': 'EUR/USD', 'type': 'CURRENCY'},
-                {'name': 'GBP_USD', 'displayName': 'GBP/USD', 'type': 'CURRENCY'},
-                {'name': 'USD_JPY', 'displayName': 'USD/JPY', 'type': 'CURRENCY'},
-                {'name': 'AUD_USD', 'displayName': 'AUD/USD', 'type': 'CURRENCY'},
-                {'name': 'USD_CAD', 'displayName': 'USD/CAD', 'type': 'CURRENCY'},
-                {'name': 'USD_CHF', 'displayName': 'USD/CHF', 'type': 'CURRENCY'}
-            ]
+            logger.error("OANDA not connected")
+            return None
         
         try:
             url = f"{self.api_base}/v3/accounts/{self.account_id}/instruments"
