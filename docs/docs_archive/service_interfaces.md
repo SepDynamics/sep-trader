@@ -172,60 +172,6 @@ public:
 };
 ```
 
-### MemoryTierService
-
-```cpp
-/**
- * Service responsible for memory tier management
- */
-class IMemoryTierService {
-public:
-    virtual ~IMemoryTierService() = default;
-    
-    /**
-     * Stores a pattern in the appropriate memory tier
-     * @param pattern Pattern to store
-     * @param tier Optional specific tier to use (auto-selects if not specified)
-     * @return Result containing storage information or error
-     */
-    virtual Result<StorageInfo> storePattern(const Pattern& pattern, 
-                                            MemoryTier tier = MemoryTier::Auto) = 0;
-    
-    /**
-     * Retrieves a pattern by its identifier
-     * @param patternId Identifier of the pattern to retrieve
-     * @return Result containing the retrieved pattern or error
-     */
-    virtual Result<Pattern> retrievePattern(const PatternId& patternId) = 0;
-    
-    /**
-     * Promotes a pattern to a higher memory tier
-     * @param patternId Identifier of the pattern to promote
-     * @return Result containing the new storage information or error
-     */
-    virtual Result<StorageInfo> promotePattern(const PatternId& patternId) = 0;
-    
-    /**
-     * Demotes a pattern to a lower memory tier
-     * @param patternId Identifier of the pattern to demote
-     * @return Result containing the new storage information or error
-     */
-    virtual Result<StorageInfo> demotePattern(const PatternId& patternId) = 0;
-    
-    /**
-     * Gets memory tier statistics
-     * @return Result containing memory tier statistics or error
-     */
-    virtual Result<MemoryTierStats> getMemoryTierStats() = 0;
-    
-    /**
-     * Optimizes memory tier allocations based on usage patterns
-     * @return Result containing optimization results or error
-     */
-    virtual Result<OptimizationResults> optimizeMemoryTiers() = 0;
-};
-```
-
 ### DataAccessService
 
 ```cpp
@@ -313,12 +259,6 @@ public:
     virtual std::shared_ptr<ITradingLogicService> createTradingLogicService() = 0;
     
     /**
-     * Creates or retrieves a memory tier service instance
-     * @return Shared pointer to a memory tier service
-     */
-    virtual std::shared_ptr<IMemoryTierService> createMemoryTierService() = 0;
-    
-    /**
      * Creates or retrieves a data access service instance
      * @return Shared pointer to a data access service
      */
@@ -337,7 +277,6 @@ class QuantumProcessingService : public IQuantumProcessingService {
 public:
     // Constructor with dependencies
     QuantumProcessingService(
-        std::shared_ptr<IMemoryTierService> memoryTierService,
         std::shared_ptr<IDataAccessService> dataAccessService
     );
     
@@ -350,7 +289,6 @@ public:
                                 const std::vector<float>& weights = {}) override;
                                 
 private:
-    std::shared_ptr<IMemoryTierService> m_memoryTierService;
     std::shared_ptr<IDataAccessService> m_dataAccessService;
     
     // Internal implementation details
@@ -365,11 +303,10 @@ Implement a default service factory that creates concrete service instances:
 class DefaultServiceFactory : public IServiceFactory {
 public:
     DefaultServiceFactory();
-    
+
     std::shared_ptr<IQuantumProcessingService> createQuantumProcessingService() override;
     std::shared_ptr<IPatternRecognitionService> createPatternRecognitionService() override;
     std::shared_ptr<ITradingLogicService> createTradingLogicService() override;
-    std::shared_ptr<IMemoryTierService> createMemoryTierService() override;
     std::shared_ptr<IDataAccessService> createDataAccessService() override;
     
 private:
@@ -377,7 +314,6 @@ private:
     std::shared_ptr<IQuantumProcessingService> m_quantumProcessingService;
     std::shared_ptr<IPatternRecognitionService> m_patternRecognitionService;
     std::shared_ptr<ITradingLogicService> m_tradingLogicService;
-    std::shared_ptr<IMemoryTierService> m_memoryTierService;
     std::shared_ptr<IDataAccessService> m_dataAccessService;
 };
 ```
@@ -390,25 +326,22 @@ Implement a mock service factory for testing:
 class MockServiceFactory : public IServiceFactory {
 public:
     MockServiceFactory();
-    
+
     std::shared_ptr<IQuantumProcessingService> createQuantumProcessingService() override;
     std::shared_ptr<IPatternRecognitionService> createPatternRecognitionService() override;
     std::shared_ptr<ITradingLogicService> createTradingLogicService() override;
-    std::shared_ptr<IMemoryTierService> createMemoryTierService() override;
     std::shared_ptr<IDataAccessService> createDataAccessService() override;
     
     // Setters for injecting mock implementations
     void setQuantumProcessingService(std::shared_ptr<IQuantumProcessingService> service);
     void setPatternRecognitionService(std::shared_ptr<IPatternRecognitionService> service);
     void setTradingLogicService(std::shared_ptr<ITradingLogicService> service);
-    void setMemoryTierService(std::shared_ptr<IMemoryTierService> service);
     void setDataAccessService(std::shared_ptr<IDataAccessService> service);
     
 private:
     std::shared_ptr<IQuantumProcessingService> m_quantumProcessingService;
     std::shared_ptr<IPatternRecognitionService> m_patternRecognitionService;
     std::shared_ptr<ITradingLogicService> m_tradingLogicService;
-    std::shared_ptr<IMemoryTierService> m_memoryTierService;
     std::shared_ptr<IDataAccessService> m_dataAccessService;
 };
 ```

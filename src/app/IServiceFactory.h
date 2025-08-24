@@ -4,7 +4,6 @@
 #include "IQuantumProcessingService.h"
 #include "IPatternRecognitionService.h"
 #include "ITradingLogicService.h"
-#include "IMemoryTierService.h"
 #include "IDataAccessService.h"
 #include <memory>
 #include <string>
@@ -88,14 +87,6 @@ public:
      * @return Result containing service instance or error
      */
     virtual Result<std::shared_ptr<ITradingLogicService>> createTradingLogicService(
-        const std::string& implementationName = "") = 0;
-    
-    /**
-     * Create a Memory Tier Service
-     * @param implementationName Optional specific implementation name
-     * @return Result containing service instance or error
-     */
-    virtual Result<std::shared_ptr<IMemoryTierService>> createMemoryTierService(
         const std::string& implementationName = "") = 0;
     
     /**
