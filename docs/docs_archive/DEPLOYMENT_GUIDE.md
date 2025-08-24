@@ -219,10 +219,7 @@ export LD_LIBRARY_PATH=./build/src/core:./build/src/config:./build/src/c_api
 
 # Create local configuration
 mkdir -p config
-cp config/examples/local_training.json config/training_config.json
-
-# Edit configuration for your setup
-nano config/training_config.json
+# training_config.json has been removed; use available examples in config/examples for any required setup
 ```
 
 ### Step 3: Validate Local System
