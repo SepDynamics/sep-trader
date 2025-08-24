@@ -483,7 +483,7 @@ sep::trading::QuantumTradingSignal::Action sep::trading::QuantumSignalBridge::de
     const sep::quantum::QFHResult& qfh,
     const sep::quantum::bitspace::QBSAResult& qbsa) {
     
-    // Direction determination based on test data analysis
+    // Direction determination using QFH and QBSA metrics
     // Stability is the primary indicator: positive = BUY, negative = SELL
     
     // Get the latest stability from the signal (calculated externally)

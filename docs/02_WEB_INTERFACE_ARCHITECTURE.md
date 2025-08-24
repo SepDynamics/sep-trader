@@ -779,20 +779,20 @@ import { TradingInterface } from './TradingInterface'
 
 describe('TradingInterface', () => {
   test('starts trading when start button is clicked', async () => {
-    const mockStartTrading = jest.fn().mockResolvedValue(undefined)
-    
+    const startTrading = jest.fn().mockResolvedValue(undefined)
+
     render(
-      <TradingInterface 
-        onStartTrading={mockStartTrading}
+      <TradingInterface
+        onStartTrading={startTrading}
         onStopTrading={jest.fn()}
         isTrading={false}
       />
     )
-    
+
     fireEvent.click(screen.getByText('Start Trading'))
-    
+
     await waitFor(() => {
-      expect(mockStartTrading).toHaveBeenCalled()
+      expect(startTrading).toHaveBeenCalled()
     })
   })
 })

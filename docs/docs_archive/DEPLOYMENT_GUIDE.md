@@ -254,9 +254,9 @@ echo 'pattern test { print("Local system operational") }' > test.sep
 # 2. Create output directory structure
 mkdir -p output/{signals,models,metrics}
 
-# 3. Generate sample trading signals (placeholder)
-# This would be replaced by actual training output
-echo '{"signals": [{"pair": "EUR_USD", "direction": "BUY", "confidence": 0.75}]}' > output/trading_signals.json
+# 3. Generate trading signals
+# Run the trading pipeline to produce signal output for your instruments
+# (replace with the appropriate command for your setup)
 ```
 
 ### Step 2: Data Synchronization
