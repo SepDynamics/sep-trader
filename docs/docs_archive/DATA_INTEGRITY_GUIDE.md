@@ -31,10 +31,8 @@ This guide clarifies the distinction between legitimate backtesting/simulation a
 - ✅ DSL functions call real SEP engine components
 - ✅ Training coordinator integrates real market data
 
-### **Mock/Test Data** ✅ IDENTIFIED
-**Files requiring validation**:
-- `/sep/src/engine/batch/batch_processor.cpp` - "Simulate execution" comments
-- `/sep/src/cli/trader_cli.cpp` - Static status output only; no real metrics
+### **Mock/Test Data**
+All previously identified mock or test data paths have been removed or corrected.
 
 ## 🔄 DATA FLOW VERIFICATION
 
