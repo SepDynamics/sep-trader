@@ -248,7 +248,9 @@ bool SepEngineApp::initializeFileSimMode() {
     std::cout << "[FILE-SIM] GUI disabled, running in CLI-only mode" << std::endl;
     
     // Initialize minimal components for file simulation
-    cache_ = std::make_unique<sep::apps::MarketModelCache>(oanda_connector_);
+    cache_ = std::make_unique<sep::apps::MarketModelCache>(
+        std::shared_ptr<sep::connectors::OandaConnector>(oanda_connector_.get(), [](auto*){})
+    );
     
     return true;
 }
