@@ -33,6 +33,7 @@ This document tracks outstanding code quality concerns in the SEP Engine codebas
 - Placeholder quantum state replaced with real implementation
   (`src/core/pattern_types.h`, `src/core/types_serialization.cpp`).
 - Unused DSL aggregation and data transformation stubs removed (`src/util/aggregation.*`, `src/util/data_transformation.*`).
+- Unimplemented market data DSL builtins removed (`src/util/interpreter.cpp`).
 
 ## Recommendations
 1. Remove remaining hardcoded values via configuration.
