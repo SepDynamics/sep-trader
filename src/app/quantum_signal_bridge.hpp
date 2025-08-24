@@ -48,7 +48,7 @@ struct QuantumIdentifiers {
 
 /**
  * Multi-timeframe confirmation result
- * Used for triple confirmation logic from testbed analysis
+ * Used for triple confirmation logic based on multi-timeframe analysis
  */
 struct MultiTimeframeConfirmation {
     bool m5_confirms = false;
@@ -116,7 +116,7 @@ public:
     // Real-time signal map updates
     void updateSignalMap(int timeframe_minutes, const std::string& timestamp, const QuantumTradingSignal& signal);
     
-    // Core analysis pipeline (adapted from testbed)
+    // Core analysis pipeline for production use
     std::map<std::string, QuantumTradingSignal> runAnalysisPipeline(
         const std::vector<Candle>& candles, 
         const std::string& timeframe_name = "M1");
