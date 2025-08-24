@@ -1723,32 +1723,6 @@ void Interpreter::register_builtins() {
         return is_market_open() ? 1.0 : 0.0;
     };
     
-    builtins_["place_stop_loss"] = [](const std::vector<Value>& args) -> Value {
-        if (args.size() < 3) {
-            throw std::runtime_error("place_stop_loss() expects (instrument, price, trade_id) arguments");
-        }
-        
-        std::string instrument = std::any_cast<std::string>(args[0]);
-        double price = std::any_cast<double>(args[1]);
-        double trade_id = std::any_cast<double>(args[2]);
-        
-        std::cout << "DSL: Placing stop loss at " << price << " for trade " << trade_id << std::endl;
-        return 1.0; // Success
-    };
-    
-    builtins_["place_take_profit"] = [](const std::vector<Value>& args) -> Value {
-        if (args.size() < 3) {
-            throw std::runtime_error("place_take_profit() expects (instrument, price, trade_id) arguments");
-        }
-        
-        std::string instrument = std::any_cast<std::string>(args[0]);
-        double price = std::any_cast<double>(args[1]);
-        double trade_id = std::any_cast<double>(args[2]);
-        
-        std::cout << "DSL: Placing take profit at " << price << " for trade " << trade_id << std::endl;
-        return 1.0; // Success
-    };
-    
     // Multi-timeframe data support
     builtins_["fetch_historical_oanda_data"] = [](const std::vector<Value>& args) -> Value {
         if (args.size() < 4) {
