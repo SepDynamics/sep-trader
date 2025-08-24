@@ -81,10 +81,10 @@ source OANDA.env && ./build/src/apps/oanda_trader/quantum_tracker
 ### Phase 2 Testing
 ```bash
 # Test multi-asset signal fusion and regime adaptation
-source OANDA.env && ./build/examples/phase2_fusion_testbed
+source OANDA.env && ./_sep/testbed/phase2_fusion_testbed
 
 # Baseline performance validation
-./build/examples/pme_testbed_phase2 Testing/OANDA/O-test-2.json
+./_sep/testbed/pme_testbed_phase2 Testing/OANDA/O-test-2.json
 ```
 
 ### Complete Test Validation
@@ -153,7 +153,7 @@ The system implements algorithms covered by our patent disclosures:
 │   ├── multi_asset_signal_fusion.hpp  # Phase 2: Multi-asset intelligence
 │   ├── market_regime_adaptive.hpp     # Phase 2: Regime adaptation
 │   └── enhanced_market_model_cache.hpp # Phase 1: Enhanced caching
-├── examples/                  # Testing and validation
+├── _sep/testbed/              # Testing and validation
 │   ├── phase2_fusion_testbed.cpp      # Phase 2 comprehensive testing
 │   └── pme_testbed_phase2.cpp         # Baseline performance validation
 ├── docs/                      # Consolidated documentation

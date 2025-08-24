@@ -213,7 +213,7 @@ void Interpreter::register_builtins() {
             throw std::runtime_error("Invalid argument type for run_pme_testbed");
         }
         
-        std::string cmd = "timeout 30 ./build/examples/pme_testbed_phase2 " + data_file + " 2>/dev/null | tail -5";
+        std::string cmd = "timeout 30 ./_sep/testbed/pme_testbed_phase2 " + data_file + " 2>/dev/null | tail -5";
         
         int result = std::system(cmd.c_str());
         if (result == 0) {

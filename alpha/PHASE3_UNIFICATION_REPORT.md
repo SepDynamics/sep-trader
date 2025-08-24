@@ -164,17 +164,17 @@ Where:
 ```bash
 # Build and test unified QFH system
 ./build.sh
-./build/examples/pme_testbed_phase2 Testing/OANDA/O-test-2.json | tail -15
+./_sep/testbed/pme_testbed_phase2 Testing/OANDA/O-test-2.json | tail -15
 
 # Quick results check
-./build/examples/pme_testbed_phase2 Testing/OANDA/O-test-2.json 2>&1 | grep "Overall Accuracy"
+./_sep/testbed/pme_testbed_phase2 Testing/OANDA/O-test-2.json 2>&1 | grep "Overall Accuracy"
 ```
 
 ### Parameter Modification Workflow
 ```bash
 # 1. Edit qfh.cpp parameters
 # 2. Rebuild and test
-./build.sh && ./build/examples/pme_testbed_phase2 Testing/OANDA/O-test-2.json | tail -10
+./build.sh && ./_sep/testbed/pme_testbed_phase2 Testing/OANDA/O-test-2.json | tail -10
 
 # 3. Log results for comparison
 echo "k1=$k1 k2=$k2 accuracy=$(grep 'Overall Accuracy' output.txt)" >> tuning_results.log

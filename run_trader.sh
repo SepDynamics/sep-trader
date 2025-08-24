@@ -71,7 +71,7 @@ import json
 import os
 from datetime import datetime
 
-PME_TESTBED_PATH = "/sep/examples/pme_testbed_phase2.cpp"
+PME_TESTBED_PATH = "/_sep/testbed/pme_testbed_phase2.cpp"
 OANDA_DATA_PATH = "/tmp/${pair}_optimization_data.json"
 
 def fetch_last_5_days_data(pair):
@@ -133,15 +133,9 @@ def modify_thresholds(confidence_t: float, coherence_t: float):
 
 def run_backtest():
     """Builds and runs the backtest, then parses the results."""
-    # Build the system
-    build_proc = subprocess.run(['./build.sh'], capture_output=True, text=True, cwd='/sep')
-    if build_proc.returncode != 0:
-        print("  [ERROR] Build failed. Skipping this configuration.")
-        return None
-
-    # Run the test with the pair-specific data
+    # Run the test with the pair-specific data using isolated testbed binary
     test_proc = subprocess.run(
-        ['./build/examples/pme_testbed_phase2', OANDA_DATA_PATH],
+        ['./_sep/testbed/pme_testbed_phase2', OANDA_DATA_PATH],
         capture_output=True, text=True, cwd='/sep'
     )
     output = test_proc.stdout + test_proc.stderr

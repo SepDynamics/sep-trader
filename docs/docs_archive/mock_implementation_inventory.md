@@ -70,6 +70,7 @@ During our initial scan, we identified the following mock implementations and re
 | CacheValidator | Referenced in tests | Validation | Validate real data providers | Updated |
 | ServiceInterfaces | `src/app/*` | Interface | Define service contracts | Consolidated |
 | MemoryTierServiceStub | `src/app/MemoryTierService.*` | Service | Mock memory tier management | Removed |
+| PMETestbedRunner | `src/util/interpreter.cpp` | DSL builtin | Routes PME analysis through `_sep/testbed` | Updated |
 
 ## Integration with Consolidation Strategy
 

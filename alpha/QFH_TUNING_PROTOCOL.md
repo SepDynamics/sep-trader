@@ -10,7 +10,7 @@
 
 ### Key Configuration Files
 - **Core Engine**: `/sep/src/quantum/bitspace/qfh.cpp`
-- **Testbed**: `/sep/examples/pme_testbed_phase2.cpp`
+- **Testbed**: `/_sep/testbed/pme_testbed_phase2.cpp`
 - **Headers**: `/sep/src/quantum/bitspace/qfh.h`
 
 ## Tuning Parameters
@@ -48,7 +48,7 @@ float flip_coherence = (1.0f - result.flip_ratio) * 1.05f;    // [TUNE 1.05f]
 
 ### 1. Quick Test Command
 ```bash
-./build.sh && ./build/examples/pme_testbed_phase2 Testing/OANDA/O-test-2.json 2>&1 | grep -E "(Overall Accuracy|High Confidence)"
+./build.sh && ./_sep/testbed/pme_testbed_phase2 Testing/OANDA/O-test-2.json 2>&1 | grep -E "(Overall Accuracy|High Confidence)"
 ```
 
 ### 2. Parameter Sweep Template
@@ -65,7 +65,7 @@ for k1 in 0.2 0.3 0.4 0.5; do
     
     # Test
     ./build.sh >/dev/null 2>&1
-    result=$(./build/examples/pme_testbed_phase2 Testing/OANDA/O-test-2.json 2>&1 | grep "Overall Accuracy" | cut -d' ' -f3)
+    result=$(./_sep/testbed/pme_testbed_phase2 Testing/OANDA/O-test-2.json 2>&1 | grep "Overall Accuracy" | cut -d' ' -f3)
     echo "k1=$k1 k2=$k2 accuracy=$result"
     
     # Restore for next iteration
@@ -149,17 +149,17 @@ result.coherence = 0.4f * trajectory_coherence + 0.6f * pattern_coherence;
 
 ### 1. Signal Quality Analysis
 ```bash
-./build/examples/pme_testbed_phase2 Testing/OANDA/O-test-2.json 2>&1 | grep -A5 "Signal Distribution Analysis"
+./_sep/testbed/pme_testbed_phase2 Testing/OANDA/O-test-2.json 2>&1 | grep -A5 "Signal Distribution Analysis"
 ```
 
 ### 2. Coherence Distribution Check
 ```bash
-./build/examples/pme_testbed_phase2 Testing/OANDA/O-test-2.json | awk -F',' 'NR>1 {print $8}' | sort -n | tail -20
+./_sep/testbed/pme_testbed_phase2 Testing/OANDA/O-test-2.json | awk -F',' 'NR>1 {print $8}' | sort -n | tail -20
 ```
 
 ### 3. Pattern Count Verification
 ```bash
-./build/examples/pme_testbed_phase2 Testing/OANDA/O-test-2.json 2>&1 | grep "DEBUG: Created"
+./_sep/testbed/pme_testbed_phase2 Testing/OANDA/O-test-2.json 2>&1 | grep "DEBUG: Created"
 ```
 
 ## Safety Checks
@@ -186,7 +186,7 @@ result.coherence = 0.4f * trajectory_coherence + 0.6f * pattern_coherence;
 - [ ] Line 315: trajectory/pattern blend ratio
 - [ ] Lines 313-323: coherence scaling factors
 
-### Testing Verification (`/sep/examples/pme_testbed_phase2.cpp`)
+### Testing Verification (`/_sep/testbed/pme_testbed_phase2.cpp`)
 - [ ] Confirm QFHBasedProcessor is active
 - [ ] Verify no fallback to legacy engine
 - [ ] Check output format for tracking
