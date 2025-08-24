@@ -24,7 +24,7 @@ Below is a **structured execution plan** for building a suite of visual aids to 
 ## 3. Implementation Tasks (Frontend)
 
 1. **Bootstrap environment** – Ensure `frontend/.env` defines `REACT_APP_API_URL` and `REACT_APP_WS_URL`.  Run `npm install` to install dependencies.
-2. **Fix `App.js`** – Wire up the tabs to render the correct components (HomeDashboard, TradingPanel, etc.).  Ensure each new component mounts properly and receives data via the WebSocket context.
+2. **Fix `App.js`** – Wire up the tabs to render the correct components (HomeDashboard and other planned panels).  Ensure each new component mounts properly and receives data via the WebSocket context.
 3. **Create a `ManifoldContext`** – Extend `WebSocketContext` or create a new context to store manifold‑specific data: arrays of {timestamp, entropy, stability, coherence, state} keyed by instrument.  This context will feed the visual components.
 4. **Develop visual components**:
 
