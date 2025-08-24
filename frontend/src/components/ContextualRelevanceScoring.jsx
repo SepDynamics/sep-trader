@@ -9,6 +9,7 @@ const ContextualRelevanceScoring = () => {
     signalEvolution,
     backwardsDerivations,
     quantumSignals,
+    marketData,
     getSignalState,
     getSignalHistory,
     getBackwardsDerivation
@@ -77,12 +78,12 @@ const ContextualRelevanceScoring = () => {
     });
 
     return scores;
-  }, [manifoldStream, pinStates, signalEvolution, backwardsDerivations, timeWindow, relevanceMode]);
+  }, [manifoldStream, pinStates, signalEvolution, backwardsDerivations, timeWindow, relevanceMode, marketData]);
 
   // Helper function to calculate comprehensive relevance score
-  const calculateRelevanceScore = ({
+  function calculateRelevanceScore({
     timestamp, index, totalKeys, manifoldData, pinState, signalHistory, backwardsDeriv, now, windowMs, mode
-  }) => {
+  }) {
     const components = {};
     
     // 1. Temporal Relevance - how recent and time-intrinsically valuable
@@ -130,7 +131,7 @@ const ContextualRelevanceScoring = () => {
 
     // 5. Contextual Market Relevance - instrument importance, market conditions
     const instrumentWeight = getInstrumentWeight(manifoldData.instrument);
-    const marketVolatility = calculateMarketVolatility(manifoldData.instrument, timestamp);
+    const marketVolatility = calculateMarketVolatility(manifoldData.instrument);
     const contextualRelevance = instrumentWeight * 0.6 + marketVolatility * 0.4;
     components.contextual = contextualRelevance;
 
@@ -163,7 +164,7 @@ const ContextualRelevanceScoring = () => {
       },
       time_intrinsic_value: timeIntrinsicValue
     };
-  };
+  }
 
   // Helper function to get instrument trading weight
   const getInstrumentWeight = (instrument) => {
@@ -180,11 +181,14 @@ const ContextualRelevanceScoring = () => {
   };
 
   // Helper function to calculate market volatility
-  const calculateMarketVolatility = (instrument, timestamp) => {
-    // Mock calculation - in real implementation, would use recent price movements
-    const baseVolatility = Math.sin(timestamp / 3600000) * 0.3 + 0.5; // Simulate market cycles
-    return Math.max(0.2, Math.min(baseVolatility, 0.9));
-  };
+  function calculateMarketVolatility(instrument) {
+    const data = marketData[instrument] || {};
+    if (typeof data.price !== 'number' || typeof data.change !== 'number') {
+      return 0.2;
+    }
+    const changePercent = Math.abs(data.change) / data.price;
+    return Math.max(0.2, Math.min(changePercent * 10, 0.9));
+  }
 
   // Filter scores by minimum relevance
   const filteredScores = useMemo(() => {
