@@ -563,5 +563,107 @@ CoherenceMatrix QuantumProcessingService::buildCoherenceMatrixFromStability(doub
     return result;
 }
 
+StabilityMetrics QuantumProcessingService::buildStabilityFromProcessing(double stability, double coherence) {
+    StabilityMetrics result;
+    
+    // Build stability metrics from core processing results
+    result.structuralStability = stability * 0.9; // Slightly lower than overall
+    result.phaseStability = coherence;
+    result.temporalStability = stability * coherence; // Combined metric
+    
+    // Component stability breakdown
+    result.componentStability["amplitude"] = stability;
+    result.componentStability["phase"] = coherence;
+    result.componentStability["entropy"] = std::max(0.0, 1.0 - (stability + coherence) * 0.5);
+    result.componentStability["temporal"] = result.temporalStability;
+    result.componentStability["overall"] = stability;
+    
+    return result;
+}
+
+glm::vec3 QuantumProcessingService::convertToGLMPattern(const QuantumState& serviceState) {
+    // Convert service layer QuantumState to core quantum layer glm::vec3 pattern
+    glm::vec3 pattern(0.0f);
+    
+    // Extract meaningful pattern components from quantum state
+    if (!serviceState.amplitudes.empty()) {
+        // Use first three amplitudes or extend if fewer available
+        size_t numAmplitudes = std::min(serviceState.amplitudes.size(), static_cast<size_t>(3));
+        
+        for (size_t i = 0; i < numAmplitudes; ++i) {
+            // Convert complex amplitude to real component using magnitude and phase
+            double magnitude = std::abs(serviceState.amplitudes[i]);
+            double phase = std::arg(serviceState.amplitudes[i]);
+            
+            // Combine magnitude and phase into a single real value
+            pattern[i] = static_cast<float>(magnitude * std::cos(phase));
+        }
+        
+        // If we have fewer than 3 amplitudes, use coherence value for remaining components
+        for (size_t i = numAmplitudes; i < 3; ++i) {
+            pattern[i] = static_cast<float>(serviceState.coherenceValue);
+        }
+    } else {
+        // No amplitudes available, use coherence value for all components
+        pattern = glm::vec3(static_cast<float>(serviceState.coherenceValue));
+    }
+    
+    return pattern;
+}
+
+QuantumState QuantumProcessingService::convertFromGLMPattern(const glm::vec3& pattern, const std::string& identifier) {
+    QuantumState result;
+    
+    // Convert glm::vec3 pattern back to service layer QuantumState
+    result.stateIdentifier = identifier;
+    
+    // Convert vector components to complex amplitudes
+    result.amplitudes.resize(3);
+    for (size_t i = 0; i < 3; ++i) {
+        // Create complex amplitude from real pattern value
+        // Use pattern value as magnitude, and derive phase from position
+        double magnitude = std::abs(static_cast<double>(pattern[i]));
+        double phase = (pattern[i] >= 0) ? 0.0 : M_PI; // Simple phase assignment
+        
+        result.amplitudes[i] = std::complex<double>(magnitude * std::cos(phase), magnitude * std::sin(phase));
+    }
+    
+    // Calculate coherence value from pattern magnitude
+    double totalMagnitude = glm::length(pattern);
+    result.coherenceValue = static_cast<double>(totalMagnitude) / std::sqrt(3.0); // Normalize by sqrt(3)
+    
+    return result;
+}
+
+BinaryStateVector QuantumProcessingService::convertFromBitVector(const std::vector<std::uint32_t>& bits) {
+    BinaryStateVector result;
+    
+    // Convert bit vector to binary state vector
+    result.stateVector = bits;
+    result.dimensions = bits.size();
+    
+    // Calculate basic metrics from bit pattern
+    size_t totalBits = 0;
+    size_t setBits = 0;
+    
+    for (uint32_t value : bits) {
+        // Count bits in each uint32_t
+        for (int i = 0; i < 32; ++i) {
+            totalBits++;
+            if (value & (1U << i)) {
+                setBits++;
+            }
+        }
+    }
+    
+    // Calculate binary metrics
+    result.entropy = (totalBits > 0) ? static_cast<double>(setBits) / totalBits : 0.0;
+    result.parity = (setBits % 2 == 0) ? 0 : 1;
+    result.hammingWeight = setBits;
+    
+    return result;
+}
+}
+
 } // namespace services
 } // namespace sep
