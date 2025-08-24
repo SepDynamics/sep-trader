@@ -255,20 +255,20 @@ interface PerformanceUpdate {
 
 ### Core Components
 
-#### Dashboard Component
+#### HomeDashboard Component
 ```typescript
-interface DashboardProps {
+interface HomeDashboardProps {
   tradingStatus: TradingStatus
   performanceMetrics: PerformanceMetrics
   systemStatus: SystemStatus
 }
 
-const Dashboard: React.FC<DashboardProps> = () => {
+const HomeDashboard: React.FC<HomeDashboardProps> = () => {
   // Real-time data integration
   const { tradingData } = useTradingData()
   const { performanceData } = usePerformance()
   const { systemData } = useSystemStatus()
-  
+
   return (
     <DashboardLayout>
       <StatusOverview />
@@ -643,7 +643,7 @@ class ReconnectingWebSocket {
 ### Code Splitting and Lazy Loading
 ```typescript
 // Lazy-loaded route components
-const Dashboard = lazy(() => import('./components/Dashboard'))
+const HomeDashboard = lazy(() => import('./components/HomeDashboard'))
 const Trading = lazy(() => import('./components/Trading'))
 const Performance = lazy(() => import('./components/Performance'))
 const Configuration = lazy(() => import('./components/Configuration'))
@@ -652,7 +652,7 @@ const Configuration = lazy(() => import('./components/Configuration'))
 const AppRoutes = () => (
   <Suspense fallback={<LoadingSpinner />}>
     <Routes>
-      <Route path="/" element={<Dashboard />} />
+      <Route path="/" element={<HomeDashboard />} />
       <Route path="/trading" element={<Trading />} />
       <Route path="/performance" element={<Performance />} />
       <Route path="/config" element={<Configuration />} />
