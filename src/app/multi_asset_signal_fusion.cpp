@@ -8,6 +8,7 @@
 #include <numeric>
 #include <sstream>
 #include <cstdlib>
+#include <stdexcept>
 
 #include "core/sep_precompiled.h"
 #include "candle_types.h"
@@ -74,8 +75,25 @@ FusedSignal MultiAssetSignalFusion::generateFusedSignal(const std::string& targe
             }
             
             auto correlation = calculateDynamicCorrelation(target_asset, asset);
-            
-            auto quantum_identifiers = quantum_processor_->processAsset(asset);
+
+            auto candles = market_cache_->getRecentCandles(asset, 100);
+            std::vector<sep::connectors::MarketData> recent_data;
+            recent_data.reserve(candles.size());
+            for (const auto& c : candles) {
+                sep::connectors::MarketData md;
+                md.instrument = asset;
+                md.bid = c.close;
+                md.ask = c.close;
+                md.mid = c.close;
+                md.timestamp = c.timestamp * 1000; // convert seconds to milliseconds
+                md.volume = c.volume;
+                recent_data.push_back(md);
+            }
+            if (recent_data.empty()) {
+                throw std::runtime_error("No market data for asset");
+            }
+            auto quantum_identifiers = quantum_processor_->calculateConvergedIdentifiers(
+                recent_data, std::min<size_t>(50, recent_data.size()));
             
             AssetSignal signal{
                 .instrument = asset,

@@ -802,13 +802,8 @@ describe('TradingInterface', () => {
 ```typescript
 // API service testing
 import { api } from './api'
-import { server } from '../mocks/server'
 
 describe('API Service', () => {
-  beforeAll(() => server.listen())
-  afterEach(() => server.resetHandlers())
-  afterAll(() => server.close())
-  
   test('fetches trading status', async () => {
     const response = await api.get('/trading/status')
     expect(response.data).toHaveProperty('is_trading')
