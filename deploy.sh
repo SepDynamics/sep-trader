@@ -112,11 +112,14 @@ setup_local_environment() {
 start_local_services() {
     log_info "Starting local services..."
     
-    # Start services using docker-compose
+    # Force rebuild of images
+    log_info "Forcing rebuild of Docker images..."
     if command -v docker-compose &> /dev/null; then
-        docker-compose -p "$PROJECT_NAME" up -d --build
+        docker-compose -p "$PROJECT_NAME" build --no-cache
+        docker-compose -p "$PROJECT_NAME" up -d --force-recreate
     else
-        docker compose -p "$PROJECT_NAME" up -d --build
+        docker compose -p "$PROJECT_NAME" build --no-cache
+        docker compose -p "$PROJECT_NAME" up -d --force-recreate
     fi
     
     log_success "Local services started"
