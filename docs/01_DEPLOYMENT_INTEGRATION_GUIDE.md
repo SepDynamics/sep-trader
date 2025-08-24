@@ -115,7 +115,7 @@ SEP_CONFIG_PATH=/app/config
 PYTHONPATH=/app
 PORT=5000
 REACT_APP_API_URL=http://localhost:5000
-REACT_APP_WS_URL=ws://localhost:8765
+REACT_APP_WS_URL=<websocket-url>
 REACT_APP_ENVIRONMENT=development
 EOF
 ```
@@ -321,7 +321,7 @@ CORS_ORIGINS=http://localhost,http://129.212.145.195
 ```bash
 # Local development
 REACT_APP_API_URL=http://localhost:5000
-REACT_APP_WS_URL=ws://localhost:8765
+REACT_APP_WS_URL=<websocket-url>
 REACT_APP_ENVIRONMENT=development
 
 # Production
