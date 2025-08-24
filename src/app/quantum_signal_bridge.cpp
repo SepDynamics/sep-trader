@@ -55,7 +55,7 @@ void from_json(const json& j, Candle& c) {
 }
 
 namespace {
-std::vector<sep::connectors::MarketData> fetchMarketData(
+std::vector<sep::connectors::MarketData> fetchRecentMarketData(
     sep::connectors::OandaConnector& connector,
     const std::string& pair_symbol,
     size_t hours_back) {
