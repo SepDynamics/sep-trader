@@ -18,6 +18,7 @@ export const WebSocketProvider = ({ children }) => {
   const [marketData, setMarketData] = useState({});
   const [systemStatus, setSystemStatus] = useState({});
   const [tradingSignals, setTradingSignals] = useState([]);
+  const [tradeUpdates, setTradeUpdates] = useState([]);
   const [performanceData, setPerformanceData] = useState({});
   const [systemMetrics, setSystemMetrics] = useState({});
   
@@ -26,6 +27,10 @@ export const WebSocketProvider = ({ children }) => {
   const [signalHistory, setSignalHistory] = useState([]);
   const [valkeyMetrics, setValkeyMetrics] = useState({});
   const [livePatterns, setLivePatterns] = useState({});
+  const [, setManifoldStream] = useState({});
+  const [, setPinStates] = useState(new Map());
+  const [, setSignalEvolution] = useState(new Map());
+  const [, setBackwardsDerivations] = useState(new Map());
   
   // Connection management
   const reconnectTimeoutRef = useRef(null);
@@ -79,8 +84,12 @@ export const WebSocketProvider = ({ children }) => {
     },
     
     trades: (data) => {
-      // Handle trade execution updates
-      console.log('Trade update:', data);
+      if (data) {
+        setTradeUpdates(prev => {
+          const updates = [data, ...prev];
+          return updates.slice(0, 100);
+        });
+      }
     },
     
     // New handlers for Valkey/Redis data streams
@@ -477,6 +486,7 @@ export const WebSocketProvider = ({ children }) => {
     tradingSignals,
     performanceData,
     systemMetrics,
+    tradeUpdates,
     
     // Valkey/Redis quantum data
     quantumSignals,
@@ -527,6 +537,11 @@ export const useSystemStatus = () => {
 export const usePerformanceData = () => {
   const { performanceData } = useWebSocket();
   return performanceData;
+};
+
+export const useTradeUpdates = () => {
+  const { tradeUpdates } = useWebSocket();
+  return tradeUpdates;
 };
 
 export { WebSocketContext };
