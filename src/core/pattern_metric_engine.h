@@ -144,11 +144,11 @@ namespace sep::quantum
      * }
      * @endcode
      */
-    class PatternMetricEngine : public pattern::PatternProcessor
+    class PatternMetricEngine
     {
     public:
         explicit PatternMetricEngine();
-        ~PatternMetricEngine() override = default;
+        ~PatternMetricEngine() = default;
 
         /// @brief Clears the internal state of the engine.
         void clear();
@@ -156,7 +156,7 @@ namespace sep::quantum
         /// @brief Initializes the engine and its quantum processing components.
         /// @param ctx A pointer to the GPU context, or `nullptr` for CPU-only operation.
         /// @return SEPResult::SUCCESS on success.
-        sep::SEPResult init(quantum::GPUContext* ctx) override;
+        sep::SEPResult init(quantum::GPUContext* ctx);
 
         /// @brief Ingests a block of data from a raw byte pointer.
         /// @param data Pointer to the data buffer.
@@ -176,7 +176,7 @@ namespace sep::quantum
         void ingestMappedFile(const std::string& filepath);
 
         /// @brief Processes the ingested data to identify and evolve patterns.
-        void evolvePatterns() override;
+        void evolvePatterns();
 
         /// @brief Manually adds a pattern to the engine.
         /// @param pattern The pattern to add.
@@ -185,7 +185,7 @@ namespace sep::quantum
         /// @brief Creates a mutated version of a given pattern.
         /// @param parent The pattern to mutate.
         /// @return A new PatternData struct representing the mutated pattern.
-        compat::PatternData mutatePattern(const compat::PatternData& parent) override;
+        compat::PatternData mutatePattern(const compat::PatternData& parent);
 
         /// @brief Computes metrics for the currently identified patterns.
         /// @return A vector of PatternMetrics structs.
