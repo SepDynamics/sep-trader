@@ -1,9 +1,9 @@
-import React, { useState, useEffect, useContext } from 'react';
-import { WebSocketContext } from '../context/WebSocketContext';
+import React, { useState, useEffect } from 'react';
+import { useWebSocket } from '../context/WebSocketContext';
 import '../styles/SystemMonitor.css';
 
 const SystemMonitor = () => {
-  const { connectionStatus, latestData } = useContext(WebSocketContext);
+  const { connectionStatus, systemMetrics, valkeyMetrics } = useWebSocket();
   const [systemStats, setSystemStats] = useState({
     cpu: 0,
     memory: 0,
@@ -14,19 +14,19 @@ const SystemMonitor = () => {
   const [quantumEngine, setQuantumEngine] = useState('ACTIVE');
 
   useEffect(() => {
-    if (latestData && latestData.systemMetrics) {
+    if (systemMetrics) {
       setSystemStats({
-        cpu: latestData.systemMetrics.cpu || 0,
-        memory: latestData.systemMetrics.memory || 0,
-        gpu: latestData.systemMetrics.gpu || 0,
-        network: latestData.systemMetrics.network || 0
+        cpu: systemMetrics.cpu_usage || 0,
+        memory: systemMetrics.memory_usage || 0,
+        gpu: systemMetrics.gpu_usage || 0,
+        network: systemMetrics.network_io || 0
       });
     }
     
-    if (latestData && latestData.pipelineStatus) {
-      setPipelineStatus(latestData.pipelineStatus);
+    if (valkeyMetrics && valkeyMetrics.pipeline_status) {
+      setPipelineStatus(valkeyMetrics.pipeline_status);
     }
-  }, [latestData]);
+  }, [systemMetrics, valkeyMetrics]);
 
   const getStatusColor = (value) => {
     if (value < 50) return 'status-green';

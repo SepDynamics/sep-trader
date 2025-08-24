@@ -1,20 +1,37 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { WebSocketContext } from '../context/WebSocketContext';
+import { useWebSocket } from '../context/WebSocketContext';
 import { SymbolContext } from '../context/SymbolContext';
 import '../styles/PatternAnalysis.css';
 
 const PatternAnalysis = () => {
-  const { latestData } = useContext(WebSocketContext);
+  const { quantumSignals, livePatterns } = useWebSocket();
   const { currentSymbol } = useContext(SymbolContext);
   const [activePatterns, setActivePatterns] = useState([]);
   const [patternHistory, setPatternHistory] = useState([]);
 
   useEffect(() => {
-    if (latestData && latestData.quantumPatterns) {
-      setActivePatterns(latestData.quantumPatterns.active || []);
-      setPatternHistory(latestData.quantumPatterns.history || []);
-    }
-  }, [latestData]);
+    // Convert quantum signals and live patterns to pattern format
+    const activePatternsArray = Object.values(livePatterns).map(pattern => ({
+      id: pattern.pattern_id,
+      entropy: pattern.entropy || 0,
+      coherence: pattern.coherence || 0,
+      stability: pattern.stability || 0,
+      timestamp: pattern.lastUpdate
+    }));
+    
+    setActivePatterns(activePatternsArray);
+    
+    // Create pattern history from quantum signals
+    const historyArray = Object.values(quantumSignals).slice(0, 20).map(signal => ({
+      id: signal.signal_id || signal.instrument,
+      entropy: signal.entropy || 0,
+      coherence: signal.coherence || 0,
+      stability: signal.stability || 0,
+      timestamp: signal.timestamp
+    }));
+    
+    setPatternHistory(historyArray);
+  }, [quantumSignals, livePatterns]);
 
   const renderPatternCard = (pattern, index) => {
     return (
