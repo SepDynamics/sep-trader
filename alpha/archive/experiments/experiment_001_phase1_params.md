@@ -26,5 +26,5 @@ double base_sell_threshold = 0.52;  // Phase 1 asymmetric threshold
 
 ## Test Command
 ```bash
-./build/examples/pme_testbed_phase2 Testing/OANDA/O-test-2.json
+./_sep/testbed/pme_testbed_phase2 Testing/OANDA/O-test-2.json
 ```

@@ -19,7 +19,7 @@
 **Goal**: Re-integrate proven Phase 1 volatility enhancement
 **Implementation**: 
 ```cpp
-// In pme_testbed_phase2.cpp after QFH processing:
+// In _sep/testbed/pme_testbed_phase2.cpp after QFH processing:
 auto market_state = AdvancedMarketAnalyzer::analyzeMarketRegime(candles, i);
 double volatility_factor = market_state.volatility_level / 20.0;
 q_p.stability += 0.2f * static_cast<float>(volatility_factor);
@@ -94,7 +94,7 @@ Volatility Enhancement → Signal Generation → Performance Metrics
 ### Core Implementation
 - `/sep/src/engine/internal/engine.cu` → `engine.cpp` (build fix)
 - `/sep/src/engine/CMakeLists.txt` (build configuration)
-- `/sep/examples/pme_testbed_phase2.cpp` (volatility integration)
+- `/_sep/testbed/pme_testbed_phase2.cpp` (volatility integration)
 - `/sep/src/quantum/bitspace/qfh.cpp` (parameter optimization)
 
 ### Testing & Automation

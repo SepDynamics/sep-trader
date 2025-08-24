@@ -91,9 +91,9 @@
   - Use `--no-clear` for stateful processing
   - Example: `./pattern_metric_example data/ --json --no-clear`
 
-- `./build/examples/pme_testbed_phase2` - **Current best performing system**
+- `./_sep/testbed/pme_testbed_phase2` - **Current best performing system**
   - **Accuracy**: 46.59% (Experiment 011 - Multi-timeframe analysis)
-  - **Usage**: `./build/examples/pme_testbed_phase2 Testing/OANDA/O-test-2.json`
+  - **Usage**: `./_sep/testbed/pme_testbed_phase2 Testing/OANDA/O-test-2.json`
   - **Output**: Real-time signal generation with confidence metrics
 
 ### Python Pipeline
@@ -163,13 +163,13 @@ We conducted systematic iterative testing to improve accuracy beyond the baselin
 ### **Current Testing Commands**
 ```bash
 # Run current best system (Experiment 011 + Phase 2 Enhancements)
-./build/examples/pme_testbed_phase2 Testing/OANDA/O-test-2.json
+./_sep/testbed/pme_testbed_phase2 Testing/OANDA/O-test-2.json
 
 # View last 10 lines of results
-./build/examples/pme_testbed_phase2 Testing/OANDA/O-test-2.json | tail -10
+./_sep/testbed/pme_testbed_phase2 Testing/OANDA/O-test-2.json | tail -10
 
 # Full testing workflow
-./build.sh && ./build/examples/pme_testbed_phase2 Testing/OANDA/O-test-2.json | tail-15
+./build.sh && ./_sep/testbed/pme_testbed_phase2 Testing/OANDA/O-test-2.json | tail-15
 ```
 
 ### **Phase 2: Signal Enhancement Complete ✅ (Aug 2025)**
