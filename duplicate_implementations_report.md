@@ -41,6 +41,8 @@ This document tracks outstanding code quality concerns in the SEP Engine codebas
 - Removed duplicate market data fetch function and placeholder ATR
   (`src/app/quantum_signal_bridge.cpp`).
 - Unused spdlog isolation stub removed (`src/util/spdlog_isolation.h`).
+- Unused metrics calculator utility removed (`src/util/metrics_calculator.*`).
+- Obsolete cache health monitor C wrapper removed (`src/app/health_monitor_c_wrapper.*`).
 
 ## Recommendations
 1. Remove remaining hardcoded values via configuration.
