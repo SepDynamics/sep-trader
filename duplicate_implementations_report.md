@@ -42,6 +42,7 @@ This document tracks outstanding code quality concerns in the SEP Engine codebas
 - Unused spdlog isolation stub removed (`src/util/spdlog_isolation.h`).
 - Deprecated header shims consolidated under unified include (`src/util/cuda_safe_includes.h`, `src/util/header_fix.h`, `src/util/force_array.h`, `src/util/functional_safe.h`).
 - Legacy memory tier lookup map removed (`src/util/memory_tier_manager.*`).
+- Removed pseudo Valkey trading metrics; interpreter now returns fallback values without synthetic generation (`src/util/interpreter.cpp`).
 - Duplicate CPU window calculation path consolidated into a single helper (`src/app/tick_data_manager.cpp`).
 - Unused remote data manager interface and synchronizer stubs removed (`src/core/remote_data_manager.hpp`, `src/core/remote_synchronizer.*`).
 - Outdated Redis metrics API removed to reflect Valkey-only integration (`frontend/src/services/api.ts`).
