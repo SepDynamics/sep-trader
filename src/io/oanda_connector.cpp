@@ -781,10 +781,15 @@ bool OandaConnector::fetchHistoricalData(const std::string& instrument,
 
 // --- Data Validation Implementations ---
 
-// --- Data Validation Implementations ---
-
 int64_t OandaConnector::parseTimestamp(const std::string& time_str) {
-        return sep::common::time_point_to_nanoseconds(sep::common::parseTimestamp(time_str));
+    return sep::common::time_point_to_nanoseconds(sep::common::parseTimestamp(time_str));
+}
+
+DataValidationResult OandaConnector::validateCandle(const OandaCandle& candle) {
+    DataValidationResult result{true, {}, {}};
+    if (candle.high < candle.low) {
+        result.valid = false;
+        result.errors.push_back("High price cannot be less than low price.");
     }
     if (candle.volume < 0) {
         result.valid = false;
@@ -793,43 +798,27 @@ int64_t OandaConnector::parseTimestamp(const std::string& time_str) {
     return result;
 }
 
-DataValidationResult OandaConnector::validateCandle(const OandaCandle& candle) {
-        DataValidationResult result{true, {}, {}};
-        // Only validate the essential invariant: high >= low
-        if (candle.high < candle.low) {
-            result.valid = false;
-            result.errors.push_back("High price cannot be less than low price.");
-        }
-        // Open and close can be anywhere between high and low (inclusive) - this is normal forex
-        // behavior
-        if (candle.volume < 0) {
-            result.valid = false;
-            result.errors.push_back("Volume cannot be negative.");
-        }
+DataValidationResult OandaConnector::validateCandleSequence(
+    const std::vector<OandaCandle>& candles, const std::string& granularity) {
+    DataValidationResult result{true, {}, {}};
+    if (candles.size() < 2u)
         return result;
 
-DataValidationResult OandaConnector::validateCandleSequence(
-        const std::vector<OandaCandle>& candles, const std::string& granularity) {
-        DataValidationResult result{true, {}, {}};
-        if (candles.size() < 2u)
-            return result;  // Not enough data to check sequence
-
-        for (size_t i = 0; i < candles.size(); ++i) {
-            auto single_validation = validateCandle(candles[i]);
-            if (!single_validation.valid) {
-                result.valid = false;
-                for (const auto& err : single_validation.errors) {
-                    result.errors.push_back("Candle at " + candles[i].time + ": " + err);
-                }
+    for (size_t i = 0; i < candles.size(); ++i) {
+        auto single_validation = validateCandle(candles[i]);
+        if (!single_validation.valid) {
+            result.valid = false;
+            for (const auto& err : single_validation.errors) {
+                result.errors.push_back("Candle at " + candles[i].time + ": " + err);
             }
         }
     }
 
-std::vector<double> OandaConnector::calculateHistoricalATRs(
-        const std::vector<OandaCandle>& candles) {
-        std::vector<double> atrs;
-        if (candles.size() < 15u)
-            return atrs;
+    int64_t expected_diff = sep::oanda_constants::SECONDS_PER_MINUTE;  // Default to M1
+    if (granularity == "H1")
+        expected_diff = sep::oanda_constants::SECONDS_PER_HOUR;
+    else if (granularity == "D")
+        expected_diff = sep::oanda_constants::SECONDS_PER_DAY;
 
     for (size_t i = 1; i < candles.size(); ++i) {
         int64_t t1 = parseTimestamp(candles[i - 1].time);
@@ -857,26 +846,20 @@ std::vector<double> OandaConnector::calculateHistoricalATRs(
         true_ranges.push_back(tr);
     }
 
-std::string OandaConnector::getCacheFilename(const std::string& instrument,
-                                                 const std::string& granularity,
-                                                 const std::string& from, const std::string& to) {
-        std::string filename = instrument + "_" + granularity;
-        if (!from.empty()) {
-            filename += "_" + from;
-        }
-        if (!to.empty()) {
-            filename += "_" + to;
-        }
-        std::replace(filename.begin(), filename.end(), ':', '-');
-        return cache_path_ + "/" + filename + ".json";
+    if (true_ranges.size() < 14u)
+        return atrs;
+
+    double first_atr =
+        std::accumulate(true_ranges.begin(), true_ranges.begin() + 14, 0.0) / 14.0;
+    atrs.push_back(first_atr);
+
+    for (size_t i = 14u; i < true_ranges.size(); ++i) {
+        double next_atr = (atrs.back() * 13 + true_ranges[i]) / 14.0;
+        atrs.push_back(next_atr);
     }
 
-std::vector<OandaCandle> OandaConnector::loadFromCache(const std::string& filename) {
-        std::vector<OandaCandle> candles;
-        std::ifstream in_stream(filename);
-        if (!in_stream.is_open()) {
-            return candles;
-        }
+    return atrs;
+}
 
 std::string OandaConnector::getCacheFilename(const std::string& instrument,
                                              const std::string& granularity,
@@ -899,58 +882,38 @@ std::vector<OandaCandle> OandaConnector::loadFromCache(const std::string& filena
         return candles;
     }
 
+    try {
+        nlohmann::json json_data;
+        in_stream >> json_data;
+        for (const auto& candle_json : json_data) {
+            candles.push_back(parseCandle(candle_json));
+        }
+    } catch (...) {
+        // Failed to parse, return empty
+    }
+
+    return candles;
+}
+
 void OandaConnector::saveToCache(const std::string& filename,
                                  const std::vector<OandaCandle>& candles) {
-        nlohmann::json json_output;
-        for (const auto& c : candles) {
-            nlohmann::json candle_json;
-            candle_json["time"] = c.time;
-            candle_json["open"] = c.open;
-            candle_json["high"] = c.high;
-            candle_json["low"] = c.low;
-            candle_json["close"] = c.close;
-            candle_json["volume"] = c.volume;
-            json_output.push_back(candle_json);
-        }
-
-        std::ofstream out_stream(filename);
-        if (out_stream.is_open()) {
-            out_stream << json_output.dump(4);
-        }
+    nlohmann::json json_output;
+    for (const auto& c : candles) {
+        nlohmann::json candle_json;
+        candle_json["time"] = c.time;
+        candle_json["open"] = c.open;
+        candle_json["high"] = c.high;
+        candle_json["low"] = c.low;
+        candle_json["close"] = c.close;
+        candle_json["volume"] = c.volume;
+        json_output.push_back(candle_json);
     }
 
-    std::vector<OandaCandle> OandaConnector::getHistoricalData(
-        const std::string& instrument, const std::string& granularity, int count) {
-        std::vector<OandaCandle> candles;
-
-        std::string endpoint = "/v3/instruments/" + instrument + "/candles";
-        endpoint += "?granularity=" + granularity;
-        endpoint += "&count=" + std::to_string(count);
-
-        try {
-            auto response = makeRequest(endpoint);
-            if (response.response_code == 200) {
-                auto json_response = nlohmann::json::parse(response.data);
-                if (json_response.contains("candles") && json_response["candles"].is_array()) {
-                    for (const auto& candle_json : json_response["candles"]) {
-                        auto parsed_candle = parseCandle(candle_json);
-                        if (!parsed_candle.time.empty()) {
-                            candles.push_back(std::move(parsed_candle));
-                        }
-                    }
-                }
-            } else {
-                std::cerr << "[OANDA] HTTP Error " << response.response_code
-                          << " for endpoint: " << endpoint << std::endl;
-                std::cerr << "[OANDA] Response: " << response.data << std::endl;
-            }
-        } catch (const std::exception& e) {
-            std::cerr << "[OANDA] Exception in getHistoricalData: " << e.what() << std::endl;
-            std::cerr << "[OANDA] Endpoint: " << endpoint << std::endl;
-        }
-
-        return candles;
+    std::ofstream out_stream(filename);
+    if (out_stream.is_open()) {
+        out_stream << json_output.dump(4);
     }
+}
 
 }  // namespace connectors
 }  // namespace sep
