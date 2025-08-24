@@ -1,6 +1,13 @@
 #pragma once
 
+#ifndef SEP_NO_REDIS
 #include <hiredis/hiredis.h>
+#define SEP_HAS_HIREDIS 1
+#else
+#define SEP_HAS_HIREDIS 0
+// Stub types when hiredis not available
+struct redisContext { int dummy; };
+#endif
 
 #include <memory>
 #include <mutex>

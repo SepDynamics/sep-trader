@@ -220,25 +220,38 @@ else()
   endif()
 endif()
 
-# ---------- hiredis ----------
+# ---------- hiredis (OPTIONAL) ----------
+set(HIREDIS_FOUND FALSE)
 if(WIN32)
-  find_package(hiredis CONFIG REQUIRED)
-  add_library(Redis::hiredis ALIAS hiredis::hiredis)
-  message(STATUS "hiredis: vcpkg (Windows)")
+  find_package(hiredis CONFIG QUIET)
+  if(hiredis_FOUND)
+    add_library(Redis::hiredis ALIAS hiredis::hiredis)
+    set(HIREDIS_FOUND TRUE)
+    message(STATUS "hiredis: vcpkg (Windows)")
+  endif()
 else()
   find_package(hiredis QUIET CONFIG)
   if(hiredis_FOUND)
     add_library(Redis::hiredis ALIAS hiredis::hiredis)
+    set(HIREDIS_FOUND TRUE)
+    message(STATUS "hiredis: CMake config (Linux)")
   else()
-    if(NOT DEFINED PKG_CONFIG_FOUND)
-      find_package(PkgConfig REQUIRED)
+    find_package(PkgConfig QUIET)
+    if(PKG_CONFIG_FOUND)
+      pkg_check_modules(HIREDIS QUIET hiredis)
+      if(HIREDIS_FOUND)
+        add_library(Redis::hiredis INTERFACE IMPORTED)
+        set_property(TARGET Redis::hiredis PROPERTY INTERFACE_INCLUDE_DIRECTORIES "${HIREDIS_INCLUDE_DIRS}")
+        set_property(TARGET Redis::hiredis PROPERTY INTERFACE_LINK_LIBRARIES     "${HIREDIS_LIBRARIES}")
+        message(STATUS "hiredis: pkg-config (Linux)")
+      endif()
     endif()
-    pkg_check_modules(HIREDIS REQUIRED hiredis)
-    add_library(Redis::hiredis INTERFACE IMPORTED)
-    set_property(TARGET Redis::hiredis PROPERTY INTERFACE_INCLUDE_DIRECTORIES "${HIREDIS_INCLUDE_DIRS}")
-    set_property(TARGET Redis::hiredis PROPERTY INTERFACE_LINK_LIBRARIES     "${HIREDIS_LIBRARIES}")
-    message(STATUS "hiredis: pkg-config (Linux)")
   endif()
+endif()
+
+if(NOT HIREDIS_FOUND)
+  message(STATUS "hiredis: NOT FOUND - Redis features will be disabled")
+  add_compile_definitions(SEP_NO_REDIS=1)
 endif()
 
 # ---------- oneTBB (optional) ----------
@@ -296,7 +309,6 @@ foreach(_t
   PostgreSQL::pqxx
   PostgreSQL::pq
   YAML::yaml-cpp
-  Redis::hiredis
   TBB::tbb
   fmt::fmt
   spdlog::spdlog
@@ -308,6 +320,11 @@ foreach(_t
     target_link_libraries(sep_core_deps INTERFACE ${_t})
   endif()
 endforeach()
+
+# Optional Redis dependency
+if(TARGET Redis::hiredis)
+  target_link_libraries(sep_core_deps INTERFACE Redis::hiredis)
+endif()
 
 add_library(sep_fetchcontent_deps INTERFACE)
 if(TARGET spdlog)
