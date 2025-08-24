@@ -73,19 +73,6 @@ from datetime import datetime
 
 PME_TESTBED_PATH = "/_sep/testbed/pme_testbed_phase2.cpp"
 OANDA_DATA_PATH = "/tmp/${pair}_optimization_data.json"
-
-def fetch_last_5_days_data(pair):
-    """Fetch 5 days of historical data for optimization"""
-    print(f"Fetching 5 days of data for {pair}...")
-    cmd = f"cd /sep && source ./OANDA.env && ./build/examples/oanda_historical_fetcher --instrument {pair} --granularity M1 --hours 120 --output {OANDA_DATA_PATH}"
-    result = subprocess.run(cmd, shell=True, capture_output=True, text=True)
-    if result.returncode == 0 and os.path.exists(OANDA_DATA_PATH):
-        print(f"Successfully fetched data for {pair}")
-        return True
-    else:
-        print(f"Failed to fetch data for {pair}: {result.stderr}")
-        return False
-
 def modify_scoring_weights(stability_w: float, coherence_w: float, entropy_w: float):
     """Modifies the scoring weights in the C++ source file."""
     with open(PME_TESTBED_PATH, 'r') as f:
@@ -158,11 +145,8 @@ def run_backtest():
 
 def optimize_pair_parameters(pair):
     """Find optimal parameters for a currency pair using systematic grid search"""
-    
-    # First fetch the data
-    if not fetch_last_5_days_data(pair):
-        return None
-    
+    # Data at OANDA_DATA_PATH must already exist for optimization
+
     print(f"Starting systematic optimization for {pair}...")
     
     # Define parameter grid - start with smaller grid for faster debugging
