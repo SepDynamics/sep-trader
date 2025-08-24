@@ -1562,49 +1562,7 @@ void Interpreter::register_builtins() {
     };
     
     // ===== TRADING-SPECIFIC FUNCTIONS FOR SEP DSL PLATFORM =====
-    
-    // Account management functions
-    builtins_["get_account_balance"] = [](const std::vector<Value>& args) -> Value {
-        (void)args; // Suppress unused parameter warning
-        std::cout << "DSL: Getting account balance from Valkey..." << std::endl;
-        // Query real balance from Valkey with fallback to calculated value
-        return get_valkey_trading_metric("account_balance", 10000.0);
-    };
-    
-    builtins_["get_current_drawdown"] = [](const std::vector<Value>& args) -> Value {
-        (void)args; // Suppress unused parameter warning
-        std::cout << "DSL: Calculating current drawdown from trading data..." << std::endl;
-        // Calculate real drawdown from Valkey trading history
-        return get_valkey_trading_metric("current_drawdown", 0.02);
-    };
-    
-    builtins_["get_position_count"] = [](const std::vector<Value>& args) -> Value {
-        (void)args; // Suppress unused parameter warning
-        std::cout << "DSL: Getting open position count from Valkey..." << std::endl;
-        // Query real position count from Valkey trading data
-        return get_valkey_trading_metric("position_count", 2.0);
-    };
-    
-    // Position sizing and risk management
-    builtins_["calculate_position_size"] = [](const std::vector<Value>& args) -> Value {
-        if (args.empty()) {
-            throw std::runtime_error("calculate_position_size() expects signal_strength argument");
-        }
-        
-        double signal_strength = std::any_cast<double>(args[0]);
-        double account_balance = 10000.0; // Demo balance
-        double base_risk = 0.02; // 2% base risk
-        
-        // Confidence-based position sizing
-        double confidence_multiplier = signal_strength > 0.8 ? 1.5 : 1.0;
-        double position_size = account_balance * base_risk * confidence_multiplier;
-        
-        std::cout << "DSL: Calculated position size: $" << position_size 
-                  << " (signal: " << signal_strength << ")" << std::endl;
-        
-        return position_size;
-    };
-    
+
     // Trade execution functions
     builtins_["execute_trade"] = [](const std::vector<Value>& args) -> Value {
         if (args.size() < 5) {
