@@ -7,6 +7,7 @@
 #include <array>
 #include <chrono>
 #include <cmath>
+#include <cstdlib>
 #include <fstream>
 #include <iomanip>
 #include <iostream>
@@ -17,8 +18,10 @@
 #include "cuda/bit_pattern_kernels.h"
 #include "core/pattern_processor.h"
 #include "core/quantum_manifold_optimizer.h"
+#include "core/oanda_market_data_helper.hpp"
 #include "core/signal.h"
 #include "core/types_serialization.h"
+#include "io/oanda_connector.h"
 #include "app/realtime_aggregator.hpp"
 
 using json = nlohmann::json;
@@ -1029,36 +1032,31 @@ sep::trading::QuantumIdentifiers sep::trading::QuantumSignalBridge::processAsset
             throw std::runtime_error("Multi-timeframe analyzer not available");
         }
 
-        // Generate synthetic recent data for processing if no real data is available
-        // In a real implementation, this would fetch from market data feeds
+        // Fetch recent market data via OANDA if available
         std::vector<sep::connectors::MarketData> recent_data;
-        
-        // Create sample market data points for quantum analysis
-        auto now = std::chrono::system_clock::now();
-        auto timestamp = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()).count();
-        
-        // Generate a realistic price sequence based on asset name
-        double base_price = (asset == "EUR_USD") ? 1.0800 :
-                           (asset == "GBP_USD") ? 1.2700 :
-                           (asset == "USD_JPY") ? 148.50 : 1.0000;
-        
-        for (int i = 0; i < 50; ++i) {
-            sep::connectors::MarketData md;
-            md.instrument = asset;
-            md.timestamp = timestamp - (i * 60000); // 1-minute intervals backwards
-            
-            // Add small random variations to simulate market movement
-            double variation = (std::sin(i * 0.1) * 0.001) + (std::cos(i * 0.05) * 0.0005);
-            md.bid = base_price + variation;
-            md.ask = md.bid + 0.00015; // Typical forex spread
-            md.volume = 100.0 + (i % 20); // Varying volume
-            
-            recent_data.push_back(md);
+        const char* api_key = std::getenv("OANDA_API_KEY");
+        const char* account_id = std::getenv("OANDA_ACCOUNT_ID");
+        if (api_key && account_id) {
+            try {
+                sep::connectors::OandaConnector connector(api_key, account_id);
+                if (connector.initialize()) {
+                    recent_data = sep::testbed::fetchMarketData(connector, asset, 1);
+                    connector.shutdown();
+                }
+            } catch (const std::exception& e) {
+                std::cerr << "[QuantumSignal] OANDA fetch failed: " << e.what() << std::endl;
+            }
         }
-        
+
+        if (recent_data.empty()) {
+            std::cerr << "[QuantumSignal] No market data available for asset " << asset << std::endl;
+            return sep::trading::QuantumIdentifiers{0.0f, 0.0f, 0.0f, false};
+        }
+
         // Convert market data to forward window format for quantum analysis
-        std::vector<sep::connectors::MarketData> forward_window(recent_data.begin(),
-                                                               recent_data.begin() + std::min(30UL, recent_data.size()));
+        std::vector<sep::connectors::MarketData> forward_window(
+            recent_data.begin(),
+            recent_data.begin() + std::min<size_t>(30, recent_data.size()));
         
         // Use the existing quantum processing pipeline
         QuantumIdentifiers identifiers = calculateConvergedIdentifiers(forward_window, 20);
