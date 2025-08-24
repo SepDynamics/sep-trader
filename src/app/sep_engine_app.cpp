@@ -4,7 +4,6 @@
 #include "util/nlohmann_json_safe.h"
 #include "io/market_data_converter.h"
 #include "market_utils.hpp"
-#include "weekend_optimizer.hpp"
 
 #include <chrono>
 #include <condition_variable>

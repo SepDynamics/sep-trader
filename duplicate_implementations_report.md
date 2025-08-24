@@ -40,6 +40,8 @@ This document tracks outstanding code quality concerns in the SEP Engine codebas
 - Duplicate quantum coherence manager removed (`src/util/quantum_coherence_manager.*`) in favor of the core implementation.
 - Removed duplicate market data fetch function and placeholder ATR
   (`src/app/quantum_signal_bridge.cpp`).
+- Unused weekend optimization logic removed (`src/app/weekend_optimizer.*`,
+  include from `src/app/sep_engine_app.cpp`).
 
 ## Recommendations
 1. Remove remaining hardcoded values via configuration.
