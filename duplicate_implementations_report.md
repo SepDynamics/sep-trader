@@ -5,8 +5,8 @@ This document tracks outstanding code quality concerns in the SEP Engine codebas
 
 ## Code Quality Issues
 
-### Hardcoded Values
-- `src/cuda/kernels.cu` - Hardcoded block and grid sizes.
+### Legacy Fallbacks
+- `src/util/interpreter.cpp` - Hardcoded DSL fallback functions bypass `builtins_` map.
 
 ## Recent Cleanup
 - Legacy DSL bytecode and primitive modules removed (`src/util/compiler.*`,
@@ -19,6 +19,8 @@ This document tracks outstanding code quality concerns in the SEP Engine codebas
 - Unused CUDA placeholder removed (`src/core/quantum_pattern_cuda.cu`).
 - DSL builtin now uses `data_downloader` for real OANDA data (`src/util/interpreter.cpp`).
 - Default API base URL removed to enforce explicit configuration (`frontend/src/services/api.ts`).
+- Unused Axios dependency removed; API client now uses native fetch (`frontend/package.json`,
+  `docs/02_WEB_INTERFACE_ARCHITECTURE.md`).
 - Redis stub context eliminated to ensure real integration (`src/util/redis_manager.*`).
 - Stub CLI commands and duplicate kernel implementations removed (`src/core/cli_commands.*`, `src/core/kernel_implementations.cu`, `tests/unit/core/cli_commands_test.cpp`).
 - Sample EUR/USD data helper and duplicate dataset removed (`src/io/oanda_connector.*`, `eur_usd_m1_48h.json`).
@@ -41,8 +43,11 @@ This document tracks outstanding code quality concerns in the SEP Engine codebas
 - Deprecated header shims consolidated under unified include (`src/util/cuda_safe_includes.h`, `src/util/header_fix.h`, `src/util/force_array.h`, `src/util/functional_safe.h`).
 - Legacy memory tier lookup map removed (`src/util/memory_tier_manager.*`).
 - Duplicate CPU window calculation path consolidated into a single helper (`src/app/tick_data_manager.cpp`).
+- Unused remote data manager interface and synchronizer stubs removed (`src/core/remote_data_manager.hpp`, `src/core/remote_synchronizer.*`).
+- Outdated Redis metrics API removed to reflect Valkey-only integration (`frontend/src/services/api.ts`).
 
 ## Recommendations
-1. Remove remaining hardcoded values via configuration.
-2. Standardize error handling.
+1. Migrate DSL fallback functions to `builtins_` map for consistency.
+2. Remove remaining hardcoded values via configuration.
+3. Standardize error handling.
 
