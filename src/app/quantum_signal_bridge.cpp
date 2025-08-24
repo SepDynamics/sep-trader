@@ -1,6 +1,6 @@
-#include "util/nlohmann_json_safe.h"
 #include "app/quantum_signal_bridge.hpp"
 #include "core/result_types.h"
+#include "util/nlohmann_json_safe.h"
 
 #include <cuda_runtime.h>
 #include <algorithm>
@@ -16,13 +16,13 @@
 
 #include "app/candle_types.h"
 
-#include "cuda/bit_pattern_kernels.h"
+#include "app/realtime_aggregator.hpp"
 #include "core/pattern_processor.h"
 #include "core/quantum_manifold_optimizer.h"
 #include "core/signal.h"
 #include "core/types_serialization.h"
+#include "cuda/bit_pattern_kernels.h"
 #include "io/oanda_connector.h"
-#include "app/realtime_aggregator.hpp"
 
 using json = nlohmann::json;
 
@@ -31,7 +31,7 @@ void from_json(const json& j, Candle& c) {
     j.at("time").get_to(time_str);
     c.timestamp = parseTimestamp(time_str);
     c.volume = j.contains("volume") ? j["volume"].get<double>() : 100.0;
-    
+
     // Handle OANDA format with nested "mid" object
     if (j.contains("mid")) {
         auto mid = j["mid"];
@@ -40,7 +40,7 @@ void from_json(const json& j, Candle& c) {
         mid.at("h").get_to(high_str);
         mid.at("l").get_to(low_str);
         mid.at("c").get_to(close_str);
-        
+
         c.open = std::stod(open_str);
         c.high = std::stod(high_str);
         c.low = std::stod(low_str);
@@ -56,9 +56,7 @@ void from_json(const json& j, Candle& c) {
 
 namespace {
 std::vector<sep::connectors::MarketData> fetchRecentMarketData(
-    sep::connectors::OandaConnector& connector,
-    const std::string& pair_symbol,
-    size_t hours_back) {
+    sep::connectors::OandaConnector& connector, const std::string& pair_symbol, size_t hours_back) {
     using namespace std::chrono;
 
     auto now = system_clock::now();
@@ -87,7 +85,8 @@ std::vector<sep::connectors::MarketData> fetchRecentMarketData(
     for (const auto& candle : oanda_candles) {
         sep::connectors::MarketData md;
         md.instrument = pair_symbol;
-        md.timestamp = duration_cast<milliseconds>(parseTimestamp(candle.time).time_since_epoch()).count();
+        md.timestamp =
+            duration_cast<milliseconds>(parseTimestamp(candle.time).time_since_epoch()).count();
         md.mid = candle.close;
         md.bid = candle.low;
         md.ask = candle.high;
@@ -98,31 +97,30 @@ std::vector<sep::connectors::MarketData> fetchRecentMarketData(
             tr = candle.high - candle.low;
         } else {
             double prev_close = market_data.back().mid;
-            tr = std::max({candle.high - candle.low, std::abs(candle.high - prev_close), std::abs(candle.low - prev_close)});
+            tr = std::max({candle.high - candle.low, std::abs(candle.high - prev_close),
+                           std::abs(candle.low - prev_close)});
         }
-        atr = market_data.empty() ? tr : atr + (tr - atr) / std::min(period, market_data.size() + 1.0);
+        atr = market_data.empty() ? tr
+                                  : atr + (tr - atr) / std::min(period, market_data.size() + 1.0);
         md.atr = atr;
         market_data.push_back(md);
     }
 
     return market_data;
 }
-} // anonymous namespace
+}  // anonymous namespace
 
 namespace sep::trading {
 
-QuantumSignalBridge::QuantumSignalBridge() 
-    : patterns_file_path_("quantum_patterns.json")
-{
+QuantumSignalBridge::QuantumSignalBridge() : patterns_file_path_("quantum_patterns.json") {
     // Initialize multi-timeframe analyzer
     mtf_analyzer_ = std::make_unique<MultiTimeframeAnalyzer>();
-    
+
     // Initialize real-time aggregator with callback
-    realtime_aggregator_ = std::make_unique<RealTimeAggregator>(
-        [this](const Candle& candle, int timeframe_minutes) {
+    realtime_aggregator_ =
+        std::make_unique<RealTimeAggregator>([this](const Candle& candle, int timeframe_minutes) {
             this->onHigherTimeframeCandle(candle, timeframe_minutes);
-        }
-    );
+        });
 }
 
 QuantumSignalBridge::~QuantumSignalBridge() {
@@ -131,11 +129,11 @@ QuantumSignalBridge::~QuantumSignalBridge() {
 
 bool QuantumSignalBridge::initialize() {
     std::lock_guard<std::mutex> lock(analysis_mutex_);
-    
+
     try {
         // Initialize QFH processor with correct options
         pattern_processor_ = std::make_unique<sep::quantum::bitspace::PatternProcessor>();
-        
+
         // Initialize pattern evolution bridge
         sep::quantum::PatternEvolutionBridge::Config evo_cfg;
         evolver_ = std::make_unique<sep::quantum::PatternEvolutionBridge>(evo_cfg);
@@ -143,14 +141,14 @@ bool QuantumSignalBridge::initialize() {
 
         // Load existing patterns
         loadPatterns();
-        
+
         // Load optimal configuration from weekend optimizer
         loadOptimalConfig();
-        
+
         initialized_ = true;
         std::cout << "[QuantumSignalBridge] Initialized successfully" << std::endl;
         return true;
-        
+
     } catch (const std::exception& e) {
         std::cerr << "[QuantumSignalBridge] Initialization failed: " << e.what() << std::endl;
         return false;
@@ -166,55 +164,51 @@ void QuantumSignalBridge::shutdown() {
 }
 
 QuantumIdentifiers QuantumSignalBridge::calculateConvergedIdentifiers(
-    const std::vector<sep::connectors::MarketData>& forward_window,
-    size_t window_size) {
-    
+    const std::vector<sep::connectors::MarketData>& forward_window, size_t window_size) {
     QuantumIdentifiers identifiers;
-    
+
     if (forward_window.size() < window_size) {
-        std::cout << "[QuantumSignal] Insufficient forward window: " << forward_window.size() 
+        std::cout << "[QuantumSignal] Insufficient forward window: " << forward_window.size()
                   << " (need " << window_size << ")" << std::endl;
         return identifiers;
     }
-    
+
     // Convert forward window to bits for analysis
     auto forward_bits = convertPriceToBits(forward_window);
-    
+
     if (forward_bits.size() < 10) {
-        std::cout << "[QuantumSignal] Insufficient forward bit data: " << forward_bits.size() << std::endl;
+        std::cout << "[QuantumSignal] Insufficient forward bit data: " << forward_bits.size()
+                  << std::endl;
         return identifiers;
     }
-    
+
     // Calculate converged identifiers using iterative convergence
     identifiers = calculateIdentifiersWithConvergence(forward_bits);
-    
-    std::cout << "[QuantumSignal] Converged identifiers: confidence=" << identifiers.confidence 
-              << ", coherence=" << identifiers.coherence 
-              << ", stability=" << identifiers.stability 
-              << " (converged=" << identifiers.converged 
+
+    std::cout << "[QuantumSignal] Converged identifiers: confidence=" << identifiers.confidence
+              << ", coherence=" << identifiers.coherence << ", stability=" << identifiers.stability
+              << " (converged=" << identifiers.converged
               << ", iterations=" << identifiers.iterations << ")" << std::endl;
-    
+
     return identifiers;
 }
 
 QuantumIdentifiers QuantumSignalBridge::calculateIdentifiersWithConvergence(
-    const std::vector<uint8_t>& forward_bits,
-    int max_iterations,
-    float convergence_threshold) {
-    
+    const std::vector<uint8_t>& forward_bits, int max_iterations, float convergence_threshold) {
     QuantumIdentifiers identifiers;
     identifiers.convergence_threshold = convergence_threshold;
-    
+
     if (forward_bits.size() < 10) {
-        std::cout << "[QuantumSignal] Insufficient bits for convergence: " << forward_bits.size() << std::endl;
+        std::cout << "[QuantumSignal] Insufficient bits for convergence: " << forward_bits.size()
+                  << std::endl;
         return identifiers;
     }
-    
+
     // Initialize previous values
     float prev_confidence = 0.5f;
     float prev_coherence = 0.5f;
     float prev_stability = 0.5f;
-    
+
     // Iterative convergence calculation
     for (int iteration = 0; iteration < max_iterations; ++iteration) {
         // Run QFH analysis on current bit window
@@ -229,28 +223,32 @@ QuantumIdentifiers QuantumSignalBridge::calculateIdentifiersWithConvergence(
         // Generate probe/expectation for QBSA (using proper indices, not values)
         std::vector<uint32_t> probe_indices;
         std::vector<uint32_t> expectations;
-        
+
         // Generate probe indices every 4th position for efficiency
         for (size_t i = 0; i < std::min(forward_bits.size(), 64UL); i += 4) {
             probe_indices.push_back(static_cast<uint32_t>(i));  // Actual indices, not values
-            
+
             // Generate expectation based on trend analysis around this index
             if (i >= 16) {
                 // Look at bits around this index for pattern prediction
                 int recent_ones = 0;
                 size_t lookback_start = std::max(int(i) - 8, 0);
                 for (size_t j = lookback_start; j < i; ++j) {
-                    if (j < forward_bits.size() && forward_bits[j] == 1) recent_ones++;
+                    if (j < forward_bits.size() && forward_bits[j] == 1)
+                        recent_ones++;
                 }
-                
+
                 size_t lookback_count = i - lookback_start;
-                float trend_ratio = lookback_count > 0 ? float(recent_ones) / float(lookback_count) : 0.5f;
-                
+                float trend_ratio =
+                    lookback_count > 0 ? float(recent_ones) / float(lookback_count) : 0.5f;
+
                 // Predict based on trend
                 if (trend_ratio >= 0.7f) {
-                    expectations.push_back(static_cast<uint32_t>(i + 1));  // Expect trend continuation at next index
+                    expectations.push_back(
+                        static_cast<uint32_t>(i + 1));  // Expect trend continuation at next index
                 } else if (trend_ratio <= 0.3f) {
-                    expectations.push_back(static_cast<uint32_t>(i + 2));  // Expect reversal at later index
+                    expectations.push_back(
+                        static_cast<uint32_t>(i + 2));  // Expect reversal at later index
                 } else {
                     expectations.push_back(static_cast<uint32_t>(i));  // Expect current pattern
                 }
@@ -258,60 +256,62 @@ QuantumIdentifiers QuantumSignalBridge::calculateIdentifiersWithConvergence(
                 expectations.push_back(static_cast<uint32_t>(i + 1));  // Simple momentum
             }
         }
-        
+
         // Run QBSA analysis with proper indices
         sep::quantum::bitspace::QBSAProcessor qbsa_processor;
-        sep::quantum::bitspace::QBSAResult qbsa_result = qbsa_processor.analyze(probe_indices, expectations);
+        sep::quantum::bitspace::QBSAResult qbsa_result =
+            qbsa_processor.analyze(probe_indices, expectations);
 
         // Calculate new identifier values using convergence damping
         float damping_factor = 0.1f;  // Control convergence speed
-        
+
         // Confidence: inverse of correction ratio with damping
-        float new_confidence = prev_confidence * (1.0f - damping_factor) + 
-                              (1.0f - qbsa_result.correction_ratio) * damping_factor;
-        
-        // Coherence: QFH coherence with damping  
-        float new_coherence = prev_coherence * (1.0f - damping_factor) + 
-                             qfh_result.coherence * damping_factor;
-        
+        float new_confidence = prev_confidence * (1.0f - damping_factor) +
+                               (1.0f - qbsa_result.correction_ratio) * damping_factor;
+
+        // Coherence: QFH coherence with damping
+        float new_coherence =
+            prev_coherence * (1.0f - damping_factor) + qfh_result.coherence * damping_factor;
+
         // Stability: entropy-based with damping
-        float entropy_stability = std::clamp(1.0f - static_cast<float>(qfh_result.entropy), 0.0f, 1.0f);
-        float new_stability = prev_stability * (1.0f - damping_factor) + 
-                             entropy_stability * damping_factor;
-        
+        float entropy_stability =
+            std::clamp(1.0f - static_cast<float>(qfh_result.entropy), 0.0f, 1.0f);
+        float new_stability =
+            prev_stability * (1.0f - damping_factor) + entropy_stability * damping_factor;
+
         // Check for convergence
         float confidence_diff = std::abs(new_confidence - prev_confidence);
         float coherence_diff = std::abs(new_coherence - prev_coherence);
         float stability_diff = std::abs(new_stability - prev_stability);
-        
-        bool converged = (confidence_diff < convergence_threshold && 
-                         coherence_diff < convergence_threshold && 
-                         stability_diff < convergence_threshold);
-        
+
+        bool converged =
+            (confidence_diff < convergence_threshold && coherence_diff < convergence_threshold &&
+             stability_diff < convergence_threshold);
+
         // Update values
         prev_confidence = new_confidence;
         prev_coherence = new_coherence;
         prev_stability = new_stability;
         identifiers.iterations = iteration + 1;
-        
+
         if (converged) {
             identifiers.converged = true;
-            std::cout << "[QuantumSignal] Converged after " << (iteration + 1) << " iterations" << std::endl;
+            std::cout << "[QuantumSignal] Converged after " << (iteration + 1) << " iterations"
+                      << std::endl;
             break;
         }
     }
-    
+
     // Store final converged values
     identifiers.confidence = prev_confidence;
     identifiers.coherence = prev_coherence;
     identifiers.stability = prev_stability;
-    
-    std::cout << "[QuantumSignal] Convergence result: confidence=" << identifiers.confidence 
-              << ", coherence=" << identifiers.coherence 
-              << ", stability=" << identifiers.stability 
-              << " (converged=" << identifiers.converged 
+
+    std::cout << "[QuantumSignal] Convergence result: confidence=" << identifiers.confidence
+              << ", coherence=" << identifiers.coherence << ", stability=" << identifiers.stability
+              << " (converged=" << identifiers.converged
               << ", iterations=" << identifiers.iterations << ")" << std::endl;
-    
+
     return identifiers;
 }
 
@@ -354,7 +354,8 @@ QuantumTradingSignal QuantumSignalBridge::analyzeMarketData(
         qfh_result.collapse_detected = latest_forward_result.quantum_collapse_detected;
 
         sep::quantum::bitspace::QBSAResult qbsa_result;
-        qbsa_result.correction_ratio = 1.0f - latest_forward_result.confidence; // Confidence is 1 - correction_ratio
+        qbsa_result.correction_ratio =
+            1.0f - latest_forward_result.confidence;  // Confidence is 1 - correction_ratio
 
         // Determine the trading direction using the dedicated function
         signal.action = determineDirection(qfh_result, qbsa_result);
@@ -362,37 +363,48 @@ QuantumTradingSignal QuantumSignalBridge::analyzeMarketData(
         // Apply strategy thresholds
         bool meets_confidence = signal.identifiers.confidence >= confidence_threshold_.load();
         bool meets_coherence = signal.identifiers.coherence >= coherence_threshold_.load();
-        bool meets_stability = std::abs(signal.identifiers.stability - 0.5f) >= stability_threshold_.load();
+        bool meets_stability =
+            std::abs(signal.identifiers.stability - 0.5f) >= stability_threshold_.load();
 
         std::cout << "[QuantumSignal] Metrics - Confidence: " << signal.identifiers.confidence
-                  << " (≥" << confidence_threshold_.load() << ": " << (meets_confidence ? "PASS" : "FAIL") << ")"
-                  << " Coherence: " << signal.identifiers.coherence
-                  << " (≥" << coherence_threshold_.load() << ": " << (meets_coherence ? "PASS" : "FAIL") << ")"
-                  << " Stability: " << signal.identifiers.stability
-                  << " (|0.5-val|≥" << stability_threshold_.load() << ": " << (meets_stability ? "PASS" : "FAIL") << ")"
-                  << " Direction: " << (signal.action == QuantumTradingSignal::BUY ? "BUY" :
-                                       signal.action == QuantumTradingSignal::SELL ? "SELL" : "HOLD")
+                  << " (≥" << confidence_threshold_.load() << ": "
+                  << (meets_confidence ? "PASS" : "FAIL") << ")"
+                  << " Coherence: " << signal.identifiers.coherence << " (≥"
+                  << coherence_threshold_.load() << ": " << (meets_coherence ? "PASS" : "FAIL")
+                  << ")"
+                  << " Stability: " << signal.identifiers.stability << " (|0.5-val|≥"
+                  << stability_threshold_.load() << ": " << (meets_stability ? "PASS" : "FAIL")
+                  << ")"
+                  << " Direction: "
+                  << (signal.action == QuantumTradingSignal::BUY    ? "BUY"
+                      : signal.action == QuantumTradingSignal::SELL ? "SELL"
+                                                                    : "HOLD")
                   << std::endl;
 
-        if (meets_confidence && meets_coherence && meets_stability && signal.action != QuantumTradingSignal::HOLD) {
+        if (meets_confidence && meets_coherence && meets_stability &&
+            signal.action != QuantumTradingSignal::HOLD) {
             std::string timestamp_str = std::to_string(current_data.timestamp);
             auto mtf_confirmation = getMultiTimeframeConfirmation(signal, timestamp_str);
             signal.mtf_confirmation = mtf_confirmation;
 
             if (mtf_confirmation.triple_confirmed) {
                 signal.should_execute = true;
-                signal.suggested_position_size = calculatePositionSize(signal.identifiers.confidence, 10000.0);
+                signal.suggested_position_size =
+                    calculatePositionSize(signal.identifiers.confidence, 10000.0);
                 signal.stop_loss_distance = calculateStopLoss(signal.identifiers.coherence);
                 signal.take_profit_distance = calculateTakeProfit(signal.identifiers.confidence);
-                
-                std::cout << "[QuantumSignal] 🚀 MULTI-TIMEFRAME CONFIRMED SIGNAL: " << current_data.instrument
-                          << " Action: " << (signal.action == QuantumTradingSignal::BUY ? "BUY" : "SELL")
+
+                std::cout << "[QuantumSignal] 🚀 MULTI-TIMEFRAME CONFIRMED SIGNAL: "
+                          << current_data.instrument << " Action: "
+                          << (signal.action == QuantumTradingSignal::BUY ? "BUY" : "SELL")
                           << " Size: " << signal.suggested_position_size
                           << " (60% accuracy system activated) READY FOR EXECUTION!" << std::endl;
             } else {
                 signal.action = QuantumTradingSignal::HOLD;
                 signal.should_execute = false;
-                std::cout << "[QuantumSignal] ⏳ M1 Signal Detected - Awaiting M5/M15 Confirmation..." << std::endl;
+                std::cout
+                    << "[QuantumSignal] ⏳ M1 Signal Detected - Awaiting M5/M15 Confirmation..."
+                    << std::endl;
             }
         } else {
             signal.action = QuantumTradingSignal::HOLD;
@@ -420,85 +432,57 @@ QuantumTradingSignal QuantumSignalBridge::analyzeMarketData(
 
 std::vector<uint8_t> sep::trading::QuantumSignalBridge::convertPriceToBits(
     const std::vector<sep::connectors::MarketData>& history) {
-    
     std::vector<uint8_t> bits;
-    
+
     if (history.size() < 2) {
         return bits;
     }
-    
+
     // Convert price movements to binary states
     for (size_t i = 1; i < history.size(); ++i) {
-        double price_change = history[i].mid - history[i-1].mid;
-        
+        double price_change = history[i].mid - history[i - 1].mid;
+
         // Convert to pips (4 decimal places for forex)
         int pip_change = static_cast<int>(price_change * 10000);
-        
-        // Enhanced bit generation with sensitivity to small moves
+
         uint8_t direction_bit;
-        
-        if (std::abs(pip_change) >= 2) {
-            // Strong directional move
-            direction_bit = (pip_change > 0) ? 1 : 0;
-        } else if (std::abs(pip_change) == 1) {
-            // Weak move - add some uncertainty based on recent volatility
-            direction_bit = (pip_change > 0) ? 1 : 0;
-            // Add variation for consecutive weak moves
-            if (i >= 3) {
-                int recent_weak_moves = 0;
-                for (size_t j = i-2; j < i; ++j) {
-                    if (j < history.size() - 1) {
-                        double recent_change = history[j+1].mid - history[j].mid;
-                        if (std::abs(static_cast<int>(recent_change * 10000)) <= 1) {
-                            recent_weak_moves++;
-                        }
-                    }
-                }
-                // If too many consecutive weak moves, introduce pattern break
-                if (recent_weak_moves >= 2 && (i % 7) == 0) {
-                    direction_bit = 1 - direction_bit; // Flip
-                }
-            }
+        if (pip_change > 0) {
+            direction_bit = 1;
+        } else if (pip_change < 0) {
+            direction_bit = 0;
         } else {
-            // No change - use previous direction but add noise
+            // No change - repeat previous state if available
             direction_bit = bits.empty() ? 0 : bits.back();
-            // Add periodic noise for flat markets
-            if ((i % 11) == 0) {
-                direction_bit = 1 - direction_bit;
-            }
         }
-        
+
         bits.push_back(direction_bit);
     }
-    
-    std::cout << "[QuantumSignal] Converted " << history.size() 
-              << " price points to " << bits.size() << " bits" << std::endl;
-    
+
+    std::cout << "[QuantumSignal] Converted " << history.size() << " price points to "
+              << bits.size() << " bits" << std::endl;
+
     return bits;
 }
 
-
-
 sep::trading::QuantumTradingSignal::Action sep::trading::QuantumSignalBridge::determineDirection(
-    const sep::quantum::QFHResult& qfh,
-    const sep::quantum::bitspace::QBSAResult& qbsa) {
-    
-    // Direction determination based on test data analysis
+    const sep::quantum::QFHResult& qfh, const sep::quantum::bitspace::QBSAResult& qbsa) {
+    // Direction determination derived from QFH and QBSA metrics
     // Stability is the primary indicator: positive = BUY, negative = SELL
-    
+
     // Get the latest stability from the signal (calculated externally)
     // Note: We'll use this through the main analysis function where stability is calculated
-    
-    std::cout << "[QuantumSignal] Direction analysis - Flip: " << qfh.flip_ratio 
-              << " Correction: " << qbsa.correction_ratio << " Rupture: " << qfh.rupture_ratio << std::endl;
-    
-    // For now, use QFH metrics as directional indicators until we can access stability here
-    // This is a simplified approach - the main logic should be in analyzeMarketData
-    
+
+    std::cout << "[QuantumSignal] Direction analysis - Flip: " << qfh.flip_ratio
+              << " Correction: " << qbsa.correction_ratio << " Rupture: " << qfh.rupture_ratio
+              << std::endl;
+
+    // Use QFH metrics as directional indicators until we can access stability here
+    // The main logic remains in analyzeMarketData
+
     // Strong coherence patterns with decent confidence
     if (qfh.coherence > 0.3f && qbsa.correction_ratio > 0.3f) {
         // Use rupture ratio as primary direction indicator
-        // Low rupture = stable conditions = BUY tendency  
+        // Low rupture = stable conditions = BUY tendency
         // High rupture = unstable conditions = SELL tendency
         if (qfh.rupture_ratio < 0.3f) {
             return QuantumTradingSignal::BUY;
@@ -506,7 +490,7 @@ sep::trading::QuantumTradingSignal::Action sep::trading::QuantumSignalBridge::de
             return QuantumTradingSignal::SELL;
         }
     }
-    
+
     // Secondary: Flip ratio analysis
     if (qbsa.correction_ratio > 0.5f) {
         if (qfh.flip_ratio < 0.4f) {
@@ -517,58 +501,60 @@ sep::trading::QuantumTradingSignal::Action sep::trading::QuantumSignalBridge::de
             return QuantumTradingSignal::SELL;
         }
     }
-    
+
     // Quantum collapse detection for reversal signals
     if (qfh.collapse_detected) {
         return (qfh.flip_ratio > 0.5f) ? QuantumTradingSignal::SELL : QuantumTradingSignal::BUY;
     }
-    
+
     return QuantumTradingSignal::HOLD;
 }
 
-double sep::trading::QuantumSignalBridge::calculatePositionSize(float confidence, double account_balance) {
+double sep::trading::QuantumSignalBridge::calculatePositionSize(float confidence,
+                                                                double account_balance) {
     // ULTRA-CONSERVATIVE RISK MANAGEMENT FOR LIVE VALIDATION TRIAL
     // Max 0.5% account risk per trade for initial live testing
-    double risk_percent = 0.005; // 0.5% max risk per trade (was 2%)
-    double base_units = 100;     // Small base position size (was 1000)
-    
+    double risk_percent = 0.005;  // 0.5% max risk per trade (was 2%)
+    double base_units = 100;      // Small base position size (was 1000)
+
     // Scale by confidence but cap at conservative levels
     double confidence_multiplier = std::min(1.5, static_cast<double>(confidence) * 1.2);
-    
+
     // Calculate position based on account balance and risk
     double max_risk_dollars = account_balance * risk_percent;
     double conservative_position = base_units * confidence_multiplier;
-    
+
     // Log the risk calculation for transparency
-    std::cout << "[RiskMgmt] Account=" << account_balance 
-              << " MaxRisk=" << max_risk_dollars 
-              << " Confidence=" << confidence 
-              << " Position=" << conservative_position << " units" << std::endl;
-    
+    std::cout << "[RiskMgmt] Account=" << account_balance << " MaxRisk=" << max_risk_dollars
+              << " Confidence=" << confidence << " Position=" << conservative_position << " units"
+              << std::endl;
+
     return conservative_position;
 }
 
 double sep::trading::QuantumSignalBridge::calculateStopLoss(float coherence) {
     // Stop loss based on coherence (higher coherence = tighter stop)
-    double base_stop_pips = 20.0; // 20 pip base stop
+    double base_stop_pips = 20.0;  // 20 pip base stop
     double coherence_factor = 1.0 - static_cast<double>(coherence);
-    
+
     double stop_pips = base_stop_pips * (1.0 + coherence_factor);
-    return stop_pips / 10000.0; // Convert pips to price distance
+    return stop_pips / 10000.0;  // Convert pips to price distance
 }
 
 double sep::trading::QuantumSignalBridge::calculateTakeProfit(float confidence) {
     // Take profit based on confidence (higher confidence = larger target)
-    double base_target_pips = 30.0; // 30 pip base target
+    double base_target_pips = 30.0;  // 30 pip base target
     double confidence_multiplier = static_cast<double>(confidence) * 2.0;
-    
+
     double target_pips = base_target_pips * confidence_multiplier;
-    return target_pips / 10000.0; // Convert pips to price distance
+    return target_pips / 10000.0;  // Convert pips to price distance
 }
 
-void sep::trading::QuantumSignalBridge::debugDataFormat(const std::vector<sep::connectors::MarketData>& history) {
-    if (history.empty()) return;
-    
+void sep::trading::QuantumSignalBridge::debugDataFormat(
+    const std::vector<sep::connectors::MarketData>& history) {
+    if (history.empty())
+        return;
+
     const auto& latest = history.back();
     std::cout << "[QuantumSignal] Data format check:" << std::endl;
     std::cout << "  Instrument: " << latest.instrument << std::endl;
@@ -619,7 +605,8 @@ void sep::trading::QuantumSignalBridge::savePatterns() {
     }
 }
 
-void sep::trading::QuantumSignalBridge::evolvePatternsWithFeedback(const std::string& pattern_id, bool profitable) {
+void sep::trading::QuantumSignalBridge::evolvePatternsWithFeedback(const std::string& pattern_id,
+                                                                   bool profitable) {
     std::lock_guard<std::mutex> lock(analysis_mutex_);
 
     auto it = active_patterns_.find(pattern_id);
@@ -627,7 +614,8 @@ void sep::trading::QuantumSignalBridge::evolvePatternsWithFeedback(const std::st
         sep::quantum::Pattern p;
         p.id = std::hash<std::string>{}(pattern_id);
         p.timestamp = std::chrono::duration_cast<std::chrono::milliseconds>(
-            std::chrono::system_clock::now().time_since_epoch()).count();
+                          std::chrono::system_clock::now().time_since_epoch())
+                          .count();
         p.quantum_state.coherence = 0.5f;
         p.quantum_state.stability = 0.5f;
         active_patterns_[pattern_id] = p;
@@ -656,15 +644,18 @@ void sep::trading::QuantumSignalBridge::evolvePatternsWithFeedback(const std::st
     savePatterns();
 }
 
-std::string sep::trading::QuantumSignalBridge::generatePatternId(const std::string& instrument, uint64_t timestamp) {
+std::string sep::trading::QuantumSignalBridge::generatePatternId(const std::string& instrument,
+                                                                 uint64_t timestamp) {
     return "pattern_" + instrument + "_" + std::to_string(timestamp);
 }
 
-void sep::trading::QuantumSignalBridge::addManagedPosition(const sep::trading::QuantumTradingSignal& signal, double current_price) {
+void sep::trading::QuantumSignalBridge::addManagedPosition(
+    const sep::trading::QuantumTradingSignal& signal, double current_price) {
     ManagedPosition pos;
     pos.id = generatePatternId(signal.instrument, signal.timestamp);
     pos.instrument = signal.instrument;
-    pos.units = signal.action == QuantumTradingSignal::BUY ? signal.suggested_position_size : -signal.suggested_position_size;
+    pos.units = signal.action == QuantumTradingSignal::BUY ? signal.suggested_position_size
+                                                           : -signal.suggested_position_size;
     pos.entry_price = current_price;
     pos.stop_loss = signal.action == QuantumTradingSignal::BUY
                         ? current_price - signal.stop_loss_distance
@@ -685,9 +676,11 @@ void sep::trading::QuantumSignalBridge::updatePositions(const sep::connectors::M
 
         bool close = false;
         if (it->units > 0) {
-            if (data.mid <= it->stop_loss || data.mid >= it->take_profit) close = true;
+            if (data.mid <= it->stop_loss || data.mid >= it->take_profit)
+                close = true;
         } else {
-            if (data.mid >= it->stop_loss || data.mid <= it->take_profit) close = true;
+            if (data.mid >= it->stop_loss || data.mid <= it->take_profit)
+                close = true;
         }
 
         if (close) {
@@ -700,55 +693,48 @@ void sep::trading::QuantumSignalBridge::updatePositions(const sep::connectors::M
 }
 
 // Multi-timeframe bridge functions
-bool sep::trading::QuantumSignalBridge::initializeMultiTimeframe(
-    const std::string& m5_file_path, 
-    const std::string& m15_file_path) {
-    
+bool sep::trading::QuantumSignalBridge::initializeMultiTimeframe(const std::string& m5_file_path,
+                                                                 const std::string& m15_file_path) {
     if (!mtf_analyzer_) {
         std::cerr << "[QuantumSignalBridge] Multi-timeframe analyzer not initialized" << std::endl;
         return false;
     }
-    
+
     return mtf_analyzer_->loadTimeframeData(m5_file_path, m15_file_path);
 }
 
-sep::trading::MultiTimeframeConfirmation sep::trading::QuantumSignalBridge::getMultiTimeframeConfirmation(
-    const QuantumTradingSignal& m1_signal,
-    const std::string& m1_timestamp) {
-    
+sep::trading::MultiTimeframeConfirmation
+sep::trading::QuantumSignalBridge::getMultiTimeframeConfirmation(
+    const QuantumTradingSignal& m1_signal, const std::string& m1_timestamp) {
     if (!mtf_analyzer_) {
         return MultiTimeframeConfirmation{};
     }
-    
+
     return mtf_analyzer_->getConfirmation(m1_signal, m1_timestamp);
 }
 
 // Multi-timeframe analyzer implementation
-std::string sep::trading::MultiTimeframeAnalyzer::getTimeframeKey(
-    const std::string& m1_time_str, 
-    int timeframe_minutes) {
-    
+std::string sep::trading::MultiTimeframeAnalyzer::getTimeframeKey(const std::string& m1_time_str,
+                                                                  int timeframe_minutes) {
     // Parse the M1 timestamp (format: 2024-01-01T08:01:00.000000Z)
     std::tm tm = {};
-    std::stringstream ss(m1_time_str.substr(0, 19)); // Extract YYYY-MM-DDTHH:MM:SS
+    std::stringstream ss(m1_time_str.substr(0, 19));  // Extract YYYY-MM-DDTHH:MM:SS
     ss >> std::get_time(&tm, "%Y-%m-%dT%H:%M:%S");
-    
+
     // Round down the minutes to start of timeframe block
     tm.tm_min = (tm.tm_min / timeframe_minutes) * timeframe_minutes;
     tm.tm_sec = 0;
-    
+
     // Format back to string with same format as input
     std::stringstream result_ss;
     result_ss << std::put_time(&tm, "%Y-%m-%dT%H:%M:%S");
     return result_ss.str() + ".000000Z";
 }
 
-bool sep::trading::MultiTimeframeAnalyzer::loadTimeframeData(
-    const std::string& m5_file_path, 
-    const std::string& m15_file_path) {
-    
+bool sep::trading::MultiTimeframeAnalyzer::loadTimeframeData(const std::string& m5_file_path,
+                                                             const std::string& m15_file_path) {
     std::cout << "[MultiTimeframe] Loading M5 data from: " << m5_file_path << std::endl;
-    
+
     // 1. Load M5 candle data from file
     std::vector<Candle> m5_candles;
     std::ifstream m5_stream(m5_file_path);
@@ -759,16 +745,17 @@ bool sep::trading::MultiTimeframeAnalyzer::loadTimeframeData(
             m5_candles = m5_json["candles"].get<std::vector<Candle>>();
         }
     } else {
-        std::cerr << "[MultiTimeframe] ERROR: Could not load M5 data from " << m5_file_path << std::endl;
+        std::cerr << "[MultiTimeframe] ERROR: Could not load M5 data from " << m5_file_path
+                  << std::endl;
         return false;
     }
 
     // 2. Run the analysis pipeline on M5 data
     m5_signals_ = runAnalysisPipeline(m5_candles, "M5");
     m5_data_loaded_ = !m5_signals_.empty();
-    
+
     std::cout << "[MultiTimeframe] Loading M15 data from: " << m15_file_path << std::endl;
-    
+
     // 3. Load M15 candle data from file
     std::vector<Candle> m15_candles;
     std::ifstream m15_stream(m15_file_path);
@@ -779,27 +766,27 @@ bool sep::trading::MultiTimeframeAnalyzer::loadTimeframeData(
             m15_candles = m15_json["candles"].get<std::vector<Candle>>();
         }
     } else {
-        std::cerr << "[MultiTimeframe] ERROR: Could not load M15 data from " << m15_file_path << std::endl;
+        std::cerr << "[MultiTimeframe] ERROR: Could not load M15 data from " << m15_file_path
+                  << std::endl;
         return false;
     }
-    
+
     // 4. Run the analysis pipeline on M15 data
     m15_signals_ = runAnalysisPipeline(m15_candles, "M15");
     m15_data_loaded_ = !m15_signals_.empty();
 
-    std::cout << "[MultiTimeframe] Analysis complete. Loaded " << m5_signals_.size() 
+    std::cout << "[MultiTimeframe] Analysis complete. Loaded " << m5_signals_.size()
               << " M5 signals and " << m15_signals_.size() << " M15 signals." << std::endl;
-    
+
     return m5_data_loaded_ && m15_data_loaded_;
 }
 
 sep::trading::MultiTimeframeConfirmation sep::trading::MultiTimeframeAnalyzer::getConfirmation(
-    const QuantumTradingSignal& m1_signal,
-    const std::string& m1_timestamp,
+    const QuantumTradingSignal& m1_signal, const std::string& m1_timestamp,
     double confidence_threshold) {
-    
     MultiTimeframeConfirmation confirmation;
-    if (!m5_data_loaded_ || !m15_data_loaded_) return confirmation;
+    if (!m5_data_loaded_ || !m15_data_loaded_)
+        return confirmation;
 
     // Calculate timeframe keys for precise alignment
     confirmation.m5_key = getTimeframeKey(m1_timestamp, 5);
@@ -810,7 +797,8 @@ sep::trading::MultiTimeframeConfirmation sep::trading::MultiTimeframeAnalyzer::g
     if (m5_it != m5_signals_.end()) {
         const auto& m5_signal = m5_it->second;
         confirmation.m5_confidence = m5_signal.identifiers.confidence;
-        if (m5_signal.action == m1_signal.action && m5_signal.identifiers.confidence > confidence_threshold) {
+        if (m5_signal.action == m1_signal.action &&
+            m5_signal.identifiers.confidence > confidence_threshold) {
             confirmation.m5_confirms = true;
         }
     }
@@ -820,63 +808,67 @@ sep::trading::MultiTimeframeConfirmation sep::trading::MultiTimeframeAnalyzer::g
     if (m15_it != m15_signals_.end()) {
         const auto& m15_signal = m15_it->second;
         confirmation.m15_confidence = m15_signal.identifiers.confidence;
-        if (m15_signal.action == m1_signal.action && m15_signal.identifiers.confidence > confidence_threshold) {
+        if (m15_signal.action == m1_signal.action &&
+            m15_signal.identifiers.confidence > confidence_threshold) {
             confirmation.m15_confirms = true;
         }
     }
 
     // Final "Triple Confirmation" check
-    if (m1_signal.identifiers.confidence >= 0.65 && confirmation.m5_confirms && confirmation.m15_confirms) {
+    if (m1_signal.identifiers.confidence >= 0.65 && confirmation.m5_confirms &&
+        confirmation.m15_confirms) {
         confirmation.triple_confirmed = true;
     }
 
-    std::cout << "[MultiTimeframe] Confirmation results - M5: " 
-              << (confirmation.m5_confirms ? "CONFIRM" : "REJECT")
-              << " (" << confirmation.m5_confidence << ") M15: " 
-              << (confirmation.m15_confirms ? "CONFIRM" : "REJECT")
-              << " (" << confirmation.m15_confidence << ") Triple: " 
-              << (confirmation.triple_confirmed ? "CONFIRMED" : "PENDING") << std::endl;
+    std::cout << "[MultiTimeframe] Confirmation results - M5: "
+              << (confirmation.m5_confirms ? "CONFIRM" : "REJECT") << " ("
+              << confirmation.m5_confidence
+              << ") M15: " << (confirmation.m15_confirms ? "CONFIRM" : "REJECT") << " ("
+              << confirmation.m15_confidence
+              << ") Triple: " << (confirmation.triple_confirmed ? "CONFIRMED" : "PENDING")
+              << std::endl;
 
     return confirmation;
 }
 
-std::map<std::string, sep::trading::QuantumTradingSignal> sep::trading::MultiTimeframeAnalyzer::runAnalysisPipeline(
-    const std::vector<Candle>& candles, const std::string& timeframe_name) {
-    
+std::map<std::string, sep::trading::QuantumTradingSignal>
+sep::trading::MultiTimeframeAnalyzer::runAnalysisPipeline(const std::vector<Candle>& candles,
+                                                          const std::string& timeframe_name) {
     std::map<std::string, QuantumTradingSignal> signals_map;
-    
+
     if (candles.empty()) {
         return signals_map;
     }
-    
-    std::cout << "[" << timeframe_name << "] Processing " << candles.size() << " candles" << std::endl;
-    
+
+    std::cout << "[" << timeframe_name << "] Processing " << candles.size() << " candles"
+              << std::endl;
+
     // Default weights - optimal configuration from breakthrough
     double stability_w = 0.4;
-    double coherence_w = 0.1; 
+    double coherence_w = 0.1;
     double entropy_w = 0.5;
-    
+
     // Convert candle data to bitstreams for QFH analysis
     std::vector<double> close_prices;
     for (const auto& candle : candles) {
         close_prices.push_back(candle.close);
     }
-    
+
     // Generate bitstream from price movements
     std::vector<uint8_t> price_bitstream;
     for (size_t i = 1; i < close_prices.size(); ++i) {
-        price_bitstream.push_back(close_prices[i] > close_prices[i-1] ? 1 : 0);
+        price_bitstream.push_back(close_prices[i] > close_prices[i - 1] ? 1 : 0);
     }
-    
+
     std::vector<sep::quantum::manifold::QuantumPattern> quantum_patterns;
-    
+
     // Process patterns using enhanced QFH with trajectory damping
     for (size_t i = 0; i < candles.size(); ++i) {
         const auto& candle = candles[i];
-        
+
         sep::quantum::manifold::QuantumPattern q_p;
         q_p.id = "pattern_" + std::to_string(candle.timestamp);
-        
+
         // Extract bitstream window for this candle
         size_t window_start = (i >= 10) ? (i - 10) : 0;
         size_t window_end = std::min(price_bitstream.size(), i + 1);
@@ -894,25 +886,25 @@ std::map<std::string, sep::trading::QuantumTradingSignal> sep::trading::MultiTim
             qfh_options.collapse_threshold = 0.3f;
             qfh_options.coherence_threshold = 0.7f;
             sep::quantum::QFHBasedProcessor qfh_processor(qfh_options);
-            
+
             sep::quantum::QFHResult qfh_result = qfh_processor.analyze(window_bits);
-            
+
             q_p.coherence = qfh_result.coherence;
             q_p.stability = 1.0f - qfh_result.rupture_ratio;
             q_p.phase = qfh_result.entropy;
-            
+
             quantum_patterns.push_back(q_p);
         } catch (const std::exception& e) {
             continue;
         }
     }
-    
+
     // Generate signals from quantum patterns
     for (size_t pattern_idx = 0; pattern_idx < quantum_patterns.size(); ++pattern_idx) {
         const auto& metric = quantum_patterns[pattern_idx];
         QuantumTradingSignal signal;
         // Note: QuantumTradingSignal doesn't have pattern_id field
-        
+
         const Candle* candle = nullptr;
         for (const auto& c : candles) {
             if ("pattern_" + std::to_string(c.timestamp) == metric.id) {
@@ -927,7 +919,7 @@ std::map<std::string, sep::trading::QuantumTradingSignal> sep::trading::MultiTim
             size_t window_start = (pattern_idx >= 10) ? (pattern_idx - 10) : 0;
             size_t window_end = std::min(price_bitstream.size(), pattern_idx + 1);
             std::vector<uint8_t> window_bits(price_bitstream.begin() + window_start,
-                                         price_bitstream.begin() + window_end);
+                                             price_bitstream.begin() + window_end);
 
             if (window_bits.size() >= 2) {
                 // Use CUDA kernel for bit pattern analysis
@@ -936,39 +928,41 @@ std::map<std::string, sep::trading::QuantumTradingSignal> sep::trading::MultiTim
                 cudaStreamCreate(&stream);
 
                 sep::SEPResult cuda_result = sep::apps::cuda::launchAnalyzeBitPatternsKernel(
-                    window_bits.data(), window_bits.size(), 0, window_bits.size(), &d_result_host, stream);
+                    window_bits.data(), window_bits.size(), 0, window_bits.size(), &d_result_host,
+                    stream);
 
                 cudaStreamDestroy(stream);
 
                 if (cuda_result != sep::SEPResult::SUCCESS) {
-                    std::cerr << "CUDA Kernel Launch Error: " << sep::resultToString(cuda_result) << std::endl;
+                    std::cerr << "CUDA Kernel Launch Error: " << sep::resultToString(cuda_result)
+                              << std::endl;
                     // For now, I'll set default values if CUDA fails.
                     d_result_host.coherence = 0.0f;
                     d_result_host.stability = 0.0f;
                 }
-                
+
                 if (d_result_host.coherence >= 0.85f) {
-                    pattern_modifier = 1.12; // TrendAcceleration
+                    pattern_modifier = 1.12;  // TrendAcceleration
                 } else if (d_result_host.coherence >= 0.8f && d_result_host.stability >= 0.82f) {
-                    pattern_modifier = 1.08; // VolatilityBreakout  
+                    pattern_modifier = 1.08;  // VolatilityBreakout
                 } else if (d_result_host.coherence >= 0.75f && d_result_host.stability >= 0.7f) {
-                    pattern_modifier = 0.95; // MeanReversion
+                    pattern_modifier = 0.95;  // MeanReversion
                 }
             }
         }
-        
+
         // Calculate scores with optimal weights
-        double base_buy_score = ((1.0 - metric.stability) * stability_w) + 
-                               (metric.coherence * coherence_w) + 
-                               ((1.0 - metric.phase) * entropy_w);
-        
-        double base_sell_score = (metric.stability * stability_w) + 
-                                ((1.0 - metric.coherence) * coherence_w) + 
-                                (metric.phase * entropy_w);
-        
+        double base_buy_score = ((1.0 - metric.stability) * stability_w) +
+                                (metric.coherence * coherence_w) +
+                                ((1.0 - metric.phase) * entropy_w);
+
+        double base_sell_score = (metric.stability * stability_w) +
+                                 ((1.0 - metric.coherence) * coherence_w) +
+                                 (metric.phase * entropy_w);
+
         double buy_score = base_buy_score * pattern_modifier;
         double sell_score = base_sell_score * pattern_modifier;
-        
+
         // Set signal type and confidence
         if (buy_score > sell_score) {
             signal.action = QuantumTradingSignal::BUY;
@@ -977,21 +971,24 @@ std::map<std::string, sep::trading::QuantumTradingSignal> sep::trading::MultiTim
             signal.action = QuantumTradingSignal::SELL;
             signal.identifiers.confidence = sell_score;
         }
-        
+
         // Store additional metrics for multi-timeframe analysis
         signal.identifiers.coherence = metric.coherence;
         signal.identifiers.stability = metric.stability;
         signal.identifiers.entropy = metric.phase;
-        
+
         signals_map[candle ? std::to_string(candle->timestamp) : ""] = signal;
     }
-    
-    std::cout << "[" << timeframe_name << "] Generated " << signals_map.size() << " signals" << std::endl;
+
+    std::cout << "[" << timeframe_name << "] Generated " << signals_map.size() << " signals"
+              << std::endl;
     return signals_map;
 }
 
 // Update signal map for real-time aggregation
-void sep::trading::MultiTimeframeAnalyzer::updateSignalMap(int timeframe_minutes, const std::string& timestamp, const QuantumTradingSignal& signal) {
+void sep::trading::MultiTimeframeAnalyzer::updateSignalMap(int timeframe_minutes,
+                                                           const std::string& timestamp,
+                                                           const QuantumTradingSignal& signal) {
     if (timeframe_minutes == 5) {
         m5_signals_[timestamp] = signal;
     } else if (timeframe_minutes == 15) {
@@ -1000,56 +997,59 @@ void sep::trading::MultiTimeframeAnalyzer::updateSignalMap(int timeframe_minutes
 }
 
 // Bootstrap method for historical M1 data processing
-void sep::trading::QuantumSignalBridge::bootstrap(const std::vector<Candle>& historical_m1_candles) {
-    std::cout << "[Bootstrap] Processing " << historical_m1_candles.size() << " historical M1 candles..." << std::endl;
-    
+void sep::trading::QuantumSignalBridge::bootstrap(
+    const std::vector<Candle>& historical_m1_candles) {
+    std::cout << "[Bootstrap] Processing " << historical_m1_candles.size()
+              << " historical M1 candles..." << std::endl;
+
     if (!realtime_aggregator_) {
         std::cerr << "[Bootstrap] Error: Real-time aggregator not initialized" << std::endl;
         return;
     }
-    
+
     // Feed all historical candles to build initial M5/M15 history
     for (const auto& candle : historical_m1_candles) {
         realtime_aggregator_->addM1Candle(candle);
     }
-    
+
     std::cout << "[Bootstrap] Completed. System ready for live analysis." << std::endl;
 }
 
 // Callback for when higher timeframe candles are completed
-void sep::trading::QuantumSignalBridge::onHigherTimeframeCandle(const Candle& candle, int timeframe_minutes) {
-    std::cout << "[RealTime] New " << timeframe_minutes << "M candle completed at " 
-              << candle.timestamp << " OHLC: " << candle.open << "/" << candle.high 
-              << "/" << candle.low << "/" << candle.close << std::endl;
-    
+void sep::trading::QuantumSignalBridge::onHigherTimeframeCandle(const Candle& candle,
+                                                                int timeframe_minutes) {
+    std::cout << "[RealTime] New " << timeframe_minutes << "M candle completed at "
+              << candle.timestamp << " OHLC: " << candle.open << "/" << candle.high << "/"
+              << candle.low << "/" << candle.close << std::endl;
+
     // Run SEP analysis on this new candle
     std::vector<Candle> single_candle = {candle};
     std::string timeframe_name = (timeframe_minutes == 5) ? "M5" : "M15";
-    
+
     auto new_signals = mtf_analyzer_->runAnalysisPipeline(single_candle, timeframe_name);
-    
+
     // Update the appropriate signal map
     for (const auto& [timestamp, signal] : new_signals) {
         mtf_analyzer_->updateSignalMap(timeframe_minutes, timestamp, signal);
     }
-    
+
     std::cout << "[RealTime] Updated " << timeframe_name << " signals map with "
-    << new_signals.size() << " new signals" << std::endl;
+              << new_signals.size() << " new signals" << std::endl;
 }
 
 void sep::trading::QuantumSignalBridge::loadOptimalConfig() {
     const std::string config_path = "config/optimal_config.json";
-    
+
     if (!std::filesystem::exists(config_path)) {
         std::cout << "[QuantumSignal] No optimal config found, using defaults" << std::endl;
         return;
     }
-    
+
     try {
         std::ifstream file(config_path);
         nlohmann::json config;
         file >> config;
-        
+
         // Load thresholds (weights are not used here but could be extended)
         if (config.contains("confidence_threshold")) {
             confidence_threshold_.store(config["confidence_threshold"].get<float>());
@@ -1057,28 +1057,26 @@ void sep::trading::QuantumSignalBridge::loadOptimalConfig() {
         if (config.contains("coherence_threshold")) {
             coherence_threshold_.store(config["coherence_threshold"].get<float>());
         }
-        
+
         std::cout << "[QuantumSignal] Loaded optimal config:" << std::endl;
         std::cout << "  Confidence threshold: " << confidence_threshold_.load() << std::endl;
         std::cout << "  Coherence threshold: " << coherence_threshold_.load() << std::endl;
-        std::cout << "  Expected profitability score: " << config.value("profitability_score", 0.0) << std::endl;
-        
+        std::cout << "  Expected profitability score: " << config.value("profitability_score", 0.0)
+                  << std::endl;
+
     } catch (const std::exception& e) {
         std::cerr << "[QuantumSignal] Error loading optimal config: " << e.what() << std::endl;
     }
 }
 
-} // namespace sep::trading
+}  // namespace sep::trading
 
-sep::trading::QuantumIdentifiers sep::trading::QuantumSignalBridge::processAsset(const std::string& asset) {
+sep::trading::QuantumIdentifiers sep::trading::QuantumSignalBridge::processAsset(
+    const std::string& asset) {
     if (!initialized_) {
         std::cerr << "[QuantumSignal] Bridge not initialized for asset processing" << std::endl;
         return sep::trading::QuantumIdentifiers{
-            .confidence = 0.0f,
-            .coherence = 0.0f,
-            .stability = 0.0f,
-            .converged = false
-        };
+            .confidence = 0.0f, .coherence = 0.0f, .stability = 0.0f, .converged = false};
     }
 
     try {
@@ -1104,24 +1102,24 @@ sep::trading::QuantumIdentifiers sep::trading::QuantumSignalBridge::processAsset
         }
 
         if (recent_data.empty()) {
-            std::cerr << "[QuantumSignal] No market data available for asset " << asset << std::endl;
+            std::cerr << "[QuantumSignal] No market data available for asset " << asset
+                      << std::endl;
             return sep::trading::QuantumIdentifiers{0.0f, 0.0f, 0.0f, false};
         }
 
         // Convert market data to forward window format for quantum analysis
         std::vector<sep::connectors::MarketData> forward_window(
-            recent_data.begin(),
-            recent_data.begin() + std::min<size_t>(30, recent_data.size()));
-        
+            recent_data.begin(), recent_data.begin() + std::min<size_t>(30, recent_data.size()));
+
         // Use the existing quantum processing pipeline
         QuantumIdentifiers identifiers = calculateConvergedIdentifiers(forward_window, 20);
-        
+
         // If convergence analysis didn't produce valid results, fall back to pattern processor
         if (!identifiers.converged || identifiers.confidence == 0.0f) {
             if (pattern_processor_) {
                 // Convert to bit format for pattern processing
                 auto bits = convertPriceToBits(recent_data);
-                
+
                 if (bits.size() >= 10) {
                     // Use QFH analysis for real quantum metrics
                     sep::quantum::QFHOptions qfh_options;
@@ -1129,48 +1127,48 @@ sep::trading::QuantumIdentifiers sep::trading::QuantumSignalBridge::processAsset
                     qfh_options.stability_threshold = 0.8;
                     qfh_options.collapse_threshold = 0.5;
                     qfh_options.max_iterations = 1000;
-                    
+
                     sep::quantum::QFHBasedProcessor qfh_processor(qfh_options);
                     sep::quantum::QFHResult qfh_result = qfh_processor.analyze(bits);
-                    
+
                     // Update identifiers with real quantum analysis results (fix type consistency)
-                    identifiers.confidence = std::clamp(static_cast<float>(qfh_result.coherence * 0.8 + 0.2), 0.0f, 1.0f);
+                    identifiers.confidence = std::clamp(
+                        static_cast<float>(qfh_result.coherence * 0.8 + 0.2), 0.0f, 1.0f);
                     identifiers.coherence = static_cast<float>(qfh_result.coherence);
-                    identifiers.stability = std::clamp(1.0f - static_cast<float>(qfh_result.entropy), 0.0f, 1.0f);
+                    identifiers.stability =
+                        std::clamp(1.0f - static_cast<float>(qfh_result.entropy), 0.0f, 1.0f);
                     identifiers.entropy = static_cast<float>(qfh_result.entropy);
                     identifiers.converged = (qfh_result.coherence > 0.6f);
                     identifiers.iterations = 1;
                 }
             }
         }
-        
+
         // Apply confidence and coherence thresholds from configuration
         float conf_threshold = confidence_threshold_.load();
         float coh_threshold = coherence_threshold_.load();
-        
+
         if (identifiers.confidence < conf_threshold || identifiers.coherence < coh_threshold) {
-            std::cout << "[QuantumSignal] Asset " << asset << " below thresholds (conf: "
-                      << identifiers.confidence << " < " << conf_threshold
-                      << ", coh: " << identifiers.coherence << " < " << coh_threshold << ")" << std::endl;
+            std::cout << "[QuantumSignal] Asset " << asset
+                      << " below thresholds (conf: " << identifiers.confidence << " < "
+                      << conf_threshold << ", coh: " << identifiers.coherence << " < "
+                      << coh_threshold << ")" << std::endl;
         }
-        
+
         std::cout << "[QuantumSignal] Processed asset " << asset << ": "
                   << "confidence=" << identifiers.confidence
                   << ", coherence=" << identifiers.coherence
                   << ", stability=" << identifiers.stability
                   << ", converged=" << identifiers.converged << std::endl;
-        
+
         return identifiers;
-        
+
     } catch (const std::exception& e) {
-        std::cerr << "[QuantumSignal] Error processing asset " << asset << ": " << e.what() << std::endl;
-        
+        std::cerr << "[QuantumSignal] Error processing asset " << asset << ": " << e.what()
+                  << std::endl;
+
         // Return minimal valid result on error
         return sep::trading::QuantumIdentifiers{
-            .confidence = 0.1f,
-            .coherence = 0.1f,
-            .stability = 0.1f,
-            .converged = false
-        };
+            .confidence = 0.1f, .coherence = 0.1f, .stability = 0.1f, .converged = false};
     }
 }
