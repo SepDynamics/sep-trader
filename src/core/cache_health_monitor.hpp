@@ -31,11 +31,9 @@ struct SystemCacheHealth {
     double average_health_score{0.0};
     double system_performance_score{0.0};
 
-    // Additional fields expected by trader_cli.cpp
+    // Extended fields used by CLI and C interfaces
     size_t total_entries{0};  // Total cache entries across all caches
     size_t error_count{0};    // Number of cache errors detected
-
-    // Fields expected by trader_cli_simple.cpp
     bool is_healthy{false};    // Overall health status
     size_t cache_size{0};      // Total cache size/entries
     double memory_usage{0.0};  // Memory usage (alias for memory_usage_mb)

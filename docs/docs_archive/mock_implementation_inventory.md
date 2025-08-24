@@ -71,6 +71,7 @@ During our initial scan, we identified the following mock implementations and re
 | OandaMarketDataHelper | `_sep/testbed/oanda_market_data_helper.hpp` | Helper | Transform market data with placeholder ATR | Identified |
 | CacheValidator | Referenced in tests | Validation | Validate real data providers | Updated |
 | ServiceInterfaces | `src/services/include/*.h` | Interface | Define service contracts | Identified |
+| MemoryTierServiceStub | `src/app/MemoryTierService.*` | Service | Mock memory tier management | Removed |
 
 ## Integration with Consolidation Strategy
 
