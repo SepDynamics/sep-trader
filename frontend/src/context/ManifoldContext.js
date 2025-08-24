@@ -29,17 +29,23 @@ export const ManifoldProvider = ({ children }) => {
         identities.set(instrument, []);
       }
       
-      identities.get(instrument).push({
-        timestamp: new Date(timestamp).getTime(),
-        entropy: signal.entropy || 0.5,
-        stability: signal.stability || 0.5,
-        coherence: signal.coherence || 0.5,
-        state: signal.state || 'flux',
-        valkey_key: key,
-        price: signal.price,
-        volume: signal.volume,
-        raw_signal: signal
-      });
+      if (
+        typeof signal.entropy === 'number' &&
+        typeof signal.stability === 'number' &&
+        typeof signal.coherence === 'number'
+      ) {
+        identities.get(instrument).push({
+          timestamp: new Date(timestamp).getTime(),
+          entropy: signal.entropy,
+          stability: signal.stability,
+          coherence: signal.coherence,
+          state: signal.state || 'flux',
+          valkey_key: key,
+          price: signal.price,
+          volume: signal.volume,
+          raw_signal: signal
+        });
+      }
     });
 
     // Sort timelines by timestamp
