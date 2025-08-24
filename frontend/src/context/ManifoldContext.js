@@ -3,16 +3,13 @@
 
 import React, { createContext, useContext, useEffect, useState, useMemo } from 'react';
 import { useWebSocket } from './WebSocketContext';
-import { getValkeyMetrics, getQuantumSignals } from '../services/api';
 
 const ManifoldContext = createContext(null);
 
 export const ManifoldProvider = ({ children }) => {
   const {
-    connected,
     quantumSignals,
     signalHistory,
-    valkeyMetrics,
     livePatterns
   } = useWebSocket();
 

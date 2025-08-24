@@ -34,7 +34,7 @@ const IdentityInspector = () => {
     getDeterministicPath
   } = useManifold();
 
-  const { valkeyMetrics, quantumSignals } = useWebSocket();
+  const { quantumSignals } = useWebSocket();
 
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedKey, setSelectedKey] = useState('');
