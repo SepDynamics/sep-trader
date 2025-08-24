@@ -82,7 +82,7 @@ const TradingCockpit = () => {
     try {
       await Promise.all([
         apiClient.getMarketData(),
-        apiClient.getPerformanceMetrics(),
+        apiClient.getPerformanceCurrent(),
         apiClient.getSystemStatus()
       ]);
     } catch (error) {

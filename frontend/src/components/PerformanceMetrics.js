@@ -15,7 +15,7 @@ const PerformanceMetrics = () => {
   const loadPerformanceData = async () => {
     try {
       setLoading(true);
-      const response = await apiClient.getPerformanceMetrics();
+      const response = await apiClient.getPerformanceCurrent();
       setMetrics(response);
       setError(null);
     } catch (err) {

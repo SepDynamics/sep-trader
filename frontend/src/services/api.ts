@@ -175,10 +175,6 @@ class APIClient {
   }
 
   // Performance Metrics
-  async getPerformanceMetrics() {
-    return this.request('/api/performance/current');
-  }
-
   async getPerformanceCurrent() {
     return this.request('/api/performance/current');
   }
@@ -258,7 +254,6 @@ export const {
   uploadTrainingData,
   startModelTraining,
   generateReport,
-  getPerformanceMetrics,
   getPerformanceCurrent,
   getPerformanceHistory,
   getConfig,
