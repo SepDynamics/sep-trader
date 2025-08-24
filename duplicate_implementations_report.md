@@ -40,6 +40,7 @@ This document tracks outstanding code quality concerns in the SEP Engine codebas
 - Duplicate quantum coherence manager removed (`src/util/quantum_coherence_manager.*`) in favor of the core implementation.
 - Removed duplicate market data fetch function and placeholder ATR
   (`src/app/quantum_signal_bridge.cpp`).
+- Unused spdlog isolation stub removed (`src/util/spdlog_isolation.h`).
 
 ## Recommendations
 1. Remove remaining hardcoded values via configuration.
