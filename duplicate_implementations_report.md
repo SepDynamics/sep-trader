@@ -68,6 +68,7 @@ This document tracks outstanding code quality concerns in the SEP Engine codebas
 - Fixed misplaced validation helpers in OANDA connector (`src/io/oanda_connector.cpp`).
 - Resolved merge artifact that duplicated validation logic in OANDA connector (`src/io/oanda_connector.cpp`).
 - Obsolete OANDA historical fetcher and script dependency removed (`oanda_historical_fetcher.cpp`, `run_trader.sh`).
+- Unused configuration helper functions removed to eliminate dead code (`src/util/interpreter.cpp`).
 
 ## Recommendations
 1. Remove remaining hardcoded values via configuration.
