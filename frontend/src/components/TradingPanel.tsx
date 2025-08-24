@@ -9,7 +9,7 @@ import '../styles/TradingPanel.css';
 
 const TradingPanel: React.FC = () => {
   const { connected, marketData, tradingSignals } = useWebSocket();
-  const { selectedSymbol, setSelectedSymbol } = useSymbol();
+  const { selectedSymbol, setSelectedSymbol, isValidSymbol } = useSymbol();
   const { config } = useConfig();
   const [orderType, setOrderType] = useState<string>('market');
   const [quantity, setQuantity] = useState<number>(10000);
@@ -97,7 +97,12 @@ const TradingPanel: React.FC = () => {
                     <label>Symbol</label>
                     <select
                       value={selectedSymbol}
-                      onChange={(e) => setSelectedSymbol(e.target.value)}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        if (isValidSymbol(value)) { // Use the type guard here
+                          setSelectedSymbol(value);
+                        }
+                      }}
                       className="form-control"
                     >
                       {symbols.map(symbol => (
