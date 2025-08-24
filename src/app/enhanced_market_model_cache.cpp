@@ -230,58 +230,12 @@ bool EnhancedMarketModelCache::fetchAssetData(const std::string& instrument, std
         std::this_thread::sleep_for(std::chrono::seconds(1));
     }
     
-    // Generate demo data if OANDA not available
     if (!data_fetched || out_candles.empty()) {
-        std::cout << "[ENHANCED_CACHE] 🎲 Generating demo data for " << instrument << std::endl;
-        
-        // Generate realistic demo data based on instrument
-        double base_price = 1.1585; // EUR_USD base
-        if (instrument == "GBP_USD") base_price = 1.2750;
-        else if (instrument == "AUD_USD") base_price = 0.6850;
-        else if (instrument == "USD_CHF") base_price = 0.9150;
-        else if (instrument == "USD_JPY") base_price = 149.50;
-        
-        for (int i = 0; i < 500; ++i) {
-            Candle demo_candle;
-            demo_candle.time = "2025-08-01T" + std::to_string(10 + (i / 60)) + ":" + 
-                              std::to_string((i % 60)) + ":00.000000000Z";
-            
-            // Use real pattern engine for price movement
-            sep::quantum::PatternMetricEngine engine;
-            engine.init(nullptr);
-            
-            // Create a pattern representing current market state
-            sep::compat::PatternData pattern;
-            strncpy(pattern.id, "market_state", sizeof(pattern.id) - 1);
-            pattern.id[sizeof(pattern.id) - 1] = '\0';
-            pattern.size = 1;
-            pattern.attributes[0] = base_price;
-            pattern.quantum_state.coherence = 0.5;
-            pattern.quantum_state.stability = 0.5;
-            pattern.quantum_state.entropy = 0.5;
-            
-            engine.addPattern(pattern);
-            engine.evolvePatterns();
-
-            const auto& metrics = engine.computeMetrics();
-            if (!metrics.empty()) {
-                double price_movement = metrics[0].coherence * 0.001; // Small price movement
-                base_price += (metrics[0].stability > 0.5 ? price_movement : -price_movement);
-            }
-            
-            demo_candle.open = base_price;
-            demo_candle.high = base_price + 0.0005;
-            demo_candle.low = base_price - 0.0005;
-            demo_candle.close = base_price + ((i % 3 == 0) ? 0.0002 : -0.0001);
-            demo_candle.volume = 100.0 + (i % 50);
-            
-            out_candles.push_back(demo_candle);
-            base_price = demo_candle.close; // Update for next iteration
-        }
-        data_fetched = true;
+        std::cerr << "[ENHANCED_CACHE] ❌ OANDA data not available for " << instrument << std::endl;
+        return false;
     }
 
-    return data_fetched && !out_candles.empty();
+    return true;
 }
 
 bool EnhancedMarketModelCache::saveEnhancedCache(const std::string& filepath) const {
