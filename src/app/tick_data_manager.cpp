@@ -427,14 +427,7 @@ void TickDataManager::calculateWindowsCudaAccelerated() {
     }
     
     std::cout << "[TickDataManager] Running CUDA-accelerated window calculations..." << std::endl;
-    
-    // TEMPORARY: Disable CUDA for debugging - use CPU calculation directly
-    std::cout << "[TickDataManager] CUDA temporarily disabled for debugging, using CPU" << std::endl;
-    
-    // Call CPU calculation directly to avoid recursion
-    calculateWindowsCPU();
-    return;
-    
+
     // Convert tick history to CUDA format
     std::vector<cuda::TickData> cuda_ticks;
     cuda_ticks.reserve(tick_history_.size());
