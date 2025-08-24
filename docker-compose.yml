@@ -64,8 +64,6 @@ services:
       - REACT_APP_WS_URL=ws://localhost:8765
       - REACT_APP_ENVIRONMENT=development
     depends_on:
-      redis:
-        condition: service_healthy
       trading-backend:
         condition: service_healthy
       websocket-service:
