@@ -33,7 +33,7 @@ TEST(DataAccessServiceTest, RetrievesCandlesInRange) {
     seedValkey();
 
     DataAccessService svc;
-    ASSERT_TRUE(svc.initialize().isOk());
+    ASSERT_TRUE(svc.initialize().isSuccess());
 
     auto candles = svc.getHistoricalCandles("TEST", 1000, 2500);
     EXPECT_EQ(candles.size(), 2);
