@@ -53,10 +53,7 @@ This document tracks outstanding code quality concerns in the SEP Engine codebas
 - Obsolete weekly cache manager and data fetcher removed (`src/core/weekly_cache_manager.hpp`, `src/core/weekly_data_fetcher.*`, `config/training_config.json`).
 - Unimplemented WeeklyDataFetcher configuration and cache helpers removed (`src/core/weekly_data_fetcher.*`).
 - Removed redundant amplitude renormalization and stale CUDA stub reference (`src/app/QuantumProcessingService.cpp`, `src/core/cuda_impl.h`).
-- Removed redundant amplitude renormalization and stale CUDA stub reference
-  (`src/app/QuantumProcessingService.cpp`, `src/core/cuda_impl.h`).
-- Redundant Valkey metric fallback helper removed (`src/util/interpreter.cpp`).
-- Unused prototype market data fetcher removed (`src/app/quantum_signal_bridge.cpp`).
+- Removed obsolete DSL memory declaration structure (`src/util/nodes.h`).
 
 ## Recommendations
 1. Remove remaining hardcoded values via configuration.
