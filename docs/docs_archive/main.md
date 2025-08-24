@@ -38,7 +38,7 @@ Claim: "Hybrid Architecture (Local Training/Cloud Execution)" -> Evidence: Produ
 
 Claim: "Enterprise-Ready Components (Docker, PostgreSQL, Nginx)" -> Evidence: Product & Platform Maturity slide, ENTERPRISE_DATA_LAYER.md.
 
-Assess Product & Platform Maturity: Go beyond the pitch deck slide. Based on the code structure (e.g., src/cli, src/services, CMake structure, presence of docker-compose mentions), evaluate the true maturity of the platform. Is it a prototype or a robust, deployable system? Provide a brief assessment.
+Assess Product & Platform Maturity: Go beyond the pitch deck slide. Based on the code structure (e.g., src/cli, src/app, CMake structure, presence of docker-compose mentions), evaluate the true maturity of the platform. Is it a prototype or a robust, deployable system? Provide a brief assessment.
 
 Clarify the "Quantum-Inspired" Label: Using POSITIONING_CLARIFICATION.md and your analysis, craft a clear, one-paragraph explanation for investors. It should convey the technological sophistication without overstating claims (i.e., clarifying it's not a quantum computer).
 
@@ -48,7 +48,7 @@ Refine the Go-To-Market Strategy: The GTM slide has three phases. Flesh these ou
 
 Phase 1 (Direct to Quants): How does the CLI (src/cli) and the professional architecture support this?
 
-Phase 2 (Platform & API Expansion): How do the files in src/c_api and src/services prove you're ready for this?
+Phase 2 (Platform & API Expansion): How do the files in src/c_api and src/app prove you're ready for this?
 
 Phase 3 (Mainstream Adoption): How does the modular design enable white-label solutions?
 

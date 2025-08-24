@@ -35,14 +35,14 @@ During our initial scan, we identified the following mock implementations and re
 
 ### Service Architecture
 
-1. **Service Interfaces** (`src/services/include/*.h`)
-   - Defined service interfaces ready for real and mock implementations:
+1. **Service Interfaces** (now under `src/app`)
+   - Core service interfaces consolidated into application layer:
      - `IQuantumProcessingService`
      - `IPatternRecognitionService`
      - `ITradingLogicService`
      - `IMemoryTierService`
      - `IDataAccessService`
-   - Concrete implementations not yet found in initial scan
+   - Legacy `src/services` directory removed during cleanup
 
 ## Next Steps
 
@@ -70,7 +70,7 @@ During our initial scan, we identified the following mock implementations and re
 | PlaceholderDetection | `_sep/testbed/placeholder_detection.h` | Utility | Detect placeholder values in production | Identified |
 | OandaMarketDataHelper | `_sep/testbed/oanda_market_data_helper.hpp` | Helper | Transform market data with placeholder ATR | Identified |
 | CacheValidator | Referenced in tests | Validation | Validate real data providers | Updated |
-| ServiceInterfaces | `src/services/include/*.h` | Interface | Define service contracts | Identified |
+| ServiceInterfaces | `src/app/*` | Interface | Define service contracts | Consolidated |
 | MemoryTierServiceStub | `src/app/MemoryTierService.*` | Service | Mock memory tier management | Removed |
 
 ## Integration with Consolidation Strategy
