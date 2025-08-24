@@ -773,26 +773,20 @@ server {
 
 ### Component Testing
 ```typescript
-// Example component test
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { TradingInterface } from './TradingInterface'
+import { startTrading } from '../services/api'
+
+jest.mock('../services/api')
 
 describe('TradingInterface', () => {
   test('starts trading when start button is clicked', async () => {
-    const mockStartTrading = jest.fn().mockResolvedValue(undefined)
-    
-    render(
-      <TradingInterface 
-        onStartTrading={mockStartTrading}
-        onStopTrading={jest.fn()}
-        isTrading={false}
-      />
-    )
-    
+    const startTradingMock = jest.mocked(startTrading).mockResolvedValue(undefined)
+
+    render(<TradingInterface isTrading={false} />)
     fireEvent.click(screen.getByText('Start Trading'))
-    
     await waitFor(() => {
-      expect(mockStartTrading).toHaveBeenCalled()
+      expect(startTradingMock).toHaveBeenCalled()
     })
   })
 })
