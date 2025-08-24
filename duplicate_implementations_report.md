@@ -36,6 +36,7 @@ This document tracks outstanding code quality concerns in the SEP Engine codebas
 - Unimplemented market data DSL builtins removed (`src/util/interpreter.cpp`).
 - Testbed OANDA market data helper migrated to production with real ATR
   (`src/app/quantum_signal_bridge.cpp`).
+- Unused evolutionary helper declarations and mock trade simulation removed (`src/core/evolution.h`, `src/util/interpreter.cpp`).
 
 ## Recommendations
 1. Remove remaining hardcoded values via configuration.
