@@ -530,14 +530,19 @@ class AuthService {
   }
 }
 
-// Axios interceptor for authentication
-api.interceptors.request.use((config) => {
+// Authentication header injection using native fetch
+async function authorizedFetch(url: string, options: RequestInit = {}) {
   const apiKey = authService.getApiKey()
-  if (apiKey) {
-    config.headers['X-SEP-API-KEY'] = apiKey
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+    ...(options.headers as Record<string, string> || {}),
   }
-  return config
-})
+  if (apiKey) {
+    headers['X-SEP-API-KEY'] = apiKey
+  }
+  const response = await fetch(url, { ...options, headers })
+  return response.json()
+}
 ```
 
 ### CORS Configuration
