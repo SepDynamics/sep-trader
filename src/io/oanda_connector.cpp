@@ -733,51 +733,6 @@ void OandaConnector::refreshOrders() {
     }
 }
 
-void OandaConnector::setupSampleData(const std::string& instrument, const std::string& granularity, const std::string& output_file) {
-    std::vector<OandaCandle> candles = getHistoricalData(instrument, granularity, "", "");
-
-    if (candles.empty()) {
-        last_error_ = "Failed to fetch any data for sample setup.";
-        std::cerr << "[OandaConnector] Error: " << last_error_ << std::endl;
-        return;
-    }
-
-    auto validation = validateCandleSequence(candles, granularity);
-    if (!validation.valid)
-    {
-        last_error_ = "Fetched data failed validation.";
-        for (const auto& err : validation.errors)
-            last_error_ +=
-                "\
- - " + err;
-        std::cerr << "[OandaConnector] Error: " << last_error_ << std::endl;
-        return;
-    }
-
-    nlohmann::json json_output;
-    for (const auto& c : candles) {
-        nlohmann::json candle_json;
-        candle_json["time"] = c.time;
-        candle_json["open"] = c.open;
-        candle_json["high"] = c.high;
-        candle_json["low"] = c.low;
-        candle_json["close"] = c.close;
-        candle_json["volume"] = c.volume;
-        json_output.push_back(candle_json);
-    }
-
-    std::ofstream out_stream(output_file);
-    if (!out_stream.is_open()) {
-        last_error_ = "Failed to open output file: " + output_file;
-        std::cerr << "[OandaConnector] Error: " << last_error_ << std::endl;
-        return;
-    }
-
-    out_stream << json_output.dump(4);
-    out_stream.close();
-
-    std::cout << "[OandaConnector] Successfully wrote " << candles.size() << " candles to " << output_file << std::endl;
-}
 
 bool OandaConnector::fetchHistoricalData(const std::string& instrument, const std::string& output_file)
 {
