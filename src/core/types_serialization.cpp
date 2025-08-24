@@ -39,15 +39,7 @@ void to_json(nlohmann::json& j, const PatternData& data) {
     }
     j["relationship_count"] = data.relationship_count;
 
-    j["quantum_state"] = {
-        {"coherence", data.quantum_state.coherence},
-        {"phase", data.quantum_state.phase},
-        {"amplitude", data.quantum_state.amplitude},
-        {"entanglement", data.quantum_state.entanglement},
-        {"stability", data.quantum_state.stability},
-        {"entropy", data.quantum_state.entropy},
-        {"mutation_rate", data.quantum_state.mutation_rate}
-    };
+    j["quantum_state"] = data.quantum_state;
 }
 
 void from_json(const nlohmann::json& j, PatternData& data) {
@@ -100,14 +92,7 @@ void from_json(const nlohmann::json& j, PatternData& data) {
     }
 
     if (j.contains("quantum_state")) {
-        const auto& qs = j.at("quantum_state");
-        data.quantum_state.coherence = qs.value("coherence", 0.0f);
-        data.quantum_state.phase = qs.value("phase", 0.0f);
-        data.quantum_state.amplitude = qs.value("amplitude", 1.0f);
-        data.quantum_state.entanglement = qs.value("entanglement", 0.0f);
-        data.quantum_state.stability = qs.value("stability", 0.0f);
-        data.quantum_state.entropy = qs.value("entropy", 0.0f);
-        data.quantum_state.mutation_rate = qs.value("mutation_rate", 0.0f);
+        j.at("quantum_state").get_to(data.quantum_state);
     }
 }
 }
@@ -120,6 +105,10 @@ void to_json(nlohmann::json& j, const QuantumState& state) {
         {"stability", state.stability},
         {"entropy", state.entropy},
         {"mutation_rate", state.mutation_rate},
+        {"evolution_rate", state.evolution_rate},
+        {"energy", state.energy},
+        {"coupling_strength", state.coupling_strength},
+        {"phase", state.phase},
         {"generation", state.generation},
         {"mutation_count", state.mutation_count},
         {"access_frequency", state.access_frequency},
@@ -132,6 +121,10 @@ void from_json(const nlohmann::json& j, QuantumState& state) {
     j.at("stability").get_to(state.stability);
     j.at("entropy").get_to(state.entropy);
     j.at("mutation_rate").get_to(state.mutation_rate);
+    j.at("evolution_rate").get_to(state.evolution_rate);
+    j.at("energy").get_to(state.energy);
+    j.at("coupling_strength").get_to(state.coupling_strength);
+    j.at("phase").get_to(state.phase);
     j.at("generation").get_to(state.generation);
     j.at("mutation_count").get_to(state.mutation_count);
     j.at("access_frequency").get_to(state.access_frequency);
