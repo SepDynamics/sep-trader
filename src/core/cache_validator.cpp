@@ -226,13 +226,13 @@ bool CacheValidator::validateEntrySources(const std::string& cache_path) const {
         nlohmann::json data;
         file >> data;
         
-        // Check if data has entries with non-stub providers
+        // Verify all entries come from recognized providers
         if (data.contains("data") && data["data"].is_array()) {
             for (const auto& entry : data["data"]) {
                 if (entry.contains("provider")) {
                     std::string provider = entry["provider"];
-                    if (provider == "stub") {
-                        return false; // Reject stub providers
+                    if (provider != "oanda" && provider != "OANDA") {
+                        return false; // Reject unknown providers
                     }
                 }
             }

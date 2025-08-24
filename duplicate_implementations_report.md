@@ -21,6 +21,7 @@ This document tracks outstanding code quality concerns in the SEP Engine codebas
 ## Recent Cleanup
 - Obsolete core primitive declarations removed (`src/util/core_primitives.h`).
 - Mock health monitor implementation removed (`src/app/health_monitor_c_impl.c`).
+- Stub data provider enum removed (`src/core/cache_metadata.hpp`).
 
 ## Recommendations
 1. Remove remaining hardcoded values via configuration.

@@ -22,8 +22,8 @@ During our initial scan, we identified the following mock implementations and re
    - Used for test data transformation
 
 2. **Cache Validation** (Referenced in `tests/data_pipeline/test_data_integrity.cpp`)
-   - Explicit rejection of "stub" providers in cache validation
-   - Suggests existence of stub/mock data sources
+   - Ensures cached entries originate from recognized providers (e.g., OANDA)
+   - Stub provider references removed to prevent mock data usage
 
 ### Test Verification
 
@@ -69,7 +69,7 @@ During our initial scan, we identified the following mock implementations and re
 |-----------|----------|------|---------|--------|
 | PlaceholderDetection | `_sep/testbed/placeholder_detection.h` | Utility | Detect placeholder values in production | Identified |
 | OandaMarketDataHelper | `_sep/testbed/oanda_market_data_helper.hpp` | Helper | Transform market data with placeholder ATR | Identified |
-| CacheValidator | Referenced in tests | Validation | Reject stub providers | Identified |
+| CacheValidator | Referenced in tests | Validation | Validate real data providers | Updated |
 | ServiceInterfaces | `src/services/include/*.h` | Interface | Define service contracts | Identified |
 
 ## Integration with Consolidation Strategy
