@@ -3,7 +3,6 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import { useManifold } from '../context/ManifoldContext';
-import { useWebSocket } from '../context/WebSocketContext';
 import { 
   Search, 
   Eye, 
@@ -34,7 +33,6 @@ const IdentityInspector = () => {
     getDeterministicPath
   } = useManifold();
 
-  const { quantumSignals } = useWebSocket();
 
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedKey, setSelectedKey] = useState('');

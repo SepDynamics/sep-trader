@@ -14,6 +14,8 @@
 #include "gpu_memory_pool.h"
 #include "pattern_cache.h"
 #include "streaming_data_manager.h"
+#include "app/DataAccessService.h"
+#include "io/market_data_converter.h"
 #include "util/pattern_processing.hpp"
 
 namespace sep::engine {
@@ -292,16 +294,37 @@ Result<void> EngineFacade::analyzePattern(const PatternAnalysisRequest& request,
         
         // Cache miss - perform real computation
         auto computation_start = std::chrono::high_resolution_clock::now();
-        
-        // Create a bit pattern for analysis (simplified for demonstration)
-        std::vector<uint8_t> bitstream;
-        for (size_t i = 0; i < request.pattern_id.length(); ++i) {
-            uint8_t char_val = static_cast<uint8_t>(request.pattern_id[i]);
-            for (int bit = 0; bit < 8; ++bit) {
-                bitstream.push_back((char_val >> bit) & 1);
-            }
+
+        // Fetch real candle data for the requested instrument
+        sep::services::DataAccessService data_service;
+        auto init_res = data_service.initialize();
+        if (!init_res.isSuccess()) {
+            return Result<void>(sep::Error(sep::Error::Code::ResourceUnavailable,
+                                          "DataAccessService initialization failed"));
         }
-        
+
+        uint64_t now_sec = std::chrono::duration_cast<std::chrono::seconds>(
+                                std::chrono::system_clock::now().time_since_epoch())
+                                .count();
+        auto candles = data_service.getHistoricalCandles(request.pattern_id,
+                                                         now_sec - 3600, now_sec);
+        data_service.shutdown();
+
+        if (candles.empty()) {
+            return Result<void>(sep::Error(sep::Error::Code::NotFound,
+                                          "No candle data available"));
+        }
+
+        // Convert closing prices to bitstream for QFH analysis
+        std::vector<double> prices;
+        prices.reserve(candles.size());
+        for (const auto& c : candles) {
+            prices.push_back(c.close);
+        }
+
+        std::vector<uint8_t> bitstream =
+            sep::connectors::MarketDataConverter::convertToBitstream(prices);
+
         // Get real QFH analysis
         auto qfh_result = impl_->qfh_processor->analyze(bitstream);
         
