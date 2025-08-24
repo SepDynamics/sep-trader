@@ -550,21 +550,6 @@ double sep::trading::QuantumSignalBridge::calculateTakeProfit(float confidence) 
     return target_pips / 10000.0;  // Convert pips to price distance
 }
 
-void sep::trading::QuantumSignalBridge::debugDataFormat(
-    const std::vector<sep::connectors::MarketData>& history) {
-    if (history.empty())
-        return;
-
-    const auto& latest = history.back();
-    std::cout << "[QuantumSignal] Data format check:" << std::endl;
-    std::cout << "  Instrument: " << latest.instrument << std::endl;
-    std::cout << "  Price (mid): " << latest.mid << std::endl;
-    std::cout << "  Bid: " << latest.bid << std::endl;
-    std::cout << "  Ask: " << latest.ask << std::endl;
-    std::cout << "  ATR: " << latest.atr << std::endl;
-    std::cout << "  History size: " << history.size() << std::endl;
-}
-
 void sep::trading::QuantumSignalBridge::loadPatterns() {
     std::ifstream file(patterns_file_path_);
     if (!file.is_open()) {
