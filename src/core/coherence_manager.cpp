@@ -1,54 +1,54 @@
+#include <cuda_runtime.h>
+#include <tbb/concurrent_hash_map.h>
+#include <tbb/parallel_for.h>
 #include <algorithm>
 #include <array>
 #include <atomic>
 #include <cmath>
-#include <cuda_runtime.h>
 #include <glm/vec4.hpp>
 #include <memory>
 #include <numeric>
 #include <string>
-#include <tbb/concurrent_hash_map.h>
-#include <tbb/parallel_for.h>
 #include <vector>
 
 #ifdef __CUDACC__
-#include <cuda_runtime.h>
+    #include <cuda_runtime.h>
 #endif
 
 #include "coherence_manager.h"
-#include "core/sep_precompiled.h"
-#include "core/cuda_types.hpp"
 #include "core/core.h"
-#include "cuda.h"
 #include "core/cuda_helpers.h"
+#include "core/cuda_types.hpp"
 #include "core/logging.h"
-#include "memory.h"
-#include "core/types.h"
-#include "util/memory_tier_manager.hpp"
 #include "core/pattern_evolution_bridge.h"
 #include "core/quantum_manifold_optimizer.h"
 #include "core/quantum_processor_qfh.h"
+#include "core/sep_precompiled.h"
+#include "core/types.h"
+#include "cuda.h"
+#include "memory.h"
+#include "util/memory_tier_manager.hpp"
 
 namespace sep::quantum {
 
 using ::sep::memory::MemoryTierEnum;
 
 namespace {
-    // Memory coherence constants from quantum information theory
-    constexpr float COHERENCE_DECAY_RATE = 0.02f;
-    constexpr float ENTANGLEMENT_THRESHOLD = 0.6f;
-    constexpr float MEMORY_PRESSURE_FACTOR = 0.8f;
-    constexpr uint32_t COHERENCE_UPDATE_BATCH_SIZE = 128;
-    constexpr float MIN_COHERENCE_FOR_PERSISTENCE = 0.1f;
-    
-    // Baseline memory tier coherence thresholds
-    constexpr float LTM_COHERENCE_THRESHOLD = 0.8f;
-    constexpr float MTM_COHERENCE_THRESHOLD = 0.5f;
-    constexpr float STM_COHERENCE_THRESHOLD = 0.2f;
-}
+// Memory coherence constants from quantum information theory
+constexpr float COHERENCE_DECAY_RATE = 0.02f;
+constexpr float ENTANGLEMENT_THRESHOLD = 0.6f;
+constexpr float MEMORY_PRESSURE_FACTOR = 0.8f;
+constexpr uint32_t COHERENCE_UPDATE_BATCH_SIZE = 128;
+constexpr float MIN_COHERENCE_FOR_PERSISTENCE = 0.1f;
+
+// Baseline memory tier coherence thresholds
+constexpr float LTM_COHERENCE_THRESHOLD = 0.8f;
+constexpr float MTM_COHERENCE_THRESHOLD = 0.5f;
+constexpr float STM_COHERENCE_THRESHOLD = 0.2f;
+}  // namespace
 
 class CoherenceManager::Impl {
-public:
+  public:
     // Use the nested CoherenceMetrics struct from the outer class
     using CoherenceMetrics = CoherenceManager::CoherenceMetrics;
     using PatternCoherenceData = CoherenceManager::PatternCoherenceData;
@@ -60,20 +60,18 @@ public:
     using CoherenceResult = CoherenceManager::CoherenceResult;
 
     explicit Impl(const Config& config)
-        : config_(config)
-        , qfh_processor_(std::make_unique<sep::quantum::QuantumProcessorQFH>())
-        , global_tick_(0) {
-        
+        : config_(config),
+          qfh_processor_(std::make_unique<sep::quantum::QuantumProcessorQFH>()),
+          global_tick_(0) {
         initializeCoherenceTracking();
-        
+
         if (config_.enable_cuda) {
             cuda_core_ = &cuda::CudaCore::instance();
             allocateGPUBuffers();
         }
     }
 
-    CoherenceResult updateCoherence(const std::vector<sep::quantum::Pattern>& patterns)
-    {
+    CoherenceResult updateCoherence(const std::vector<sep::quantum::Pattern>& patterns) {
         CoherenceResult result;
         global_tick_++;
 
@@ -81,8 +79,7 @@ public:
         tbb::parallel_for(
             tbb::blocked_range<size_t>(0, patterns.size(), COHERENCE_UPDATE_BATCH_SIZE),
             [this, &patterns](const tbb::blocked_range<size_t>& range) {
-                for (size_t i = range.begin(); i != range.end(); ++i)
-                {
+                for (size_t i = range.begin(); i != range.end(); ++i) {
                     updatePatternCoherence(patterns[i]);
                 }
             });
@@ -106,8 +103,7 @@ public:
         result.success = true;
 
         // Fill in missing fields in result
-        for (int i = 0; i < 3; ++i)
-        {
+        for (int i = 0; i < 3; ++i) {
             result.tier_fragmentation[i] = metrics_.tier_fragmentation[i];
             result.tier_pattern_count[i] =
                 countPatternsInTier(static_cast<sep::memory::MemoryTierEnum>(i));
@@ -116,20 +112,17 @@ public:
         return result;
     }
 
-    std::vector<TierMigration> optimizeMemoryLayout()
-    {
+    std::vector<TierMigration> optimizeMemoryLayout() {
         std::vector<TierMigration> migrations;
 
         analyzeTierCoherence();
 
-        for (auto it = coherence_map_.begin(); it != coherence_map_.end(); ++it)
-        {
+        for (auto it = coherence_map_.begin(); it != coherence_map_.end(); ++it) {
             const auto& pair = *it;
             const auto& data = pair.second;
             memory::MemoryTierEnum target_tier = determineOptimalTier(data);
 
-            if (target_tier != data.current_tier)
-            {
+            if (target_tier != data.current_tier) {
                 TierMigration migration;
                 migration.pattern_id = data.pattern_id;
                 migration.from_tier = data.current_tier;
@@ -141,19 +134,17 @@ public:
         }
 
         // Apply memory pressure optimizations
-        if (metrics_.memory_pressure > MEMORY_PRESSURE_FACTOR)
-        {
+        if (metrics_.memory_pressure > MEMORY_PRESSURE_FACTOR) {
             applyMemoryPressureOptimizations(migrations);
         }
 
         return migrations;
     }
 
-    EntanglementGraph computeEntanglementGraph(const std::vector<sep::quantum::Pattern>& patterns)
-    {
+    EntanglementGraph computeEntanglementGraph(const std::vector<sep::quantum::Pattern>& patterns) {
         EntanglementGraph graph;
         graph.nodes.reserve(patterns.size());
-        
+
         // Create nodes
         for (const auto& pattern : patterns) {
             EntanglementNode node;
@@ -162,12 +153,12 @@ public:
             node.position = glm::vec4(static_cast<float>(pattern.position), 0.0f, 0.0f, 1.0f);
             graph.nodes.push_back(node);
         }
-        
+
         // Compute edges using quantum coherence measures
         for (size_t i = 0; i < patterns.size(); ++i) {
             for (size_t j = i + 1; j < patterns.size(); ++j) {
                 float entanglement = computeEntanglement(patterns[i], patterns[j]);
-                
+
                 if (entanglement > ENTANGLEMENT_THRESHOLD) {
                     EntanglementEdge edge;
                     edge.node1_idx = i;
@@ -178,16 +169,15 @@ public:
                 }
             }
         }
-        
+
         // Compute graph metrics
         graph.total_entanglement = std::accumulate(
             graph.edges.begin(), graph.edges.end(), 0.0f,
-            [](float sum, const EntanglementEdge& edge) { return sum + edge.strength; }
-        );
-        
+            [](float sum, const EntanglementEdge& edge) { return sum + edge.strength; });
+
         graph.max_degree = computeMaxDegree(graph);
         graph.clustering_coefficient = computeClusteringCoefficient(graph);
-        
+
         return graph;
     }
 
@@ -202,39 +192,39 @@ public:
                 data.coherence = 0.0f;
             }
         }
-        
+
         // Clean up zero-coherence patterns
         cleanupZeroCoherencePatterns();
     }
-    
+
     CoherenceSnapshot createSnapshot() const {
         CoherenceSnapshot snapshot;
         snapshot.timestamp = global_tick_;
         snapshot.global_metrics = metrics_;
-        
+
         // Capture pattern states
         for (auto it = coherence_map_.begin(); it != coherence_map_.end(); ++it) {
             const auto& pair = *it;
             snapshot.pattern_states.push_back(pair.second);
         }
-        
+
         // Capture tier distributions
         snapshot.tier_distribution[0] = countPatternsInTier(sep::memory::MemoryTierEnum::STM);
         snapshot.tier_distribution[1] = countPatternsInTier(sep::memory::MemoryTierEnum::MTM);
         snapshot.tier_distribution[2] = countPatternsInTier(sep::memory::MemoryTierEnum::LTM);
-        
+
         return snapshot;
     }
-    
+
     bool restoreFromSnapshot(const CoherenceSnapshot& snapshot) {
         // Clear current state
         coherence_map_.clear();
-        
+
         // Restore pattern states
         for (const auto& state : snapshot.pattern_states) {
             coherence_map_.insert({state.pattern_id, state});
         }
-        
+
         // Restore metrics
         metrics_ = snapshot.global_metrics;
         global_tick_ = snapshot.timestamp;
@@ -262,23 +252,23 @@ public:
         return 0.0f;
     }
 
-private:
+  private:
     Config config_;
     std::unique_ptr<sep::quantum::QuantumProcessorQFH> qfh_processor_;
     cuda::CudaCore* cuda_core_ = nullptr;
-    
+
     // Concurrent data structures
     using CoherenceMap =
         tbb::concurrent_hash_map<std::string, CoherenceManager::PatternCoherenceData>;
     CoherenceMap coherence_map_;
-    
+
     CoherenceManager::CoherenceMetrics metrics_;
     std::atomic<uint64_t> global_tick_;
-    
+
     // GPU buffers for coherence computation
     std::unique_ptr<sep::cuda::DeviceMemory<float>> d_coherence_values_;
     std::unique_ptr<sep::cuda::DeviceMemory<float>> d_stability_values_;
-    
+
     void initializeCoherenceTracking() {
         metrics_.global_coherence = 1.0f;
         metrics_.memory_pressure = 0.0f;
@@ -292,7 +282,7 @@ private:
             metrics_.tier_fragmentation[i] = 0.0f;
         }
     }
-    
+
     void allocateGPUBuffers() {
         if (cuda_core_) {
             size_t buffer_size = config_.max_patterns;
@@ -300,27 +290,24 @@ private:
             d_stability_values_ = std::make_unique<sep::cuda::DeviceMemory<float>>(buffer_size);
         }
     }
-    
+
     void updatePatternCoherence(const sep::quantum::Pattern& pattern) {
         CoherenceMap::accessor accessor;
-        
+
         if (coherence_map_.find(accessor, std::to_string(pattern.id))) {
             // Update existing pattern
             auto& data = accessor->second;
-            
+
             // Apply QFH processing for coherence update
             glm::vec3 position_vec3(static_cast<float>(pattern.position), 0.0f, 0.0f);
             float new_coherence = qfh_processor_->processPattern(position_vec3);
-            
+
             // Exponential moving average for stability
             data.coherence = 0.7f * data.coherence + 0.3f * new_coherence;
             data.stability = qfh_processor_->calculateStability(
-                position_vec3,
-                data.stability,
-                pattern.quantum_state.generation,
-                static_cast<float>(data.access_count) / global_tick_
-            );
-            
+                position_vec3, data.stability, pattern.quantum_state.generation,
+                static_cast<float>(data.access_count) / global_tick_);
+
             data.access_count++;
             data.last_access_tick = global_tick_;
 
@@ -329,26 +316,24 @@ private:
         } else {
             // Insert new pattern
             accessor.release();
-            
+
             PatternCoherenceData new_data;
             new_data.pattern_id = pattern.id;
             glm::vec3 position_vec3(static_cast<float>(pattern.position), 0.0f, 0.0f);
             new_data.coherence = qfh_processor_->processPattern(position_vec3);
-            new_data.stability = qfh_processor_->calculateStability(
-                position_vec3,
-                0.5f, // Start with neutral stability
-                pattern.quantum_state.generation,
-                0.0f
-            );
+            new_data.stability =
+                qfh_processor_->calculateStability(position_vec3,
+                                                   0.5f,  // Start with neutral stability
+                                                   pattern.quantum_state.generation, 0.0f);
             new_data.access_count = 1;
             new_data.last_access_tick = global_tick_;
             new_data.current_tier = sep::memory::MemoryTierEnum::STM;
             new_data.fragmentation_score = 1.0f - new_data.stability;
-            
+
             coherence_map_.insert({std::to_string(pattern.id), new_data});
         }
     }
-    
+
     void computeGlobalMetrics() {
         float total_coherence = 0.0f;
         uint64_t pattern_count = 0;
@@ -356,42 +341,42 @@ private:
         float tier_sums[3] = {0.0f, 0.0f, 0.0f};
         float tier_frag_sums[3] = {0.0f, 0.0f, 0.0f};
         uint32_t tier_counts[3] = {0, 0, 0};
-        
+
         for (auto it = coherence_map_.begin(); it != coherence_map_.end(); ++it) {
             const auto& pair = *it;
             const auto& data = pair.second;
             total_coherence += data.coherence;
             pattern_count++;
-            
+
             if (data.coherence > config_.stm_coherence_threshold) {
                 coherent_count++;
             }
-            
+
             int tier_idx = static_cast<int>(data.current_tier);
             tier_sums[tier_idx] += data.coherence;
             tier_frag_sums[tier_idx] += data.fragmentation_score;
             tier_counts[tier_idx]++;
         }
-        
+
         // Update metrics
-        metrics_.global_coherence = (pattern_count > 0) ? 
-            total_coherence / pattern_count : 0.0f;
+        metrics_.global_coherence = (pattern_count > 0) ? total_coherence / pattern_count : 0.0f;
         metrics_.total_patterns = pattern_count;
         metrics_.coherent_patterns = coherent_count;
-        
+
         // Compute tier coherences
         for (int i = 0; i < 3; ++i) {
-            metrics_.tier_coherence[i] = (tier_counts[i] > 0) ?
-                tier_sums[i] / static_cast<float>(tier_counts[i]) : 0.0f;
-            metrics_.tier_fragmentation[i] = (tier_counts[i] > 0) ?
-                tier_frag_sums[i] / static_cast<float>(tier_counts[i]) : 0.0f;
+            metrics_.tier_coherence[i] =
+                (tier_counts[i] > 0) ? tier_sums[i] / static_cast<float>(tier_counts[i]) : 0.0f;
+            metrics_.tier_fragmentation[i] =
+                (tier_counts[i] > 0) ? tier_frag_sums[i] / static_cast<float>(tier_counts[i])
+                                     : 0.0f;
         }
-        
+
         // Compute memory pressure
-        float ltm_ratio = pattern_count > 0 ? 
-            static_cast<float>(tier_counts[2]) / pattern_count : 0.0f;
+        float ltm_ratio =
+            pattern_count > 0 ? static_cast<float>(tier_counts[2]) / pattern_count : 0.0f;
         metrics_.memory_pressure = ltm_ratio;
-        
+
         // Compute entanglement density
         uint32_t total_entanglements = 0;
         for (auto it = coherence_map_.begin(); it != coherence_map_.end(); ++it) {
@@ -403,17 +388,19 @@ private:
         uint64_t fragmented_count = 0;
         for (auto it = coherence_map_.begin(); it != coherence_map_.end(); ++it) {
             const auto& pair = *it;
-            if (pair.second.fragmentation_score > 0.5f) fragmented_count++;
+            if (pair.second.fragmentation_score > 0.5f)
+                fragmented_count++;
         }
         metrics_.fragmented_patterns = fragmented_count;
 
-        metrics_.entanglement_density = (pattern_count > 1) ?
-            static_cast<float>(total_entanglements) / (pattern_count * (pattern_count - 1)) : 0.0f;
+        metrics_.entanglement_density =
+            (pattern_count > 1)
+                ? static_cast<float>(total_entanglements) / (pattern_count * (pattern_count - 1))
+                : 0.0f;
     }
 
     std::vector<CoherenceAnomaly> detectCoherenceAnomalies(
-        const std::vector<sep::quantum::Pattern>& patterns)
-    {
+        const std::vector<sep::quantum::Pattern>& patterns) {
         std::vector<CoherenceAnomaly> anomalies;
 
         // Statistical anomaly detection
@@ -421,18 +408,15 @@ private:
         float variance = computeCoherenceVariance();
         float std_dev = std::sqrt(variance);
 
-        for (const auto& pattern : patterns)
-        {
+        for (const auto& pattern : patterns) {
             CoherenceMap::const_accessor accessor;
-            if (coherence_map_.find(accessor, std::to_string(pattern.id)))
-            {
+            if (coherence_map_.find(accessor, std::to_string(pattern.id))) {
                 const auto& data = accessor->second;
 
                 // Z-score based anomaly detection
                 float z_score = (data.coherence - mean_coherence) / std_dev;
 
-                if (std::abs(z_score) > 3.0f)
-                {  // 3-sigma rule
+                if (std::abs(z_score) > 3.0f) {  // 3-sigma rule
                     CoherenceAnomaly anomaly;
                     anomaly.pattern_id = pattern.id;
                     anomaly.coherence_value = data.coherence;
@@ -445,13 +429,11 @@ private:
                 }
 
                 // Detect rapid coherence changes
-                if (data.access_count > 1)
-                {
+                if (data.access_count > 1) {
                     float coherence_change_rate =
                         std::abs(data.coherence - pattern.quantum_state.coherence);
 
-                    if (coherence_change_rate > config_.anomaly_threshold)
-                    {
+                    if (coherence_change_rate > config_.anomaly_threshold) {
                         CoherenceAnomaly anomaly;
                         anomaly.pattern_id = pattern.id;
                         anomaly.coherence_value = data.coherence;
@@ -468,22 +450,18 @@ private:
         return anomalies;
     }
 
-    std::vector<TierMigration> performTierMigrations()
-    {
+    std::vector<TierMigration> performTierMigrations() {
         std::vector<TierMigration> migrations;
 
-        for (auto it = coherence_map_.begin(); it != coherence_map_.end(); ++it)
-        {
+        for (auto it = coherence_map_.begin(); it != coherence_map_.end(); ++it) {
             auto& pair = *it;
             auto& data = pair.second;
             sep::memory::MemoryTierEnum current_tier = data.current_tier;
             sep::memory::MemoryTierEnum target_tier = determineOptimalTier(data);
 
-            if (current_tier != target_tier)
-            {
+            if (current_tier != target_tier) {
                 // Check migration conditions
-                if (shouldMigrate(data, current_tier, target_tier))
-                {
+                if (shouldMigrate(data, current_tier, target_tier)) {
                     TierMigration migration;
                     migration.pattern_id = data.pattern_id;
                     migration.from_tier = current_tier;
@@ -502,29 +480,30 @@ private:
         return migrations;
     }
 
-    void updateEntanglementGraph(const std::vector<sep::quantum::Pattern>& patterns)
-    {
+    void updateEntanglementGraph(const std::vector<sep::quantum::Pattern>& patterns) {
         // Clear existing entanglements
         for (auto it = coherence_map_.begin(); it != coherence_map_.end(); ++it) {
             auto& pair = *it;
             pair.second.entangled_patterns.clear();
         }
-        
+
         // Compute new entanglements
         for (size_t i = 0; i < patterns.size(); ++i) {
             for (size_t j = i + 1; j < patterns.size(); ++j) {
                 float entanglement = computeEntanglement(patterns[i], patterns[j]);
-                
+
                 if (entanglement > ENTANGLEMENT_THRESHOLD) {
                     // Update both patterns
                     CoherenceMap::accessor accessor1, accessor2;
-                    
+
                     if (coherence_map_.find(accessor1, std::to_string(patterns[i].id))) {
-                        accessor1->second.entangled_patterns.push_back(std::to_string(patterns[j].id));
+                        accessor1->second.entangled_patterns.push_back(
+                            std::to_string(patterns[j].id));
                     }
-                    
+
                     if (coherence_map_.find(accessor2, std::to_string(patterns[j].id))) {
-                        accessor2->second.entangled_patterns.push_back(std::to_string(patterns[i].id));
+                        accessor2->second.entangled_patterns.push_back(
+                            std::to_string(patterns[i].id));
                     }
                 }
             }
@@ -537,14 +516,11 @@ private:
         float stability_score = data.stability;
         float access_score = static_cast<float>(data.access_count) / global_tick_;
         float entanglement_score = static_cast<float>(data.entangled_patterns.size()) / 10.0f;
-        
+
         // Weighted combination
-        float total_score = 
-            0.4f * coherence_score +
-            0.3f * stability_score +
-            0.2f * access_score +
-            0.1f * glm::clamp(entanglement_score, 0.0f, 1.0f);
-        
+        float total_score = 0.4f * coherence_score + 0.3f * stability_score + 0.2f * access_score +
+                            0.1f * glm::clamp(entanglement_score, 0.0f, 1.0f);
+
         if (total_score >= config_.ltm_coherence_threshold) {
             return sep::memory::MemoryTierEnum::LTM;
         } else if (total_score >= config_.mtm_coherence_threshold) {
@@ -553,31 +529,34 @@ private:
             return sep::memory::MemoryTierEnum::STM;
         }
     }
-    
-    bool shouldMigrate(const PatternCoherenceData& data,
-                       sep::memory::MemoryTierEnum from_tier,
+
+    bool shouldMigrate(const PatternCoherenceData& data, sep::memory::MemoryTierEnum from_tier,
                        sep::memory::MemoryTierEnum to_tier) const {
         // Hysteresis to prevent oscillation
         float hysteresis = 0.1f;
-        
+
         if (to_tier > from_tier) {  // Promotion
             return data.coherence > (getThresholdForTier(to_tier) + hysteresis);
         } else {  // Demotion
             return data.coherence < (getThresholdForTier(from_tier) - hysteresis);
         }
     }
-    
+
     MigrationReason determineMigrationReason(const PatternCoherenceData& data) const {
-        if (data.coherence > 0.9f) return MigrationReason::HighCoherence;
-        if (data.stability > 0.9f) return MigrationReason::HighStability;
-        if (data.access_count > global_tick_ / 10) return MigrationReason::FrequentAccess;
-        if (!data.entangled_patterns.empty()) return MigrationReason::Entanglement;
-        if (metrics_.memory_pressure > MEMORY_PRESSURE_FACTOR) return MigrationReason::MemoryPressure;
+        if (data.coherence > 0.9f)
+            return MigrationReason::HighCoherence;
+        if (data.stability > 0.9f)
+            return MigrationReason::HighStability;
+        if (data.access_count > global_tick_ / 10)
+            return MigrationReason::FrequentAccess;
+        if (!data.entangled_patterns.empty())
+            return MigrationReason::Entanglement;
+        if (metrics_.memory_pressure > MEMORY_PRESSURE_FACTOR)
+            return MigrationReason::MemoryPressure;
         return MigrationReason::LowActivity;
     }
 
-    void applyMemoryPressureOptimizations(std::vector<TierMigration>& migrations)
-    {
+    void applyMemoryPressureOptimizations(std::vector<TierMigration>& migrations) {
         // Sort by coherence ascending for demotion candidates
         std::vector<std::pair<std::string, float>> demotion_candidates;
 
@@ -588,13 +567,13 @@ private:
                 demotion_candidates.push_back({pair.first, pair.second.coherence});
             }
         }
-        
+
         std::sort(demotion_candidates.begin(), demotion_candidates.end(),
-                 [](const auto& a, const auto& b) { return a.second < b.second; });
-        
+                  [](const auto& a, const auto& b) { return a.second < b.second; });
+
         // Demote lowest coherence patterns
         float demote_count = demotion_candidates.size() * 0.2f;  // Demote 20%
-        
+
         for (size_t i = 0; i < demote_count && i < demotion_candidates.size(); ++i) {
             TierMigration migration;
             migration.pattern_id = demotion_candidates[i].first;
@@ -602,7 +581,7 @@ private:
             migration.to_tier = ::sep::memory::MemoryTierEnum::MTM;
             migration.coherence = demotion_candidates[i].second;
             migration.reason = MigrationReason::MemoryPressure;
-            
+
             migrations.push_back(migration);
         }
     }
@@ -616,41 +595,44 @@ private:
                 to_remove.push_back(pair.first);
             }
         }
-        
+
         for (const auto& id : to_remove) {
             coherence_map_.erase(id);
         }
     }
-    
+
     float computeCoherenceVariance() const {
         float mean = metrics_.global_coherence;
         float sum_squared_diff = 0.0f;
         size_t count = 0;
-        
+
         for (auto it = coherence_map_.begin(); it != coherence_map_.end(); ++it) {
             const auto& pair = *it;
             float diff = pair.second.coherence - mean;
             sum_squared_diff += diff * diff;
             count++;
         }
-        
+
         return (count > 1) ? (sum_squared_diff / (count - 1)) : 0.0f;
     }
-    
-    float computeEntanglement(const sep::quantum::Pattern& p1, const sep::quantum::Pattern& p2) const {
+
+    float computeEntanglement(const sep::quantum::Pattern& p1,
+                              const sep::quantum::Pattern& p2) const {
         // Quantum entanglement calculation using inverse distance approximation
         float distance = glm::distance(p1.position, p2.position);
-        float phase_correlation = std::abs(std::cos(p1.quantum_state.phase - p2.quantum_state.phase));
-        
+        float phase_correlation =
+            std::abs(std::cos(p1.quantum_state.phase - p2.quantum_state.phase));
+
         // Combine spatial proximity with phase correlation
         return glm::mix(1.0f / (1.0f + distance), phase_correlation, 0.5f);
     }
-    
-    float computePhaseCorrelation(const sep::quantum::Pattern& p1, const sep::quantum::Pattern& p2) const {
+
+    float computePhaseCorrelation(const sep::quantum::Pattern& p1,
+                                  const sep::quantum::Pattern& p2) const {
         // Example phase correlation computation
         return std::abs(std::cos(p1.quantum_state.phase - p2.quantum_state.phase));
     }
-    
+
     uint32_t computeMaxDegree(const EntanglementGraph& graph) const {
         // Count connections per node
         std::vector<uint32_t> degrees(graph.nodes.size(), 0);
@@ -659,20 +641,20 @@ private:
             degrees[edge.node1_idx]++;
             degrees[edge.node2_idx]++;
         }
-        
+
         // Find maximum degree
         return degrees.empty() ? 0 : *std::max_element(degrees.begin(), degrees.end());
     }
-    
+
     float computeClusteringCoefficient(const EntanglementGraph& graph) const {
         // Example clustering coefficient computation (simplified)
         if (graph.nodes.size() < 3 || graph.edges.empty()) {
             return 0.0f;
         }
-        
+
         // Count triangles and possible triangles
         uint32_t triangle_count = 0;
-        
+
         for (size_t i = 0; i < graph.nodes.size(); ++i) {
             // Get neighbors of node i
             std::vector<size_t> neighbors;
@@ -684,10 +666,10 @@ private:
                     neighbors.push_back(edge.node1_idx);
                 }
             }
-            
+
             // Count connections between neighbors
             uint32_t connected_neighbors = 0;
-            
+
             for (size_t j = 0; j < neighbors.size(); ++j) {
                 for (size_t k = j + 1; k < neighbors.size(); ++k) {
                     // Check if neighbors j and k are connected
@@ -700,31 +682,33 @@ private:
                     }
                 }
             }
-            
+
             // Add to triangle count
             triangle_count += connected_neighbors;
         }
-        
+
         // Calculate clustering coefficient
-        uint32_t possible_triangles = graph.nodes.size() * (graph.nodes.size() - 1) * (graph.nodes.size() - 2) / 6;
-        
-        return (possible_triangles > 0) ? 
-            static_cast<float>(triangle_count) / static_cast<float>(possible_triangles) : 0.0f;
+        uint32_t possible_triangles =
+            graph.nodes.size() * (graph.nodes.size() - 1) * (graph.nodes.size() - 2) / 6;
+
+        return (possible_triangles > 0)
+                   ? static_cast<float>(triangle_count) / static_cast<float>(possible_triangles)
+                   : 0.0f;
     }
-    
+
     uint32_t countPatternsInTier(sep::memory::MemoryTierEnum tier) const {
         uint32_t count = 0;
-        
+
         for (auto it = coherence_map_.begin(); it != coherence_map_.end(); ++it) {
             const auto& pair = *it;
             if (pair.second.current_tier == tier) {
                 count++;
             }
         }
-        
+
         return count;
     }
-    
+
     float getThresholdForTier(sep::memory::MemoryTierEnum tier) const {
         switch (tier) {
             case sep::memory::MemoryTierEnum::LTM:
@@ -737,57 +721,76 @@ private:
                 return 0.0f;
         }
     }
-    
+
     TierAnalysis analyzeTierCoherence() const {
         TierAnalysis analysis;
-        
+
         for (int i = 0; i < 3; ++i) {
             analysis.tier_coherence[i] = metrics_.tier_coherence[i];
-            analysis.tier_pattern_count[i] = countPatternsInTier(static_cast<sep::memory::MemoryTierEnum>(i));
+            analysis.tier_pattern_count[i] =
+                countPatternsInTier(static_cast<sep::memory::MemoryTierEnum>(i));
         }
-        
+
         analysis.optimal_distribution = computeOptimalDistribution();
-        
+
         return analysis;
     }
-    
+
     std::array<float, 3> computeOptimalDistribution() const {
-        // Example optimal distribution calculation
-        std::array<float, 3> distribution = {0.6f, 0.3f, 0.1f};  // STM, MTM, LTM
-        
+        std::array<float, 3> distribution{};
+
+        // Derive base distribution from current tier coherence levels
+        float total_coherence =
+            metrics_.tier_coherence[0] + metrics_.tier_coherence[1] + metrics_.tier_coherence[2];
+
+        if (total_coherence > 0.0f) {
+            for (int i = 0; i < 3; ++i) {
+                distribution[i] = metrics_.tier_coherence[i] / total_coherence;
+            }
+        } else {
+            // Fallback proportions when no coherence data is available
+            distribution = {0.6f, 0.3f, 0.1f};
+        }
+
         // Adjust based on current memory pressure
         if (metrics_.memory_pressure > 0.5f) {
-            // More pressure: shift towards STM
-            distribution = {0.7f, 0.25f, 0.05f};
+            // More pressure: bias toward short-term memory
+            distribution[0] = std::min(0.8f, distribution[0] + 0.1f);
+            distribution[2] = std::max(0.05f, distribution[2] - 0.05f);
         } else if (metrics_.memory_pressure < 0.2f) {
-            // Less pressure: allow more LTM
-            distribution = {0.5f, 0.3f, 0.2f};
+            // Low pressure: allow more long-term retention
+            distribution[2] = std::min(0.3f, distribution[2] + 0.1f);
+            distribution[0] = std::max(0.4f, distribution[0] - 0.1f);
         }
-        
+
+        // Normalize to ensure a valid probability distribution
+        float sum = distribution[0] + distribution[1] + distribution[2];
+        if (sum > 0.0f) {
+            for (float& v : distribution) {
+                v /= sum;
+            }
+        }
+
         return distribution;
     }
 };
 
 // Implement the interface methods that delegate to the Impl
-CoherenceManager::CoherenceManager(const Config& config)
-    : impl_(std::make_unique<Impl>(config)) {}
+CoherenceManager::CoherenceManager(const Config& config) : impl_(std::make_unique<Impl>(config)) {}
 
 CoherenceManager::~CoherenceManager() = default;
 
 CoherenceManager::CoherenceResult CoherenceManager::updateCoherence(
-    const std::vector<sep::quantum::Pattern>& patterns)
-{
+    const std::vector<sep::quantum::Pattern>& patterns) {
     return impl_->updateCoherence(patterns);
 }
 
-std::vector<CoherenceManager::TierMigration> CoherenceManager::optimizeMemoryLayout()
-{
+std::vector<CoherenceManager::TierMigration> CoherenceManager::optimizeMemoryLayout() {
     return impl_->optimizeMemoryLayout();
 }
 
 CoherenceManager::EntanglementGraph CoherenceManager::computeEntanglementGraph(
-    const std::vector<sep::quantum::Pattern>& patterns)
-{
+    const std::vector<sep::quantum::Pattern>& patterns) {
     return impl_->computeEntanglementGraph(patterns);
 }
 
@@ -824,4 +827,4 @@ std::unique_ptr<CoherenceManager> createCoherenceManager(const CoherenceManager:
     return std::make_unique<CoherenceManager>(config);
 }
 
-} // namespace sep::quantum
+}  // namespace sep::quantum
