@@ -127,22 +127,13 @@ start_local_services() {
     if [ "$rebuild_flag" = true ]; then
         # Force rebuild of images
         log_info "Forcing rebuild of Docker images..."
-        if command -v docker-compose &> /dev/null;
- then
-            docker-compose -p "$PROJECT_NAME" build --no-cache
-            docker-compose -p "$PROJECT_NAME" up -d --force-recreate
-        else
-            docker compose -p "$PROJECT_NAME" build --no-cache
-            docker compose -p "$PROJECT_NAME" up -d --force-recreate
-        fi
+        # Use modern docker compose command
+        docker compose -p "$PROJECT_NAME" build --no-cache
+        docker compose -p "$PROJECT_NAME" up -d --force-recreate
     else
         log_info "Starting services with --build..."
-        if command -v docker-compose > /dev/null;
- then
-            docker-compose -p "$PROJECT_NAME" up -d --build
-        else
-            docker compose -p "$PROJECT_NAME" up -d --build
-        fi
+        # Use modern docker compose command
+        docker compose -p "$PROJECT_NAME" up -d --build
     fi
 
     log_success "Local services started"
@@ -158,12 +149,8 @@ stop_services() {
             "cd /opt/sep-trader && docker-compose -f docker-compose.production.yml down"
     else
         log_info "Stopping local services..."
-        if command -v docker-compose &> /dev/null;
- then
-            docker-compose -p "$PROJECT_NAME" down
-        else
-            docker compose -p "$PROJECT_NAME" down
-        fi
+        # Use modern docker compose command
+        docker compose -p "$PROJECT_NAME" down
     fi
     
     log_success "Services stopped"
