@@ -60,6 +60,10 @@ This document tracks outstanding code quality concerns in the SEP Engine codebas
 - Unimplemented UnifiedDataManager and SepEngineApp removed (`src/core/unified_data_manager.*`, `src/app/sep_engine_app.*`).
 - Unused QFH placeholder kernel removed (`src/cuda/kernels.cu`).
 
+- Obsolete OANDA trader entry point removed (`src/app/oanda_trader_main.cpp`, `src/CMakeLists.txt`).
+- Leftover pattern analysis function removed from EngineFacade (`src/core/facade.cpp`).
+- Fixed misplaced validation helpers in OANDA connector (`src/io/oanda_connector.cpp`).
+
 ## Recommendations
 1. Remove remaining hardcoded values via configuration.
 2. Standardize error handling.

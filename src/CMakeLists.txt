@@ -114,9 +114,3 @@ set_target_properties(data_downloader PROPERTIES
     INSTALL_RPATH "${SEP_RUNTIME_LIBPATH}:$ORIGIN/../lib"
     BUILD_RPATH "${SEP_RUNTIME_LIBPATH}")
 
-# OANDA trader - includes both trader and tracker modes
-add_sep_executable(oanda_trader SOURCES app/oanda_trader_main.cpp)
-target_link_libraries(oanda_trader PRIVATE sep_lib)
-set_target_properties(oanda_trader PROPERTIES
-    INSTALL_RPATH "${SEP_RUNTIME_LIBPATH}:$ORIGIN/../lib"
-    BUILD_RPATH "${SEP_RUNTIME_LIBPATH}")
