@@ -9,6 +9,7 @@
 #include "core/standard_includes.h"
 #include "core/types.h"
 #include "core/processor.h"
+#include "core/types_serialization.h"
 
 namespace sep::quantum {
 struct QuantumState;

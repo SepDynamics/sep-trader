@@ -786,6 +786,12 @@ bool OandaConnector::fetchHistoricalData(const std::string& instrument,
 int64_t OandaConnector::parseTimestamp(const std::string& time_str) {
         return sep::common::time_point_to_nanoseconds(sep::common::parseTimestamp(time_str));
     }
+    if (candle.volume < 0) {
+        result.valid = false;
+        result.errors.push_back("Volume cannot be negative.");
+    }
+    return result;
+}
 
 DataValidationResult OandaConnector::validateCandle(const OandaCandle& candle) {
         DataValidationResult result{true, {}, {}};
@@ -801,7 +807,6 @@ DataValidationResult OandaConnector::validateCandle(const OandaCandle& candle) {
             result.errors.push_back("Volume cannot be negative.");
         }
         return result;
-    }
 
 DataValidationResult OandaConnector::validateCandleSequence(
         const std::vector<OandaCandle>& candles, const std::string& granularity) {
@@ -818,25 +823,6 @@ DataValidationResult OandaConnector::validateCandleSequence(
                 }
             }
         }
-
-        // Check for timestamp continuity
-        // This is a simplified check. A robust implementation would parse the granularity string.
-        int64_t expected_diff = sep::oanda_constants::SECONDS_PER_MINUTE;  // Default to M1
-        if (granularity == "H1")
-            expected_diff = sep::oanda_constants::SECONDS_PER_HOUR;
-        else if (granularity == "D")
-            expected_diff = sep::oanda_constants::SECONDS_PER_DAY;
-
-        for (size_t i = 1; i < candles.size(); ++i) {
-            int64_t t1 = parseTimestamp(candles[i - 1].time);
-            int64_t t2 = parseTimestamp(candles[i].time);
-            if ((t2 - t1) != expected_diff) {
-                result.warnings.push_back("Timestamp gap detected between " + candles[i - 1].time +
-                                          " and " + candles[i].time);
-            }
-        }
-
-        return result;
     }
 
 std::vector<double> OandaConnector::calculateHistoricalATRs(
@@ -845,27 +831,30 @@ std::vector<double> OandaConnector::calculateHistoricalATRs(
         if (candles.size() < 15u)
             return atrs;
 
-        std::vector<double> true_ranges;
-        for (size_t i = 1; i < candles.size(); ++i) {
-            double tr = std::max({candles[i].high - candles[i].low,
-                                  std::abs(candles[i].high - candles[i - 1].close),
-                                  std::abs(candles[i].low - candles[i - 1].close)});
-            true_ranges.push_back(tr);
+    for (size_t i = 1; i < candles.size(); ++i) {
+        int64_t t1 = parseTimestamp(candles[i - 1].time);
+        int64_t t2 = parseTimestamp(candles[i].time);
+        if ((t2 - t1) != expected_diff) {
+            result.warnings.push_back("Timestamp gap detected between " + candles[i - 1].time +
+                                      " and " + candles[i].time);
         }
+    }
 
-        if (true_ranges.size() < 14u)
-            return atrs;
+    return result;
+}
 
-        double first_atr =
-            std::accumulate(true_ranges.begin(), true_ranges.begin() + 14, 0.0) / 14.0;
-        atrs.push_back(first_atr);
-
-        for (size_t i = 14u; i < true_ranges.size(); ++i) {
-            double next_atr = (atrs.back() * 13 + true_ranges[i]) / 14.0;
-            atrs.push_back(next_atr);
-        }
-
+std::vector<double> OandaConnector::calculateHistoricalATRs(
+    const std::vector<OandaCandle>& candles) {
+    std::vector<double> atrs;
+    if (candles.size() < 15u)
         return atrs;
+
+    std::vector<double> true_ranges;
+    for (size_t i = 1; i < candles.size(); ++i) {
+        double tr = std::max({candles[i].high - candles[i].low,
+                              std::abs(candles[i].high - candles[i - 1].close),
+                              std::abs(candles[i].low - candles[i - 1].close)});
+        true_ranges.push_back(tr);
     }
 
 std::string OandaConnector::getCacheFilename(const std::string& instrument,
@@ -889,16 +878,24 @@ std::vector<OandaCandle> OandaConnector::loadFromCache(const std::string& filena
             return candles;
         }
 
-        try {
-            nlohmann::json json_data;
-            in_stream >> json_data;
-            for (const auto& candle_json : json_data) {
-                candles.push_back(parseCandle(candle_json));
-            }
-        } catch (...) {
-            // Failed to parse, return empty
-        }
+std::string OandaConnector::getCacheFilename(const std::string& instrument,
+                                             const std::string& granularity,
+                                             const std::string& from, const std::string& to) {
+    std::string filename = instrument + "_" + granularity;
+    if (!from.empty()) {
+        filename += "_" + from;
+    }
+    if (!to.empty()) {
+        filename += "_" + to;
+    }
+    std::replace(filename.begin(), filename.end(), ':', '-');
+    return cache_path_ + "/" + filename + ".json";
+}
 
+std::vector<OandaCandle> OandaConnector::loadFromCache(const std::string& filename) {
+    std::vector<OandaCandle> candles;
+    std::ifstream in_stream(filename);
+    if (!in_stream.is_open()) {
         return candles;
     }
 
