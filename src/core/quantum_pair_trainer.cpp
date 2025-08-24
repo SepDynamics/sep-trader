@@ -20,8 +20,7 @@ namespace trading {
 
 // Constructor
 QuantumPairTrainer::QuantumPairTrainer(sep::infra::IDataAccessService* data_access)
-    : engine_facade_(nullptr),
-      qfh_processor_(nullptr),
+    : qfh_processor_(nullptr),
       manifold_optimizer_(nullptr),
       pattern_evolver_(nullptr),
       oanda_connector_(nullptr),
@@ -196,7 +195,6 @@ bool QuantumPairTrainer::trainMultiplePairs(const char** pair_symbols, size_t co
 // Initialize components
 bool QuantumPairTrainer::initializeComponents() {
     // Initialize simple C-style components
-    engine_facade_ = nullptr;  // Simple placeholder instead of complex C++ object
     qfh_processor_ = nullptr;  // Will be initialized when needed
 
     // Initialize other components as needed
@@ -211,7 +209,6 @@ bool QuantumPairTrainer::initializeComponents() {
 // Cleanup components
 void QuantumPairTrainer::cleanupComponents() {
     // Simple C-style cleanup - just null pointers
-    engine_facade_ = nullptr;
     qfh_processor_ = nullptr;
     manifold_optimizer_ = nullptr;
     pattern_evolver_ = nullptr;

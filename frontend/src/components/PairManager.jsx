@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { useConfig } from '../context/ConfigContext';
 import { SymbolContext } from '../context/SymbolContext';
+import { symbols } from '../config/symbols';
 import '../styles/PairManager.css';
 
 const PairManager = () => {
@@ -8,14 +9,6 @@ const PairManager = () => {
   const { currentSymbol, setCurrentSymbol } = useContext(SymbolContext);
   const [pairs, setPairs] = useState([]);
   const [newPair, setNewPair] = useState('');
-
-  // Available currency pairs for the system
-  const availablePairs = [
-    'EUR_USD', 'GBP_USD', 'USD_JPY', 'USD_CHF',
-    'AUD_USD', 'USD_CAD', 'NZD_USD', 'EUR_GBP',
-    'EUR_JPY', 'GBP_JPY', 'CHF_JPY', 'AUD_JPY',
-    'CAD_JPY', 'NZD_JPY', 'EUR_AUD', 'EUR_CAD'
-  ];
 
   useEffect(() => {
     if (config && config.enabledPairs) {
@@ -80,7 +73,7 @@ const PairManager = () => {
       <div className="pairs-grid">
         <h2>Available Pairs ({pairs.length} enabled)</h2>
         <div className="pairs-container">
-          {availablePairs.map((pair) => (
+          {symbols.map((pair) => (
             <div key={pair} className={`pair-card ${pairs.includes(pair) ? 'enabled' : 'disabled'}`}>
               <div className="pair-info">
                 <span className="pair-symbol">{pair}</span>

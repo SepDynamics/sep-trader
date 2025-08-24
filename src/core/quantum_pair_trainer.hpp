@@ -13,10 +13,6 @@ struct Candle;
 
 // Forward declarations only - no templates
 namespace sep {
-namespace engine {
-class EngineFacade;
-}
-
 namespace quantum {
 class QFHBasedProcessor;
 struct QFHOptions;
@@ -79,7 +75,6 @@ class QuantumPairTrainer {
 
   private:
     // Raw pointers to avoid template issues
-    sep::engine::EngineFacade* engine_facade_;
     sep::quantum::QFHBasedProcessor* qfh_processor_;
     sep::quantum::manifold::QuantumManifoldOptimizer* manifold_optimizer_;
     sep::quantum::PatternEvolutionBridge* pattern_evolver_;
