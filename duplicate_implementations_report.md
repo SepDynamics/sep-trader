@@ -59,6 +59,9 @@ This document tracks outstanding code quality concerns in the SEP Engine codebas
 - Removed obsolete DSL memory declaration structure (`src/util/nodes.h`).
 - Unimplemented UnifiedDataManager and SepEngineApp removed (`src/core/unified_data_manager.*`, `src/app/sep_engine_app.*`).
 - Unused QFH placeholder kernel removed (`src/cuda/kernels.cu`).
+- Removed unused PatternEvolutionTrainer and orphan CUDA walk-forward validator (`src/core/pattern_evolution_trainer.*`, `src/core/cuda_walk_forward_validator.*`).
+- Eliminated leftover PatternAnalysis implementation from EngineFacade to finalize deprecation (`src/core/facade.cpp`).
+- Added missing `<cstdint>` include for CUDA memory utilities (`src/cuda/memory.cu`).
 
 - Obsolete OANDA trader entry point removed (`src/app/oanda_trader_main.cpp`, `src/CMakeLists.txt`).
 - Leftover pattern analysis function removed from EngineFacade (`src/core/facade.cpp`).
