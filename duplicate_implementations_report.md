@@ -48,6 +48,9 @@ This document tracks outstanding code quality concerns in the SEP Engine codebas
 - Outdated Redis metrics API removed to reflect Valkey-only integration (`frontend/src/services/api.ts`).
 - Unused QuantumProcessingService and duplicate service-layer types removed (`src/app/QuantumProcessingService.*`, `src/app/QuantumTypes.h`, `src/app/PatternTypes.h`, `tests/app/quantum_processing_service_guard_test.cpp`).
 - Trade update handler now stores recent updates instead of logging to console (`frontend/src/context/WebSocketContext.js`).
+- Redundant Valkey metric fallback helper removed (`src/util/interpreter.cpp`).
+- Unused prototype market data fetcher removed (`src/app/quantum_signal_bridge.cpp`).
+- Obsolete weekly cache manager and data fetcher removed (`src/core/weekly_cache_manager.hpp`, `src/core/weekly_data_fetcher.*`, `config/training_config.json`).
 - Unimplemented WeeklyDataFetcher configuration and cache helpers removed (`src/core/weekly_data_fetcher.*`).
 - Removed redundant amplitude renormalization and stale CUDA stub reference (`src/app/QuantumProcessingService.cpp`, `src/core/cuda_impl.h`).
 - Removed redundant amplitude renormalization and stale CUDA stub reference
