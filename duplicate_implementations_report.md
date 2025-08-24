@@ -45,6 +45,7 @@ This document tracks outstanding code quality concerns in the SEP Engine codebas
 - Removed pseudo Valkey trading metrics; interpreter now returns fallback values without synthetic generation (`src/util/interpreter.cpp`).
 - Duplicate CPU window calculation path consolidated into a single helper (`src/app/tick_data_manager.cpp`).
 - Unused remote data manager interface and synchronizer stubs removed (`src/core/remote_data_manager.hpp`, `src/core/remote_synchronizer.*`).
+- Obsolete RemoteDataManager implementation and TrainingCoordinator stub removed (`src/core/RemoteDataManager.h`, `src/core/remote_data_manager.cpp`, `src/core/TrainingCoordinator.h`).
 - Outdated Redis metrics API removed to reflect Valkey-only integration (`frontend/src/services/api.ts`).
 - Trade update handler now stores recent updates instead of logging to console (`frontend/src/context/WebSocketContext.js`).
 - Unimplemented WeeklyDataFetcher configuration and cache helpers removed (`src/core/weekly_data_fetcher.*`).

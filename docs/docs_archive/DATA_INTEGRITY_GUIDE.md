@@ -29,7 +29,7 @@ This guide clarifies the distinction between legitimate backtesting/simulation a
 **Resolution**:
 - ✅ `fetchTrainingData()` now uses real OANDA API
 - ✅ DSL functions call real SEP engine components
-- ✅ Training coordinator integrates real market data
+- Training coordinator stub removed; QuantumTrainingCoordinator uses real market data
 
 ### **Mock/Test Data**
 All previously identified mock or test data paths have been removed or corrected.
