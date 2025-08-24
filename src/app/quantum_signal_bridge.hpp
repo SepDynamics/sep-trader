@@ -17,7 +17,6 @@
 #include "core/forward_window_result.h"
 #include "core/types.h"
 #include "cuda_types.cuh"
-#include "forward_window_kernels.cuh"
 #include "app/candle_types.h"
 
 // Forward declaration for RealTimeAggregator

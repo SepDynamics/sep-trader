@@ -191,7 +191,7 @@ We conducted systematic iterative testing to improve accuracy beyond the baselin
   - **MeanReversion**: High-low-high oscillation (coherence: 0.75, stability: 0.7)
   - **VolatilityBreakout**: Quiet-then-active bursts (coherence: 0.8, stability: 0.82)
 - **Validation**: All pattern detectors tested and working correctly
-- **Files Modified**: `/sep/src/apps/oanda_trader/forward_window_kernels.cpp`
+- **Files Modified**: `/sep/src/cuda/bit_pattern_kernels.cu`
 
 #### **Phase 2 Results**
 - **Stability**: Maintained 40.17% overall, 46.59% high-confidence accuracy

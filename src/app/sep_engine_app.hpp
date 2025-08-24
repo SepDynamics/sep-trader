@@ -12,7 +12,6 @@
 
 #include "util/nlohmann_json_safe.h"
 #include "app/cuda_types.cuh"
-#include "app/forward_window_kernels.cuh"
 #include "app/quantum_signal_bridge.hpp"
 #include "app/tick_cuda_kernels.cuh"
 #include "app/candle_types.h"

@@ -6,7 +6,7 @@
 #include "core/result_types.h"
 #include "cuda/bit_pattern_types.cuh"  // Include the new device types
 
-// Helper device functions (will be ported from forward_window_kernels.cpp)
+// Helper device functions for pattern detection
 __device__ bool detectTrendAcceleration(const uint8_t* window, size_t window_size);
 __device__ bool detectMeanReversion(const uint8_t* window, size_t window_size);
 __device__ bool detectVolatilityBreakout(const uint8_t* window, size_t window_size);

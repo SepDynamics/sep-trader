@@ -32,7 +32,7 @@ II. Technical & Product Deep Dive
 
 Map Pitch Deck Claims to Code: For each technical claim in the pitch deck, find the specific code that proves it. Create a simple table:
 
-Claim: "GPU-accelerated C++/CUDA engine" -> Evidence: src/apps/oanda_trader/CMakeLists.txt (enables CUDA), tick_cuda_kernels.cu, forward_window_kernels.cu.
+Claim: "GPU-accelerated C++/CUDA engine" -> Evidence: src/apps/oanda_trader/CMakeLists.txt (enables CUDA), tick_cuda_kernels.cu, src/cuda/bit_pattern_kernels.cu.
 
 Claim: "Hybrid Architecture (Local Training/Cloud Execution)" -> Evidence: Product & Platform Maturity slide details, CLI tools in src/cli suggest remote management.
 
@@ -94,4 +94,4 @@ A Technical Due Diligence "Cheat Sheet": A Q&A document that anticipates tough t
 
 Example Question: "You claim you have a GPU-accelerated engine. Where is the proof in your codebase?"
 
-Example Answer: "The core CUDA kernels are located in src/apps/oanda_trader/. Specifically, tick_cuda_kernels.cu handles real-time data processing, and forward_window_kernels.cu performs our proprietary pattern analysis. The build system enables CUDA in src/apps/oanda_trader/CMakeLists.txt."
+Example Answer: "The core CUDA kernels are located in src/apps/oanda_trader/ and src/cuda/. Specifically, tick_cuda_kernels.cu handles real-time data processing, and bit_pattern_kernels.cu performs our proprietary pattern analysis. The build system enables CUDA in src/apps/oanda_trader/CMakeLists.txt."
