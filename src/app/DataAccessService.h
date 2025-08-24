@@ -1,17 +1,19 @@
 #pragma once
 
-#include "IDataAccessService.h"
 #include "ServiceBase.h"
+#include "candle_types.h"
 #include <hiredis/hiredis.h>
 #include <string>
+#include <vector>
+#include <cstdint>
 
 namespace sep {
 namespace services {
 
 /**
- * Valkey-backed implementation of IDataAccessService
+ * Valkey-backed service for historical market data
  */
-class DataAccessService : public IDataAccessService, public ServiceBase {
+class DataAccessService : public ServiceBase {
 public:
     DataAccessService();
     ~DataAccessService() override;
@@ -21,7 +23,7 @@ public:
     std::vector<Candle> getHistoricalCandles(
         const std::string& instrument,
         std::uint64_t from,
-        std::uint64_t to) override;
+        std::uint64_t to);
 
 protected:
     Result<void> onInitialize() override;
