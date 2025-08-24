@@ -1,6 +1,6 @@
 #pragma once
 
-// Always include CUDA headers when building oanda_trader apps
+// Always include CUDA headers when building application modules
 #include <cuda_runtime.h>
 #include <cstdint>
 

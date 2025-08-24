@@ -9,14 +9,13 @@
 
 ### **Available Executables** ✅ ALL WORKING
 - **`trader-cli`** (1.4MB) - Main trading CLI interface and system administration
-- **`data_downloader`** (449KB) - Market data fetching and caching tool  
+- **`data_downloader`** (449KB) - Market data fetching and caching tool
 - **`sep_dsl_interpreter`** (1.2MB) - Domain-specific language for trading strategies
-- **`oanda_trader`** (2.1MB) - Complete OANDA trading application with GUI
 
 ### **System Components Status**
 - **DSL System**: ✅ Complete with interpreter working
 - **CLI System**: ✅ Trader CLI fully functional
-- **Apps System**: ✅ OANDA trader applications operational  
+- **Apps System**: ✅ Core utilities operational
 - **Core Libraries**: ✅ Engine, Quantum, Connectors all working
 - **Trading Module**: 🔧 Temporarily disabled for consolidation (see below)
 
