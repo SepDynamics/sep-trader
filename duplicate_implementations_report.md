@@ -47,6 +47,9 @@ This document tracks outstanding code quality concerns in the SEP Engine codebas
 - Unused remote data manager interface and synchronizer stubs removed (`src/core/remote_data_manager.hpp`, `src/core/remote_synchronizer.*`).
 - Outdated Redis metrics API removed to reflect Valkey-only integration (`frontend/src/services/api.ts`).
 - Trade update handler now stores recent updates instead of logging to console (`frontend/src/context/WebSocketContext.js`).
+- Unimplemented WeeklyDataFetcher configuration and cache helpers removed (`src/core/weekly_data_fetcher.*`).
+- Removed redundant amplitude renormalization and stale CUDA stub reference
+  (`src/app/QuantumProcessingService.cpp`, `src/core/cuda_impl.h`).
 
 ## Recommendations
 1. Remove remaining hardcoded values via configuration.
