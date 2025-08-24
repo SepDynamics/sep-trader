@@ -1,7 +1,7 @@
 // SEP Trading System - API Service
 // Centralized API client for all backend communications
 
-const API_BASE_URL = process.env.REACT_APP_API_URL || process.env.REACT_APP_API_BASE_URL || '';
+const API_BASE_URL = process.env.REACT_APP_API_URL || '';
 
 class APIClient {
   baseURL: string;

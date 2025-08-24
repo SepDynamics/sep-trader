@@ -7,7 +7,6 @@ const WebSocketContext = createContext(null);
 
 const WS_URL =
   process.env.REACT_APP_WS_URL ||
-  process.env.REACT_APP_WS_BASE_URL ||
   window._env_?.REACT_APP_WS_URL;
 
 export const WebSocketProvider = ({ children }) => {
