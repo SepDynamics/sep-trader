@@ -1079,7 +1079,7 @@ void sep::trading::QuantumSignalBridge::onHigherTimeframeCandle(const Candle& ca
 }
 
 void sep::trading::QuantumSignalBridge::loadOptimalConfig() {
-    const std::string config_path = "/sep/optimal_config.json";
+    const std::string config_path = "/_sep/testbed/optimal_config.json";
     
     if (!std::filesystem::exists(config_path)) {
         std::cout << "[QuantumSignal] No optimal config found, using defaults" << std::endl;
