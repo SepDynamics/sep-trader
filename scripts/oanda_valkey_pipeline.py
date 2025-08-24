@@ -169,11 +169,17 @@ class ValkeyManager:
     async def connect(self):
         """Connect to Valkey/Redis"""
         try:
-            self.redis = await aioredis.from_url(
-                f"redis://{self.host}:{self.port}/{self.db}",
-                decode_responses=True
-            )
-            logger.info("Connected to Valkey/Redis")
+            # Use environment variable URL with SSL support
+            import os
+            redis_url = os.environ.get('VALKEY_URL') or os.environ.get('REDIS_URL', f"redis://{self.host}:{self.port}/{self.db}")
+            
+            # Configure SSL if using rediss:// protocol
+            connection_kwargs = {'decode_responses': True}
+            if redis_url.startswith('rediss://'):
+                connection_kwargs['ssl_cert_reqs'] = None
+            
+            self.redis = await aioredis.from_url(redis_url, **connection_kwargs)
+            logger.info(f"Connected to Valkey/Redis at {redis_url.split('@')[-1] if '@' in redis_url else redis_url}")
         except Exception as e:
             logger.error(f"Failed to connect to Valkey: {str(e)}")
             raise
