@@ -155,9 +155,6 @@ Result<QuantumState> QuantumProcessingService::evolveQuantumState(
 Result<QuantumState> QuantumProcessingService::runQuantumPipeline(const QuantumState& state) {
     REQUIRE_INIT();
     try {
-        // Skip initialization check temporarily to resolve diamond inheritance issue
-        // TODO: Implement proper initialization check without causing inheritance ambiguity
-        
         // Run full pipeline: QBSA -> QFH -> Coherence -> Stability -> Evolution
         
         // Step 1: QBSA
