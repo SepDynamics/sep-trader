@@ -25,6 +25,8 @@ This document tracks outstanding code quality concerns in the SEP Engine codebas
 - Placeholder training CLI and duplicate MemoryTierService implementation removed (`src/app/cli_main.cpp`, `src/app/MemoryTierService.*`).
 - Duplicate CLI removed (`src/app/trader_cli_simple.cpp`, `src/app/trader_cli_simple.hpp`).
 - Unused frontend testing component removed (`frontend/src/components/TestingSuite.jsx`).
+- Synthetic market data generation replaced with OANDA-backed retrieval (`src/app/quantum_signal_bridge.cpp`).
+- Unused CUDA placeholder removed (`src/core/quantum_pattern_cuda.*`).
 
 ## Recommendations
 1. Remove remaining hardcoded values via configuration.
