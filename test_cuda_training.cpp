@@ -6,7 +6,6 @@
 
 // Include the quantum training components
 // #include "trading/quantum_pair_trainer.hpp"
-// #include "quantum/quantum_processor_cuda.h"
 
 int main() {
     std::cout << "=== SEP CUDA Training Test ===" << std::endl;

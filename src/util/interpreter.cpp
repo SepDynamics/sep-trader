@@ -48,6 +48,24 @@ namespace {
         }
     }
     
+    // Helper function to get trading data from Valkey
+    double get_valkey_trading_metric(const std::string& metric_key, double fallback_value = 0.0) {
+        try {
+            auto redis_manager = sep::persistence::createRedisManager();
+            if (!redis_manager || !redis_manager->isConnected()) {
+                std::cout << "ℹ️  INFO: Valkey not connected, returning fallback for " << metric_key << std::endl;
+                return fallback_value;
+            }
+
+            // Real trading metrics retrieval is not yet implemented.
+            // Avoid generating synthetic values to prevent misleading data.
+        } catch (const std::exception& e) {
+            std::cout << "⚠️  Warning: Error accessing Valkey for " << metric_key << ": " << e.what() << std::endl;
+        }
+
+        return fallback_value;
+    }
+    
     // Helper function to check market session status using real-time data
     bool is_market_open() {
         try {
@@ -1672,6 +1690,30 @@ void Interpreter::register_builtins() {
         return "historical_data_" + instrument + "_" + timeframe; // Fallback
     };
     
+    // Strategy performance tracking
+    builtins_["log_trade_result"] = [](const std::vector<Value>& args) -> Value {
+        if (args.size() < 3) {
+            throw std::runtime_error("log_trade_result() expects (instrument, direction, profit) arguments");
+        }
+        
+        std::string instrument = std::any_cast<std::string>(args[0]);
+        std::string direction = std::any_cast<std::string>(args[1]);
+        double profit = std::any_cast<double>(args[2]);
+        
+        std::cout << "DSL: Logging trade result: " << instrument << " " 
+                  << direction << " P&L: $" << profit << std::endl;
+        
+        // In production, log to performance database
+        return 1.0; // Success
+    };
+    
+    builtins_["get_strategy_stats"] = [](const std::vector<Value>& args) -> Value {
+        (void)args; // Suppress unused parameter warning
+        std::cout << "DSL: Retrieving strategy performance from Valkey..." << std::endl;
+        // Real implementation will fetch metrics from Valkey; return neutral default for now
+        return 0.0;
+    };
+    
     // String length function for DSL pattern names
     builtins_["len"] = [](const std::vector<Value>& args) -> Value {
         if (args.size() != 1) {
@@ -2983,13 +3025,8 @@ void Interpreter::visit_async_function_declaration(const ast::AsyncFunctionDecla
 }
 
 Value Interpreter::visit_await_expression(const ast::AwaitExpression& node) {
-    // For now, we'll simulate async by just evaluating the expression normally
-    // In a real implementation, this would handle async/await semantics
+    // Current implementation evaluates synchronously without async semantics
     Value result = evaluate(*node.expression);
-    
-    // Simulate async delay (for demonstration)
-    std::cout << "[ASYNC] Awaiting expression..." << std::endl;
-    
     return result;
 }
 

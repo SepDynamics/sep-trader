@@ -14,7 +14,6 @@
 #include "math_common.h"
 #include "core/types.h"
 #include "qbsa_qfh.h"
-#include "quantum_processor_cuda.h"
 #include "core/quantum_processor_qfh.h"
 
 namespace sep::quantum {

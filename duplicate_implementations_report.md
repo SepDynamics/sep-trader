@@ -18,6 +18,7 @@ This document tracks outstanding code quality concerns in the SEP Engine codebas
 - Unused frontend testing component removed (`frontend/src/components/TestingSuite.jsx`).
 - Unused CUDA placeholder removed (`src/core/quantum_pattern_cuda.cu`).
 - DSL builtin now uses `data_downloader` for real OANDA data (`src/util/interpreter.cpp`).
+ - Deprecated QuantumProcessorCUDA stub removed (`src/core/quantum_processor_cuda.*`) and all references cleaned.
 - Default API base URL removed to enforce explicit configuration (`frontend/src/services/api.ts`).
 - Unused Axios dependency removed; API client now uses native fetch (`frontend/package.json`,
   `docs/02_WEB_INTERFACE_ARCHITECTURE.md`).
@@ -43,6 +44,10 @@ This document tracks outstanding code quality concerns in the SEP Engine codebas
 - Deprecated header shims consolidated under unified include (`src/util/cuda_safe_includes.h`, `src/util/header_fix.h`, `src/util/force_array.h`, `src/util/functional_safe.h`).
 - Legacy memory tier lookup map removed (`src/util/memory_tier_manager.*`).
 - Mock trading metric builtins and Valkey fallback generator removed (`src/util/interpreter.cpp`).
+- Removed pseudo Valkey trading metrics; interpreter now returns fallback values without synthetic generation (`src/util/interpreter.cpp`).
+- Duplicate CPU window calculation path consolidated into a single helper (`src/app/tick_data_manager.cpp`).
+- Unused remote data manager interface and synchronizer stubs removed (`src/core/remote_data_manager.hpp`, `src/core/remote_synchronizer.*`).
+- Outdated Redis metrics API removed to reflect Valkey-only integration (`frontend/src/services/api.ts`).
 
 ## Recommendations
 1. Migrate DSL fallback functions to `builtins_` map for consistency.

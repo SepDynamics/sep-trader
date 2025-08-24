@@ -13,13 +13,12 @@
 #include <unistd.h>
 #endif
 
-#include "quantum_processor_cuda.h"
 
 namespace sep::quantum
 {
 
     PatternMetricEngine::PatternMetricEngine()
-        : qfh_processor_(std::make_unique<QuantumProcessorQFH>()), use_gpu_(false)
+        : qfh_processor_(std::make_unique<QuantumProcessorQFH>())
     {
         scratch_pattern_bits_.reserve(1024);
     }
@@ -40,7 +39,6 @@ namespace sep::quantum
 
     sep::SEPResult PatternMetricEngine::init([[maybe_unused]] quantum::GPUContext* ctx)
     {
-        use_gpu_ = (ctx != nullptr);
         return sep::SEPResult::SUCCESS;
     }
 
