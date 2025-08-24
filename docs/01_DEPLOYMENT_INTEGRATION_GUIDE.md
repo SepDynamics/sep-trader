@@ -55,7 +55,7 @@ This guide provides detailed instructions for deploying and integrating the SEP 
 ### Software Dependencies
 ```bash
 # Core dependencies (handled by Docker)
-- Redis 7-alpine
+- Valkey (Redis-compatible)
 - Python 3.11+
 - Node.js 18+ (for frontend builds)
 - Nginx (for frontend serving)
@@ -110,7 +110,7 @@ mkdir -p {data,logs,config}
 # Configure environment
 cat > .sep-config.env << EOF
 FLASK_ENV=development
-REDIS_URL=redis://redis:6380/0
+VALKEY_URL=redis://valkey:6380/0
 SEP_CONFIG_PATH=/app/config
 PYTHONPATH=/app
 PORT=5000
@@ -284,7 +284,7 @@ Key Features:
 - Local bind mounts for development
 - Hot-reload support
 - Development environment variables
-- Local Redis without persistence requirement
+- Optional Valkey without persistence requirement
 - Direct port mapping for debugging
 ```
 
@@ -304,7 +304,7 @@ Key Features:
 ```bash
 # Core configuration
 FLASK_ENV=production
-REDIS_URL=redis://redis:6380/0
+VALKEY_URL=redis://valkey:6380/0
 SEP_CONFIG_PATH=/app/config
 PYTHONPATH=/app
 PORT=5000
@@ -332,7 +332,7 @@ REACT_APP_ENVIRONMENT=production
 
 #### WebSocket Service Environment
 ```bash
-REDIS_URL=redis://redis:6380/0
+VALKEY_URL=redis://valkey:6380/0
 WS_HOST=0.0.0.0
 WS_PORT=8765
 LOG_LEVEL=INFO
@@ -413,7 +413,6 @@ networks:
         - subnet: 172.25.0.0/16
 
 # Service discovery (internal)
-redis:6380           # Redis cache
 trading-backend:5000 # API service
 websocket-service:8765 # WebSocket service
 ```
@@ -450,7 +449,7 @@ websocket-service:8765 # WebSocket service
 curl -f http://[host]:5000/api/health    # Backend health
 curl -f http://[host]/health             # Frontend health  
 nc -z [host] 8765                        # WebSocket connectivity
-redis-cli -h [host] -p 6380 ping        # Redis health
+valkey-cli -h [host] -p 6380 ping       # Valkey health
 ```
 
 ### Log Management
@@ -463,9 +462,8 @@ redis-cli -h [host] -p 6380 ping        # Redis health
 
 # Container logs
 docker logs sep-trading-backend
-docker logs sep-websocket  
+docker logs sep-websocket
 docker logs sep-frontend
-docker logs sep-redis
 ```
 
 ### Performance Monitoring
@@ -494,7 +492,7 @@ docker network ls
 docker network inspect sep_sep-network
 
 # Check port conflicts
-netstat -tulpn | grep -E "(5000|8765|6380|80|443)"
+netstat -tulpn | grep -E "(5000|8765|80|443)"
 ```
 
 #### Database Connection Issues
@@ -547,7 +545,6 @@ docker-compose -f docker-compose.production.yml up -d
 #### Data Recovery
 ```bash
 # Backup important data
-docker exec sep-redis redis-cli BGSAVE
 tar -czf backup-$(date +%Y%m%d).tar.gz data/ logs/ config/
 
 # Restore from backup
@@ -575,7 +572,7 @@ frontend/src/api/custom/       # Custom API clients
 - Container orchestration (Kubernetes/Swarm)
 - Load balancer configuration
 - Database sharding strategies
-- Redis cluster setup
+- Valkey cluster setup
 - CDN integration for frontend assets
 ```
 

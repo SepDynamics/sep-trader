@@ -264,9 +264,6 @@ export const {
   isAuthenticated,
 } = apiClient as any;
 
-// Add alias for getConfiguration to maintain compatibility
-export const getConfiguration = apiClient.getConfig.bind(apiClient);
-
 export { apiClient };
 export default apiClient;
 

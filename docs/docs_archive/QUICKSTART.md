@@ -166,7 +166,7 @@ curl -X POST http://localhost:8080/api/data/reload  # Reload configuration
 ### Professional State Management
 - **Persistent Configuration**: JSON-based pair and system settings
 - **Hot-Swappable Updates**: Real-time configuration changes
-- **Enterprise Data Layer**: PostgreSQL + TimescaleDB + Redis
+- **Enterprise Data Layer**: PostgreSQL + TimescaleDB + Valkey
 
 ### Remote Execution System
 - **Lightweight Trading Service**: `scripts/trading_service.py`

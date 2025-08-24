@@ -74,7 +74,7 @@ design and is pivotal for scalability and testability of the engine .
 3. Time-Anchored Identity Manifold (Valkey Database)
 At the heart of SEP’s architecture is the Valkey database, which serves as a time-anchored manifold of
 identities in the system. In practical terms, Valkey (a high-performance key–value store akin to an advanced
-Redis) is used as the Long-Term Memory (LTM) tier to persistently store patterns that have proven stable
+Valkey (Redis-compatible) is used as the Long-Term Memory (LTM) tier to persistently store patterns that have proven stable
 and important . Each identity in this context refers to a distinct emergent pattern or data entity that the
 engine is tracking. Identities could represent, for example, a candidate market regime pattern or a learned
 signal feature. As time progresses, each identity’s state is captured at discrete intervals (e.g. each tick or
