@@ -1715,7 +1715,7 @@ void Interpreter::register_builtins() {
         }
     };
     
-    // Trading utilities
+    // Advanced trading functions
     builtins_["check_market_hours"] = [](const std::vector<Value>& args) -> Value {
         (void)args; // Suppress unused parameter warning
         std::cout << "DSL: Checking real market hours..." << std::endl;

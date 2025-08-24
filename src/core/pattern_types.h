@@ -30,6 +30,7 @@
 #include <cstring>
 #include "glm_cuda_compat.h"
 #include <glm/glm.hpp>
+#include "quantum_types.h"
 
 namespace sep {
 namespace compat {
@@ -179,16 +180,8 @@ struct PatternData {
         id[MAX_ID_LENGTH - 1] = '\0';
     }
     
-    // Quantum state placeholder for compatibility
-    struct {
-        float coherence = 0.0f;
-        float phase = 0.0f;
-        float amplitude = 1.0f;
-        float entanglement = 0.0f;
-        float stability = 0.0f;
-        float entropy = 0.0f;
-        float mutation_rate = 0.0f;
-    } quantum_state;
+    // Use real quantum state implementation
+    ::sep::quantum::QuantumState quantum_state{};
 #endif
 };
 
