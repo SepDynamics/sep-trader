@@ -26,6 +26,19 @@ from websocket_service import start_websocket_server  # noqa: E402
 from database_connection import get_database_connection  # noqa: E402
 from cli_bridge import CLIBridge  # noqa: E402
 import subprocess
+from ctypes import CDLL, c_double
+
+_quantum_metrics_lib = None
+
+
+def get_total_patterns_processed() -> float:
+    """Call C++ library to get total patterns processed."""
+    global _quantum_metrics_lib
+    if _quantum_metrics_lib is None:
+        lib_path = os.path.join(os.path.dirname(__file__), '..', 'build', 'lib', 'libquantum_metrics.so')
+        _quantum_metrics_lib = CDLL(lib_path)
+        _quantum_metrics_lib.sep_get_total_patterns_processed.restype = c_double
+    return float(_quantum_metrics_lib.sep_get_total_patterns_processed())
 
 # Correlation ID support
 correlation_id_var = contextvars.ContextVar("correlation_id", default="-")
@@ -851,6 +864,13 @@ class TradingAPIHandler(BaseHTTPRequestHandler):
                     self.end_headers()
                     self.wfile.write(json.dumps({'error': str(e)}).encode())
 
+            elif path == '/api/system/quantum-metrics':
+                self.send_response(200)
+                self.send_header('Content-type', 'application/json')
+                self._set_cors_headers()
+                self.end_headers()
+                response = {'patterns_processed': get_total_patterns_processed()}
+                self.wfile.write(json.dumps(response).encode())
             elif path == '/api/quantum-metrics':
                 query_params = dict(param.split('=') for param in urlparse(self.path).query.split('&') if '=' in param) if urlparse(self.path).query else {}
                 instrument = query_params.get('instrument', 'EUR_USD')

@@ -86,6 +86,12 @@ install(TARGETS sep_lib
     RUNTIME DESTINATION bin
 )
 
+# Shared library exposing system quantum metrics
+add_sep_library(quantum_metrics SHARED
+    SOURCES app/quantum_metrics_c_api.cpp
+)
+target_link_libraries(quantum_metrics PRIVATE sep_lib)
+
 # Create consolidated executables for each main file using add_sep_executable
 # Set RPATH for TBB library path resolution - environment-driven configuration
 set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)

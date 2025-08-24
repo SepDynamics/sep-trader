@@ -1,13 +1,33 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useWebSocket } from '../context/WebSocketContext';
 import { Brain, Activity, TrendingUp, Zap, Target, Shield } from 'lucide-react';
 
 const QuantumAnalysis = () => {
-  const { systemMetrics, connected } = useWebSocket();
-  const analysisData = systemMetrics;
+  const { connected } = useWebSocket();
+  const [analysisData, setAnalysisData] = useState(null);
+
+  useEffect(() => {
+    fetch('/api/system/quantum-metrics')
+      .then((res) => res.json())
+      .then((data) =>
+        setAnalysisData({
+          qbsa_results: {},
+          qfh_patterns: [],
+          coherence_metrics: {},
+          pattern_evolution: [],
+          stability_index: 0,
+          ...data,
+        })
+      )
+      .catch(() => setAnalysisData(null));
+  }, []);
+
+  if (!connected) {
+    return <div>Disconnected</div>;
+  }
 
   if (!analysisData) {
-    return <div>{connected ? 'Loading...' : 'Data unavailable'}</div>;
+    return <div>Waiting for data...</div>;
   }
 
   const formatPercentage = (value) => {
@@ -57,7 +77,7 @@ const QuantumAnalysis = () => {
             </div>
           </div>
           <div className="card-value text-blue-400">
-            {formatNumber(analysisData.qbsa_results.coherence_score || systemMetrics?.coherence || 0.4687)}
+            {formatNumber(analysisData.qbsa_results.coherence_score || 0.4687)}
           </div>
           <div className="text-sm text-gray-400">
             Based on {analysisData.qbsa_results.analyzed_patterns || 8432} patterns
