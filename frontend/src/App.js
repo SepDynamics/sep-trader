@@ -9,7 +9,7 @@ import ManifoldKernel from './components/ManifoldKernel';
 import QuantumAnalysis from './components/QuantumAnalysis';
 import SystemMonitor from './components/SystemMonitor';
 import PairManager from './components/PairManager';
-import ConnectionStatusIndicator from './components/ConnectionStatusIndicator';
+import AppHeader from './components/AppHeader';
 import './styles/App.css';
 
 const App = () => {
@@ -83,19 +83,7 @@ const App = () => {
             <div className="background-animation"></div>
             
             {/* Header */}
-            <header className="header">
-              <div className="logo">
-                <div className="logo-icon">⚡</div>
-                <span>SEP Engine - Quantum Pattern Analysis System</span>
-              </div>
-              <div className="header-controls">
-                <ConnectionStatusIndicator />
-                <div className="pipeline-status">
-                  <span className="status-indicator offline"></span>
-                  <span>OANDA Pipeline</span>
-                </div>
-              </div>
-            </header>
+            <AppHeader />
 
             <div className="main-container">
               {/* Sidebar */}

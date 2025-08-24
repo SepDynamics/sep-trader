@@ -3,7 +3,7 @@ import { useWebSocket } from '../context/WebSocketContext';
 import { useSymbol } from '../context/SymbolContext';
 
 const ConnectionStatusIndicator = () => {
-  const { connectionStatus, connected, quantumSignals, valkeyMetrics } = useWebSocket();
+  const { connectionStatus, connected } = useWebSocket();
   const { selectedSymbol } = useSymbol();
 
   const getStatusIcon = () => {
@@ -26,9 +26,6 @@ const ConnectionStatusIndicator = () => {
     }
   };
 
-  const signalCount = Object.keys(quantumSignals).length;
-  const valkeyConnected = valkeyMetrics && Object.keys(valkeyMetrics).length > 0;
-
   return (
     <div className="connection-status-indicator flex items-center gap-4 text-sm">
       {/* WebSocket Status */}
@@ -42,22 +39,6 @@ const ConnectionStatusIndicator = () => {
         <span>📈</span>
         <span className="font-mono font-medium">{selectedSymbol}</span>
       </div>
-
-      {/* Valkey Manifold Status */}
-      {connected && (
-        <div className="flex items-center gap-2 text-xs text-gray-400">
-          <div className={`flex items-center gap-1 px-2 py-1 rounded ${valkeyConnected ? 'bg-purple-900 text-purple-400' : 'bg-gray-800 text-gray-500'}`}>
-            <span>⚡</span>
-            <span>Valkey</span>
-          </div>
-          {signalCount > 0 && (
-            <div className="flex items-center gap-1 px-2 py-1 rounded bg-cyan-900 text-cyan-400">
-              <span>🧠</span>
-              <span>{signalCount} signals</span>
-            </div>
-          )}
-        </div>
-      )}
     </div>
   );
 };
