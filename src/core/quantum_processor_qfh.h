@@ -17,8 +17,8 @@ namespace sep::quantum {
 /**
  * QFH-enhanced Quantum Processor
  *
- * Integrates the Quantum Fourier Hierarchy (QFH) approach from the testbed
- * project into the main SEP codebase.
+ * Integrates the Quantum Fourier Hierarchy (QFH) approach into the main SEP
+ * codebase.
  */
 class QuantumProcessorQFHCommon {
 public:

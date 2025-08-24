@@ -213,7 +213,7 @@ void Interpreter::register_builtins() {
             throw std::runtime_error("Invalid argument type for run_pme_testbed");
         }
         
-        std::string cmd = "cd /_sep/testbed && timeout 30 ./build/examples/pme_testbed_phase2 " + data_file + " 2>/dev/null | tail -5";
+        std::string cmd = "timeout 30 ./build/examples/pme_testbed_phase2 " + data_file + " 2>/dev/null | tail -5";
         
         int result = std::system(cmd.c_str());
         if (result == 0) {
@@ -271,7 +271,7 @@ void Interpreter::register_builtins() {
         std::cout << "DSL: Fetching LIVE data from your OANDA account..." << std::endl;
 
         // Use the production data_downloader with real API credentials
-        std::string cmd = "cd /_sep/testbed && source ./config/OANDA.env && timeout 60 ./build/src/apps/data_downloader";
+        std::string cmd = "source ./config/OANDA.env && timeout 60 ./build/src/apps/data_downloader";
 
         int result = std::system(cmd.c_str());
         if (result == 0) {
