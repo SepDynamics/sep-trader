@@ -27,8 +27,6 @@ services:
       retries: 3
       start_period: 40s
     depends_on:
-      valkey:
-        condition: service_healthy
     networks:
       - sep-network
 
