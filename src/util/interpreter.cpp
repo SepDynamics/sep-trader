@@ -1720,35 +1720,22 @@ void Interpreter::register_builtins() {
         if (args.empty()) {
             throw std::runtime_error("get_current_price() expects instrument argument");
         }
-        
+
         std::string instrument = std::any_cast<std::string>(args[0]);
-        std::cout << "DSL: Getting current price for " << instrument << std::endl;
-        
-        // Demo prices - in production, fetch from OANDA
-        if (instrument == "EUR_USD") return 1.0892;
-        if (instrument == "GBP_USD") return 1.2654;
-        if (instrument == "USD_JPY") return 148.25;
-        if (instrument == "USD_CHF") return 0.8934;
-        
-        return 1.0000; // Default
+        (void)instrument; // placeholder until real data source integrated
+        throw std::runtime_error("get_current_price() not connected to real data");
     };
-    
+
     builtins_["get_average_true_range"] = [](const std::vector<Value>& args) -> Value {
         if (args.size() < 2) {
             throw std::runtime_error("get_average_true_range() expects (instrument, periods) arguments");
         }
-        
+
         std::string instrument = std::any_cast<std::string>(args[0]);
         double periods = std::any_cast<double>(args[1]);
-        
-        std::cout << "DSL: Calculating ATR(" << periods << ") for " << instrument << std::endl;
-        
-        // Demo ATR values - in production, calculate from real data
-        if (instrument == "EUR_USD") return 0.0015; // 15 pips
-        if (instrument == "GBP_USD") return 0.0020; // 20 pips
-        if (instrument == "USD_JPY") return 0.45;   // 45 points
-        
-        return 0.0010; // Default
+        (void)instrument;
+        (void)periods;
+        throw std::runtime_error("get_average_true_range() not connected to real data");
     };
     
     // Advanced trading functions

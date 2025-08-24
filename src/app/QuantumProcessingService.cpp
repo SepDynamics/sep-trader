@@ -518,30 +518,32 @@ QuantumState QuantumProcessingService::performAuthenticEvolution(
 
 std::vector<QuantumFourierComponent> QuantumProcessingService::convertFromQFHResult(const ::sep::quantum::QFHResult& qfhResult) {
     std::vector<QuantumFourierComponent> result;
-    
-    // Convert core quantum QFHResult to service layer format
-    // QFHResult doesn't have components, so generate from available data
-    size_t component_count = std::max(static_cast<size_t>(1), qfhResult.events.size() / 10); // Group events into components
-    
-    for (size_t i = 0; i < component_count; i++) {
-        QuantumFourierComponent component;
-        
-        component.hierarchyLevel = static_cast<int>(i);
-        component.magnitude = qfhResult.confidence * (1.0 - static_cast<double>(i) * 0.1); // Decay by level
-        component.phase = qfhResult.coherence * 2.0 * M_PI; // Convert coherence to phase
-        
-        // Generate synthetic coefficients from QFH metrics
-        size_t coeff_count = 4 + i; // More coefficients at higher levels
-        component.coefficients.resize(coeff_count);
-        for (size_t j = 0; j < coeff_count; j++) {
-            double real_part = qfhResult.stability * cos(j * 0.5);
-            double imag_part = qfhResult.entropy * sin(j * 0.5);
-            component.coefficients[j] = std::complex<double>(real_part, imag_part);
+
+    // Prefer aggregated events for component construction when available
+    if (!qfhResult.aggregated_events.empty()) {
+        result.reserve(qfhResult.aggregated_events.size());
+        for (const auto& agg : qfhResult.aggregated_events) {
+            QuantumFourierComponent component;
+            component.hierarchyLevel = static_cast<int>(agg.index);
+            component.magnitude = static_cast<double>(agg.count);
+            component.phase = static_cast<double>(agg.index) * 2.0 * M_PI /
+                               std::max<uint32_t>(1, qfhResult.events.size());
+            component.coefficients = {std::complex<double>(static_cast<double>(agg.count), 0.0)};
+            result.push_back(std::move(component));
         }
-        
-        result.push_back(component);
+        return result;
     }
-    
+
+    // Fallback: derive components from raw events
+    result.reserve(qfhResult.events.size());
+    for (const auto& ev : qfhResult.events) {
+        QuantumFourierComponent component;
+        component.hierarchyLevel = static_cast<int>(ev.index);
+        component.magnitude = 1.0;
+        component.phase = static_cast<double>(ev.state) * (M_PI / 4.0);
+        component.coefficients = {std::complex<double>(ev.bit_prev, ev.bit_curr)};
+        result.push_back(std::move(component));
+    }
     return result;
 }
 

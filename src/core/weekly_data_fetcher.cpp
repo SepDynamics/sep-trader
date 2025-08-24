@@ -43,7 +43,7 @@ bool WeeklyDataFetcher::initializeOandaAPI() {
     const char* environment = std::getenv("OANDA_ENVIRONMENT");
     
     if (!api_key || !account_id || !environment) {
-        std::cout << "ℹ️  INFO: Using cached/synthetic data for training (OANDA credentials not configured)" << std::endl;
+        std::cout << "❌ OANDA credentials not configured - real market data unavailable" << std::endl;
         return false;
     }
     
