@@ -279,63 +279,54 @@ std::vector<float> Engine::getCoherenceHistory() const
     return history;
 }
 
-void Engine::ingestFile(const std::string &dataPath, bool legacy)
+void Engine::ingestFile(const std::string &dataPath)
 {
     metrics_collector_.increment("files_ingested");
-    if (legacy) {
-        DataParser parser;
-        auto patterns = parser.parseFile(dataPath);
-        auto pinStates = parser.toPinStates(patterns);
-        metrics_collector_.increment("patterns_converted_to_pin_states", patterns.size());
-        // Assuming process_batch is the intended consumer for PinStates
-        // process_batch(pinStates, ...);
-    } else {
-        pattern_metric_engine_.ingestFile(dataPath);
-        pattern_metric_engine_.evolvePatterns();
-        auto metrics = pattern_metric_engine_.computeMetrics();
-        metrics_collector_.increment("patterns_processed", metrics.size());
-        // Create quantum patterns from pattern metrics with sophisticated mapping
-        for (size_t i = 0; i < metrics.size(); ++i) {
-            const auto& metric = metrics[i];
-            
-            // Create quantum pattern from pattern metric
-            quantum::Pattern pattern;
-            pattern.id = static_cast<uint32_t>(std::hash<std::string>{}("metric_pattern_" + std::to_string(i) + "_" + std::to_string(std::time(nullptr))));
-            
-            // Map position from metric values (coherence, stability, entropy) - convert to double by averaging
-            glm::vec4 pos_vec(metric.coherence, metric.stability, metric.entropy, 1.0f);
-            pattern.position = static_cast<double>(pos_vec.x + pos_vec.y + pos_vec.z + pos_vec.w) / 4.0;
-            
-            // Initialize quantum state from metrics
-            pattern.quantum_state.coherence = glm::clamp(metric.coherence, 0.0f, 1.0f);
-            pattern.quantum_state.stability = glm::clamp(metric.stability, 0.0f, 1.0f);
-            pattern.quantum_state.entropy = glm::clamp(metric.entropy, 0.0f, 1.0f);
-            pattern.quantum_state.energy = std::sqrt(metric.coherence * metric.stability);
-            pattern.quantum_state.phase = metric.entropy; // Use entropy as phase
-            
-            // Set memory tier based on coherence thresholds - removed memory_tier assignments as field doesn't exist
-            // Memory tier logic handled elsewhere
-            
-            // Set timestamps
-            auto now = std::chrono::system_clock::now();
-            pattern.timestamp = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()).count();
-            pattern.last_accessed = pattern.timestamp;
-            pattern.last_modified = pattern.timestamp;
-            
-            // Copy compatible data to pattern attributes structure (using vector indices)
-            pattern.attributes.resize(6);
-            pattern.attributes[0] = static_cast<double>(pattern.id);
-            pattern.attributes[1] = pattern.quantum_state.coherence;
-            pattern.attributes[2] = pattern.position;
-            
-            // Copy metric values to attributes
-            pattern.attributes[3] = metric.coherence;
-            pattern.attributes[4] = metric.stability;
-            pattern.attributes[5] = metric.entropy;
-            
-            // Add pattern to quantum processor
-            quantum_processor_->addPattern(pattern);
-        }
+    pattern_metric_engine_.ingestFile(dataPath);
+    pattern_metric_engine_.evolvePatterns();
+    auto metrics = pattern_metric_engine_.computeMetrics();
+    metrics_collector_.increment("patterns_processed", metrics.size());
+    // Create quantum patterns from pattern metrics with sophisticated mapping
+    for (size_t i = 0; i < metrics.size(); ++i) {
+        const auto& metric = metrics[i];
+
+        // Create quantum pattern from pattern metric
+        quantum::Pattern pattern;
+        pattern.id = static_cast<uint32_t>(std::hash<std::string>{}("metric_pattern_" + std::to_string(i) + "_" + std::to_string(std::time(nullptr))));
+
+        // Map position from metric values (coherence, stability, entropy) - convert to double by averaging
+        glm::vec4 pos_vec(metric.coherence, metric.stability, metric.entropy, 1.0f);
+        pattern.position = static_cast<double>(pos_vec.x + pos_vec.y + pos_vec.z + pos_vec.w) / 4.0;
+
+        // Initialize quantum state from metrics
+        pattern.quantum_state.coherence = glm::clamp(metric.coherence, 0.0f, 1.0f);
+        pattern.quantum_state.stability = glm::clamp(metric.stability, 0.0f, 1.0f);
+        pattern.quantum_state.entropy = glm::clamp(metric.entropy, 0.0f, 1.0f);
+        pattern.quantum_state.energy = std::sqrt(metric.coherence * metric.stability);
+        pattern.quantum_state.phase = metric.entropy; // Use entropy as phase
+
+        // Set memory tier based on coherence thresholds - removed memory_tier assignments as field doesn't exist
+        // Memory tier logic handled elsewhere
+
+        // Set timestamps
+        auto now = std::chrono::system_clock::now();
+        pattern.timestamp = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()).count();
+        pattern.last_accessed = pattern.timestamp;
+        pattern.last_modified = pattern.timestamp;
+
+        // Copy compatible data to pattern attributes structure (using vector indices)
+        pattern.attributes.resize(6);
+        pattern.attributes[0] = static_cast<double>(pattern.id);
+        pattern.attributes[1] = pattern.quantum_state.coherence;
+        pattern.attributes[2] = pattern.position;
+
+        // Copy metric values to attributes
+        pattern.attributes[3] = metric.coherence;
+        pattern.attributes[4] = metric.stability;
+        pattern.attributes[5] = metric.entropy;
+
+        // Add pattern to quantum processor
+        quantum_processor_->addPattern(pattern);
     }
 }
 
@@ -367,7 +358,7 @@ void Engine::ingestFromDirectory(const std::string &dirPath, bool recursive)
             // Launch async task for each file
             futures.push_back(std::async(std::launch::async, [this, &filePaths, j]() {
                 try {
-                    this->ingestFile(filePaths[j], false);
+                    this->ingestFile(filePaths[j]);
                     metrics_collector_.increment("files_processed_parallel", 1);
                 } catch (const std::exception& e) {
                     metrics_collector_.increment("file_processing_errors", 1);

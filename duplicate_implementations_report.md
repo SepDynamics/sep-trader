@@ -40,6 +40,8 @@ This document tracks outstanding code quality concerns in the SEP Engine codebas
 - Duplicate quantum coherence manager removed (`src/util/quantum_coherence_manager.*`) in favor of the core implementation.
 - Removed duplicate market data fetch function and placeholder ATR
   (`src/app/quantum_signal_bridge.cpp`).
+- Legacy ingestion flag removed from Engine::ingestFile, eliminating unused DataParser path (`src/core/engine.*`).
+- Unused test-only CSS selector removed (`frontend/src/styles/App.css`).
 
 ## Recommendations
 1. Remove remaining hardcoded values via configuration.
