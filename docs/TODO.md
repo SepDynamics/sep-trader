@@ -46,7 +46,6 @@ Below is a **structured execution plan** for building a suite of visual aids to 
 1. **Valkey key design** – Ensure the backend stores each signal or pattern as `sep:signal:{instrument}:{timestamp}` with fields `{price, entropy, stability, coherence, state, created_at, last_update}` (similar to the whitepaper).  Provide an index (ZSET) for chronological access.  This is required for the manifold visualisations.
 2. **New API endpoints** – Implement `/api/valkey/metrics` to return a time‑series of (entropy, stability, coherence) for a given identity or instrument.  Add `/api/ruptures` to retrieve rupture counts over a window.  These endpoints will feed the graphs.
 3. **WebSocket messages** – Make sure the `manifold_update`, `pin_state_change`, `signal_evolution`, and `valkey_metrics` messages deliver the fields needed for the graphs.  The current `WebSocketContext` already anticipates these handlers.
-4. **Data seeding for demo** – For the whitepaper presentation, generate synthetic example data (or use historical EUR/USD ticks) and compute the metrics offline.  Save this as a JSON file that the front‑end can load in demo mode.  This way you can show the visualisations even if the live engine isn’t running.
 
 ---
 
@@ -102,8 +101,7 @@ By following this plan, you will build a **compelling set of visual aids** that 
 
 ### Next Steps:
 1. **Backend Integration** - Connect to live Valkey server for real-time manifold data
-2. **Data Seeding** - Add synthetic/historical EUR/USD data for demonstration
-3. **Performance Optimization** - Fine-tune rendering for large datasets
-4. **Educational Documentation** - Screenshot guides and interactive tutorials
+2. **Performance Optimization** - Fine-tune rendering for large datasets
+3. **Educational Documentation** - Screenshot guides and interactive tutorials
 
 **Status**: Ready for live demonstration with Valkey server integration! 🚀

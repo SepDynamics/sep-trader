@@ -72,7 +72,7 @@ logs/
 !scripts/requirements.txt
 
 # Dependencies
-node_modules/
+**/node_modules/
 vendor/
 third_party/build/
 
