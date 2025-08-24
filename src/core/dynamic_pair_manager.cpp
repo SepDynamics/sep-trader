@@ -433,8 +433,6 @@ bool DynamicPairManager::validateStageTransition(PairLifecycleStage current, Pai
         case PairLifecycleStage::INITIALIZING:
             return target == PairLifecycleStage::VALIDATING || target == PairLifecycleStage::ERROR;
         case PairLifecycleStage::VALIDATING:
-            return target == PairLifecycleStage::CACHE_BUILDING || target == PairLifecycleStage::ERROR;
-        case PairLifecycleStage::CACHE_BUILDING:
             return target == PairLifecycleStage::READY || target == PairLifecycleStage::ERROR;
         case PairLifecycleStage::READY:
             return target == PairLifecycleStage::TRADING || target == PairLifecycleStage::REMOVING;
@@ -597,7 +595,6 @@ std::string pairOperationResultToString(PairOperationResult result) {
         case PairOperationResult::ALREADY_EXISTS: return "ALREADY_EXISTS";
         case PairOperationResult::NOT_FOUND: return "NOT_FOUND";
         case PairOperationResult::INVALID_SYMBOL: return "INVALID_SYMBOL";
-        case PairOperationResult::CACHE_NOT_READY: return "CACHE_NOT_READY";
         case PairOperationResult::TRADING_ACTIVE: return "TRADING_ACTIVE";
         case PairOperationResult::RESOURCE_LIMIT: return "RESOURCE_LIMIT";
         case PairOperationResult::VALIDATION_FAILED: return "VALIDATION_FAILED";
@@ -612,7 +609,6 @@ std::string pairLifecycleStageToString(PairLifecycleStage stage) {
     switch (stage) {
         case PairLifecycleStage::INITIALIZING: return "INITIALIZING";
         case PairLifecycleStage::VALIDATING: return "VALIDATING";
-        case PairLifecycleStage::CACHE_BUILDING: return "CACHE_BUILDING";
         case PairLifecycleStage::READY: return "READY";
         case PairLifecycleStage::TRADING: return "TRADING";
         case PairLifecycleStage::PAUSING: return "PAUSING";

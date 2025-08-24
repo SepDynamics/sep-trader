@@ -15,7 +15,6 @@ enum class PairOperationResult {
     ALREADY_EXISTS,         // Pair already exists in system
     NOT_FOUND,              // Pair not found in system
     INVALID_SYMBOL,         // Invalid pair symbol format
-    CACHE_NOT_READY,        // Cache validation failed
     TRADING_ACTIVE,         // Cannot modify while trading
     RESOURCE_LIMIT,         // System resource limits exceeded
     VALIDATION_FAILED,      // Pair validation checks failed
@@ -28,7 +27,6 @@ enum class PairOperationResult {
 enum class PairLifecycleStage {
     INITIALIZING,    // Pair being added to system
     VALIDATING,      // Validating pair symbol and data
-    CACHE_BUILDING,  // Building initial cache
     READY,           // Ready for trading
     TRADING,         // Currently active in trading
     PAUSING,         // Being paused/disabled
