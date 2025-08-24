@@ -23,7 +23,7 @@ struct CudaMemcpyParams {
 
 // Helper function for memory copies to avoid parameter similarity issues
 inline cudaError_t performCudaMemcpyAsync(const CudaMemcpyParams& params) {
-    // Use the wrapper function to work both with CUDA and stub builds
+    // Wrapper that unifies CUDA copy invocation
     return cudaMemcpyAsync(params.destination, params.source, params.sizeInBytes, params.direction,
                            params.stream);
 }
