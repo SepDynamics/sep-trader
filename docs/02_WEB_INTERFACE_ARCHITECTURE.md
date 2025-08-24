@@ -773,9 +773,11 @@ server {
 
 ### Component Testing
 ```typescript
-// Example component test
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { TradingInterface } from './TradingInterface'
+import { startTrading } from '../services/api'
+
+jest.mock('../services/api')
 
 describe('TradingInterface', () => {
   test('starts trading when start button is clicked', async () => {
