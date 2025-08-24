@@ -449,7 +449,7 @@ namespace sep::quantum
         }
     }
 
-    // Evaluate signal based on threshold rules defined in docs/TODO.md
+    // Evaluate signal based on threshold rules documented in docs/02_Core_Technology.md
     SignalType PatternMetricEngine::evaluateSignal(const PatternMetrics& m) const
     {
         const auto& th = signal_thresholds_;
