@@ -2,8 +2,9 @@ import React from 'react';
 import RealTimeMarketFeed from './RealTimeMarketFeed';
 import AppHeader from './AppHeader';
 import { useSymbol } from '../context/SymbolContext';
+import { Symbol } from '../config/symbols';
 
-const HomeDashboard = () => {
+const HomeDashboard: React.FC = () => {
   const { selectedSymbol, setSelectedSymbol, symbols } = useSymbol();
 
   return (
@@ -20,7 +21,7 @@ const HomeDashboard = () => {
                 <select
                   className="bg-gray-800/70 border border-gray-600 rounded-md px-3 py-1.5 text-sm font-medium text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-150"
                   value={selectedSymbol}
-                  onChange={(e) => setSelectedSymbol(e.target.value)}
+                  onChange={(e) => setSelectedSymbol(e.target.value as Symbol)}
                   disabled // UNTIL other pairs are seeded and verified
                 >
                   {symbols.map(s => <option key={s} value={s}>{s.replace('_', '/')}</option>)}              

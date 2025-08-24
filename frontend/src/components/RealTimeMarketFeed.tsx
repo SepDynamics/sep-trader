@@ -2,11 +2,19 @@ import React, { useState, useEffect } from 'react';
 import { LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid, ResponsiveContainer, Brush } from 'recharts';
 import { useSymbol } from '../context/SymbolContext';
 import { apiClient } from '../services/api';
-import { symbolInfo } from '../config/symbols';
+import { symbolInfo, Symbol } from '../config/symbols';
 
-const CustomTooltip = ({ active, payload, label }) => {
+interface Candle {
+  t: number;
+  o: number;
+  h: number;
+  l: number;
+  c: number;
+}
+
+const CustomTooltip = ({ active, payload, label }: any) => {
   if (active && payload && payload.length) {
-    const data = payload[0].payload;
+    const data: Candle = payload[0].payload;
     return (
       <div className="bg-gray-800/80 backdrop-blur-sm border border-gray-600/50 rounded-lg p-3 shadow-lg">
         <p className="text-sm text-gray-300 font-semibold">{new Date(label).toLocaleString()}</p>
@@ -20,11 +28,11 @@ const CustomTooltip = ({ active, payload, label }) => {
   return null;
 };
 
-const RealTimeMarketFeed = ({ hours = 48 }) => {
+const RealTimeMarketFeed: React.FC<{ hours?: number }> = ({ hours = 48 }) => {
   const { selectedSymbol } = useSymbol();
-  const [priceHistory, setPriceHistory] = useState([]);
+  const [priceHistory, setPriceHistory] = useState<Candle[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -34,7 +42,7 @@ const RealTimeMarketFeed = ({ hours = 48 }) => {
         const to = Date.now();
         const from = to - hours * 3600 * 1000;
         const response = await apiClient.getMarketData(selectedSymbol, from, to);
-        const data = (response.rows || []).filter(candle => candle.t && candle.c);
+        const data: Candle[] = (response.rows || []).filter((candle: any): candle is Candle => candle.t && candle.c);
         setPriceHistory(data);
         if (data.length === 0) {
             console.warn(`No market data returned for ${selectedSymbol}`);
@@ -52,9 +60,9 @@ const RealTimeMarketFeed = ({ hours = 48 }) => {
     }
   }, [selectedSymbol, hours]);
 
-  const formatPrice = (price) => {
+  const formatPrice = (price: number) => {
     if (price === null || price === undefined) return '--';
-    const symbolPrecision = symbolInfo[selectedSymbol]?.precision || 5;
+    const symbolPrecision = symbolInfo[selectedSymbol as Symbol]?.precision || 5;
     return new Intl.NumberFormat('en-US', {
       minimumFractionDigits: symbolPrecision,
       maximumFractionDigits: symbolPrecision
