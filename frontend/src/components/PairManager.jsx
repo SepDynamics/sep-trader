@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { ConfigContext } from '../context/ConfigContext';
+import { useConfig } from '../context/ConfigContext';
 import { SymbolContext } from '../context/SymbolContext';
 import '../styles/PairManager.css';
 
 const PairManager = () => {
-  const { config, updateConfig } = useContext(ConfigContext);
+  const { config, setConfig: updateConfig } = useConfig();
   const { currentSymbol, setCurrentSymbol } = useContext(SymbolContext);
   const [pairs, setPairs] = useState([]);
   const [newPair, setNewPair] = useState('');
