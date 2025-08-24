@@ -103,7 +103,6 @@ public:
 
     // Historical data utilities
     bool fetchHistoricalData(const std::string& instrument, const std::string& output_file);
-    bool saveEURUSDM1_48h(const std::string& output_file = "eur_usd_m1_48h.json");
 
     // Error handling
     std::string getLastError() const { return last_error_; }
