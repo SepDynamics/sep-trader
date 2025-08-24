@@ -5,7 +5,7 @@ This directory contains the React + TypeScript front‑end for the SEP Professio
 **Prerequisites**
 
 * Node.js 18.x (see `.nvmrc`).
-* A running SEP engine backend on `http://localhost:5000` (REST) and `ws://localhost:8765` (WebSocket) or set custom URLs in `.env`.
+* A running SEP engine backend with REST and WebSocket endpoints configured via `.env`.
 
 **Getting Started**
 
@@ -18,8 +18,8 @@ npm start          # Runs the app in development mode on http://localhost:3000
 
 **Environment Variables**
 
-* `REACT_APP_API_URL`: Base URL for REST API (default `http://localhost:5000`).
-* `REACT_APP_WS_URL`: WebSocket endpoint for real‑time data (default `ws://localhost:8765`).
+* `REACT_APP_API_URL`: Base URL for REST API.
+* `REACT_APP_WS_URL`: WebSocket endpoint for real‑time data.
 
 **Building for production**
 

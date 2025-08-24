@@ -5,7 +5,10 @@ import React, { createContext, useContext, useEffect, useRef, useState, useCallb
 
 const WebSocketContext = createContext(null);
 
-const WS_URL = process.env.REACT_APP_WS_URL || process.env.REACT_APP_WS_BASE_URL || window._env_?.REACT_APP_WS_URL || 'ws://localhost:8765';
+const WS_URL =
+  process.env.REACT_APP_WS_URL ||
+  process.env.REACT_APP_WS_BASE_URL ||
+  window._env_?.REACT_APP_WS_URL;
 
 export const WebSocketProvider = ({ children }) => {
   const [socket, setSocket] = useState(null);
@@ -244,6 +247,11 @@ export const WebSocketProvider = ({ children }) => {
 
   // Connect to WebSocket
   const connect = useCallback(() => {
+    if (!WS_URL) {
+      console.error('WebSocket URL not configured');
+      setConnectionStatus('configuration-error');
+      return;
+    }
     if (socket?.readyState === WebSocket.OPEN) {
       console.log('WebSocket already connected');
       return;
@@ -251,7 +259,7 @@ export const WebSocketProvider = ({ children }) => {
 
     console.log(`Connecting to WebSocket at ${WS_URL}...`);
     setConnectionStatus('connecting');
-    
+
     try {
       const ws = new WebSocket(WS_URL);
       

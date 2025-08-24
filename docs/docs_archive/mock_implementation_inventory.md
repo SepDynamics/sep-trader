@@ -38,7 +38,6 @@ During our initial scan, we identified the following mock implementations and re
 1. **Service Interfaces** (now under `src/app`)
    - Core service interfaces consolidated into application layer:
      - `IQuantumProcessingService`
-     - `IPatternRecognitionService`
      - `ITradingLogicService`
      - `IDataAccessService`
    - Legacy `src/services` directory removed during cleanup
