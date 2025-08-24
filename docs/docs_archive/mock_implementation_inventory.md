@@ -69,7 +69,7 @@ During our initial scan, we identified the following mock implementations and re
 | OandaMarketDataHelper | `src/app/quantum_signal_bridge.cpp` | Helper | Fetches OANDA data with ATR calculation | Resolved |
 | CacheValidator | Referenced in tests | Validation | Validate real data providers | Updated |
 | ServiceInterfaces | `src/app/*` | Interface | Define service contracts | Consolidated |
-| MemoryTierServiceStub | `src/app/MemoryTierService.*` | Service | Mock memory tier management | Removed |
+| CudaApiStubs | `src/core/cuda_api.hpp` | Utility | CPU fallback for CUDA | Removed |
 
 ## Integration with Consolidation Strategy
 
