@@ -5,7 +5,7 @@ interface SymbolContextType {
   selectedSymbol: Symbol;
   setSelectedSymbol: (symbol: Symbol) => void;
   symbols: readonly Symbol[];
-  isValidSymbol: (symbol: string) => boolean;
+  isValidSymbol: (symbol: string) => symbol is Symbol;
 }
 
 const SymbolContext = createContext<SymbolContextType | null>(null);
