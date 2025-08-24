@@ -50,6 +50,7 @@ update_github() {
     git push origin main
     
     log_success "GitHub repository updated successfully!"
+    ./deploy.sh local
 }
 
 # Function to update server with latest changes
