@@ -1123,11 +1123,8 @@ if __name__ == "__main__":
 
     logger.info(f"🌐 API server started on port {port}")
 
-    # Start WebSocket metrics server
-    ws_port = int(os.environ.get('WS_PORT', 8765))
-    backend_url = f"http://localhost:{port}"
-    start_websocket_server(ws_port, backend_url)
-    logger.info(f"📡 WebSocket server started on port {ws_port}")
+    # Skip embedded WebSocket server - using dedicated WebSocket container instead
+    logger.info(f"📡 Using dedicated WebSocket container instead of embedded server")
 
     try:
         # Start trading service (blocking)
