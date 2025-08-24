@@ -7,6 +7,7 @@
 #include "app/candle_types.h"
 #include "app/quantum_signal_bridge.hpp"
 #include "core/signal_types.h"
+#include <hiredis/hiredis.h>
 
 namespace sep::apps {
 
@@ -25,15 +26,22 @@ public:
     void processBatch(const std::string& instrument, const std::vector<Candle>& candles);
 
 private:
-    bool loadCache(const std::string& filepath);
-    bool saveCache(const std::string& filepath) const;
-    void processAndCacheData(const std::vector<Candle>& raw_candles, const std::string& filepath);
-    std::string getCacheFilepathForLastWeek(const std::string& instrument) const;
+    bool loadCacheFromValkey(const std::string& cache_key);
+    bool saveCacheToValkey(const std::string& cache_key) const;
+    void processAndCacheData(const std::vector<Candle>& raw_candles, const std::string& cache_key);
+    std::string getCacheKeyForLastWeek(const std::string& instrument) const;
+    
+    // Valkey connection management
+    bool connectToValkey();
+    void disconnectFromValkey();
 
     std::shared_ptr<sep::connectors::OandaConnector> oanda_connector_;
     std::map<std::string, sep::trading::QuantumTradingSignal> processed_signals_;
-    std::string cache_directory_ = "/sep/cache/market_model/";
     std::shared_ptr<IQuantumPipeline> pipeline_;
+    
+    // Valkey connection
+    redisContext* valkey_context_;
+    std::string valkey_url_;
 };
 
 } // namespace sep::apps

@@ -53,7 +53,7 @@ def seed_valkey():
         print(f"Failed to connect to Valkey: {e}")
         return
 
-    key = f"market:price:{INSTRUMENT}"
+    key = f"md:price:{INSTRUMENT}"
     
     try:
         candles = fetch_candles_from_oanda()

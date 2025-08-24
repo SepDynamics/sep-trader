@@ -204,11 +204,7 @@ namespace memory {
 
         void calculateRelationshipScores();
 
-        void loadDataFromPersistence();
 
-        void storeDataToPersistence(const void *data,
-
-                                    const sep::persistence::PersistentPatternData &metadata);
 
         void *findDataById(std::size_t id);
 

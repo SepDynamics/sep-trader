@@ -12,12 +12,7 @@ services:
       - SEP_CONFIG_PATH=/app/config
       - PYTHONPATH=/app
       - PORT=5000
-      # Override database config for local development
-      - VALKEY_HOST=valkey
-      - VALKEY_PORT=6379
-      - VALKEY_PASSWORD=local_dev_password
-      - VALKEY_DATABASE=0
-      - REDIS_URL=redis://:local_dev_password@valkey:6379/0
+      - VALKEY_URL=${VALKEY_URL:-redis://localhost:6379}
     env_file:
       - ./config/.sep-config.env
     depends_on:
@@ -49,6 +44,7 @@ services:
     environment:
       - WS_HOST=0.0.0.0
       - WS_PORT=8765
+      - VALKEY_URL=${VALKEY_URL:-redis://localhost:6379}
     env_file:
       - ./config/.sep-config.env
     # Healthcheck disabled - WebSocket service doesn't have a standard HTTP endpoint

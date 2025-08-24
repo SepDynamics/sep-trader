@@ -544,7 +544,7 @@ class TradingService:
             signals = self.get_sep_trading_signals(instrument)
             
             # Get market data for context
-            key = f"market:price:{instrument}"
+            key = f"md:price:{instrument}"
             market_data = []
             
             if self.database:
@@ -824,7 +824,7 @@ class TradingAPIHandler(BaseHTTPRequestHandler):
                 to_ts = int(query_params.get('to', time.time() * 1000))
                 from_ts = int(query_params.get('from', to_ts - 48 * 3600 * 1000))
                 
-                key = f"market:price:{instrument}"
+                key = f"md:price:{instrument}"
                 
                 try:
                     with self.trading_service.database.get_client() as r:
