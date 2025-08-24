@@ -41,10 +41,7 @@ namespace {
     constexpr uint32_t COHERENCE_UPDATE_BATCH_SIZE = 128;
     constexpr float MIN_COHERENCE_FOR_PERSISTENCE = 0.1f;
     
-    // Memory tier coherence thresholds (example values)
-    constexpr float LTM_COHERENCE_THRESHOLD = 0.8f;
-    constexpr float MTM_COHERENCE_THRESHOLD = 0.5f;
-    constexpr float STM_COHERENCE_THRESHOLD = 0.2f;
+    // Memory tier coherence thresholds are now provided via configuration
 }
 
 class CoherenceManager::Impl {
@@ -363,7 +360,7 @@ private:
             total_coherence += data.coherence;
             pattern_count++;
             
-            if (data.coherence > STM_COHERENCE_THRESHOLD) {
+            if (data.coherence > config_.stm_coherence_threshold) {
                 coherent_count++;
             }
             
@@ -545,9 +542,9 @@ private:
             0.2f * access_score +
             0.1f * glm::clamp(entanglement_score, 0.0f, 1.0f);
         
-        if (total_score >= LTM_COHERENCE_THRESHOLD) {
+        if (total_score >= config_.ltm_coherence_threshold) {
             return sep::memory::MemoryTierEnum::LTM;
-        } else if (total_score >= MTM_COHERENCE_THRESHOLD) {
+        } else if (total_score >= config_.mtm_coherence_threshold) {
             return sep::memory::MemoryTierEnum::MTM;
         } else {
             return sep::memory::MemoryTierEnum::STM;
@@ -584,7 +581,7 @@ private:
         for (auto it = coherence_map_.begin(); it != coherence_map_.end(); ++it) {
             const auto& pair = *it;
             if (pair.second.current_tier == sep::memory::MemoryTierEnum::LTM &&
-                pair.second.coherence < LTM_COHERENCE_THRESHOLD) {
+                pair.second.coherence < config_.ltm_coherence_threshold) {
                 demotion_candidates.push_back({pair.first, pair.second.coherence});
             }
         }
@@ -728,11 +725,11 @@ private:
     float getThresholdForTier(sep::memory::MemoryTierEnum tier) const {
         switch (tier) {
             case sep::memory::MemoryTierEnum::LTM:
-                return LTM_COHERENCE_THRESHOLD;
+                return config_.ltm_coherence_threshold;
             case sep::memory::MemoryTierEnum::MTM:
-                return MTM_COHERENCE_THRESHOLD;
+                return config_.mtm_coherence_threshold;
             case sep::memory::MemoryTierEnum::STM:
-                return STM_COHERENCE_THRESHOLD;
+                return config_.stm_coherence_threshold;
             default:
                 return 0.0f;
         }
