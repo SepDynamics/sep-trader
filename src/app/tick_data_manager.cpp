@@ -260,43 +260,13 @@ void TickDataManager::maintainTickHistory() {
 
 void TickDataManager::recalculateAllWindows() {
     std::cout << "[TickDataManager] Recalculating all rolling windows..." << std::endl;
-    
+
     // Use CUDA acceleration if available
     if (cuda_enabled_ && cuda_context_ && cuda_context_->initialized) {
         calculateWindowsCudaAccelerated();
-        return;
+    } else {
+        calculateWindowsCPU();
     }
-    
-    // Fallback to CPU calculation
-    std::cout << "[TickDataManager] Using CPU calculations..." << std::endl;
-    
-    hourly_calculations_.clear();
-    daily_calculations_.clear();
-    
-    if (tick_history_.empty()) {
-        return;
-    }
-    
-    // Calculate windows for every Nth tick to populate arrays
-    size_t step = std::max(1UL, tick_history_.size() / CALCULATION_ARRAY_SIZE);
-    
-    for (size_t i = step; i < tick_history_.size(); i += step) {
-        const auto& tick = tick_history_[i];
-        uint64_t current_time = tick.timestamp;
-        
-        // Hourly window
-        uint64_t hourly_start = current_time - std::chrono::duration_cast<std::chrono::nanoseconds>(hourly_window_).count();
-        auto hourly_calc = calculateWindow(tick_history_, hourly_start, current_time);
-        hourly_calculations_.push_back(hourly_calc);
-        
-        // Daily window
-        uint64_t daily_start = current_time - std::chrono::duration_cast<std::chrono::nanoseconds>(daily_window_).count();
-        auto daily_calc = calculateWindow(tick_history_, daily_start, current_time);
-        daily_calculations_.push_back(daily_calc);
-    }
-    
-    std::cout << "[TickDataManager] CPU calculations completed! Generated " << hourly_calculations_.size() 
-              << " hourly and " << daily_calculations_.size() << " daily calculations" << std::endl;
 }
 
 void TickDataManager::calculateWindowsCPU() {
