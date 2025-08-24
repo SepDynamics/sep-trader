@@ -36,8 +36,8 @@ def seed_valkey():
     for record in data:
         try:
             # Original format: "2025-08-20T03:01:00.000000000Z"
-            # Strip the 'Z' and the nanoseconds part
-            dt_object = datetime.fromisoformat(record['time'].replace('Z', '')).replace(tzinfo=None)
+            # Replace 'Z' with '+00:00' to make it compatible with fromisoformat
+            dt_object = datetime.fromisoformat(record['time'].replace('Z', '+00:00'))
             timestamp_ms = int(dt_object.timestamp() * 1000)
 
             candle = {

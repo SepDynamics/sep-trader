@@ -49,8 +49,12 @@ class APIClient {
   }
 
   // Market Data
-  async getMarketData() {
-    return this.request('/api/market-data');
+  async getMarketData(instrument: string, from: number, to: number) {
+    const params = new URLSearchParams();
+    params.append('instrument', instrument);
+    params.append('from', from.toString());
+    params.append('to', to.toString());
+    return this.request(`/api/market-data?${params.toString()}`);
   }
 
   async getLiveMetrics() {
