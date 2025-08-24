@@ -51,16 +51,13 @@ This document tracks outstanding code quality concerns in the SEP Engine codebas
 - Obsolete weekly cache manager and data fetcher removed (`src/core/weekly_cache_manager.hpp`, `src/core/weekly_data_fetcher.*`, `config/training_config.json`).
 - Unimplemented WeeklyDataFetcher configuration and cache helpers removed (`src/core/weekly_data_fetcher.*`).
 - Removed redundant amplitude renormalization and stale CUDA stub reference (`src/app/QuantumProcessingService.cpp`, `src/core/cuda_impl.h`).
-<<<<<<< .merge_file_rJoCiq
-- Deprecated pattern analysis path removed; DSL builtins `measure_coherence`, `measure_stability`, and `measure_entropy` eliminated (`src/core/facade.*`, `src/util/interpreter.cpp`, docs).
-- Removed obsolete DSL memory declaration structure (`src/util/nodes.h`).
-=======
+
 - Redundant Valkey metric fallback helper removed (`src/util/interpreter.cpp`).
 - Unused prototype market data fetcher removed (`src/app/quantum_signal_bridge.cpp`).
 - Deprecated pattern analysis path removed; DSL builtins `measure_coherence`, `measure_stability`, and `measure_entropy` eliminated (`src/core/facade.*`, `src/util/interpreter.cpp`, docs).
 - Removed obsolete DSL memory declaration structure (`src/util/nodes.h`).
 - Unimplemented UnifiedDataManager and SepEngineApp removed (`src/core/unified_data_manager.*`, `src/app/sep_engine_app.*`).
->>>>>>> .merge_file_CbVglJ
+- Unused QFH placeholder kernel removed (`src/cuda/kernels.cu`).
 
 ## Recommendations
 1. Remove remaining hardcoded values via configuration.

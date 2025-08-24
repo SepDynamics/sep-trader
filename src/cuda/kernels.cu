@@ -5,7 +5,6 @@
 #include <cuda_runtime.h>
 
 #include "core/kernels.h"
-#include "core/qfh.h"
 #include "cuda/cuda_constants.h"
 
 // Forward declarations for kernels implemented in quantum_kernels.cu
@@ -41,28 +40,3 @@ cudaError_t launchQSHKernel(const std::uint64_t *d_chunks,
     return cudaGetLastError();
 }
 
-__global__ void qfhKernel(const uint8_t* d_bit_packages, int num_packages, int package_size, sep::quantum::bitspace::ForwardWindowResult* d_results) {
-    int idx = blockIdx.x;
-    if (idx >= num_packages) {
-        return;
-    }
-
-    const uint8_t* current_package = &d_bit_packages[idx * package_size];
-    double accumulated_value = 0.0;
-    double lambda = sep::cuda_constants::DECAY_CONSTANT;
-
-    for (int i = 1; i < package_size; ++i) {
-        double future_bit = current_package[i];
-        double current_bit = current_package[0];
-        accumulated_value += (future_bit - current_bit) * exp(-lambda * i);
-    }
-
-    d_results[idx].damped_coherence = 1.0 - accumulated_value; // Example
-    d_results[idx].damped_stability = accumulated_value; // Example
-}
-cudaError_t launchQFHBitTransitionsKernel(const uint8_t* d_bit_packages, int num_packages, int package_size, sep::quantum::bitspace::ForwardWindowResult* d_results, cudaStream_t stream) {
-    const int block_size = sep::cuda_constants::DEFAULT_BLOCK_SIZE;
-    const int grid_size = (num_packages + block_size - 1) / block_size;
-    qfhKernel<<<grid_size, block_size, 0, stream>>>(d_bit_packages, num_packages, package_size, d_results);
-    return cudaGetLastError();
-}
