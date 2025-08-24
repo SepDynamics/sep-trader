@@ -1,6 +1,3 @@
-// SEP Trading System - Symbol Context
-// Manages selected trading symbol state across the application
-
 import React, { createContext, useContext, useState } from 'react';
 import { symbols } from '../config/symbols';
 

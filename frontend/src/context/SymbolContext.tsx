@@ -1,28 +1,38 @@
 import React, { createContext, useContext, useState, ReactNode } from 'react';
-import { symbols } from '../config/symbols';
+import { symbols, Symbol } from '../config/symbols';
 
 interface SymbolContextType {
-  selectedSymbol: string;
-  setSelectedSymbol: (symbol: string) => void;
+  selectedSymbol: Symbol;
+  setSelectedSymbol: (symbol: Symbol) => void;
+  symbols: readonly Symbol[];
+  isValidSymbol: (symbol: string) => boolean;
 }
 
-const SymbolContext = createContext<SymbolContextType>({
-  selectedSymbol: symbols[0],
-  setSelectedSymbol: () => {}
-});
+const SymbolContext = createContext<SymbolContextType | null>(null);
 
-interface SymbolProviderProps {
-  children: ReactNode;
-}
+export const SymbolProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+  const [selectedSymbol, setSelectedSymbol] = useState<Symbol>(symbols[0]);
 
-export const SymbolProvider: React.FC<SymbolProviderProps> = ({ children }) => {
-  const [selectedSymbol, setSelectedSymbol] = useState<string>(symbols[0]);
-  
+  const contextValue: SymbolContextType = {
+    selectedSymbol,
+    setSelectedSymbol,
+    symbols,
+    isValidSymbol: (symbol: string): symbol is Symbol => symbols.includes(symbol as Symbol),
+  };
+
   return (
-    <SymbolContext.Provider value={{ selectedSymbol, setSelectedSymbol }}>
+    <SymbolContext.Provider value={contextValue}>
       {children}
     </SymbolContext.Provider>
   );
 };
 
-export const useSymbol = (): SymbolContextType => useContext(SymbolContext);
+export const useSymbol = (): SymbolContextType => {
+  const context = useContext(SymbolContext);
+  if (!context) {
+    throw new Error('useSymbol must be used within a SymbolProvider');
+  }
+  return context;
+};
+
+export default SymbolContext;

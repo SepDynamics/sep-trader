@@ -1,4 +1,3 @@
-// File: /sep/frontend/src/components/RealTimeMarketFeed.jsx
 import React, { useState, useEffect } from 'react';
 import { LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid, ResponsiveContainer } from 'recharts';
 import { useSymbol } from '../context/SymbolContext';
@@ -19,10 +18,8 @@ const RealTimeMarketFeed = ({ hours = 48 }) => {
         const to = Date.now();
         const from = to - hours * 3600 * 1000;
         
-        // Fetch data from our new backend endpoint. Your api.ts already has this.
         const response = await apiClient.getMarketData(selectedSymbol, from, to);
         
-        // Ensure we have rows and they have the 't' (time) and 'c' (close) properties
         const data = (response.rows || []).filter(candle => candle.t && candle.c);
         
         setPriceHistory(data);
