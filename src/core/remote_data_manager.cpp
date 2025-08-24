@@ -113,15 +113,12 @@ bool RemoteDataManager::save_market_data(const MarketData& data) {
     
     std::string key = get_market_data_key(data.symbol);
     
-    // Create OHLCV JSON data
-    nlohmann::json ohlc_data;
-    ohlc_data["o"] = data.price; // Using price as all OHLC values for simplicity
-    ohlc_data["h"] = data.price;
-    ohlc_data["l"] = data.price;
-    ohlc_data["c"] = data.price;
-    ohlc_data["v"] = data.volume;
-    
-    std::string json_str = ohlc_data.dump();
+    // Store only the available price and volume fields
+    nlohmann::json candle_data;
+    candle_data["c"] = data.price;   // Close price
+    candle_data["v"] = data.volume;  // Volume
+
+    std::string json_str = candle_data.dump();
     
     // Extract timestamp from data.timestamp string or use current time
     int64_t timestamp_ms = std::chrono::duration_cast<std::chrono::milliseconds>(

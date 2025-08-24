@@ -15,7 +15,7 @@ namespace trading {
 // Forward declarations for data types
 struct MarketData {
     std::string symbol;
-    double price;
+    double price;      // close price
     double volume;
     std::string timestamp;
 };
