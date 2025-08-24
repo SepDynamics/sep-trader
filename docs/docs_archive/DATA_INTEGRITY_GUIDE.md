@@ -35,7 +35,6 @@ This guide clarifies the distinction between legitimate backtesting/simulation a
 **Files requiring validation**:
 - `/sep/src/engine/batch/batch_processor.cpp` - "Simulate execution" comments
 - `/sep/src/cli/trader_cli.cpp` - Static status output only; no real metrics
-- `/sep/src/training/weekly_data_fetcher.cpp` - "Simulate data fetching"
 
 ## 🔄 DATA FLOW VERIFICATION
 
