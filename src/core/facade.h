@@ -28,12 +28,6 @@ struct PatternProcessRequest {
     bool async_processing{false};
 };
 
-struct PatternAnalysisRequest {
-    std::string pattern_id;
-    int analysis_depth{3};
-    bool include_relationships{true};
-};
-
 struct MemoryQueryRequest {
     std::string query_id;
     int max_results{100};
@@ -173,14 +167,6 @@ struct PatternProcessResponse {
     bool processing_complete{false};
 };
 
-struct PatternAnalysisResponse {
-    ::sep::quantum::Pattern pattern;
-    std::vector<::sep::quantum::PatternRelationship> relationships;
-    float confidence_score{0.0f};
-    float entropy{0.0f};
-    std::string analysis_summary;
-};
-
 struct BitExtractionRequest {
     std::string pattern_id;
 };
@@ -289,8 +275,6 @@ public:
     ::sep::Result<void> processPatterns(const PatternProcessRequest& request,
                                         PatternProcessResponse& response);
 
-    ::sep::Result<void> analyzePattern(const PatternAnalysisRequest& request,
-                                       PatternAnalysisResponse& response);
 
     ::sep::Result<void> qfhAnalyze(const QFHAnalysisRequest& request,
                                    QFHAnalysisResponse& response);

@@ -57,6 +57,7 @@ This document tracks outstanding code quality concerns in the SEP Engine codebas
   (`src/app/QuantumProcessingService.cpp`, `src/core/cuda_impl.h`).
 - Redundant Valkey metric fallback helper removed (`src/util/interpreter.cpp`).
 - Unused prototype market data fetcher removed (`src/app/quantum_signal_bridge.cpp`).
+- Deprecated pattern analysis path removed; DSL builtins `measure_coherence`, `measure_stability`, and `measure_entropy` eliminated (`src/core/facade.*`, `src/util/interpreter.cpp`, docs).
 
 ## Recommendations
 1. Remove remaining hardcoded values via configuration.
