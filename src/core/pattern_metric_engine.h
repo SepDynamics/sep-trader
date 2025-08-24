@@ -18,12 +18,6 @@
 #include "core/signal.h"
 #include "core/signal_types.h"
 
-// Forward declaration to avoid circular includes
-namespace sep::quantum
-{
-    class QuantumProcessorCUDA;
-}
-
 namespace sep::quantum
 {
 
@@ -241,7 +235,6 @@ namespace sep::quantum
 
         // Quantum processing components
         std::unique_ptr<QuantumProcessorQFH> qfh_processor_;
-        bool use_gpu_;
 
         // Internal pattern storage with sliding history window
         size_t max_history_size_{1024};
