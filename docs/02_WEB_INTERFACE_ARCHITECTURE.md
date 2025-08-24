@@ -753,46 +753,31 @@ server {
 ## Testing Strategy
 
 ### Component Testing
+Frontend components are exercised with React Testing Library using the real
+`apiClient` implementation. This ensures tests reflect actual data flow rather
+than mocked responses.
+
 ```typescript
-import { render, screen, fireEvent, waitFor } from '@testing-library/react'
-import { TradingInterface } from './TradingInterface'
-import { startTrading } from '../services/api'
+import { render, screen } from '@testing-library/react';
+import OandaCandleChart from '../components/OandaCandleChart';
 
-jest.mock('../services/api')
-
-describe('TradingInterface', () => {
-  test('starts trading when start button is clicked', async () => {
-    const startTrading = jest.fn().mockResolvedValue(undefined)
-
-    render(
-      <TradingInterface
-        onStartTrading={startTrading}
-        onStopTrading={jest.fn()}
-        isTrading={false}
-      />
-    )
-
-    fireEvent.click(screen.getByText('Start Trading'))
-
-    await waitFor(() => {
-      expect(startTrading).toHaveBeenCalled()
-    })
-  })
-})
+test('renders OANDA candle chart header', () => {
+  render(<OandaCandleChart />);
+  expect(screen.getByText(/OANDA Candles/i)).toBeInTheDocument();
+});
 ```
 
 ### API Integration Testing
-```typescript
-// API service testing
-import { api } from './api'
+The fetch-based API client can be exercised directly against a test backend or
+a controlled fixture server.
 
-describe('API Service', () => {
-  test('fetches trading status', async () => {
-    const response = await api.get('/trading/status')
-    expect(response.data).toHaveProperty('is_trading')
-    expect(response.data).toHaveProperty('current_position')
-  })
-})
+```typescript
+import apiClient from '../services/api';
+
+test('fetches system status', async () => {
+  const status = await apiClient.getSystemStatus();
+  expect(status).toHaveProperty('status');
+});
 ```
 
 ---
