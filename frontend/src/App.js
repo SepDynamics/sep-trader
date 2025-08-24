@@ -2,143 +2,76 @@ import React, { useState, useEffect } from 'react';
 import { WebSocketProvider } from './context/WebSocketContext';
 import { SymbolProvider } from './context/SymbolContext';
 import { ConfigProvider } from './context/ConfigContext';
-import HomeDashboard from './components/HomeDashboard';
-import TradingPanel from './components/TradingPanel';
-import TradingCockpit from './components/TradingCockpit';
-import SystemStatus from './components/SystemStatus';
-import PerformanceMetrics from './components/PerformanceMetrics';
-import MarketData from './components/MarketData';
-import TradingSignals from './components/TradingSignals';
-import ConfigurationPanel from './components/ConfigurationPanel';
-import ConnectionStatusIndicator from './components/ConnectionStatusIndicator';
-import QuantumAnalysis from './components/QuantumAnalysis';
-import ManifoldVisualizer from './components/ManifoldVisualizer';
-import ManifoldKernel from './components/ManifoldKernel';
+import SEPDashboard from './components/SEPDashboard';
+import PatternAnalysis from './components/PatternAnalysis';
 import ValkeyPipelineManager from './components/ValkeyPipelineManager';
-import TestingSuite from './components/TestingSuite';
+import ManifoldKernel from './components/ManifoldKernel';
+import QuantumAnalysis from './components/QuantumAnalysis';
+import SystemMonitor from './components/SystemMonitor';
+import PairManager from './components/PairManager';
+import ConnectionStatusIndicator from './components/ConnectionStatusIndicator';
 import './styles/App.css';
 
 const App = () => {
   const [activeSection, setActiveSection] = useState('dashboard');
-  const [testMode, setTestMode] = useState(false);
-  const [darkMode, setDarkMode] = useState(true); // Default to dark mode
+  const [darkMode, setDarkMode] = useState(true);
 
   useEffect(() => {
-    // Load theme preference from localStorage
     const savedTheme = localStorage.getItem('theme');
     if (savedTheme) {
       setDarkMode(savedTheme === 'dark');
-    } else {
-      // Default to dark mode for professional trading interface
-      setDarkMode(true);
     }
   }, []);
 
   useEffect(() => {
-    // Apply theme to document
     document.documentElement.setAttribute('data-theme', darkMode ? 'dark' : 'light');
     localStorage.setItem('theme', darkMode ? 'dark' : 'light');
-    
-    // Add body classes for theme
     document.body.className = darkMode ? 'dark-theme' : 'light-theme';
   }, [darkMode]);
 
-  // Navigation sections aligned with example.html
   const navSections = [
     {
-      title: 'Main',
+      title: 'SEP Engine',
       items: [
-        { id: 'dashboard', label: 'Dashboard', icon: '📊' },
-        { id: 'cockpit', label: 'Trading Cockpit', icon: '🚀' },
-        { id: 'trading', label: 'Trading Panel', icon: '💹' },
-        { id: 'signals', label: 'Signals', icon: '🔔' },
+        { id: 'dashboard', label: 'System Overview', icon: '⚡' },
+        { id: 'pipeline', label: 'Data Pipeline', icon: '🌊' },
+        { id: 'pairs', label: 'Currency Pairs', icon: '💱' },
       ]
     },
     {
-      title: 'Analysis',
+      title: 'Pattern Analysis',
       items: [
-        { id: 'kernel', label: 'Manifold Kernel', icon: '🧠' },
-        { id: 'valkey', label: 'Valkey Pipeline', icon: '⚡' },
-        { id: 'quantum', label: 'Quantum Analysis', icon: '⚛️' },
-        { id: 'manifold', label: 'Manifold Visualizer', icon: '🌐' },
-        { id: 'performance', label: 'Performance', icon: '📈' },
-        { id: 'market', label: 'Market Data', icon: '🌍' },
+        { id: 'patterns', label: 'Live Patterns', icon: '🧠' },
+        { id: 'kernel', label: 'Manifold Kernel', icon: '⚛️' },
+        { id: 'quantum', label: 'Quantum States', icon: '🔬' },
       ]
     },
     {
-      title: 'Testing',
+      title: 'Monitoring',
       items: [
-        { id: 'unit-tests', label: 'Unit Tests', icon: '🧪' },
-        { id: 'integration', label: 'Integration', icon: '🔗' },
-        { id: 'backtest', label: 'Backtesting', icon: '⏪' },
-      ]
-    },
-    {
-      title: 'System',
-      items: [
-        { id: 'system', label: 'System Status', icon: '⚙️' },
-        { id: 'config', label: 'Configuration', icon: '🔧' },
+        { id: 'system', label: 'System Health', icon: '📊' },
       ]
     }
   ];
 
-  const handleSectionChange = (sectionId) => {
-    setActiveSection(sectionId);
-    
-    // Update nav item active states
-    document.querySelectorAll('.nav-item').forEach(item => {
-      item.classList.remove('active');
-    });
-    
-    // Handle test mode sections
-    if (['unit-tests', 'integration', 'backtest'].includes(sectionId)) {
-      setTestMode(true);
-    } else if (testMode && !['unit-tests', 'integration', 'backtest'].includes(sectionId)) {
-      setTestMode(false);
-    }
-  };
-
-  const toggleTestMode = () => {
-    setTestMode(!testMode);
-    if (!testMode) {
-      setActiveSection('unit-tests');
-    } else {
-      setActiveSection('dashboard');
-    }
-  };
-
   const renderActiveComponent = () => {
     switch (activeSection) {
       case 'dashboard':
-        return <HomeDashboard />;
-      case 'cockpit':
-        return <TradingCockpit />;
-      case 'trading':
-        return <TradingPanel />;
-      case 'market':
-        return <MarketData />;
-      case 'signals':
-        return <TradingSignals />;
+        return <SEPDashboard />;
+      case 'pipeline':
+        return <ValkeyPipelineManager />;
+      case 'pairs':
+        return <PairManager />;
+      case 'patterns':
+        return <PatternAnalysis />;
       case 'kernel':
         return <ManifoldKernel />;
-      case 'valkey':
-        return <ValkeyPipelineManager />;
       case 'quantum':
         return <QuantumAnalysis />;
-      case 'manifold':
-        return <ManifoldVisualizer />;
-      case 'performance':
-        return <PerformanceMetrics />;
       case 'system':
-        return <SystemStatus />;
-      case 'config':
-        return <ConfigurationPanel />;
-      case 'unit-tests':
-      case 'integration':
-      case 'backtest':
-        return <TestingSuite activeTab={activeSection} />;
+        return <SystemMonitor />;
       default:
-        return <HomeDashboard />;
+        return <SEPDashboard />;
     }
   };
 
@@ -147,30 +80,25 @@ const App = () => {
       <SymbolProvider>
         <ConfigProvider>
           <div className={`app ${darkMode ? 'dark' : 'light'}`}>
-            {/* Animated Background */}
             <div className="background-animation"></div>
             
             {/* Header */}
             <header className="header">
               <div className="logo">
                 <div className="logo-icon">⚡</div>
-                <span>SEP Professional Trading System</span>
+                <span>SEP Engine - Quantum Pattern Analysis System</span>
               </div>
               <div className="header-controls">
                 <ConnectionStatusIndicator />
-                <button
-                  className="test-button"
-                  onClick={toggleTestMode}
-                  aria-label="Toggle test mode"
-                >
-                  Test Mode
-                </button>
+                <div className="pipeline-status">
+                  <span className="status-indicator offline"></span>
+                  <span>OANDA Pipeline</span>
+                </div>
               </div>
             </header>
 
-            {/* Main Container */}
             <div className="main-container">
-              {/* Sidebar Navigation */}
+              {/* Sidebar */}
               <aside className="sidebar">
                 {navSections.map((section, sectionIndex) => (
                   <div key={sectionIndex} className="nav-section">
@@ -179,12 +107,12 @@ const App = () => {
                       <a
                         key={item.id}
                         className={`nav-item ${activeSection === item.id ? 'active' : ''}`}
-                        onClick={() => handleSectionChange(item.id)}
+                        onClick={() => setActiveSection(item.id)}
                         role="button"
                         tabIndex={0}
                         onKeyPress={(e) => {
                           if (e.key === 'Enter' || e.key === ' ') {
-                            handleSectionChange(item.id);
+                            setActiveSection(item.id);
                           }
                         }}
                       >
@@ -196,7 +124,7 @@ const App = () => {
               </aside>
 
               {/* Main Content */}
-              <main className="content" id="mainContent">
+              <main className="content">
                 <div className="main-content">
                   {renderActiveComponent()}
                 </div>
@@ -207,7 +135,7 @@ const App = () => {
             <footer className="app-footer">
               <div className="footer-content">
                 <span className="footer-text">
-                  SEP Engine v4.1.0 | CUDA: Enabled | Quantum Engine: Active
+                  SEP Engine v4.1.0 | CUDA: Enabled | Quantum Pattern Recognition: Active
                 </span>
                 <span className="footer-timestamp">
                   {new Date().toLocaleTimeString()}
