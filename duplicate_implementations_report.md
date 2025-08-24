@@ -30,6 +30,8 @@ This document tracks outstanding code quality concerns in the SEP Engine codebas
 - Legacy dashboard component removed (`frontend/src/components/Dashboard.js`).
 - Redundant JavaScript SymbolContext removed (`frontend/src/context/SymbolContext.js`)
   in favor of the typed implementation.
+- Placeholder quantum state replaced with real implementation
+  (`src/core/pattern_types.h`, `src/core/types_serialization.cpp`).
 - Unused DSL aggregation and data transformation stubs removed (`src/util/aggregation.*`, `src/util/data_transformation.*`).
 
 ## Recommendations
