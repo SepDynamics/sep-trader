@@ -15,7 +15,7 @@ This document tracks outstanding code quality concerns in the SEP Engine codebas
 - Unused frontend testing component removed (`frontend/src/components/TestingSuite.jsx`).
 - Unused CUDA placeholder removed (`src/core/quantum_pattern_cuda.cu`).
 - DSL builtin now uses `data_downloader` for real OANDA data (`src/util/interpreter.cpp`).
- - Deprecated QuantumProcessorCUDA stub removed (`src/core/quantum_processor_cuda.*`) and all references cleaned.
+- Deprecated QuantumProcessorCUDA stub removed (`src/core/quantum_processor_cuda.*`) and all references cleaned.
 - Default API base URL removed to enforce explicit configuration (`frontend/src/services/api.ts`).
 - Unused Axios dependency removed; API client now uses native fetch (`frontend/package.json`,
   `docs/02_WEB_INTERFACE_ARCHITECTURE.md`).
@@ -49,6 +49,7 @@ This document tracks outstanding code quality concerns in the SEP Engine codebas
 - Unused QuantumProcessingService and duplicate service-layer types removed (`src/app/QuantumProcessingService.*`, `src/app/QuantumTypes.h`, `src/app/PatternTypes.h`, `tests/app/quantum_processing_service_guard_test.cpp`).
 - Trade update handler now stores recent updates instead of logging to console (`frontend/src/context/WebSocketContext.js`).
 - Unimplemented WeeklyDataFetcher configuration and cache helpers removed (`src/core/weekly_data_fetcher.*`).
+- Removed redundant amplitude renormalization and stale CUDA stub reference (`src/app/QuantumProcessingService.cpp`, `src/core/cuda_impl.h`).
 - Removed redundant amplitude renormalization and stale CUDA stub reference
   (`src/app/QuantumProcessingService.cpp`, `src/core/cuda_impl.h`).
 - Redundant Valkey metric fallback helper removed (`src/util/interpreter.cpp`).
