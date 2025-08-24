@@ -24,7 +24,6 @@ This guide clarifies the distinction between legitimate backtesting/simulation a
 ### **Training Simulation Stubs** ✅ FIXED
 **Previous Issues**:
 - `/sep/src/trading/quantum_pair_trainer.cpp:223` - Simulated EUR/USD generation
-- `/sep/src/dsl/stdlib/core_primitives.cpp` - Mock QFH/QBSA analysis
 - `/sep/src/training/training_coordinator.cpp` - "Simulate for now" implementations
 
 **Resolution**:

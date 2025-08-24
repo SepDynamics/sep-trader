@@ -13,7 +13,6 @@
 
 #include "core/facade.h"
 #include "core/pattern_metric_engine.h"
-#include "util/core_primitives.h"
 #include "util/redis_manager.h"
 #include "util/memory_tier_manager.hpp"
 
