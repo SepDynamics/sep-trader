@@ -137,28 +137,6 @@ Interpreter::Interpreter() : environment_(&globals_), program_(nullptr) {
 void Interpreter::register_builtins() {
     auto& engine = sep::engine::EngineFacade::getInstance();
     // AGI Engine Bridge Functions - Simple implementations
-    builtins_["engine::measure_coherence"] = [this, &engine](const std::vector<Value>& args) -> Value {
-        if (args.empty()) {
-            throw std::runtime_error("measure_coherence requires a pattern_id argument");
-        }
-
-        sep::engine::PatternAnalysisRequest request;
-        try {
-            request.pattern_id = std::any_cast<std::string>(args[0]);
-        } catch (const std::bad_any_cast&) {
-            throw std::runtime_error("Invalid argument type for measure_coherence");
-        }
-
-        sep::engine::PatternAnalysisResponse response;
-        auto result = engine.analyzePattern(request, response);
-
-        if (result.isSuccess()) {
-            return response.pattern.coherence;
-        } else {
-            throw std::runtime_error("Engine call failed for measure_coherence");
-        }
-    };
-    
     builtins_["engine::get_trading_accuracy"] = [this, &engine](const std::vector<Value>& args) -> Value {
         sep::engine::TradingAccuracyRequest request;
         request.confidence_level = 0.5; // Default confidence level
@@ -246,72 +224,6 @@ void Interpreter::register_builtins() {
             return qfh_response.coherence;
         } else {
             throw std::runtime_error("Engine call failed for qfh_analyze");
-        }
-    };
-    
-    builtins_["measure_stability"] = [this, &engine](const std::vector<Value>& args) -> Value {
-        if (args.empty()) {
-            throw std::runtime_error("measure_stability requires a pattern_id argument");
-        }
-
-        sep::engine::PatternAnalysisRequest request;
-        try {
-            request.pattern_id = std::any_cast<std::string>(args[0]);
-        } catch (const std::bad_any_cast&) {
-            throw std::runtime_error("Invalid argument type for measure_stability");
-        }
-
-        sep::engine::PatternAnalysisResponse response;
-        auto result = engine.analyzePattern(request, response);
-
-        if (result.isSuccess()) {
-            return response.pattern.quantum_state.stability;
-        } else {
-            throw std::runtime_error("Engine call failed for measure_stability");
-        }
-    };
-    
-    builtins_["measure_entropy"] = [this, &engine](const std::vector<Value>& args) -> Value {
-        std::cout << "DSL: Calling real measure_entropy with " << args.size() << " arguments" << std::endl;
-        
-        sep::engine::PatternAnalysisRequest request;
-        if (!args.empty()) {
-            try {
-                request.pattern_id = std::any_cast<std::string>(args[0]);
-            } catch (const std::bad_any_cast&) {
-                request.pattern_id = "entropy_pattern";
-            }
-        }
-        
-        // Set default values that can be overridden by additional arguments
-        request.analysis_depth = 2;
-        request.include_relationships = false;
-        
-        // Check for additional arguments to override defaults
-        if (args.size() > 1) {
-            try {
-                request.analysis_depth = static_cast<int>(std::any_cast<double>(args[1]));
-            } catch (const std::bad_any_cast&) {
-                // Keep default value if argument is not a number
-            }
-        }
-        
-        if (args.size() > 2) {
-            try {
-                request.include_relationships = std::any_cast<bool>(args[2]);
-            } catch (const std::bad_any_cast&) {
-                // Keep default value if argument is not a boolean
-            }
-        }
-        
-        sep::engine::PatternAnalysisResponse response;
-        auto result = engine.analyzePattern(request, response);
-        
-        if (result.isSuccess()) {
-            std::cout << "Real entropy from engine: " << response.entropy << std::endl;
-            return static_cast<double>(response.entropy);
-        } else {
-            throw std::runtime_error("Engine call failed for measure_entropy");
         }
     };
     

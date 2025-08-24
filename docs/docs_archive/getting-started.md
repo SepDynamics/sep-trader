@@ -2,6 +2,8 @@
 
 Welcome to SEP DSL! This guide will help you get up and running quickly with the AGI Coherence Framework.
 
+> **Note:** Legacy builtins `measure_coherence`, `measure_entropy`, and `measure_stability` have been removed. Use `qfh_analyze` and related functions for quantum metrics.
+
 ## Table of Contents
 
 1. [Installation](#installation)

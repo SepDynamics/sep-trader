@@ -365,15 +365,13 @@ The AGI Coherence Framework DSL has achieved **REAL ENGINE INTEGRATION** - no lo
 async function processSensorData(sensor_id) {
     try {
         bitstream = extract_bits(sensor_id)            // → Real BitExtractionEngine
-        rupture = await qfh_analyze(bitstream)          // → Real QFHBasedProcessor  
-        coherence = await measure_coherence(sensor_id)  // → Real quantum analysis
-        entropy = await measure_entropy(sensor_id)      // → Real Shannon entropy
-        
-        if (entropy > 0.8) {
+        analysis = await qfh_analyze(bitstream)        // → Real QFHBasedProcessor
+
+        if (analysis.entropy > 0.8) {
             throw "Anomaly detected in sensor " + sensor_id
         }
-        
-        return rupture + coherence + entropy
+
+        return analysis.coherence + analysis.entropy
     }
     catch (error) {
         error_log = "Processing failed: " + error
@@ -429,9 +427,7 @@ Real entropy from engine: 0.923064
 ### **Available Real Engine Functions**
 | Function | Engine Component | Real Output | Async Support |
 |----------|------------------|-------------|---------------|
-| `measure_coherence(pattern)` | QFHBasedProcessor | Quantum coherence 0.0-1.0 | ✅ await supported |
-| `qfh_analyze(bitstream)` | QFHBasedProcessor | Rupture ratio 0.0-1.0 | ✅ await supported |
-| `measure_entropy(pattern)` | PatternAnalysisEngine | Shannon entropy 0.0-1.0 | ✅ await supported |
+| `qfh_analyze(bitstream)` | QFHBasedProcessor | Rupture & coherence metrics | ✅ await supported |
 | `extract_bits(pattern)` | BitExtractionEngine | Binary string "101010..." | ✅ await supported |
 | `manifold_optimize(p,c,s)` | QuantumManifoldOptimizer | Optimized coherence | ✅ await supported |
 
@@ -486,9 +482,9 @@ The DSL now supports modern programming constructs that make it production-ready
 #### **✅ Full Async/Await Support**
 ```sep
 async function analyzeData(sensor_id) {
-    entropy = await measure_entropy(sensor_id)      // Real CUDA processing
-    coherence = await measure_coherence(sensor_id)  // Real quantum analysis
-    return entropy + coherence
+    bitstream = extract_bits(sensor_id)
+    analysis = await qfh_analyze(bitstream)      // Real CUDA processing
+    return analysis.entropy + analysis.coherence
 }
 
 pattern ai_analysis {
@@ -500,8 +496,9 @@ pattern ai_analysis {
 ```sep
 pattern robust_analysis {
     try {
-        data = await measure_entropy("sensor")
-        if (data > 0.8) {
+        bitstream = extract_bits("sensor")
+        analysis = await qfh_analyze(bitstream)
+        if (analysis.entropy > 0.8) {
             throw "Anomaly detected!"
         }
         status = "normal"

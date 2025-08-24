@@ -50,7 +50,7 @@ The SEP DSL is a high-level, declarative language for expressing complex pattern
 
 The DSL includes a rich standard library with functions for:
 
-*   **Quantum Analysis:** `measure_coherence`, `measure_entropy`, `qfh_analyze`
+*   **Quantum Analysis:** `qfh_analyze`
 *   **Math, Statistics, Time Series, and Data Transformation**
 
 ## 4. 🧪 Testing Guide
