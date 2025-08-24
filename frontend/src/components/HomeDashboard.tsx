@@ -247,13 +247,14 @@ const HomeDashboard: React.FC = () => {
                 <div className="flex justify-between">
                   <span className="text-gray-400">Avg Entropy:</span>
                   <span className="text-red-400">
-                    {Object.keys(quantumSignals).length > 0 ?
-                      (Object.values(quantumSignals).reduce((sum: number, s: any) => {
-                        const entropyValue = Number(s.entropy || 0.5);
-                        return sum + entropyValue;
-                      }, 0) / Object.keys(quantumSignals).length).toFixed(3) :
-                      '0.000'
-                    }
+                    {(() => {
+                      const signals = Object.values(quantumSignals);
+                      if (signals.length === 0) return '0.000';
+                      const totalEntropy = signals.reduce((sum, s: any) => {
+                        return sum + Number(s.entropy || 0.5);
+                      }, 0);
+                      return (totalEntropy / signals.length).toFixed(3);
+                    })()}
                   </span>
                 </div>
                 <div className="flex justify-between">
