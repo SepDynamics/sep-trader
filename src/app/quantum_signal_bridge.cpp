@@ -48,9 +48,13 @@ static std::vector<sep::connectors::MarketData> fetchRecentMarketData(
         throw std::runtime_error("No historical data returned from OANDA");
     }
 
+    // Calculate ATR values for the candle sequence
+    auto atrs = connector.calculateHistoricalATRs(oanda_candles);
+
     std::vector<sep::connectors::MarketData> market_data;
     market_data.reserve(oanda_candles.size());
-    for (const auto& candle : oanda_candles) {
+    for (size_t i = 0; i < oanda_candles.size(); ++i) {
+        const auto& candle = oanda_candles[i];
         sep::connectors::MarketData md;
         md.instrument = pair_symbol;
         md.timestamp = std::chrono::duration_cast<std::chrono::milliseconds>(
@@ -60,7 +64,7 @@ static std::vector<sep::connectors::MarketData> fetchRecentMarketData(
         md.bid = candle.low;
         md.ask = candle.high;
         md.volume = candle.volume;
-        md.atr = 0.0; // TODO: compute ATR
+        md.atr = (i >= 14 && (i - 14) < atrs.size()) ? atrs[i - 14] : 0.0;
         market_data.push_back(md);
     }
 
