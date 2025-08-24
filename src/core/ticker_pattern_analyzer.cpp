@@ -466,10 +466,8 @@ AnalysisResult SepEngine::pipeline_(const InstrumentId& instrument,
             result.by_timeframe.emplace_back(tf, tf_signal);
         }
         
-        // 7. Evolution metadata (placeholder)
-        result.evo.generation = 1;
-        result.evo.param_hash = std::hash<double>{}(result.bth.C + result.bth.S + result.bth.H);
-        result.evo.parent_hash = 0;
+        // 7. Evolution metadata
+        // Real evolution lineage is not yet integrated, so leave defaults
         
     } catch (const std::exception& e) {
         result.success = false;
