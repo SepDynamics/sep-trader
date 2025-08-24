@@ -5,9 +5,6 @@ This document tracks outstanding code quality concerns in the SEP Engine codebas
 
 ## Code Quality Issues
 
-### Legacy Fallbacks
-- `src/util/interpreter.cpp` - Hardcoded DSL fallback functions bypass `builtins_` map.
-
 ## Recent Cleanup
 - Legacy DSL bytecode and primitive modules removed (`src/util/compiler.*`,
   `src/util/core_primitives.*`, `src/util/stdlib.*`, `src/util/time_series.*`).
@@ -42,9 +39,9 @@ This document tracks outstanding code quality concerns in the SEP Engine codebas
 - Unused spdlog isolation stub removed (`src/util/spdlog_isolation.h`).
 - Deprecated header shims consolidated under unified include (`src/util/cuda_safe_includes.h`, `src/util/header_fix.h`, `src/util/force_array.h`, `src/util/functional_safe.h`).
 - Legacy memory tier lookup map removed (`src/util/memory_tier_manager.*`).
+- Legacy fallback dispatch and Valkey metric proxies removed; interpreter now uses only registered builtins (`src/util/interpreter.cpp`).
 
 ## Recommendations
-1. Migrate DSL fallback functions to `builtins_` map for consistency.
-2. Remove remaining hardcoded values via configuration.
-3. Standardize error handling.
+1. Remove remaining hardcoded values via configuration.
+2. Standardize error handling.
 
