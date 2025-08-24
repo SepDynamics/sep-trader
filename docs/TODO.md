@@ -37,7 +37,7 @@ Below is a **structured execution plan** for building a suite of visual aids to 
 5. **Integrate with WebSocket** – Update `WebSocketContext` to dispatch `manifold_update`, `pin_state_change`, and `signal_evolution` into the new `ManifoldContext`.  Provide derived selectors like `getIdentityHistory(key)` for the visual components.
 6. **Hook to API** – Add new endpoints in `api.ts` if missing (e.g. `/api/valkey/metrics`) to fetch precomputed histories; implement fallback logic using WebSocket data.
 7. **Theme & UX** – Use Tailwind for layout and styling; ensure charts adapt to dark and light themes.  Provide tooltips and friendly labels explaining the meanings of entropy, stability, and coherence.
-8. **Testing** – Write unit tests for each component using `@testing-library/react` (already included).  Mock WebSocket events to test state updates.  Use Cypress to verify that clicking a point opens the inspector.
+8. **Testing** – Write unit tests for each component using `@testing-library/react` (already included).  Replay captured testbed WebSocket streams to test state updates.  Use Cypress to verify that clicking a point opens the inspector.
 
 ---
 
@@ -70,7 +70,7 @@ Below is a **structured execution plan** for building a suite of visual aids to 
 
 ### Summary of Key Repo Citations
 
-* **Frontend API consumption** – The UI uses `/api/market-data`, `/api/performance/current`, `/api/system-status`, and `/api/place-order`, confirming where data comes from.
+* **Frontend API consumption** – The UI calls `/api/candles/fetch`, `/api/candles/{instrument}`, `/api/config/get`, and `/api/config/set`, confirming where data comes from.
 * **TODO tasks** – The docs/TODO file lists essential tasks for the UI: rendering tabs, building each component, hooking WebSocket, adding Valkey metrics, theme support, tests, and documentation.
 * **Metric definitions** – The core engine computes coherence, stability, and entropy by measuring pattern variance, consistency, and entropy of bit patterns.
 * **UI/backend separation** – The external API ensures that the front-end only renders data; all heavy computation happens in the engine.
