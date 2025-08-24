@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { WebSocketContext } from '../context/WebSocketContext';
+import { useWebSocket } from '../context/WebSocketContext';
 import { SymbolContext } from '../context/SymbolContext';
 import EntropyBandAnalysis from './EntropyBandAnalysis';
 import PathHistoryMatching from './PathHistoryMatching';
@@ -7,7 +7,7 @@ import ContextualRelevanceScoring from './ContextualRelevanceScoring';
 import '../styles/Dashboard.css';
 
 const SEPDashboard = () => {
-  const { latestData } = useContext(WebSocketContext);
+  const { quantumSignals, livePatterns, valkeyMetrics } = useWebSocket();
   const { currentSymbol } = useContext(SymbolContext);
   const [systemMetrics, setSystemMetrics] = useState({
     patternsDetected: 0,
@@ -17,15 +17,29 @@ const SEPDashboard = () => {
   });
 
   useEffect(() => {
-    if (latestData && latestData.patternMetrics) {
-      setSystemMetrics({
-        patternsDetected: latestData.patternMetrics.totalPatterns || 0,
-        entropyLevel: latestData.patternMetrics.averageEntropy || 0,
-        coherenceScore: latestData.patternMetrics.averageCoherence || 0,
-        stabilityIndex: latestData.patternMetrics.averageStability || 0
-      });
-    }
-  }, [latestData]);
+    // Calculate metrics from quantum signals and live patterns
+    const totalPatterns = Object.keys(livePatterns).length;
+    const patternValues = Object.values(livePatterns);
+    
+    const avgEntropy = patternValues.length > 0
+      ? patternValues.reduce((sum, pattern) => sum + (pattern.entropy || 0), 0) / patternValues.length
+      : 0;
+      
+    const avgCoherence = patternValues.length > 0
+      ? patternValues.reduce((sum, pattern) => sum + (pattern.coherence || 0), 0) / patternValues.length
+      : 0;
+      
+    const avgStability = patternValues.length > 0
+      ? patternValues.reduce((sum, pattern) => sum + (pattern.stability || 0), 0) / patternValues.length
+      : 0;
+      
+    setSystemMetrics({
+      patternsDetected: totalPatterns,
+      entropyLevel: avgEntropy,
+      coherenceScore: avgCoherence,
+      stabilityIndex: avgStability
+    });
+  }, [quantumSignals, livePatterns, valkeyMetrics]);
 
   return (
     <div className="sep-dashboard">
