@@ -27,10 +27,6 @@ export const WebSocketProvider = ({ children }) => {
   const [signalHistory, setSignalHistory] = useState([]);
   const [valkeyMetrics, setValkeyMetrics] = useState({});
   const [livePatterns, setLivePatterns] = useState({});
-  const [, setManifoldStream] = useState({});
-  const [, setPinStates] = useState(new Map());
-  const [, setSignalEvolution] = useState(new Map());
-  const [, setBackwardsDerivations] = useState(new Map());
   
   // Connection management
   const reconnectTimeoutRef = useRef(null);
