@@ -79,11 +79,7 @@ void TraderCLI::print_help() const {
     printf("\nUsage: trader_cli <command> [options]\n\n");
     printf("Commands:\n");
     printf("  status       Show system status\n");
-    printf("  pairs        Manage trading pairs\n");
-    printf("  config       Configuration management\n");
-    printf("  train        Training operations\n");
-    printf("  analyze      Analysis operations\n");
-    printf("  daemon       Run in daemon mode\n");
+    printf("  pairs        List available trading pairs\n");
     printf("  help         Show this help message\n");
     printf("  version      Show version information\n\n");
     printf("Options:\n");
@@ -94,9 +90,6 @@ void TraderCLI::print_help() const {
     printf("Examples:\n");
     printf("  trader_cli status\n");
     printf("  trader_cli pairs list\n");
-    printf("  trader_cli config show\n");
-    printf("  trader_cli train start --pair EURUSD\n");
-    printf("  trader_cli daemon --foreground\n");
 }
 
 void TraderCLI::print_version() const {
@@ -117,14 +110,6 @@ int TraderCLI::execute_command(const char* command) {
         return handle_status();
     } else if (strcmp(command, "pairs") == 0) {
         return handle_pairs();
-    } else if (strcmp(command, "config") == 0) {
-        return handle_config();
-    } else if (strcmp(command, "train") == 0) {
-        return handle_train();
-    } else if (strcmp(command, "analyze") == 0) {
-        return handle_analyze();
-    } else if (strcmp(command, "daemon") == 0) {
-        return handle_daemon_mode();
     } else if (strcmp(command, "help") == 0) {
         print_help();
         return 0;
@@ -170,44 +155,6 @@ int TraderCLI::handle_pairs() const {
         printf("  %s\n", default_pairs[i]);
     }
     
-    return 0;
-}
-
-int TraderCLI::handle_config() const {
-    printf("Configuration Management\n");
-    printf("=======================\n");
-    printf("Config Directory: %s\n", config_path_);
-    printf("Status: Configuration loading not implemented in minimal mode\n");
-    return 0;
-}
-
-int TraderCLI::handle_train() const {
-    printf("Training Operations\n");
-    printf("==================\n");
-    printf("Status: Training operations not implemented in minimal mode\n");
-    printf("Use quantum processing components directly for training.\n");
-    return 0;
-}
-
-int TraderCLI::handle_analyze() const {
-    printf("Analysis Operations\n");
-    printf("==================\n");
-    printf("Status: Analysis operations not implemented in minimal mode\n");
-    printf("Use quantum processing components directly for analysis.\n");
-    return 0;
-}
-
-int TraderCLI::handle_daemon_mode() const {
-    printf("Daemon Mode\n");
-    printf("===========\n");
-    printf("Status: Daemon mode not implemented in minimal mode\n");
-    return 0;
-}
-
-int TraderCLI::handle_foreground_mode() const {
-    printf("Foreground Mode\n");
-    printf("===============\n");
-    printf("Status: Foreground mode not implemented in minimal mode\n");
     return 0;
 }
 
