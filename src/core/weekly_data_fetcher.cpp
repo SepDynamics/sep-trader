@@ -8,8 +8,6 @@
 #include <algorithm>
 #include <curl/curl.h>
 #include <cstdlib>
-#include <fstream>
-#include <sstream>
 #include <nlohmann/json.hpp>
 
 using namespace sep::train;
@@ -189,22 +187,14 @@ DataFetchResult WeeklyDataFetcher::fetchInstrument(const std::string& instrument
 
 std::vector<DataFetchResult> WeeklyDataFetcher::fetchSelected(const std::vector<std::string>& instruments) {
     std::vector<DataFetchResult> results;
-    
+
     for (const auto& instrument : instruments) {
         if (isValidInstrument(instrument)) {
             results.push_back(fetchInstrument(instrument));
         }
     }
-    
-    return results;
-}
 
-bool WeeklyDataFetcher::validateCachedData(const std::string& instrument) const {
-    std::string cache_path = getCachePath(instrument, "M1");
-    
-    // Check if file exists and is recent
-    // Simplified validation for now
-    return true;
+    return results;
 }
 
 std::string WeeklyDataFetcher::getCachePath(const std::string& instrument,
