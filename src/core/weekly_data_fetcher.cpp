@@ -104,35 +104,11 @@ DataFetchResult WeeklyDataFetcher::fetchInstrument(const std::string& instrument
     
     auto start_fetch = std::chrono::high_resolution_clock::now();
     
-    // Support deterministic testing via mock response file
-    if (const char* mock_path = std::getenv("OANDA_MOCK_FILE")) {
-        std::ifstream mock_file(mock_path);
-        if (mock_file) {
-            try {
-                nlohmann::json j; mock_file >> j;
-                if (j.contains("candles") && j["candles"].is_array()) {
-                    result.candles_fetched = j["candles"].size();
-                    result.success = true;
-                } else {
-                    result.error_message = "Invalid mock data";
-                }
-            } catch (const std::exception& e) {
-                result.error_message = e.what();
-            }
-        } else {
-            result.error_message = "Cannot open mock file";
-        }
-        auto end_fetch = std::chrono::high_resolution_clock::now();
-        auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_fetch - start_fetch);
-        result.fetch_duration_seconds = duration.count() / 1000.0;
-        return result;
-    }
-
-    // CRITICAL FIX: Replace fake simulation with real OANDA API call
+    // Direct OANDA API integration - no mock file support
     if (config_.oanda_api_key.empty() || config_.oanda_account_id.empty()) {
-        result.error_message = "No OANDA credentials - using cached data instead";
-        std::cout << "ℹ️  INFO: Using cached/synthetic data for training (no OANDA credentials)" << std::endl;
-        std::cout << "ℹ️  Training will proceed with cached data as intended" << std::endl;
+        result.error_message = "No OANDA credentials configured - cannot fetch real market data";
+        std::cout << "❌ ERROR: OANDA API credentials required for real market data" << std::endl;
+        std::cout << "❌ Please configure OANDA_API_KEY, OANDA_ACCOUNT_ID, and OANDA_ENVIRONMENT" << std::endl;
         return result;
     }
     

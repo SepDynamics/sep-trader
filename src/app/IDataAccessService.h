@@ -12,7 +12,7 @@ namespace services {
 /**
  * Interface for accessing historical market data
  */
-class IDataAccessService : public IService {
+class IDataAccessService : public virtual IService {
 public:
     virtual ~IDataAccessService() = default;
 
