@@ -16,10 +16,10 @@ echo "======================================================================"
 export LD_LIBRARY_PATH=./libs:./libs/gnu_11.4_cxx20_64_release
 
 # Create validation directories
-mkdir -p validation/real_data_logs
-mkdir -p validation/timeframe_tests
-mkdir -p validation/pair_analysis
-mkdir -p validation/retail_kit_proof
+mkdir -p whitepaper/validation/real_data_logs
+mkdir -p whitepaper/validation/timeframe_tests
+mkdir -p whitepaper/validation/pair_analysis
+mkdir -p whitepaper/validation/retail_kit_proof
 
 # Validation timestamp
 VALIDATION_DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
@@ -47,7 +47,7 @@ echo ""
 # Test system status first
 echo "🔧 PRE-VALIDATION SYSTEM CHECK"
 echo "================================="
-./bin/trader_cli status > validation/real_data_logs/system_status_${VALIDATION_DATE}.log
+./bin/trader_cli status > whitepaper/validation/real_data_logs/system_status_${VALIDATION_DATE}.log
 echo "✅ System status logged"
 
 # Validate OANDA API connection
@@ -69,7 +69,7 @@ echo "🔍 REAL DATA CACHE VALIDATION"
 echo "============================="
 echo "📊 Validating existing 2.4GB of real OANDA data..."
 
-./bin/trader_cli validate-cache > validation/real_data_logs/cache_validation_${VALIDATION_DATE}.log 2>&1
+./bin/trader_cli validate-cache > whitepaper/validation/real_data_logs/cache_validation_${VALIDATION_DATE}.log 2>&1
 if [ $? -eq 0 ]; then
     echo "✅ Real data cache validated successfully"
 else
@@ -86,7 +86,7 @@ for pair in "${MAJOR_PAIRS[@]}"; do
     echo "💱 Fetching fresh weekly data for $pair..."
     
     # Create specific log directory
-    LOG_DIR="validation/weekly_validation/${pair}"
+    LOG_DIR="whitepaper/validation/weekly_validation/${pair}"
     mkdir -p "$LOG_DIR"
     
     # Log the exact command and timestamp
@@ -127,7 +127,7 @@ for pair in "${MAJOR_PAIRS[@]}"; do
     echo "🔬 Testing quantum processing on $pair real data..."
     
     # Run quantum tracker in historical mode on real data
-    QUANTUM_LOG="validation/quantum_tests/${pair}_quantum_test.log"
+    QUANTUM_LOG="whitepaper/validation/quantum_tests/${pair}_quantum_test.log"
     
     # Use timeout to prevent hanging
     timeout 60s ./bin/quantum_tracker --pair="$pair" --mode=historical > "$QUANTUM_LOG" 2>&1 &
@@ -149,7 +149,7 @@ echo ""
 echo "⚡ QUANTUM PROCESSING VALIDATION"
 echo "==============================="
 echo "Quantum trackers are processing real data in background..."
-echo "Results will be in validation/pair_analysis/"
+echo "Results will be in whitepaper/validation/pair_analysis/"
 
 # Wait for quantum processing to complete
 sleep 10
@@ -159,7 +159,7 @@ echo "🧪 DATA AUTHENTICITY VERIFICATION"
 echo "================================="
 
 # Create comprehensive authenticity report
-AUTHENTICITY_REPORT="validation/retail_kit_proof/data_authenticity_report_${VALIDATION_DATE}.md"
+AUTHENTICITY_REPORT="whitepaper/validation/retail_kit_proof/data_authenticity_report_${VALIDATION_DATE}.md"
 
 cat > "$AUTHENTICITY_REPORT" << EOF
 # SEP RETAIL DEVELOPMENT KIT - DATA AUTHENTICITY REPORT
@@ -228,7 +228,7 @@ echo "======================="
 
 # Test live data streaming capability
 echo "Testing live data stream from OANDA..."
-timeout 30s ./bin/trader_cli stream EUR_USD > validation/real_data_logs/live_stream_test_${VALIDATION_DATE}.log 2>&1 &
+timeout 30s ./bin/trader_cli stream EUR_USD > whitepaper/validation/real_data_logs/live_stream_test_${VALIDATION_DATE}.log 2>&1 &
 STREAM_PID=$!
 
 sleep 5
@@ -254,9 +254,9 @@ echo "📊 All components proven with authentic OANDA market data"
 echo "💰 Ready for commercial deployment/licensing"
 echo ""
 echo "📁 Validation Results:"
-echo "   - System logs: validation/real_data_logs/"
-echo "   - Timeframe tests: validation/timeframe_tests/"
-echo "   - Pair analysis: validation/pair_analysis/"
-echo "   - Retail kit proof: validation/retail_kit_proof/"
+echo "   - System logs: whitepaper/validation/real_data_logs/"
+echo "   - Timeframe tests: whitepaper/validation/timeframe_tests/"
+echo "   - Pair analysis: whitepaper/validation/pair_analysis/"
+echo "   - Retail kit proof: whitepaper/validation/retail_kit_proof/"
 echo ""
 echo "======================================================================"
