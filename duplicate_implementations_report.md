@@ -74,6 +74,8 @@ This document tracks outstanding code quality concerns in the SEP Engine codebas
 - Unused configuration helper functions removed to eliminate dead code (`src/util/interpreter.cpp`).
 - Unused filter utility and associated test removed (`src/app/filter.*`, `tests/data_access/filter_test.cpp`).
 - Duplicate DSL interpreter parameter definitions consolidated (`src/core/engine_config.cpp`).
+- Removed duplicate app container and background animation styles (`frontend/src/styles/App.css`).
+
 
 ## Recommendations
 1. Remove remaining hardcoded values via configuration.
