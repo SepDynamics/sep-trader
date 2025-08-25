@@ -38,6 +38,7 @@ from thresholds import (
     validate_t4_results,
     get_hypothesis_description
 )
+from progress_monitor import ProgressMonitor
 
 # Test parameters (optimized for quick execution)
 SEQUENCE_LENGTH = 2000
@@ -188,97 +189,98 @@ def test_retrodiction_uniqueness(k: int, L: int, seed: int) -> Dict:
 
 def run_t4_test() -> Dict:
     """Run the complete T4 test suite."""
-    
-    with TestLogger("T4", "Retrodiction Uniqueness Under Continuity"):
-        results = []
-        
-        # Test all combinations of k and L
-        for seed in SEEDS:
-            for k in FLIP_BUDGETS:
-                for L in WINDOW_LENGTHS:
-                    print(f"  Testing k={k}, L={L}, seed={seed}")
-                    result = test_retrodiction_uniqueness(k, L, seed)
-                    results.append(result)
-                    print(f"    Uniqueness rate: {result['uniqueness_rate']:.3f}")
-        
-        # Aggregate results
-        uniqueness_rates = {}
-        for r in results:
-            key = (r['k'], r['L'])
-            if key not in uniqueness_rates:
-                uniqueness_rates[key] = []
-            uniqueness_rates[key].append(r['uniqueness_rate'])
-        
-        # Calculate median rates for each (k, L) pair
-        median_rates = {}
-        for key, rates in uniqueness_rates.items():
-            median_rates[key] = np.median(rates)
-        
-        # Validate results
-        validation = validate_t4_results(median_rates)
-        
-        # Get thresholds
-        thresholds = get_thresholds('T4')
-        
-        # Log results
-        log_hypothesis("T4", get_hypothesis_description('T4', 'T4'),
-                      thresholds['T4_uniqueness'], validation['best_rate'], validation['T4'])
-        
-        # Create plot data
-        plot_data = create_t4_plot_data(median_rates)
-        
-        # Create plot
-        fig = create_t4_plot(plot_data, thresholds)
-        
-        # Prepare summary
-        summary = {
-            'test': 'T4',
-            'parameters': {
-                'sequence_length': SEQUENCE_LENGTH,
-                'beta': BETA,
-                'flip_budgets': FLIP_BUDGETS,
-                'window_lengths': WINDOW_LENGTHS,
-                'seeds': SEEDS,
-                'error_threshold': ERROR_THRESHOLD
-            },
-            'results': {
-                'uniqueness_rates': {f"k{k}_L{L}": rate for (k, L), rate in median_rates.items()},
-                'best_rate': validation['best_rate']
-            },
-            'hypothesis': {
-                'T4': {
-                    'pass': validation['T4'],
-                    'metric': validation['best_rate'],
-                    'threshold': thresholds['T4_uniqueness'],
-                    'description': get_hypothesis_description('T4', 'T4_uniqueness')
-                }
-            },
-            'overall_pass': validation['T4']
-        }
-        
-        # Prepare metrics for CSV
-        metrics = []
-        for r in results:
-            metrics.append({
-                'k': r['k'],
-                'L': r['L'],
-                'seed': r['seed'],
-                'uniqueness_rate': r['uniqueness_rate'],
-                'successful_predictions': r['successful_predictions'],
-                'total_attempts': r['total_attempts']
-            })
-        
-        # Save results
-        summary_clean = format_json_safe(summary)
-        save_test_results('T4', summary_clean, metrics, fig)
-        
-        # Log summary
-        log_test_summary('T4', {'T4': validation['T4']})
-        
-        print(f"\nBest uniqueness rate: {validation['best_rate']:.3f}")
-        print(f"Required: {thresholds['T4_uniqueness']:.3f}")
-        
-        return summary
+
+    with ProgressMonitor(max_runtime_minutes=60):
+        with TestLogger("T4", "Retrodiction Uniqueness Under Continuity"):
+            results = []
+
+            # Test all combinations of k and L
+            for seed in SEEDS:
+                for k in FLIP_BUDGETS:
+                    for L in WINDOW_LENGTHS:
+                        print(f"  Testing k={k}, L={L}, seed={seed}")
+                        result = test_retrodiction_uniqueness(k, L, seed)
+                        results.append(result)
+                        print(f"    Uniqueness rate: {result['uniqueness_rate']:.3f}")
+
+            # Aggregate results
+            uniqueness_rates = {}
+            for r in results:
+                key = (r['k'], r['L'])
+                if key not in uniqueness_rates:
+                    uniqueness_rates[key] = []
+                uniqueness_rates[key].append(r['uniqueness_rate'])
+
+            # Calculate median rates for each (k, L) pair
+            median_rates = {}
+            for key, rates in uniqueness_rates.items():
+                median_rates[key] = np.median(rates)
+
+            # Validate results
+            validation = validate_t4_results(median_rates)
+
+            # Get thresholds
+            thresholds = get_thresholds('T4')
+
+            # Log results
+            log_hypothesis("T4", get_hypothesis_description('T4', 'T4'),
+                          thresholds['T4_uniqueness'], validation['best_rate'], validation['T4'])
+
+            # Create plot data
+            plot_data = create_t4_plot_data(median_rates)
+
+            # Create plot
+            fig = create_t4_plot(plot_data, thresholds)
+
+            # Prepare summary
+            summary = {
+                'test': 'T4',
+                'parameters': {
+                    'sequence_length': SEQUENCE_LENGTH,
+                    'beta': BETA,
+                    'flip_budgets': FLIP_BUDGETS,
+                    'window_lengths': WINDOW_LENGTHS,
+                    'seeds': SEEDS,
+                    'error_threshold': ERROR_THRESHOLD
+                },
+                'results': {
+                    'uniqueness_rates': {f"k{k}_L{L}": rate for (k, L), rate in median_rates.items()},
+                    'best_rate': validation['best_rate']
+                },
+                'hypothesis': {
+                    'T4': {
+                        'pass': validation['T4'],
+                        'metric': validation['best_rate'],
+                        'threshold': thresholds['T4_uniqueness'],
+                        'description': get_hypothesis_description('T4', 'T4_uniqueness')
+                    }
+                },
+                'overall_pass': validation['T4']
+            }
+
+            # Prepare metrics for CSV
+            metrics = []
+            for r in results:
+                metrics.append({
+                    'k': r['k'],
+                    'L': r['L'],
+                    'seed': r['seed'],
+                    'uniqueness_rate': r['uniqueness_rate'],
+                    'successful_predictions': r['successful_predictions'],
+                    'total_attempts': r['total_attempts']
+                })
+
+            # Save results
+            summary_clean = format_json_safe(summary)
+            save_test_results('T4', summary_clean, metrics, fig)
+
+            # Log summary
+            log_test_summary('T4', {'T4': validation['T4']})
+
+            print(f"\nBest uniqueness rate: {validation['best_rate']:.3f}")
+            print(f"Required: {thresholds['T4_uniqueness']:.3f}")
+
+            return summary
 
 def create_t4_plot_data(median_rates: Dict[Tuple[int, int], float]) -> Dict:
     """Create plot data for T4 visualization."""

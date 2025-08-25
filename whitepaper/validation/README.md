@@ -31,6 +31,10 @@ Automated test runner with:
 - Comprehensive reporting
 - Artifact management
 
+#### 4. **Support Utilities**
+- **`parameter_optimization.py`** – Grid search helper for tuning test parameters
+- **`progress_monitor.py`** – Context manager enforcing maximum runtime for tests
+
 ## Hypotheses Being Tested
 
 | Test | Hypothesis | Description |
@@ -113,6 +117,35 @@ This will:
 3. Run all tests sequentially
 4. Generate comprehensive summary report
 5. Provide overall validation status
+
+### Parameter Optimization
+
+The module `parameter_optimization.py` offers a simple grid search helper.
+Example:
+
+```python
+from parameter_optimization import optimize_parameters
+
+def objective(beta: float, window: int) -> float:
+    return beta * window  # placeholder for test function
+
+best, score = optimize_parameters(objective, {
+    "beta": [0.01, 0.1],
+    "window": [8, 16],
+})
+print(best, score)
+```
+
+### Progress Monitoring
+
+Wrap long-running scripts with `ProgressMonitor` to enforce timeouts:
+
+```python
+from progress_monitor import ProgressMonitor
+
+with ProgressMonitor(max_runtime_minutes=60):
+    run_t4_test()
+```
 
 ### Results Structure
 
