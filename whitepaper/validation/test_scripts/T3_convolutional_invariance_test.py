@@ -3,6 +3,7 @@
 import argparse
 import json
 import csv
+import os
 
 import numpy as np
 from scipy.signal import firwin, lfilter
@@ -108,7 +109,7 @@ def main() -> None:
 
     print("============================================================")
     print("Running Test T3: Convolutional Invariance")
-    print("===================================
+    print("============================================================")
 
     x = generate_chirp(length=200000, f0=10, f1=50, snr_db=20)
 
