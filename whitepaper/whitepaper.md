@@ -80,9 +80,10 @@ This infrastructure successfully enabled the detection of critical implementatio
 - Test both D1 (negative control) and D2 (target) mappings
 
 **Results**:
-- **D2 Mapping (Target)**: Median RMSE = 0.089 > 0.05 threshold → **FAIL**
-- **D1 Mapping (Control)**: Median RMSE = 0.152 > 0.05 threshold → Expected failure ✓
+- **D2 Mapping (Target)**: Median RMSE = 0.0959 > 0.05 threshold → **FAIL**
+- **D1 Mapping (Control)**: Median RMSE = 0.1049 > 0.05 threshold → Expected failure ✓
 - **Trend Analysis**: RMSE increases with γ, indicating systematic time-base sensitivity
+- **β Sweep (Aug 25, 2025)**: Best reactive/isolated ratio = 0.471 at β=0.01 (threshold 2.0)
 
 ![T1 Results](validation/test_scripts/validation/results/T1/T1_plots.png)
 
