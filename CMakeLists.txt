@@ -118,7 +118,6 @@ if(SEP_USE_CUDA)
 
     # Core compiler flags + Fedora 42 glibc 2.41 -> Ubuntu 24.04 glibc 2.39 compatibility
     set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} --expt-relaxed-constexpr --extended-lambda -Xcompiler -fno-strict-aliasing -Xcompiler -Wno-deprecated-declarations -Xcompiler -Wno-deprecated-copy -Xcompiler -D_FORCE_INLINES -Xcompiler -w")
-    # Removed legacy noexcept workaround that caused NVCC failure
     # NUCLEAR OPTION: Block glibc math headers entirely for CUDA compilation
     set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -Xcompiler -D__MATH_H=1")
     set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -Xcompiler -D_MATH_H=1")

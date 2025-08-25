@@ -15,10 +15,11 @@ The consolidated whitepaper validation research reveals a comprehensive testing 
 - **Entropy Reduction**: 36.3% reduction > 10% threshold  
 - **Key Finding**: Market data shows SEP invariance properties  
 
-### ❌ FAILED: T1 - Time Scaling  
-- **H1 (Isolated Invariance)**: RMSE 0.174 > 0.05 threshold  
-- **H2 (Reactive Sensitivity)**: Ratio 0.357 < 2.0 threshold  
-- **Issue**: Neither isolated nor reactive processes show expected scaling behavior  
+### ❌ FAILED: T1 - Time Scaling
+- **H1 (Isolated Invariance)**: Best RMSE 0.0959 > 0.05 threshold (β=0.01)
+- **H2 (Reactive Sensitivity)**: Best ratio 0.471 < 2.0 threshold (β=0.01)
+- **Parameter Sweep**: β ∈ {0.01, 0.05, 0.1, 0.2} → no configuration met thresholds
+- **Issue**: Neither isolated nor reactive processes show expected scaling behavior
 
 ### ❌ FAILED: T2 - Maximum Entropy  
 - **H3 (Pairwise Sufficiency)**: 12.2% < 30% threshold  
