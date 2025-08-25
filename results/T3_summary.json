@@ -1,0 +1,12 @@
+{
+  "test": "T3_convolutional_invariance",
+  "hypothesis": "H4 (Convolutional invariance in waves)",
+  "joint_rmse": 0.03339058506284641,
+  "h_rmse": 0.00985800119756048,
+  "c_rmse": 0.0018790260275559115,
+  "s_rmse": 0.08843472796342283,
+  "threshold": 0.05,
+  "pass": true,
+  "mapping": "D1",
+  "beta": 0.1
+}

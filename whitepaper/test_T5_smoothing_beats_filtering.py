@@ -229,11 +229,11 @@ def run_smoothing_test(process_type: str, noise_level: float, bit_mapping: str,
         results['filtering_results'][method] = {
             'performance': performance,
             'sep_data': {
-                'mean_stability': np.mean(sep_result['stability']),
-                'mean_coherence': np.mean(sep_result['coherence']),
-                'mean_entropy': np.mean(sep_result['entropy']),
-                'adaptive_params_mean': np.mean(sep_result['adaptive_params']),
-                'adaptive_params_std': np.std(sep_result['adaptive_params'])
+                'mean_stability': float(np.mean(sep_result['stability'])),
+                'mean_coherence': float(np.mean(sep_result['coherence'])),
+                'mean_entropy': float(np.mean(sep_result['entropy'])),
+                'adaptive_params_mean': float(np.mean(sep_result['adaptive_params'])),
+                'adaptive_params_std': float(np.std(sep_result['adaptive_params']))
             }
         }
         
@@ -320,14 +320,14 @@ def evaluate_hypotheses(results: list) -> dict:
             'pass': h9_pass
         },
         'H10_params_correlate_stability': {
-            'correlation_coefficient': correlation_coeff,
+            'correlation_coefficient': float(correlation_coeff),
             'threshold': CORRELATION_THRESHOLD_H10,
             'n_data_points': len(stability_values),
-            'stability_range': [np.min(stability_values), np.max(stability_values)] if stability_values else [0, 0],
-            'params_range': [np.min(optimal_params), np.max(optimal_params)] if optimal_params else [0, 0],
-            'pass': h10_pass
+            'stability_range': [float(np.min(stability_values)), float(np.max(stability_values))] if stability_values else [0, 0],
+            'params_range': [float(np.min(optimal_params)), float(np.max(optimal_params))] if optimal_params else [0, 0],
+            'pass': bool(h10_pass)
         },
-        'overall_pass': h9_pass and h10_pass
+        'overall_pass': bool(h9_pass and h10_pass)
     }
     
     return evaluation

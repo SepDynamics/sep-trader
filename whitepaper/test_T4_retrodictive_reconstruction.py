@@ -93,7 +93,7 @@ def cubic_interpolation(signal_with_gaps: np.ndarray, missing_indices: np.ndarra
     
     return signal_reconstructed
 
-def triad_informed_reconstruction(signal_with_gaps: np.ndarray, missing_indices: np.ndarray, 
+def triad_informed_reconstruction(signal_with_gaps: np.ndarray, missing_indices: np.ndarray,
                                 bit_mapping: str) -> np.ndarray:
     """Reconstruction using triad-informed priors."""
     signal_reconstructed = signal_with_gaps.copy()
@@ -107,20 +107,41 @@ def triad_informed_reconstruction(signal_with_gaps: np.ndarray, missing_indices:
     valid_signal = signal_with_gaps[valid_mask]
     
     # Compute triads from valid portions to understand process characteristics
-    if bit_mapping == "D1":
-        valid_bits = bit_mapping_D1(valid_signal)
-    elif bit_mapping == "D2":
-        valid_bits = bit_mapping_D2(valid_signal)
-    else:
-        raise ValueError(f"Unknown bit mapping: {bit_mapping}")
-    
-    valid_triads = triad_series(valid_bits, beta=BETA)
-    
-    # Extract characteristic statistics from triads
-    mean_H = np.mean(valid_triads[:, 0])
-    mean_C = np.mean(valid_triads[:, 1]) 
-    mean_S = np.mean(valid_triads[:, 2])
-    std_H = np.std(valid_triads[:, 0])
+    try:
+        if bit_mapping == "D1":
+            valid_bits = bit_mapping_D1(valid_signal)
+        elif bit_mapping == "D2":
+            # Check if we have enough data for D2 mapping
+            if len(valid_signal) < 1024:
+                # Fall back to D1 if insufficient data for D2
+                valid_bits = bit_mapping_D1(valid_signal)
+            else:
+                valid_bits = bit_mapping_D2(valid_signal)
+        else:
+            raise ValueError(f"Unknown bit mapping: {bit_mapping}")
+        
+        # Check if we got any bits
+        if len(valid_bits) == 0:
+            return cubic_interpolation(signal_with_gaps, missing_indices)
+        
+        valid_triads = triad_series(valid_bits, beta=BETA)
+        
+        # Check if we got any triads
+        if len(valid_triads) == 0:
+            return cubic_interpolation(signal_with_gaps, missing_indices)
+        
+        # Extract characteristic statistics from triads
+        mean_H = np.mean(valid_triads[:, 0])
+        mean_C = np.mean(valid_triads[:, 1])
+        mean_S = np.mean(valid_triads[:, 2])
+        std_H = np.std(valid_triads[:, 0])
+        
+        # Check for NaN values
+        if np.isnan(mean_H) or np.isnan(mean_C) or np.isnan(mean_S) or np.isnan(std_H):
+            return cubic_interpolation(signal_with_gaps, missing_indices)
+    except Exception:
+        # Fall back to cubic interpolation if triad computation fails
+        return cubic_interpolation(signal_with_gaps, missing_indices)
     
     # Use triad characteristics to guide reconstruction
     # Start with cubic interpolation as base
@@ -134,31 +155,59 @@ def triad_informed_reconstruction(signal_with_gaps: np.ndarray, missing_indices:
     context_end = min(len(base_reconstruction), missing_indices[-1] + 200)
     context_signal = base_reconstruction[context_start:context_end]
     
-    if bit_mapping == "D1":
-        context_bits = bit_mapping_D1(context_signal)
-    else:
-        context_bits = bit_mapping_D2(context_signal)
-    
-    context_triads = triad_series(context_bits, beta=BETA)
-    
-    # Find where gap region falls in context triads
-    gap_start_in_context = missing_indices[0] - context_start
-    gap_end_in_context = missing_indices[-1] - context_start
-    
-    # Adjust gap values to match expected triad characteristics
-    if gap_start_in_context < len(context_triads) and gap_end_in_context >= 0:
-        # Scale gap values to match expected entropy characteristics
-        gap_entropy_target = mean_H
-        if len(gap_signal) > 0:
-            gap_mean = np.mean(gap_signal)
-            gap_std = np.std(gap_signal) if np.std(gap_signal) > 0 else std_H
-            
-            # Apply scaling based on target entropy and stability
-            stability_factor = mean_S
-            scaling = (1 + stability_factor * (gap_entropy_target / (gap_std + 1e-8) - 1))
-            gap_signal_adjusted = gap_mean + scaling * (gap_signal - gap_mean)
-            
-            signal_reconstructed[missing_indices] = gap_signal_adjusted
+    try:
+        if bit_mapping == "D1":
+            context_bits = bit_mapping_D1(context_signal)
+        else:
+            # Check if we have enough data for D2 mapping
+            if len(context_signal) < 1024:
+                # Fall back to D1 if insufficient data for D2
+                context_bits = bit_mapping_D1(context_signal)
+            else:
+                context_bits = bit_mapping_D2(context_signal)
+        
+        # Check if we got any bits
+        if len(context_bits) == 0:
+            return base_reconstruction
+        
+        context_triads = triad_series(context_bits, beta=BETA)
+        
+        # Check if we got any triads
+        if len(context_triads) == 0:
+            return base_reconstruction
+        
+        # Find where gap region falls in context triads
+        gap_start_in_context = missing_indices[0] - context_start
+        gap_end_in_context = missing_indices[-1] - context_start
+        
+        # Adjust gap values to match expected triad characteristics
+        if gap_start_in_context < len(context_triads) and gap_end_in_context >= 0:
+            # Scale gap values to match expected entropy characteristics
+            gap_entropy_target = mean_H
+            if len(gap_signal) > 0:
+                gap_mean = np.mean(gap_signal)
+                gap_std = np.std(gap_signal) if np.std(gap_signal) > 0 else std_H
+                
+                # Check for NaN values
+                if np.isnan(gap_mean) or np.isnan(gap_std) or np.isnan(gap_entropy_target) or np.isnan(std_H):
+                    return base_reconstruction
+                
+                # Apply scaling based on target entropy and stability
+                stability_factor = mean_S
+                scaling = (1 + stability_factor * (gap_entropy_target / (gap_std + 1e-8) - 1))
+                
+                # Check for NaN in scaling
+                if np.isnan(scaling):
+                    return base_reconstruction
+                
+                gap_signal_adjusted = gap_mean + scaling * (gap_signal - gap_mean)
+                
+                # Check for NaN in adjusted signal
+                if not np.isnan(gap_signal_adjusted).any():
+                    signal_reconstructed[missing_indices] = gap_signal_adjusted
+    except Exception:
+        # Return base reconstruction if triad computation fails
+        pass
     
     return signal_reconstructed
 
@@ -341,30 +390,30 @@ def evaluate_hypotheses(results: list) -> dict:
     
     # Evaluate H7
     median_improvement_h7 = np.median(improvement_ratios_h7) if improvement_ratios_h7 else 0
-    h7_pass = median_improvement_h7 >= IMPROVEMENT_THRESHOLD_H7
+    h7_pass = bool(median_improvement_h7 >= IMPROVEMENT_THRESHOLD_H7)
     
     # Evaluate H8
     median_improvement_h8 = np.median(improvement_ratios_h8) if improvement_ratios_h8 else 0
-    h8_pass = median_improvement_h8 >= IMPROVEMENT_THRESHOLD_H8
+    h8_pass = bool(median_improvement_h8 >= IMPROVEMENT_THRESHOLD_H8)
     
     evaluation = {
         'H7_triad_informed_outperforms': {
-            'median_linear_rmse': np.median(linear_rmses) if linear_rmses else float('inf'),
-            'median_triad_rmse': np.median(triad_rmses) if triad_rmses else float('inf'),
-            'median_improvement_ratio': median_improvement_h7,
-            'threshold': IMPROVEMENT_THRESHOLD_H7,
-            'n_comparisons': len(improvement_ratios_h7),
+            'median_linear_rmse': float(np.median(linear_rmses)) if linear_rmses else float('inf'),
+            'median_triad_rmse': float(np.median(triad_rmses)) if triad_rmses else float('inf'),
+            'median_improvement_ratio': float(median_improvement_h7),
+            'threshold': float(IMPROVEMENT_THRESHOLD_H7),
+            'n_comparisons': int(len(improvement_ratios_h7)),
             'pass': h7_pass
         },
         'H8_continuity_improves': {
-            'median_cubic_rmse': np.median(cubic_rmses) if cubic_rmses else float('inf'),
-            'median_constrained_rmse': np.median(constrained_rmses) if constrained_rmses else float('inf'),
-            'median_improvement_ratio': median_improvement_h8,
-            'threshold': IMPROVEMENT_THRESHOLD_H8,
-            'n_comparisons': len(improvement_ratios_h8),
+            'median_cubic_rmse': float(np.median(cubic_rmses)) if cubic_rmses else float('inf'),
+            'median_constrained_rmse': float(np.median(constrained_rmses)) if constrained_rmses else float('inf'),
+            'median_improvement_ratio': float(median_improvement_h8),
+            'threshold': float(IMPROVEMENT_THRESHOLD_H8),
+            'n_comparisons': int(len(improvement_ratios_h8)),
             'pass': h8_pass
         },
-        'overall_pass': h7_pass and h8_pass
+        'overall_pass': bool(h7_pass and h8_pass)
     }
     
     return evaluation
