@@ -73,6 +73,7 @@ This document tracks outstanding code quality concerns in the SEP Engine codebas
 - Obsolete OANDA historical fetcher and script dependency removed (`oanda_historical_fetcher.cpp`, `run_trader.sh`).
 - Unused configuration helper functions removed to eliminate dead code (`src/util/interpreter.cpp`).
 - Unused filter utility and associated test removed (`src/app/filter.*`, `tests/data_access/filter_test.cpp`).
+- Removed duplicate app container and background animation styles (`frontend/src/styles/App.css`).
 
 ## Recommendations
 1. Remove remaining hardcoded values via configuration.
