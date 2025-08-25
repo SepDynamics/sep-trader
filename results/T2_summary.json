@@ -1,0 +1,295 @@
+{
+  "test": "T2_maxent_sufficiency",
+  "parameters": {
+    "process_length": 50000,
+    "beta": 0.1,
+    "n_processes": 4,
+    "entropy_threshold": 0.3,
+    "sufficiency_threshold": 0.05,
+    "subsample": 10
+  },
+  "results": [
+    {
+      "bit_mapping": "D1",
+      "seed": 1337,
+      "n_processes": 4,
+      "individual_entropies": [
+        {
+          "process_idx": 0,
+          "entropy_data": {
+            "individual": {
+              "H": 2.0470954991893056,
+              "C": 2.0470954561936425,
+              "S": 2.047095585180641
+            },
+            "triple": {
+              "HCS": 4.656755730952026
+            }
+          }
+        },
+        {
+          "process_idx": 1,
+          "entropy_data": {
+            "individual": {
+              "H": 2.047095585180641,
+              "C": 2.0470952842109407,
+              "S": 2.047095585180641
+            },
+            "triple": {
+              "HCS": 4.640683436280944
+            }
+          }
+        },
+        {
+          "process_idx": 2,
+          "entropy_data": {
+            "individual": {
+              "H": 2.047095585180641,
+              "C": 2.0470954561936425,
+              "S": 2.0470954991893056
+            },
+            "triple": {
+              "HCS": 4.356418128184032
+            }
+          }
+        },
+        {
+          "process_idx": 3,
+          "entropy_data": {
+            "individual": {
+              "H": 2.0470954991893056,
+              "C": 2.0470954561936425,
+              "S": 2.047095585180641
+            },
+            "triple": {
+              "HCS": 4.339146254523182
+            }
+          }
+        }
+      ],
+      "pairwise_analysis": {},
+      "multivariate_analysis": [
+        {
+          "target": 0,
+          "conditioning": [
+            1
+          ],
+          "n_conditioning": 1,
+          "entropy_gain": 3.8776493850591285
+        },
+        {
+          "target": 0,
+          "conditioning": [
+            2
+          ],
+          "n_conditioning": 1,
+          "entropy_gain": 4.665156567498721
+        },
+        {
+          "target": 0,
+          "conditioning": [
+            3
+          ],
+          "n_conditioning": 1,
+          "entropy_gain": 4.666225267691183
+        },
+        {
+          "target": 0,
+          "conditioning": [
+            1,
+            2
+          ],
+          "n_conditioning": 2,
+          "entropy_gain": -0.004743969441402207
+        },
+        {
+          "target": 0,
+          "conditioning": [
+            1,
+            3
+          ],
+          "n_conditioning": 2,
+          "entropy_gain": -0.00502292530110271
+        },
+        {
+          "target": 0,
+          "conditioning": [
+            2,
+            3
+          ],
+          "n_conditioning": 2,
+          "entropy_gain": 0.004689278958423415
+        },
+        {
+          "target": 1,
+          "conditioning": [
+            0
+          ],
+          "n_conditioning": 1,
+          "entropy_gain": 3.861577090388046
+        },
+        {
+          "target": 1,
+          "conditioning": [
+            2
+          ],
+          "n_conditioning": 1,
+          "entropy_gain": 4.649110930138523
+        },
+        {
+          "target": 1,
+          "conditioning": [
+            3
+          ],
+          "n_conditioning": 1,
+          "entropy_gain": 4.645911020936571
+        },
+        {
+          "target": 1,
+          "conditioning": [
+            0,
+            2
+          ],
+          "n_conditioning": 2,
+          "entropy_gain": -0.004717312130518181
+        },
+        {
+          "target": 1,
+          "conditioning": [
+            0,
+            3
+          ],
+          "n_conditioning": 2,
+          "entropy_gain": -0.009264877384632442
+        },
+        {
+          "target": 1,
+          "conditioning": [
+            2,
+            3
+          ],
+          "n_conditioning": 2,
+          "entropy_gain": 0.005892469583858251
+        },
+        {
+          "target": 2,
+          "conditioning": [
+            0
+          ],
+          "n_conditioning": 1,
+          "entropy_gain": 4.364818964730727
+        },
+        {
+          "target": 2,
+          "conditioning": [
+            1
+          ],
+          "n_conditioning": 1,
+          "entropy_gain": 4.364845622041611
+        },
+        {
+          "target": 2,
+          "conditioning": [
+            3
+          ],
+          "n_conditioning": 1,
+          "entropy_gain": 3.27675300983413
+        },
+        {
+          "target": 2,
+          "conditioning": [
+            0,
+            1
+          ],
+          "n_conditioning": 2,
+          "entropy_gain": -0.004717312130518181
+        },
+        {
+          "target": 2,
+          "conditioning": [
+            0,
+            3
+          ],
+          "n_conditioning": 2,
+          "entropy_gain": 0.0036205787659620015
+        },
+        {
+          "target": 2,
+          "conditioning": [
+            1,
+            3
+          ],
+          "n_conditioning": 2,
+          "entropy_gain": 0.005892469583858251
+        },
+        {
+          "target": 3,
+          "conditioning": [
+            0
+          ],
+          "n_conditioning": 1,
+          "entropy_gain": 4.348615791262338
+        },
+        {
+          "target": 3,
+          "conditioning": [
+            1
+          ],
+          "n_conditioning": 1,
+          "entropy_gain": 4.344373839178808
+        },
+        {
+          "target": 3,
+          "conditioning": [
+            2
+          ],
+          "n_conditioning": 1,
+          "entropy_gain": 3.25948113617328
+        },
+        {
+          "target": 3,
+          "conditioning": [
+            0,
+            1
+          ],
+          "n_conditioning": 2,
+          "entropy_gain": -0.00502292530110271
+        },
+        {
+          "target": 3,
+          "conditioning": [
+            0,
+            2
+          ],
+          "n_conditioning": 2,
+          "entropy_gain": 0.004689278958423415
+        },
+        {
+          "target": 3,
+          "conditioning": [
+            1,
+            2
+          ],
+          "n_conditioning": 2,
+          "entropy_gain": 0.0026925603819059063
+        }
+      ]
+    }
+  ],
+  "evaluation": {
+    "H3_maxent_pairwise": {
+      "median_base_entropy": 4.498550782232488,
+      "median_pair_cond_entropy": 4.3567173779965325,
+      "relative_reduction": 0.03152868803796597,
+      "reduction_threshold": 0.3,
+      "pass": false
+    },
+    "H4_pairwise_sufficiency": {
+      "median_order2_excess": 0.0013462801909529531,
+      "normalized_excess": 0.00029926975511096416,
+      "threshold": 0.05,
+      "pass": true
+    },
+    "overall_pass": false
+  }
+}

@@ -135,9 +135,9 @@ echo "Mounting local directory $(pwd) to /sep in the container."
     # Configure and build with Docker container paths
     cmake .. -G Ninja \
         -DCMAKE_BUILD_TYPE=Release \
-        -DCMAKE_C_COMPILER=/usr/bin/gcc-14 \
-        -DCMAKE_CXX_COMPILER=/usr/bin/g++-14 \
-        -DCMAKE_CUDA_HOST_COMPILER=/usr/bin/g++-14 \
+        -DCMAKE_C_COMPILER=/usr/bin/gcc-11 \
+        -DCMAKE_CXX_COMPILER=/usr/bin/g++-11 \
+        -DCMAKE_CUDA_HOST_COMPILER=/usr/bin/g++-11 \
         -DCMAKE_BUILD_WITH_INSTALL_RPATH=ON \
         -DCMAKE_EXPORT_COMPILE_COMMANDS=TRUE \
         -DSEP_USE_CUDA=ON \

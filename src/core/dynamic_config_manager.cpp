@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <cctype>
 #include <cstdlib>
+#include <unistd.h>
 
 namespace sep::config {
 
@@ -137,10 +138,9 @@ bool DynamicConfigManager::saveToFile(const std::string& file_path) const {
 
 bool DynamicConfigManager::loadFromEnvironment(const std::string& prefix) {
     // Use system environ properly
-    extern char **environ;
-    if (!environ) return false;
+    if (!::environ) return false;
     
-    for (char **env = environ; *env != nullptr; ++env) {
+    for (char **env = ::environ; *env != nullptr; ++env) {
         std::string entry(*env);
         auto pos = entry.find('=');
         if (pos == std::string::npos) continue;

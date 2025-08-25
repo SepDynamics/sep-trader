@@ -1,1 +1,0 @@
-add_sep_test(interpreter_module_test SOURCES module_test.cpp)

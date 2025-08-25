@@ -1,84 +1,41 @@
-# SEP Trading Engine - Technical Documentation
+# SEP Documentation
 
-## Overview
-The SEP Trading Engine is a CUDA-accelerated trading platform that applies Quantum Field Harmonics (QFH) analytics to real-time OANDA data. The system produces high-confidence trading signals and supports remote execution through a lightweight web interface.
+This directory contains the complete documentation for the SEP (Signal Enhancement Physics) project.
 
-## Build and Binaries
-- `./build.sh` compiles all targets.
-- Compiled executables are stored in `bin/`:
-  - `sep` – main engine service
-  - `quantum_pair_trainer` – model training
-  - `quantum_tracker` – live signal monitor
-  - `data_downloader` – historical fetch utility
+## Directory Structure
 
-## Configuration
-Runtime configuration lives under `config/`. `default.json` provides base settings and can be overridden by other files in the directory.
-OANDA credentials are loaded through the `EnvLoader` utility and can be supplied via environment variables:
+- [whitepaper.md](whitepaper.md) - The main technical whitepaper for SEP
+- [validation/](validation/) - Validation plan, test documentation, and results
+- [00_OVERVIEW/](00_OVERVIEW/) - Project overview documentation
+- [01_ARCHITECTURE/](01_ARCHITECTURE/) - System architecture documentation
+- [02_CORE_TECHNOLOGY/](02_CORE_TECHNOLOGY/) - Core technology documentation
+- [03_TRADING_STRATEGY/](03_TRADING_STRATEGY/) - Trading strategy documentation
+- [04_DEVELOPMENT/](04_DEVELOPMENT/) - Development guides and documentation
+- [05_PATENT_PORTFOLIO/](05_PATENT_PORTFOLIO/) - Patent portfolio information
+- [06_PROOF_OF_CONCEPT/](06_PROOF_OF_CONCEPT/) - Proof of concept documentation
 
-```
-export OANDA_API_KEY=...
-export OANDA_ACCOUNT_ID=...
-export OANDA_BASE_URL=https://api-fxtrade.oanda.com
-```
+## Key Documents
 
-Paths such as cache, config, and logs are resolved relative to `PROJECT_ROOT`, allowing binaries in `bin/` to run from the repository root.
+### Main Technical Documentation
+- [whitepaper.md](whitepaper.md) - The primary technical documentation for SEP
+- [validation/SEP_Physics_Validation_Plan.md](validation/SEP_Physics_Validation_Plan.md) - The complete validation plan for SEP physics
 
-## Frontend and Remote Deployment
-The `frontend/` directory hosts a React/TypeScript UI served by Nginx. In production the UI and backend run on a DigitalOcean droplet. Deployment helpers:
+### Validation Documentation
+The [validation/](validation/) directory contains:
+- Detailed test documentation and reports
+- Results summaries
+- The complete validation plan
 
-```
-./scripts/deploy_to_droplet.sh    # initial droplet setup
-./scripts/sync_to_droplet.sh      # push configs and models
-```
+## Purpose
 
-The web interface communicates with the backend API on port `5000` and the WebSocket service on `8765`.
+This documentation provides:
+- Comprehensive technical information about SEP
+- Detailed validation plans and results
+- Implementation guides and development documentation
+- Patent portfolio information
+- Proof of concept documentation
 
-### Running the Web UI
+## Related Resources
 
-```
-cd frontend
-npm run setup   # install dependencies
-npm start       # launch development server
-```
-
-Runtime settings are configured via environment variables. In development, create `frontend/.env`:
-
-```
-REACT_APP_API_URL=<backend-api-url>
-REACT_APP_WS_URL=<websocket-url>
-```
-
-For production builds:
-
-```
-npm run build
-```
-
-The contents of `frontend/build/` can be served by Nginx. Set `REACT_APP_API_URL` and `REACT_APP_WS_URL` in the deployment environment to point at the live services.
-
-### API Usage Examples
-
-The frontend consumes several backend endpoints:
-
-```
-GET    /api/market-data            # latest market prices
-GET    /api/performance/current    # performance metrics
-GET    /api/system-status          # system health information
-POST   /api/place-order            # submit a trade order
-```
-
-## Testing
-Unit and integration tests live under `tests/` and are driven by CMake. When source code or tests change, run:
-
-```
-ctest
-```
-
-Documentation-only updates do not require running the test suite.
-
-## Next Steps
-Ongoing development tasks are tracked in `docs/TODO.md`. Review that document for remaining work items.
-
-## Support & License
-- Additional documentation lives in the `/docs/` directory.
-- Patent-pending Quantum Field Harmonics (QFH) technology. All rights reserved.
+- [Validation Test Scripts](../validation/test_scripts/) - The Python implementation of the validation tests
+- [Validation Framework](../validation/) - The automated validation framework

@@ -158,7 +158,16 @@ std::string resultToString(SEPResult result);
 std::string errorToString(const Error& error);
 
 template<typename T>
-Result<T> fromSEPResult(SEPResult result, const std::string& message = "");
+Result<T> fromSEPResult(SEPResult result, const std::string& message = "") {
+    if (result == SEPResult::SUCCESS) {
+        if constexpr (std::is_void_v<T>) {
+            return makeSuccess();
+        } else {
+            return makeError<T>(Error::Code::UnknownError, "Cannot create success result with value from SEPResult");
+        }
+    }
+    return makeError<T>(Error(result, message));
+}
 
   #ifdef SEP_USE_CUDA
 Result<void> fromCudaError(cudaError_t err, const std::string& context = "");

@@ -1,1 +1,1 @@
-add_sep_test(pattern_metric_engine_test SOURCES evaluate_signal_test.cpp)
+add_sep_test(pattern_metric_engine_test SOURCES evaluate_signal_test.cpp DEPENDENCIES sep_lib)

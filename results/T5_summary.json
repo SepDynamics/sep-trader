@@ -1,0 +1,916 @@
+{
+  "test": "T5_smoothing_beats_filtering",
+  "parameters": {
+    "process_length": 50000,
+    "beta": 0.1,
+    "noise_levels": [
+      0.1,
+      0.2
+    ],
+    "filter_methods": [
+      "naive_gaussian",
+      "naive_median",
+      "sep_informed",
+      "adaptive_sep"
+    ],
+    "smoothing_window_sizes": [
+      5,
+      10,
+      20,
+      50
+    ],
+    "uncertainty_threshold_h9": 0.15,
+    "correlation_threshold_h10": 0.3
+  },
+  "results": [
+    {
+      "process_type": "van_der_pol",
+      "noise_level": 0.1,
+      "bit_mapping": "D1",
+      "seed": 1337,
+      "filtering_results": {
+        "naive_gaussian": {
+          "window_5": {
+            "performance": {
+              "signal_rmse": 0.04730787697634891,
+              "snr_improvement_db": 6.436279809297144,
+              "uncertainty_reduction_mean": 0.039033740101677206,
+              "uncertainty_reduction_ratio": 0.3109862205690211,
+              "smoothness_preservation": -2.201431501287429,
+              "mean_original_uncertainty": 0.1255159795502996,
+              "mean_filtered_uncertainty": 0.0864822394486224
+            },
+            "window_size": 5
+          },
+          "window_10": {
+            "performance": {
+              "signal_rmse": 0.03333797233231555,
+              "snr_improvement_db": 9.476183697583075,
+              "uncertainty_reduction_mean": 0.04729144615230489,
+              "uncertainty_reduction_ratio": 0.3767762982957593,
+              "smoothness_preservation": 0.5693298428968625,
+              "mean_original_uncertainty": 0.1255159795502996,
+              "mean_filtered_uncertainty": 0.07822453339799472
+            },
+            "window_size": 10
+          },
+          "window_20": {
+            "performance": {
+              "signal_rmse": 0.02349211373293002,
+              "snr_improvement_db": 12.516562397238832,
+              "uncertainty_reduction_mean": 0.051348566437243476,
+              "uncertainty_reduction_ratio": 0.40909983430641045,
+              "smoothness_preservation": 0.9500302673078527,
+              "mean_original_uncertainty": 0.1255159795502996,
+              "mean_filtered_uncertainty": 0.07416741311305614
+            },
+            "window_size": 20
+          },
+          "window_50": {
+            "performance": {
+              "signal_rmse": 0.020808003602245245,
+              "snr_improvement_db": 13.570416164998136,
+              "uncertainty_reduction_mean": 0.05294121050932947,
+              "uncertainty_reduction_ratio": 0.42178860969404997,
+              "smoothness_preservation": 0.9748237530542861,
+              "mean_original_uncertainty": 0.1255159795502996,
+              "mean_filtered_uncertainty": 0.07257476904097014
+            },
+            "window_size": 50
+          }
+        },
+        "naive_median": {
+          "window_5": {
+            "performance": {
+              "signal_rmse": 0.053708159725346566,
+              "snr_improvement_db": 5.334157006271177,
+              "uncertainty_reduction_mean": 0.03577916066766271,
+              "uncertainty_reduction_ratio": 0.28505661825345047,
+              "smoothness_preservation": -7.664890290915876,
+              "mean_original_uncertainty": 0.1255159795502996,
+              "mean_filtered_uncertainty": 0.0897368188826369
+            },
+            "window_size": 5
+          },
+          "window_10": {
+            "performance": {
+              "signal_rmse": 0.03823589072271356,
+              "snr_improvement_db": 8.285720751276024,
+              "uncertainty_reduction_mean": 0.04584675446466349,
+              "uncertainty_reduction_ratio": 0.3652662762825786,
+              "smoothness_preservation": -1.5589934338911822,
+              "mean_original_uncertainty": 0.1255159795502996,
+              "mean_filtered_uncertainty": 0.07966922508563612
+            },
+            "window_size": 10
+          },
+          "window_20": {
+            "performance": {
+              "signal_rmse": 0.03063370701452024,
+              "snr_improvement_db": 10.211370719054658,
+              "uncertainty_reduction_mean": 0.04973044029608717,
+              "uncertainty_reduction_ratio": 0.3962080403934692,
+              "smoothness_preservation": -0.23613741901530716,
+              "mean_original_uncertainty": 0.1255159795502996,
+              "mean_filtered_uncertainty": 0.07578553925421244
+            },
+            "window_size": 20
+          },
+          "window_50": {
+            "performance": {
+              "signal_rmse": 0.02801543149133919,
+              "snr_improvement_db": 10.98731385848605,
+              "uncertainty_reduction_mean": 0.051738334061472685,
+              "uncertainty_reduction_ratio": 0.41220515703601485,
+              "smoothness_preservation": 0.10449912165824349,
+              "mean_original_uncertainty": 0.1255159795502996,
+              "mean_filtered_uncertainty": 0.07377764548882693
+            },
+            "window_size": 50
+          }
+        },
+        "sep_informed": {
+          "performance": {
+            "signal_rmse": 0.02062654465654255,
+            "snr_improvement_db": 13.646496478498387,
+            "uncertainty_reduction_mean": 0.05205884615668045,
+            "uncertainty_reduction_ratio": 0.4147587131358322,
+            "smoothness_preservation": 0.9845702292831969,
+            "mean_original_uncertainty": 0.1255159795502996,
+            "mean_filtered_uncertainty": 0.07345713339361916
+          },
+          "sep_data": {
+            "mean_stability": 0.34048468452675507,
+            "mean_coherence": 0.0,
+            "mean_entropy": 0.9796810648788723,
+            "adaptive_params_mean": 6.638061261892983,
+            "adaptive_params_std": 3.552713678800501e-15
+          }
+        },
+        "adaptive_sep": {
+          "performance": {
+            "signal_rmse": 0.02706795220571091,
+            "snr_improvement_db": 11.285878157906579,
+            "uncertainty_reduction_mean": 0.05041496006988268,
+            "uncertainty_reduction_ratio": 0.4016616868235298,
+            "smoothness_preservation": 0.37811965833004024,
+            "mean_original_uncertainty": 0.1255159795502996,
+            "mean_filtered_uncertainty": 0.07510101948041693
+          },
+          "sep_data": {
+            "mean_stability": 0.34048468452675507,
+            "mean_coherence": 0.0,
+            "mean_entropy": 0.9796810648788723,
+            "adaptive_params_mean": 4.63806126189298,
+            "adaptive_params_std": 0.19558060585049084
+          }
+        }
+      }
+    },
+    {
+      "process_type": "van_der_pol",
+      "noise_level": 0.2,
+      "bit_mapping": "D1",
+      "seed": 1337,
+      "filtering_results": {
+        "naive_gaussian": {
+          "window_5": {
+            "performance": {
+              "signal_rmse": 0.0946170841010675,
+              "snr_improvement_db": 6.436157701184024,
+              "uncertainty_reduction_mean": 0.09529257713166354,
+              "uncertainty_reduction_ratio": 0.4559008130482252,
+              "smoothness_preservation": -11.80467170368658,
+              "mean_original_uncertainty": 0.20902041497593818,
+              "mean_filtered_uncertainty": 0.11372783784427463
+            },
+            "window_size": 5
+          },
+          "window_10": {
+            "performance": {
+              "signal_rmse": 0.06667797921277521,
+              "snr_improvement_db": 9.475918661308874,
+              "uncertainty_reduction_mean": 0.1184318908703858,
+              "uncertainty_reduction_ratio": 0.5666044193982331,
+              "smoothness_preservation": -0.7242095457761479,
+              "mean_original_uncertainty": 0.20902041497593818,
+              "mean_filtered_uncertainty": 0.09058852410555238
+            },
+            "window_size": 10
+          },
+          "window_20": {
+            "performance": {
+              "signal_rmse": 0.046843898033981764,
+              "snr_improvement_db": 12.542544112296742,
+              "uncertainty_reduction_mean": 0.13136225936520637,
+              "uncertainty_reduction_ratio": 0.62846616862616,
+              "smoothness_preservation": 0.7873299073889655,
+              "mean_original_uncertainty": 0.20902041497593818,
+              "mean_filtered_uncertainty": 0.0776581556107318
+            },
+            "window_size": 20
+          },
+          "window_50": {
+            "performance": {
+              "signal_rmse": 0.03240597083319435,
+              "snr_improvement_db": 15.7431843882466,
+              "uncertainty_reduction_mean": 0.13619617481295382,
+              "uncertainty_reduction_ratio": 0.6515926916898559,
+              "smoothness_preservation": 0.9864413563898861,
+              "mean_original_uncertainty": 0.20902041497593818,
+              "mean_filtered_uncertainty": 0.07282424016298435
+            },
+            "window_size": 50
+          }
+        },
+        "naive_median": {
+          "window_5": {
+            "performance": {
+              "signal_rmse": 0.10685544485376768,
+              "snr_improvement_db": 5.379631219006407,
+              "uncertainty_reduction_mean": 0.08712067503783232,
+              "uncertainty_reduction_ratio": 0.41680462191908185,
+              "smoothness_preservation": -32.45054252148547,
+              "mean_original_uncertainty": 0.20902041497593818,
+              "mean_filtered_uncertainty": 0.12189973993810586
+            },
+            "window_size": 5
+          },
+          "window_10": {
+            "performance": {
+              "signal_rmse": 0.074476559480246,
+              "snr_improvement_db": 8.5153240498715,
+              "uncertainty_reduction_mean": 0.11538335327632941,
+              "uncertainty_reduction_ratio": 0.5520195397615107,
+              "smoothness_preservation": -7.689164253980577,
+              "mean_original_uncertainty": 0.20902041497593818,
+              "mean_filtered_uncertainty": 0.09363706169960877
+            },
+            "window_size": 10
+          },
+          "window_20": {
+            "performance": {
+              "signal_rmse": 0.05559524670789533,
+              "snr_improvement_db": 11.054940923138279,
+              "uncertainty_reduction_mean": 0.12802180001953337,
+              "uncertainty_reduction_ratio": 0.6124846706177403,
+              "smoothness_preservation": -2.0339408281113722,
+              "mean_original_uncertainty": 0.20902041497593818,
+              "mean_filtered_uncertainty": 0.08099861495640481
+            },
+            "window_size": 20
+          },
+          "window_50": {
+            "performance": {
+              "signal_rmse": 0.04292672219898923,
+              "snr_improvement_db": 13.301577121935818,
+              "uncertainty_reduction_mean": 0.13427318827547274,
+              "uncertainty_reduction_ratio": 0.6423926978151272,
+              "smoothness_preservation": -0.1228872525572231,
+              "mean_original_uncertainty": 0.20902041497593818,
+              "mean_filtered_uncertainty": 0.07474722670046545
+            },
+            "window_size": 50
+          }
+        },
+        "sep_informed": {
+          "performance": {
+            "signal_rmse": 0.04061865778972387,
+            "snr_improvement_db": 13.78111765709872,
+            "uncertainty_reduction_mean": 0.13387424177290125,
+            "uncertainty_reduction_ratio": 0.6404840493100732,
+            "smoothness_preservation": 0.9146994949753602,
+            "mean_original_uncertainty": 0.20902041497593818,
+            "mean_filtered_uncertainty": 0.07514617320303695
+          },
+          "sep_data": {
+            "mean_stability": 0.3374368208781076,
+            "mean_coherence": 3.6390145171165694e-06,
+            "mean_entropy": 0.9831838116476371,
+            "adaptive_params_mean": 6.650245438458538,
+            "adaptive_params_std": 2.6645352591003757e-15
+          }
+        },
+        "adaptive_sep": {
+          "performance": {
+            "signal_rmse": 0.05147754603119202,
+            "snr_improvement_db": 11.723235241623552,
+            "uncertainty_reduction_mean": 0.1291094939592184,
+            "uncertainty_reduction_ratio": 0.6176884395405272,
+            "smoothness_preservation": -0.16015559177654692,
+            "mean_original_uncertainty": 0.20902041497593818,
+            "mean_filtered_uncertainty": 0.07991092101671979
+          },
+          "sep_data": {
+            "mean_stability": 0.3374368208781076,
+            "mean_coherence": 3.6390145171165694e-06,
+            "mean_entropy": 0.9831838116476371,
+            "adaptive_params_mean": 4.650252716487571,
+            "adaptive_params_std": 0.19594006173601172
+          }
+        }
+      }
+    },
+    {
+      "process_type": "chirp",
+      "noise_level": 0.1,
+      "bit_mapping": "D2",
+      "seed": 1337,
+      "filtering_results": {
+        "naive_gaussian": {
+          "window_5": {
+            "performance": {
+              "signal_rmse": 0.046640962000526184,
+              "snr_improvement_db": 6.559599516862912,
+              "uncertainty_reduction_mean": 0.05685010217815964,
+              "uncertainty_reduction_ratio": 0.571772981806406,
+              "smoothness_preservation": -21.957321026805623,
+              "mean_original_uncertainty": 0.09942775189898091,
+              "mean_filtered_uncertainty": 0.04257764972082127
+            },
+            "window_size": 5
+          },
+          "window_10": {
+            "performance": {
+              "signal_rmse": 0.032970894340701294,
+              "snr_improvement_db": 9.572353598075393,
+              "uncertainty_reduction_mean": 0.07354869190781765,
+              "uncertainty_reduction_ratio": 0.7397199524515425,
+              "smoothness_preservation": -1.2243581895684508,
+              "mean_original_uncertainty": 0.09942775189898091,
+              "mean_filtered_uncertainty": 0.02587905999116326
+            },
+            "window_size": 10
+          },
+          "window_20": {
+            "performance": {
+              "signal_rmse": 0.023320396862698066,
+              "snr_improvement_db": 12.580286638989408,
+              "uncertainty_reduction_mean": 0.08598385464534225,
+              "uncertainty_reduction_ratio": 0.8647872752049899,
+              "smoothness_preservation": 0.40292797325991225,
+              "mean_original_uncertainty": 0.09942775189898091,
+              "mean_filtered_uncertainty": 0.013443897253638665
+            },
+            "window_size": 20
+          },
+          "window_50": {
+            "performance": {
+              "signal_rmse": 0.01478210452647866,
+              "snr_improvement_db": 16.540390912481534,
+              "uncertainty_reduction_mean": 0.09524587276931902,
+              "uncertainty_reduction_ratio": 0.9579405241419051,
+              "smoothness_preservation": 0.02637323308102968,
+              "mean_original_uncertainty": 0.09942775189898091,
+              "mean_filtered_uncertainty": 0.004181879129661886
+            },
+            "window_size": 50
+          }
+        },
+        "naive_median": {
+          "window_5": {
+            "performance": {
+              "signal_rmse": 0.054052473402725836,
+              "snr_improvement_db": 5.278669466348045,
+              "uncertainty_reduction_mean": 0.051498212216004584,
+              "uncertainty_reduction_ratio": 0.5179460586397354,
+              "smoothness_preservation": -59.769209567697565,
+              "mean_original_uncertainty": 0.09942775189898091,
+              "mean_filtered_uncertainty": 0.04792953968297633
+            },
+            "window_size": 5
+          },
+          "window_10": {
+            "performance": {
+              "signal_rmse": 0.03752383544103882,
+              "snr_improvement_db": 8.448843692757958,
+              "uncertainty_reduction_mean": 0.07155650451172059,
+              "uncertainty_reduction_ratio": 0.7196834198132395,
+              "smoothness_preservation": -13.160424336673087,
+              "mean_original_uncertainty": 0.09942775189898091,
+              "mean_filtered_uncertainty": 0.02787124738726032
+            },
+            "window_size": 10
+          },
+          "window_20": {
+            "performance": {
+              "signal_rmse": 0.027529277872728186,
+              "snr_improvement_db": 11.139049854458634,
+              "uncertainty_reduction_mean": 0.08367173491020274,
+              "uncertainty_reduction_ratio": 0.841533005738399,
+              "smoothness_preservation": -2.568361085659387,
+              "mean_original_uncertainty": 0.09942775189898091,
+              "mean_filtered_uncertainty": 0.015756016988778175
+            },
+            "window_size": 20
+          },
+          "window_50": {
+            "performance": {
+              "signal_rmse": 0.017746613599673656,
+              "snr_improvement_db": 14.952732101219894,
+              "uncertainty_reduction_mean": 0.0928604830224488,
+              "uncertainty_reduction_ratio": 0.9339493375638379,
+              "smoothness_preservation": 0.8251665458607685,
+              "mean_original_uncertainty": 0.09942775189898091,
+              "mean_filtered_uncertainty": 0.006567268876532112
+            },
+            "window_size": 50
+          }
+        },
+        "sep_informed": {
+          "performance": {
+            "signal_rmse": 0.02308182116606586,
+            "snr_improvement_db": 12.669605487662025,
+            "uncertainty_reduction_mean": 0.08628742172883114,
+            "uncertainty_reduction_ratio": 0.8678404175891631,
+            "smoothness_preservation": 0.3784656207604665,
+            "mean_original_uncertainty": 0.09942775189898091,
+            "mean_filtered_uncertainty": 0.013140330170149775
+          },
+          "sep_data": {
+            "mean_stability": 0.6618506047776945,
+            "mean_coherence": 0.12365997345865525,
+            "mean_entropy": 0.694648786802161,
+            "adaptive_params_mean": 5.10527763397191,
+            "adaptive_params_std": 1.7763568394002505e-15
+          }
+        },
+        "adaptive_sep": {
+          "performance": {
+            "signal_rmse": 0.029476715977620273,
+            "snr_improvement_db": 10.545395573079846,
+            "uncertainty_reduction_mean": 0.0781568189824033,
+            "uncertainty_reduction_ratio": 0.7860664400923492,
+            "smoothness_preservation": -0.5794225597312366,
+            "mean_original_uncertainty": 0.09942775189898091,
+            "mean_filtered_uncertainty": 0.021270932916577612
+          },
+          "sep_data": {
+            "mean_stability": 0.6618506047776945,
+            "mean_coherence": 0.12365997345865525,
+            "mean_entropy": 0.694648786802161,
+            "adaptive_params_mean": 3.352597580889222,
+            "adaptive_params_std": 0.23999970025942105
+          }
+        }
+      }
+    },
+    {
+      "process_type": "chirp",
+      "noise_level": 0.2,
+      "bit_mapping": "D2",
+      "seed": 1337,
+      "filtering_results": {
+        "naive_gaussian": {
+          "window_5": {
+            "performance": {
+              "signal_rmse": 0.09390623920258591,
+              "snr_improvement_db": 6.501660212204165,
+              "uncertainty_reduction_mean": 0.11157260572706669,
+              "uncertainty_reduction_ratio": 0.5717729482515876,
+              "smoothness_preservation": -90.27646866105121,
+              "mean_original_uncertainty": 0.19513446039668442,
+              "mean_filtered_uncertainty": 0.08356185466961773
+            },
+            "window_size": 5
+          },
+          "window_10": {
+            "performance": {
+              "signal_rmse": 0.06622608144944275,
+              "snr_improvement_db": 9.534986569056606,
+              "uncertainty_reduction_mean": 0.14434481599789212,
+              "uncertainty_reduction_ratio": 0.7397197588971066,
+              "smoothness_preservation": -10.419267755577351,
+              "mean_original_uncertainty": 0.19513446039668442,
+              "mean_filtered_uncertainty": 0.0507896443987923
+            },
+            "window_size": 10
+          },
+          "window_20": {
+            "performance": {
+              "signal_rmse": 0.046598180982719783,
+              "snr_improvement_db": 12.588226156587353,
+              "uncertainty_reduction_mean": 0.16874976725937135,
+              "uncertainty_reduction_ratio": 0.8647871161016818,
+              "smoothness_preservation": 0.4480413950544019,
+              "mean_original_uncertainty": 0.19513446039668442,
+              "mean_filtered_uncertainty": 0.02638469313731306
+            },
+            "window_size": 20
+          },
+          "window_50": {
+            "performance": {
+              "signal_rmse": 0.02908282217647271,
+              "snr_improvement_db": 16.68299145103301,
+              "uncertainty_reduction_mean": 0.18692729774075353,
+              "uncertainty_reduction_ratio": 0.9579409877670778,
+              "smoothness_preservation": 0.10158178724397793,
+              "mean_original_uncertainty": 0.19513446039668442,
+              "mean_filtered_uncertainty": 0.00820716265593089
+            },
+            "window_size": 50
+          }
+        },
+        "naive_median": {
+          "window_5": {
+            "performance": {
+              "signal_rmse": 0.10730228274202089,
+              "snr_improvement_db": 5.343401443569974,
+              "uncertainty_reduction_mean": 0.10106911127084085,
+              "uncertainty_reduction_ratio": 0.5179459899848637,
+              "smoothness_preservation": -235.9165206605416,
+              "mean_original_uncertainty": 0.19513446039668442,
+              "mean_filtered_uncertainty": 0.09406534912584356
+            },
+            "window_size": 5
+          },
+          "window_10": {
+            "performance": {
+              "signal_rmse": 0.07426865068878112,
+              "snr_improvement_db": 8.539477952081143,
+              "uncertainty_reduction_mean": 0.1404349889604789,
+              "uncertainty_reduction_ratio": 0.7196831798661913,
+              "smoothness_preservation": -56.39341577835469,
+              "mean_original_uncertainty": 0.19513446039668442,
+              "mean_filtered_uncertainty": 0.05469947143620553
+            },
+            "window_size": 10
+          },
+          "window_20": {
+            "performance": {
+              "signal_rmse": 0.05429908385602628,
+              "snr_improvement_db": 11.25969489274673,
+              "uncertainty_reduction_mean": 0.16421211466318086,
+              "uncertainty_reduction_ratio": 0.8415331373480432,
+              "smoothness_preservation": -15.595981513859275,
+              "mean_original_uncertainty": 0.19513446039668442,
+              "mean_filtered_uncertainty": 0.030922345733503567
+            },
+            "window_size": 20
+          },
+          "window_50": {
+            "performance": {
+              "signal_rmse": 0.03461992622840791,
+              "snr_improvement_db": 15.169124712194364,
+              "uncertainty_reduction_mean": 0.1822455084319043,
+              "uncertainty_reduction_ratio": 0.9339483557157848,
+              "smoothness_preservation": -1.1784450291828832,
+              "mean_original_uncertainty": 0.19513446039668442,
+              "mean_filtered_uncertainty": 0.012888951964780128
+            },
+            "window_size": 50
+          }
+        },
+        "sep_informed": {
+          "performance": {
+            "signal_rmse": 0.04610975958908009,
+            "snr_improvement_db": 12.679749864917566,
+            "uncertainty_reduction_mean": 0.16934736644245071,
+            "uncertainty_reduction_ratio": 0.8678496155795365,
+            "smoothness_preservation": 0.5425445047301876,
+            "mean_original_uncertainty": 0.19513446039668442,
+            "mean_filtered_uncertainty": 0.025787093954233693
+          },
+          "sep_data": {
+            "mean_stability": 0.6618505018274797,
+            "mean_coherence": 0.12349614557385546,
+            "mean_entropy": 0.6946671600907915,
+            "adaptive_params_mean": 5.105605701542372,
+            "adaptive_params_std": 2.6645352591003757e-15
+          }
+        },
+        "adaptive_sep": {
+          "performance": {
+            "signal_rmse": 0.05909737809143054,
+            "snr_improvement_db": 10.524212930747138,
+            "uncertainty_reduction_mean": 0.15339252373841825,
+            "uncertainty_reduction_ratio": 0.7860862885305034,
+            "smoothness_preservation": -7.933115884919287,
+            "mean_original_uncertainty": 0.19513446039668442,
+            "mean_filtered_uncertainty": 0.04174193665826618
+          },
+          "sep_data": {
+            "mean_stability": 0.6618505018274797,
+            "mean_coherence": 0.12349614557385546,
+            "mean_entropy": 0.6946671600907915,
+            "adaptive_params_mean": 3.352597992690081,
+            "adaptive_params_std": 0.23994871485441083
+          }
+        }
+      }
+    },
+    {
+      "process_type": "poisson",
+      "noise_level": 0.1,
+      "bit_mapping": "D1",
+      "seed": 1337,
+      "filtering_results": {
+        "naive_gaussian": {
+          "window_5": {
+            "performance": {
+              "signal_rmse": 0.2616690866180879,
+              "snr_improvement_db": -8.420116894944172,
+              "uncertainty_reduction_mean": 0.019470050362665692,
+              "uncertainty_reduction_ratio": 0.005030926021850796,
+              "smoothness_preservation": 0.2057194585597647,
+              "mean_original_uncertainty": 3.870072880836746,
+              "mean_filtered_uncertainty": 3.8506028304740805
+            },
+            "window_size": 5
+          },
+          "window_10": {
+            "performance": {
+              "signal_rmse": 0.37501511087122114,
+              "snr_improvement_db": -11.546044180510016,
+              "uncertainty_reduction_mean": 0.03091414598977016,
+              "uncertainty_reduction_ratio": 0.007988000986451253,
+              "smoothness_preservation": 0.09965553975298336,
+              "mean_original_uncertainty": 3.870072880836746,
+              "mean_filtered_uncertainty": 3.839158734846976
+            },
+            "window_size": 10
+          },
+          "window_20": {
+            "performance": {
+              "signal_rmse": 0.5236390632079045,
+              "snr_improvement_db": -14.445709714394424,
+              "uncertainty_reduction_mean": 0.04094589925430325,
+              "uncertainty_reduction_ratio": 0.01058013647676831,
+              "smoothness_preservation": 0.04930696402146306,
+              "mean_original_uncertainty": 3.870072880836746,
+              "mean_filtered_uncertainty": 3.829126981582443
+            },
+            "window_size": 20
+          },
+          "window_50": {
+            "performance": {
+              "signal_rmse": 0.8188295721507736,
+              "snr_improvement_db": -18.328939434685065,
+              "uncertainty_reduction_mean": 0.046200112872644805,
+              "uncertainty_reduction_ratio": 0.011937788846664812,
+              "smoothness_preservation": 0.01981903625153325,
+              "mean_original_uncertainty": 3.870072880836746,
+              "mean_filtered_uncertainty": 3.8238727679641014
+            },
+            "window_size": 50
+          }
+        },
+        "naive_median": {
+          "window_5": {
+            "performance": {
+              "signal_rmse": 0.12903735287179602,
+              "snr_improvement_db": -2.279377138650778,
+              "uncertainty_reduction_mean": 0.006401873236475897,
+              "uncertainty_reduction_ratio": 0.0016541996581444474,
+              "smoothness_preservation": 0.7160293142917862,
+              "mean_original_uncertainty": 3.870072880836746,
+              "mean_filtered_uncertainty": 3.8636710076002703
+            },
+            "window_size": 5
+          },
+          "window_10": {
+            "performance": {
+              "signal_rmse": 0.13228040179472117,
+              "snr_improvement_db": -2.4949759873034663,
+              "uncertainty_reduction_mean": 0.007177820366112808,
+              "uncertainty_reduction_ratio": 0.0018546990165619415,
+              "smoothness_preservation": 0.7025792752577734,
+              "mean_original_uncertainty": 3.870072880836746,
+              "mean_filtered_uncertainty": 3.8628950604706334
+            },
+            "window_size": 10
+          },
+          "window_20": {
+            "performance": {
+              "signal_rmse": 0.1356852490118477,
+              "snr_improvement_db": -2.7157175213307188,
+              "uncertainty_reduction_mean": 0.007531968847142245,
+              "uncertainty_reduction_ratio": 0.001946208528639341,
+              "smoothness_preservation": 0.7020812981486104,
+              "mean_original_uncertainty": 3.870072880836746,
+              "mean_filtered_uncertainty": 3.862540911989604
+            },
+            "window_size": 20
+          },
+          "window_50": {
+            "performance": {
+              "signal_rmse": 0.19116975565274918,
+              "snr_improvement_db": -5.69342827726407,
+              "uncertainty_reduction_mean": 0.008688145838271932,
+              "uncertainty_reduction_ratio": 0.002244956647015709,
+              "smoothness_preservation": 0.7019362297616467,
+              "mean_original_uncertainty": 3.870072880836746,
+              "mean_filtered_uncertainty": 3.8613847349984742
+            },
+            "window_size": 50
+          }
+        },
+        "sep_informed": {
+          "performance": {
+            "signal_rmse": 0.5377069377249211,
+            "snr_improvement_db": -14.675981776657736,
+            "uncertainty_reduction_mean": 0.041504886989891965,
+            "uncertainty_reduction_ratio": 0.010724575032010119,
+            "smoothness_preservation": 0.04665157945835807,
+            "mean_original_uncertainty": 3.870072880836746,
+            "mean_filtered_uncertainty": 3.828567993846854
+          },
+          "sep_data": {
+            "mean_stability": 0.6761375118537299,
+            "mean_coherence": 0.006171241741510521,
+            "mean_entropy": 0.6555382908479764,
+            "adaptive_params_mean": 5.283107469102061,
+            "adaptive_params_std": 1.7763568394002505e-15
+          }
+        },
+        "adaptive_sep": {
+          "performance": {
+            "signal_rmse": 0.49461364644773564,
+            "snr_improvement_db": -13.950390840360802,
+            "uncertainty_reduction_mean": 0.027042119768180495,
+            "uncertainty_reduction_ratio": 0.006987496256744071,
+            "smoothness_preservation": 0.43407876698047376,
+            "mean_original_uncertainty": 3.870072880836746,
+            "mean_filtered_uncertainty": 3.8430307610685657
+          },
+          "sep_data": {
+            "mean_stability": 0.6761375118537299,
+            "mean_coherence": 0.006171241741510521,
+            "mean_entropy": 0.6555382908479764,
+            "adaptive_params_mean": 3.2954499525850802,
+            "adaptive_params_std": 0.27577000707340343
+          }
+        }
+      }
+    },
+    {
+      "process_type": "poisson",
+      "noise_level": 0.2,
+      "bit_mapping": "D1",
+      "seed": 1337,
+      "filtering_results": {
+        "naive_gaussian": {
+          "window_5": {
+            "performance": {
+              "signal_rmse": 0.2741350963941374,
+              "snr_improvement_db": -2.8037598484985935,
+              "uncertainty_reduction_mean": 0.02250340037249199,
+              "uncertainty_reduction_ratio": 0.005809260677774461,
+              "smoothness_preservation": 0.2136314134559576,
+              "mean_original_uncertainty": 3.8737115823673585,
+              "mean_filtered_uncertainty": 3.8512081819948665
+            },
+            "window_size": 5
+          },
+          "window_10": {
+            "performance": {
+              "signal_rmse": 0.37939506911340226,
+              "snr_improvement_db": -5.6263017220815374,
+              "uncertainty_reduction_mean": 0.03435796794310786,
+              "uncertainty_reduction_ratio": 0.008869521442817808,
+              "smoothness_preservation": 0.10072297040219047,
+              "mean_original_uncertainty": 3.8737115823673585,
+              "mean_filtered_uncertainty": 3.8393536144242506
+            },
+            "window_size": 10
+          },
+          "window_20": {
+            "performance": {
+              "signal_rmse": 0.5252173406040588,
+              "snr_improvement_db": -8.451249743551625,
+              "uncertainty_reduction_mean": 0.044546581964748366,
+              "uncertainty_reduction_ratio": 0.011499715716448079,
+              "smoothness_preservation": 0.049417163403413955,
+              "mean_original_uncertainty": 3.8737115823673585,
+              "mean_filtered_uncertainty": 3.82916500040261
+            },
+            "window_size": 20
+          },
+          "window_50": {
+            "performance": {
+              "signal_rmse": 0.8193419756638185,
+              "snr_improvement_db": -12.313773057680939,
+              "uncertainty_reduction_mean": 0.04983282795994759,
+              "uncertainty_reduction_ratio": 0.012864361969220271,
+              "smoothness_preservation": 0.019815344647558852,
+              "mean_original_uncertainty": 3.8737115823673585,
+              "mean_filtered_uncertainty": 3.823878754407411
+            },
+            "window_size": 50
+          }
+        },
+        "naive_median": {
+          "window_5": {
+            "performance": {
+              "signal_rmse": 0.21300703777678598,
+              "snr_improvement_db": -0.6123436989181668,
+              "uncertainty_reduction_mean": 0.010145265386700686,
+              "uncertainty_reduction_ratio": 0.0026190038083573446,
+              "smoothness_preservation": 0.7322007061008613,
+              "mean_original_uncertainty": 3.8737115823673585,
+              "mean_filtered_uncertainty": 3.8635663169806578
+            },
+            "window_size": 5
+          },
+          "window_10": {
+            "performance": {
+              "signal_rmse": 0.21674324462594996,
+              "snr_improvement_db": -0.7633764472809901,
+              "uncertainty_reduction_mean": 0.011236379884103531,
+              "uncertainty_reduction_ratio": 0.002900675397530162,
+              "smoothness_preservation": 0.7144914621247858,
+              "mean_original_uncertainty": 3.8737115823673585,
+              "mean_filtered_uncertainty": 3.862475202483255
+            },
+            "window_size": 10
+          },
+          "window_20": {
+            "performance": {
+              "signal_rmse": 0.21901334596904554,
+              "snr_improvement_db": -0.8538758878648987,
+              "uncertainty_reduction_mean": 0.0116193482959015,
+              "uncertainty_reduction_ratio": 0.002999538826996902,
+              "smoothness_preservation": 0.7139450212622023,
+              "mean_original_uncertainty": 3.8737115823673585,
+              "mean_filtered_uncertainty": 3.862092234071457
+            },
+            "window_size": 20
+          },
+          "window_50": {
+            "performance": {
+              "signal_rmse": 0.2571279551007075,
+              "snr_improvement_db": -2.2474352317176325,
+              "uncertainty_reduction_mean": 0.012784690672980048,
+              "uncertainty_reduction_ratio": 0.0033003723692726712,
+              "smoothness_preservation": 0.7138179144155415,
+              "mean_original_uncertainty": 3.8737115823673585,
+              "mean_filtered_uncertainty": 3.8609268916943784
+            },
+            "window_size": 50
+          }
+        },
+        "sep_informed": {
+          "performance": {
+            "signal_rmse": 0.5392210697679891,
+            "snr_improvement_db": -8.679805720343523,
+            "uncertainty_reduction_mean": 0.04511287907059458,
+            "uncertainty_reduction_ratio": 0.011645905512411148,
+            "smoothness_preservation": 0.04673088944900827,
+            "mean_original_uncertainty": 3.8737115823673585,
+            "mean_filtered_uncertainty": 3.828598703296764
+          },
+          "sep_data": {
+            "mean_stability": 0.6756778387787264,
+            "mean_coherence": 0.006567112298311761,
+            "mean_entropy": 0.656846396791736,
+            "adaptive_params_mean": 5.284154420288472,
+            "adaptive_params_std": 8.881784197001252e-16
+          }
+        },
+        "adaptive_sep": {
+          "performance": {
+            "signal_rmse": 0.49753062091975175,
+            "snr_improvement_db": -7.9808648475681245,
+            "uncertainty_reduction_mean": 0.03054931124995175,
+            "uncertainty_reduction_ratio": 0.007886315385223937,
+            "smoothness_preservation": 0.4354213288041391,
+            "mean_original_uncertainty": 3.8737115823673585,
+            "mean_filtered_uncertainty": 3.8431622711174067
+          },
+          "sep_data": {
+            "mean_stability": 0.6756778387787264,
+            "mean_coherence": 0.006567112298311761,
+            "mean_entropy": 0.656846396791736,
+            "adaptive_params_mean": 3.297288644885094,
+            "adaptive_params_std": 0.28172631297716416
+          }
+        }
+      }
+    }
+  ],
+  "evaluation": {
+    "H9_sep_outperforms_naive": {
+      "median_naive_uncertainty_reduction": 0.3509306200862662,
+      "median_sep_uncertainty_reduction": 0.5276213812229527,
+      "median_improvement_ratio": 0.6755510725986082,
+      "threshold": 0.15,
+      "n_comparisons": 6,
+      "pass": true
+    },
+    "H10_params_correlate_stability": {
+      "correlation_coefficient": -0.989802006542681,
+      "threshold": 0.3,
+      "n_data_points": 6,
+      "stability_range": [
+        0.3374368208781076,
+        0.6761375118537299
+      ],
+      "params_range": [
+        5.10527763397191,
+        6.650245438458538
+      ],
+      "pass": true
+    },
+    "overall_pass": true
+  }
+}

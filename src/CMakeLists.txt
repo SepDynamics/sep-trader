@@ -91,6 +91,14 @@ add_sep_library(quantum_metrics SHARED
     SOURCES app/quantum_metrics_c_api.cpp
 )
 target_link_libraries(quantum_metrics PRIVATE sep_lib)
+# Ensure proper CUDA linking for shared library
+if(USE_CUDA)
+    target_link_libraries(quantum_metrics PRIVATE CUDA::cudart)
+    set_target_properties(quantum_metrics PROPERTIES
+        CUDA_SEPARABLE_COMPILATION ON
+        CUDA_RESOLVE_DEVICE_SYMBOLS ON
+    )
+endif()
 
 # Create consolidated executables for each main file using add_sep_executable
 # Set RPATH for TBB library path resolution - environment-driven configuration
