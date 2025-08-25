@@ -57,6 +57,13 @@ for beta in [0.01, 0.05, 0.1, 0.2]:
 ```
 # Result: best β=0.01 → RMSE 0.0959, ratio 0.471 (still failing)
 
+```bash
+# 4. Collect baseline fast-validation results
+cd whitepaper/validation && python run_fast_validation.py
+#   - T1 RMSE 0.0786 (FAIL)
+#   - T2 reduction 0.093 (FAIL), H4 excess 0.0402 (PASS)
+```
+
 ### Week of August 25-31
 
 #### Monday-Tuesday: Parameter Optimization
