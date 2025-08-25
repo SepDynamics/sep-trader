@@ -120,8 +120,23 @@ def test_fx_time_invariance(fx_data: Dict[str, np.ndarray], gamma: float) -> Dic
         chords_scaled = mapping_D2_dilation_robust(prices_scaled)
         triads_scaled = compute_triad(chords_scaled, beta=BETA)
         
-        # Compute RMSE
-        joint_rmse = compute_joint_rmse(triads_orig, triads_scaled)
+        # Ensure both triads have same length for comparison
+        min_len = min(len(triads_orig['H']), len(triads_scaled['H']))
+        
+        # Truncate both triads to minimum length
+        triads_orig_trunc = {
+            'H': triads_orig['H'][:min_len],
+            'C': triads_orig['C'][:min_len],
+            'S': triads_orig['S'][:min_len]
+        }
+        triads_scaled_trunc = {
+            'H': triads_scaled['H'][:min_len],
+            'C': triads_scaled['C'][:min_len],
+            'S': triads_scaled['S'][:min_len]
+        }
+        
+        # Compute RMSE on aligned data
+        joint_rmse = compute_joint_rmse(triads_orig_trunc, triads_scaled_trunc)
         
         results[pair_name] = {
             'gamma': gamma,
@@ -283,7 +298,7 @@ def run_t5_test() -> Dict:
             'overall_pass': validation['T5_invariance'] and validation['T5_reduction']
         }
         
-        # Prepare metrics for CSV
+        # Prepare metrics for CSV - standardize all fields
         metrics = []
         for gamma, gamma_results in invariance_results.items():
             for pair, data in gamma_results.items():
@@ -292,12 +307,20 @@ def run_t5_test() -> Dict:
                     'gamma': gamma,
                     'pair': pair,
                     'joint_rmse': data['joint_rmse'],
+                    'target': '',
+                    'predictor': '',
+                    'entropy_reduction': 0.0,
+                    'marginal_entropy': 0.0,
+                    'conditional_entropy': 0.0,
                     'seed': SEEDS[0]
                 })
         
-        # Add reduction metrics
+        # Add reduction metrics with standardized fields
         metrics.append({
             'test_type': 'reduction',
+            'gamma': 0.0,
+            'pair': '',
+            'joint_rmse': 0.0,
             'target': reduction_results['target'],
             'predictor': reduction_results['predictor'],
             'entropy_reduction': entropy_reduction,

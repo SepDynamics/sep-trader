@@ -1,0 +1,50 @@
+{
+  "test": "T3",
+  "parameters": {
+    "signal_length": 50000,
+    "beta": 0.1,
+    "decimation_factors": [
+      2,
+      4
+    ],
+    "seeds": [
+      1337,
+      1729,
+      2718
+    ],
+    "chirp_f0": 0.01,
+    "chirp_f1": 0.1,
+    "noise_level": 0.1,
+    "mapping": "D2"
+  },
+  "results": {
+    "with_antialiasing": {
+      "median_rmse": 0.18768883345920717,
+      "rmse_by_decimation": {
+        "2": 0.17562772508933647,
+        "4": 0.19883039952247858
+      }
+    },
+    "without_antialiasing": {
+      "median_rmse": 0.1458840762083029,
+      "rmse_by_decimation": {
+        "2": 0.13085362195389597,
+        "4": 0.16162130443364242
+      }
+    },
+    "rmse_ratio": 0.7772656126731332
+  },
+  "hypothesis": {
+    "T3": {
+      "pass": false,
+      "metric": 0.18768883345920717,
+      "threshold": 0.05,
+      "description": "Antialiased decimation should preserve triad (RMSE \u2264 0.05)"
+    }
+  },
+  "control": {
+    "failed_as_expected": true,
+    "description": "Decimation without antialiasing should produce high RMSE"
+  },
+  "overall_pass": false
+}
