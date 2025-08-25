@@ -31,11 +31,10 @@ The SEP Professional Trading System features a modern, production-ready web inte
 ├─────────────────┬───────────────────┬───────────────────┤
 │   Components    │   State Management │   Services        │
 │                 │                   │                   │
-│ • HomeDashboard │ • ConfigContext   │ • ApiClient       │
-│ • Identity      │ • SymbolContext   │                   │
-│ • Metrics       │ • WebSocketContext│                   │
-│ • Charts        │ • ManifoldContext │                   │
-│                 │                   │                   │
+│ • HomeDashboard     │ • ConfigContext   │ • ApiClient       │
+│ • ManifoldVisualizer│ • SymbolContext   │                   │
+│ • OandaCandleChart  │ • WebSocketContext│                   │
+│                     │                   │                   │
 └─────────────────┴───────────────────┴───────────────────┘
 ```
 
