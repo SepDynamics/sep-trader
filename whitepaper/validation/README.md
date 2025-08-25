@@ -21,7 +21,7 @@ Five comprehensive test modules validating specific SEP hypotheses:
 - **T1**: [`test_scripts/T1_time_scaling_test.py`](test_scripts/T1_time_scaling_test.py) - Isolated vs Reactive Time Scaling
 - **T2**: [`test_scripts/T2_maxent_sufficiency_test.py`](test_scripts/T2_maxent_sufficiency_test.py) - Pairwise Maximum-Entropy Sufficiency
 - **T3**: [`test_scripts/T3_convolutional_invariance_test.py`](test_scripts/T3_convolutional_invariance_test.py) - Convolutional Invariance on Band-Limited Waves
-- **T4**: [`test_scripts/T4_retrodictive_reconstruction_test.py`](test_scripts/T4_retrodictive_reconstruction_test.py) - Retrodictive Reconstruction With Continuity Constraint
+- **T4**: [`test_scripts/T4_retrodictive_reconstruction_test.py`](test_scripts/T4_retrodictive_reconstruction_test.py) - Retrodictive Reconstruction With Continuity Constraint (now with runtime profiling and timeouts)
 - **T5**: [`test_scripts/T5_smoothing_beats_filtering_test.py`](test_scripts/T5_smoothing_beats_filtering_test.py) - Smoothing Beats Filtering (uncertainty reduction)
 
 #### 3. **Validation Framework** (`run_sep_validation.py`)
@@ -34,6 +34,7 @@ Automated test runner with:
 #### 4. **Support Utilities**
 - **`parameter_optimization.py`** – Grid search helper for tuning test parameters
 - **`progress_monitor.py`** – Context manager enforcing maximum runtime for tests
+- **`common.apply_antialiasing_filter`** – Butterworth pre-filter used in T1/T3 to mitigate aliasing artifacts
 
 ## Hypotheses Being Tested
 

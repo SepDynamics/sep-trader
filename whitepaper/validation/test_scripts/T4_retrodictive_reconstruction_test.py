@@ -5,6 +5,8 @@ Tests H7: Retrodictive reconstruction using triad-informed priors outperforms na
 Tests H8: Continuity constraints improve reconstruction accuracy for smooth underlying processes
 """
 
+import sys
+import time
 import numpy as np
 import json
 import csv
@@ -12,6 +14,12 @@ import os
 from pathlib import Path
 from scipy import interpolate, optimize
 from scipy.ndimage import gaussian_filter1d
+
+# Add parent directory for shared modules
+parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, parent_dir)
+
+from progress_monitor import ProgressMonitor
 from sep_core import (
     triad_series, rmse, bit_mapping_D1, bit_mapping_D2,
     generate_poisson_process, generate_van_der_pol, generate_chirp, RANDOM_SEED
@@ -325,7 +333,8 @@ def run_reconstruction_test(process_type: str, gap_size: int, gap_position: str,
     # Test each reconstruction method
     for method in RECONSTRUCTION_METHODS:
         print(f"  Testing {method} reconstruction")
-        
+        start_time = time.perf_counter()
+
         if method == "linear":
             reconstructed = linear_interpolation(signal_with_gaps, missing_indices)
         elif method == "cubic":
@@ -334,17 +343,21 @@ def run_reconstruction_test(process_type: str, gap_size: int, gap_position: str,
             reconstructed = triad_informed_reconstruction(signal_with_gaps, missing_indices, bit_mapping)
         elif method == "constrained":
             reconstructed = continuity_constrained_reconstruction(signal_with_gaps, missing_indices)
-        
+
+        method_runtime = time.perf_counter() - start_time
+
         # Evaluate reconstruction
         quality_metrics = evaluate_reconstruction_quality(signal, reconstructed, missing_indices)
-        
+
         results['reconstructions'][method] = {
             'reconstructed_signal': reconstructed.tolist(),
-            'quality_metrics': quality_metrics
+            'quality_metrics': quality_metrics,
+            'runtime_sec': method_runtime
         }
-        
+
         print(f"    Gap RMSE: {quality_metrics['gap_rmse']:.6f}")
         print(f"    Boundary roughness: {quality_metrics['boundary_roughness']:.6f}")
+        print(f"    Runtime: {method_runtime:.2f}s")
     
     return results
 
@@ -445,7 +458,8 @@ def save_results(results: list, evaluation: dict):
         summary_reconstructions = {}
         for method, method_data in res['reconstructions'].items():
             summary_reconstructions[method] = {
-                'quality_metrics': method_data['quality_metrics']
+                'quality_metrics': method_data['quality_metrics'],
+                'runtime_sec': method_data.get('runtime_sec')
             }
         summary_res['reconstructions'] = summary_reconstructions
         output_data['results_summary'].append(summary_res)
@@ -456,10 +470,10 @@ def save_results(results: list, evaluation: dict):
     # Save metrics to CSV
     with open('results/T4_reconstruction_metrics.csv', 'w', newline='') as f:
         writer = csv.writer(f)
-        writer.writerow(['process_type', 'gap_size', 'gap_position', 'bit_mapping', 
+        writer.writerow(['process_type', 'gap_size', 'gap_position', 'bit_mapping',
                         'reconstruction_method', 'gap_rmse', 'full_rmse',
-                        'boundary_roughness', 'internal_roughness'])
-        
+                        'boundary_roughness', 'internal_roughness', 'runtime_sec'])
+
         for res in results:
             for method, method_data in res['reconstructions'].items():
                 metrics = method_data['quality_metrics']
@@ -467,7 +481,8 @@ def save_results(results: list, evaluation: dict):
                     res['process_type'], res['gap_size'], res['gap_position'],
                     res['bit_mapping'], method,
                     metrics['gap_rmse'], metrics['full_rmse'],
-                    metrics['boundary_roughness'], metrics['internal_roughness']
+                    metrics['boundary_roughness'], metrics['internal_roughness'],
+                    method_data.get('runtime_sec')
                 ])
 
 def create_plots(results: list, evaluation: dict):
@@ -600,8 +615,22 @@ def main():
     for process_type, bit_mapping in test_configs:
         for gap_size in GAP_SIZES[:2]:  # Limit to first 2 gap sizes for efficiency
             for gap_position in GAP_POSITIONS[:2]:  # Limit positions
-                result = run_reconstruction_test(process_type, gap_size, gap_position, 
-                                               bit_mapping, RANDOM_SEED)
+                start_time = time.perf_counter()
+                try:
+                    with ProgressMonitor(max_runtime_minutes=2):
+                        result = run_reconstruction_test(process_type, gap_size, gap_position,
+                                                       bit_mapping, RANDOM_SEED)
+                    result['runtime_sec'] = time.perf_counter() - start_time
+                except TimeoutError as exc:
+                    print(f"  Configuration timed out: {exc}")
+                    result = {
+                        'process_type': process_type,
+                        'gap_size': gap_size,
+                        'gap_position': gap_position,
+                        'bit_mapping': bit_mapping,
+                        'seed': RANDOM_SEED,
+                        'error': 'timeout'
+                    }
                 results.append(result)
     
     # Evaluate hypotheses

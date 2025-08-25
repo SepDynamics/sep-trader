@@ -28,7 +28,8 @@ from common import (
     generate_poisson_process,
     generate_van_der_pol,
     time_scale_signal,
-    set_random_seed
+    set_random_seed,
+    apply_antialiasing_filter
 )
 from validation_io import (
     save_test_results,
@@ -72,7 +73,10 @@ def run_single_test(process_type: str, mapping_name: str, gamma: float,
         # Pad with last value if too short
         padding = PROCESS_LENGTH - len(signal)
         signal = np.concatenate([signal, np.full(padding, signal[-1])])
-    
+
+    # Apply antialiasing filter to original signal
+    signal = apply_antialiasing_filter(signal)
+
     # Apply mapping
     if mapping_name == "D1":
         chords_orig = mapping_D1_derivative_sign(signal)
@@ -84,9 +88,10 @@ def run_single_test(process_type: str, mapping_name: str, gamma: float,
     # Compute original triads
     triads_orig = compute_triad(chords_orig, beta=beta)
     
-    # Time-scale the signal
+    # Time-scale the signal and filter
     signal_scaled = time_scale_signal(signal, gamma)
-    
+    signal_scaled = apply_antialiasing_filter(signal_scaled)
+
     # Apply same mapping to scaled signal
     if mapping_name == "D1":
         chords_scaled = mapping_D1_derivative_sign(signal_scaled)

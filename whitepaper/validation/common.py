@@ -407,11 +407,11 @@ def time_scale_signal(signal: np.ndarray, gamma: float) -> np.ndarray:
     
     return scaled_signal
 
-def apply_antialiasing_filter(signal: np.ndarray, cutoff: float = 0.4) -> np.ndarray:
+def apply_antialiasing_filter(data: np.ndarray, cutoff: float = 0.4) -> np.ndarray:
     """Apply antialiasing filter before decimation."""
     # Design Butterworth filter
-    b, a = signal.butter(4, cutoff, btype='low')
-    filtered = signal.filtfilt(b, a, signal)
+    b, a = signal.butter(4, cutoff, btype="low")
+    filtered = signal.filtfilt(b, a, data)
     return filtered
 
 def safe_json_convert(obj: Any) -> Any:
