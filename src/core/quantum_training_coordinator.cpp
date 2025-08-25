@@ -3,6 +3,7 @@
 #include <cstdlib>
 #include <ctime>
 #include <algorithm>
+#include <filesystem>
 #include "core/pattern_metric_engine.h"
 
 namespace sep::train {
@@ -236,12 +237,30 @@ bool QuantumTrainingCoordinator::rollbackModel(const char* pair_symbol, const ch
             snprintf(session.current_phase, sizeof(session.current_phase), "rollback_to_%s",
                      version);
 
-            // TODO: implement rollback process:
-            // 1. Stop current training
-            // 2. Load specified model version
-            // 3. Restore training state
-            strcpy(session.status, "ready");
-            strcpy(session.current_phase, "rollback_complete");
+            namespace fs = std::filesystem;
+            fs::path model_dir = fs::path(config_.output_directory) / "models";
+            fs::path version_path = model_dir /
+                (std::string(pair_symbol) + "_" + version + ".bin");
+            fs::path active_path = model_dir /
+                (std::string(pair_symbol) + "_current.bin");
+
+            if (!fs::exists(version_path)) {
+                strcpy(session.status, "error");
+                strcpy(session.current_phase, "rollback_missing");
+                return false;
+            }
+
+            try {
+                fs::create_directories(model_dir);
+                fs::copy_file(version_path, active_path,
+                              fs::copy_options::overwrite_existing);
+                strcpy(session.status, "ready");
+                strcpy(session.current_phase, "rollback_complete");
+            } catch (...) {
+                strcpy(session.status, "error");
+                strcpy(session.current_phase, "rollback_failed");
+                return false;
+            }
 
             return true;
         }

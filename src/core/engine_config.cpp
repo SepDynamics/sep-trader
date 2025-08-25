@@ -2,6 +2,7 @@
 #include <algorithm>
 #include <iostream>
 #include <sstream>
+#include "util/nlohmann_json_safe.h"
 
 namespace sep::engine::config {
 
@@ -88,69 +89,58 @@ void EngineConfig::reset_category_to_defaults(ConfigCategory category) {
 }
 
 bool EngineConfig::load_from_json(const std::string& json_config) {
-    // Enhanced JSON configuration loading with parameter utilization
     if (json_config.empty()) {
         return false;
     }
 
     try {
-        // Parse JSON config string and extract configuration values
-        // For now, implement basic validation and configuration updates
-
-        // Check for valid JSON structure patterns
-        if (json_config.find("{") != std::string::npos &&
-            json_config.find("}") != std::string::npos) {
-            // Extract basic configuration parameters from JSON
-            if (json_config.find("\"cuda_enabled\"") != std::string::npos) {
-                // Update CUDA settings based on JSON content
+        auto j = nlohmann::json::parse(json_config);
+        for (auto& [key, val] : j.items()) {
+            auto param_it = param_definitions_.find(key);
+            if (param_it == param_definitions_.end()) {
+                continue; // unknown parameter
             }
 
-            if (json_config.find("\"memory_tier\"") != std::string::npos) {
-                // Update memory tier configurations from JSON
+            const ConfigValue& def = param_it->second.default_value;
+            ConfigValue new_val;
+
+            switch (def.index()) {
+                case 0:
+                    if (val.is_boolean()) new_val = val.get<bool>();
+                    else continue;
+                    break;
+                case 1:
+                    if (val.is_number_integer()) new_val = val.get<int>();
+                    else continue;
+                    break;
+                case 2:
+                    if (val.is_number()) new_val = val.get<double>();
+                    else continue;
+                    break;
+                case 3:
+                    if (val.is_string()) new_val = val.get<std::string>();
+                    else continue;
+                    break;
+                default:
+                    continue;
             }
 
-            if (json_config.find("\"quantum_processing\"") != std::string::npos) {
-                // Update quantum processing parameters from JSON
+            if (validate_value(key, new_val)) {
+                current_values_[key] = new_val;
             }
-
-            return true;  // Configuration successfully applied
         }
+        return true;
     } catch (...) {
         return false;
     }
-
-    return false;
 }
 
 std::string EngineConfig::save_to_json() const {
-    // TODO: Implement JSON serialization when needed
-    std::ostringstream json;
-    json << "{\n";
-
-    bool first = true;
+    nlohmann::json j;
     for (const auto& [name, value] : current_values_) {
-        if (!first)
-            json << ",\n";
-        first = false;
-
-        json << "  \"" << name << "\": ";
-
-        std::visit(
-            [&json](const auto& v) {
-                using T = std::decay_t<decltype(v)>;
-                if constexpr (std::is_same_v<T, std::string>) {
-                    json << "\"" << v << "\"";
-                } else if constexpr (std::is_same_v<T, bool>) {
-                    json << (v ? "true" : "false");
-                } else {
-                    json << v;
-                }
-            },
-            value);
+        std::visit([&](const auto& v) { j[name] = v; }, value);
     }
-
-    json << "\n}";
-    return json.str();
+    return j.dump(2);
 }
 
 const ConfigParam* EngineConfig::get_param_definition(const std::string& name) const {
