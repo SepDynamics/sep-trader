@@ -70,11 +70,15 @@ if [ "$NATIVE_BUILD" = true ] || [ "$SKIP_DOCKER" = true ] || ! "$DOCKER_BIN" in
 
     # Configure CUDA for native builds
     CUDA_FLAGS=""
+    # Ensure nvcc is discoverable even if CUDA is not on the PATH
+    if ! command -v nvcc >/dev/null 2>&1 && [ -x /usr/local/cuda/bin/nvcc ]; then
+        export PATH=/usr/local/cuda/bin:$PATH
+    fi
     if command -v nvcc >/dev/null 2>&1; then
         echo "CUDA detected, enabling CUDA support..."
-        
+
         # Auto-detect CUDA_HOME if not set
-        if [ -z "$CUDA_HOME" ]; then
+        if [ -z "${CUDA_HOME:-}" ]; then
             NVCC_PATH=$(which nvcc)
             CUDA_HOME=$(dirname $(dirname "$NVCC_PATH"))
             export CUDA_HOME
@@ -82,7 +86,7 @@ if [ "$NATIVE_BUILD" = true ] || [ "$SKIP_DOCKER" = true ] || ! "$DOCKER_BIN" in
         else
             echo "Using existing CUDA_HOME: $CUDA_HOME"
         fi
-        
+
         CUDA_FLAGS="-DSEP_USE_CUDA=ON"
     else
         echo "CUDA not detected, building without CUDA support..."
