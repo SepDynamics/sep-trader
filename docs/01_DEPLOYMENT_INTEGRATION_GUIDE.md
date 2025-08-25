@@ -76,8 +76,8 @@ git clone [repository-url]
 cd sep-trader
 
 # 2. Core System Build
-./install.sh --minimal --no-docker
-./build.sh --no-docker
+./install.sh --minimal
+./build.sh
 
 # 3. Environment Configuration
 cp config/.sep-config.env.template .sep-config.env
@@ -156,7 +156,7 @@ npm run dev  # Runs on port 3000 with hot reload
 docker-compose restart trading-backend
 
 # Core engine development (rebuild required)
-./build.sh --no-docker
+./build.sh
 docker-compose restart trading-backend
 ```
 

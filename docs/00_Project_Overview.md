@@ -39,9 +39,9 @@ This separation ensures both high performance for model training and cost-effect
     ```
 2.  **Install Dependencies & Build:**
     ```bash
-    # Use --no-docker for a local build on a machine with CUDA
-    ./install.sh --minimal --no-docker
-    ./build.sh --no-docker
+    # Build using Docker (required for CUDA)
+    ./install.sh --minimal
+    ./build.sh
     ```
 3.  **Set Library Path:**
     ```bash

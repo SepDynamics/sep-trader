@@ -1,5 +1,7 @@
 Below is a **structured execution plan** for building a suite of visual aids to accompany the SEP Engine whitepaper.  The plan is grounded in an investigation of the **`SepDynamics/sep‑trader` repo**—particularly the `frontend/`, `docs/`, and `src/` folders—and is designed to explain SEP’s concepts to a **high‑school‑level audience**.  Each task references the relevant code and documentation lines for context.
 
+- [x] Quote `-Dnoexcept(x)=` in CMake for stable NVCC builds; default all build scripts to Docker for CUDA.
+
 ---
 
 ## 1. Groundwork: Understand the Existing Code and Metrics
