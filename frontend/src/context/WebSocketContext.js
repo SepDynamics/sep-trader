@@ -18,7 +18,6 @@ export const WebSocketProvider = ({ children }) => {
   const [marketData, setMarketData] = useState({});
   const [systemStatus, setSystemStatus] = useState({});
   const [tradingSignals, setTradingSignals] = useState([]);
-  const [tradeUpdates, setTradeUpdates] = useState([]);
   const [performanceData, setPerformanceData] = useState({});
   const [systemMetrics, setSystemMetrics] = useState({});
   
@@ -83,15 +82,6 @@ export const WebSocketProvider = ({ children }) => {
         ...data,
         lastUpdate: new Date().toISOString()
       }));
-    },
-    
-    trades: (data) => {
-      if (data) {
-        setTradeUpdates(prev => {
-          const updates = [data, ...prev];
-          return updates.slice(0, 100);
-        });
-      }
     },
     
     // New handlers for Valkey/Redis data streams
@@ -488,7 +478,6 @@ export const WebSocketProvider = ({ children }) => {
     tradingSignals,
     performanceData,
     systemMetrics,
-    tradeUpdates,
     
     // Valkey/Redis quantum data
     quantumSignals,
@@ -543,11 +532,6 @@ export const useSystemStatus = () => {
 export const usePerformanceData = () => {
   const { performanceData } = useWebSocket();
   return performanceData;
-};
-
-export const useTradeUpdates = () => {
-  const { tradeUpdates } = useWebSocket();
-  return tradeUpdates;
 };
 
 export { WebSocketContext };
