@@ -79,11 +79,12 @@ def run_test(test_module, results_dir):
     
     try:
         # Import and run the test
-        module = __import__(test_module.replace('.py', ''))
+        module_name = test_module.replace('.py', '').replace('/', '.')
+        module = __import__(module_name, fromlist=[''])
         
         # Redirect results to our timestamped directory
         test_results_path = results_dir / test_name
-        test_results_path.mkdir(exist_ok=True)
+        test_results_path.mkdir(parents=True, exist_ok=True)
         
         # Change working directory to put results in the right place
         original_cwd = os.getcwd()
