@@ -3,10 +3,10 @@
 # Environment variables injection script for React frontend
 # This script runs at container startup to inject runtime environment variables
 
-# Set default values if not provided
-REACT_APP_API_URL=${REACT_APP_API_URL:-"http://129.212.145.195:5000"}
-REACT_APP_WS_URL=${REACT_APP_WS_URL:-"ws://129.212.145.195:8765"}
-REACT_APP_ENVIRONMENT=${REACT_APP_ENVIRONMENT:-"production"}
+# Require explicit environment variables
+: "${REACT_APP_API_URL:?REACT_APP_API_URL not set}"
+: "${REACT_APP_WS_URL:?REACT_APP_WS_URL not set}"
+: "${REACT_APP_ENVIRONMENT:?REACT_APP_ENVIRONMENT not set}"
 
 # Create env-config.js file with runtime environment variables
 cat <<EOF > /usr/share/nginx/html/env-config.js

@@ -55,7 +55,7 @@ export LD_LIBRARY_PATH=./build/src/core:./build/src/config:./build/src/c_api
 ./scripts/deploy_to_droplet.sh
 
 # SSH to droplet and configure
-ssh root@129.212.145.195
+ssh root@$DROPLET_IP
 cd /opt/sep-trader/sep-trader
 nano ../config/OANDA.env  # Add your OANDA credentials
 
@@ -63,7 +63,7 @@ nano ../config/OANDA.env  # Add your OANDA credentials
 docker-compose up -d
 
 # Verify deployment
-curl http://129.212.145.195/health
+curl http://$DROPLET_IP/health
 ```
 
 ## Build System
@@ -125,7 +125,7 @@ ls output/
 ### **3. Remote Trading Execution**
 ```bash
 # SSH to droplet
-ssh root@129.212.145.195
+ssh root@$DROPLET_IP
 
 # Check trading service status
 curl http://localhost:8080/api/status
@@ -195,7 +195,7 @@ docker-compose logs -f sep-trader
 3. Verify library path: `export LD_LIBRARY_PATH=./build/src/core:./build/src/config:./build/src/c_api`
 
 ### **Droplet Connectivity**
-1. Test SSH: `ssh root@129.212.145.195`
+1. Test SSH: `ssh root@$DROPLET_IP`
 2. Check services: `docker-compose ps`
 3. View logs: `docker-compose logs -f`
 

@@ -13,7 +13,7 @@ BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
 # Configuration
-DROPLET_IP="129.212.145.195"
+: "${DROPLET_IP:?DROPLET_IP not set}"
 DROPLET_USER="root"
 PROJECT_NAME="sep-trading"
 LOCAL_COMPOSE_FILE="docker-compose.production.yml"
