@@ -143,5 +143,11 @@ class ProgressMonitor:
 
 ---
 
-**Next Review**: August 26, 2025 (24 hours)  
-**Escalation**: If T4 still running or no progress on failed tests by August 27
+**Next Review**: August 26, 2025 (24 hours)
+**Escalation**: If T4 still running or no progress on failed tests by August 27, escalate to lead researcher for cross-disciplinary review.
+
+## 📈 Continued Research Plan
+- [ ] Benchmark triad metrics against known physical systems (harmonic oscillator, Lorenz attractor)
+- [ ] Compare bit mapping strategies (D1, D2, D3) across diverse datasets
+- [ ] Integrate bootstrap and permutation tests into the validation harness
+- [ ] Prototype a parallelized variant of T4 to mitigate runtime bottlenecks
