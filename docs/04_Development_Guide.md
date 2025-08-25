@@ -14,7 +14,7 @@ The project uses a unified build system for both Linux and Windows, orchestrated
 
 ### Building the Project
 
-*   **Linux:** `./build.sh --no-docker` (for local CUDA build)
+*   **Linux:** `./build.sh` (Docker-based CUDA build)
 *   **Windows:** `.\build.bat` (uses Docker)
 
 ## 2. 💻 CUDA Development
