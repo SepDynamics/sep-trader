@@ -1,439 +1,333 @@
 #!/usr/bin/env python3
 """
 Test T2: Pairwise Maximum-Entropy Sufficiency
-Tests H3: Pairwise joint triads achieve maximum entropy distribution
-Tests H4: Adding more variables does not significantly improve entropy beyond pairwise
+Tests H3: Pairwise conditioning captures significant information (≥30% at ρ≥0.6)
+Tests H4: Higher-order terms contribute negligible information (≤5%)
+
+Uses D1 mapping for interaction sensitivity
+Tests across ρ values [0.0, 0.2, 0.4, 0.6, 0.8] to show monotonic information capture
 """
 
-import numpy as np
-import json
-import csv
+import sys
 import os
-from pathlib import Path
-from itertools import combinations
-from scipy.stats import entropy
-from sklearn.covariance import LedoitWolf
-from sep_core import (
-    triad_series, rmse, bit_mapping_D1, bit_mapping_D2,
-    generate_poisson_process, generate_van_der_pol, RANDOM_SEED
-)
-import matplotlib.pyplot as plt
+# Add the parent directory (validation) to Python path
+parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, parent_dir)
 
-# Memory and performance parameters
-SUBSAMPLE = 10     # keep 1 in 10 samples to reduce T
-MAX_COND_ORDER = 2 # only test 1 and 2 conditioners
+import numpy as np
+import matplotlib.pyplot as plt
+from typing import Dict, List, Tuple
+
+# Import from shared utilities
+from common import (
+    compute_triad,
+    mapping_D1_derivative_sign,
+    mapping_D2_dilation_robust,
+    gaussian_entropy_bits,
+    generate_latent_coupled_processes,
+    set_random_seed
+)
+from validation_io import (
+    save_test_results,
+    log_test_header,
+    log_hypothesis,
+    log_test_summary,
+    TestLogger,
+    format_json_safe
+)
+from plots import plot_t2_results, setup_plot_style
+from thresholds import (
+    get_thresholds,
+    validate_t2_results,
+    get_hypothesis_description
+)
 
 # Test parameters
-PROCESS_LENGTH = 50000  # Increased for stable covariance estimates
-BETA = 0.1  # EMA parameter
-N_PROCESSES = 4  # Number of processes to test
-ENTROPY_THRESHOLD = 0.3  # Minimum normalized entropy for H3 (30% reduction)
-SUFFICIENCY_THRESHOLD = 0.05  # Maximum entropy gain threshold for H4 (5% relative gain)
+PROCESS_LENGTH = 10000  # Length of each process
+N_PROCESSES = 4  # Number of processes
+BETA = 0.1  # EMA parameter for triad computation
+RHO_VALUES = [0.0, 0.2, 0.4, 0.6, 0.8]  # Correlation values to test
+SEEDS = [1337, 1729, 2718]  # Random seeds for robustness
+SUBSAMPLE_RATE = 10  # Subsample to reduce memory usage
 
-def create_results_dir():
-    """Create results directory if it doesn't exist."""
-    Path("results").mkdir(exist_ok=True)
-
-def normalize_entropy(H: float, n_bins: int) -> float:
-    """Normalize entropy by theoretical maximum (uniform distribution)."""
-    max_entropy = np.log2(n_bins) if n_bins > 1 else 0
-    return H / max_entropy if max_entropy > 0 else 0
-
-def gaussian_entropy(X: np.ndarray) -> float:
-    """Differential entropy of multivariate Gaussian with shrinkage covariance."""
-    X = np.asarray(X, dtype=np.float32)
-    # Standardize input (zero mean, unit variance per channel)
-    Xc = (X - X.mean(axis=0)) / (X.std(axis=0) + 1e-9)
-    
-    if Xc.shape[0] < 2:
-        return 0.0
-    
-    # Use Ledoit-Wolf shrinkage for numerical stability
-    cov = LedoitWolf().fit(Xc).covariance_
-    d = Xc.shape[1]
-    
-    # Ensure positive definiteness
-    sign, logdet = np.linalg.slogdet(cov)
-    if sign <= 0:
-        cov = cov + 1e-6 * np.eye(d, dtype=cov.dtype)
-        sign, logdet = np.linalg.slogdet(cov)
-    
-    # Differential entropy in nats: 0.5 * (d * ln(2πe) + ln|Σ|)
-    H_nats = 0.5 * (d * np.log(2 * np.pi * np.e) + logdet)
-    # Convert to bits
-    return H_nats / np.log(2)
-
-def compute_triad_entropy_gaussian(triads: np.ndarray) -> dict:
-    """Entropy stats via Gaussian approximation."""
-    H = gaussian_entropy(triads)  # joint HCS
-    # Individual components
-    H_ent = gaussian_entropy(triads[:, [0]])
-    C_ent = gaussian_entropy(triads[:, [1]])
-    S_ent = gaussian_entropy(triads[:, [2]])
-    return {
-        'individual': {'H': H_ent, 'C': C_ent, 'S': S_ent},
-        'triple': {'HCS': H},
-    }
-
-def generate_multi_process_data(n_processes: int, process_length: int, seed: int = RANDOM_SEED) -> list:
+def compute_conditional_entropies(triads: List[Dict], subsample: int = 1) -> Dict:
     """
-    Coupled processes with direct pairwise coupling to ensure dependence in triad space.
-    """
-    rng = np.random.default_rng(seed)
+    Compute conditional entropies for triads.
     
-    # Generate base processes
-    processes = []
+    Returns:
+        Dictionary with entropy metrics
+    """
+    # Stack triads into matrices
+    n_processes = len(triads)
+    n_samples = len(triads[0]['H']) // subsample
+    
+    # Create feature matrices (subsampled)
+    features = []
     for i in range(n_processes):
-        if i % 2 == 0:
-            # Isolated Poisson process
-            signal = generate_poisson_process(process_length, rate=1.0 + 0.2*i, seed=seed + i)
-        else:
-            # Reactive van der Pol oscillator
-            signal = generate_van_der_pol(process_length, mu=1.0 + 0.1*i, seed=seed + i)
-        processes.append(signal)
-    
-    # Add strong pairwise coupling directly to the signals
-    # Target correlation around 0.6-0.7
-    coupling_strength = 0.9  # Very high coupling strength
-    
-    # Couple process 1 to process 0 using a more direct approach
-    # Couple all time steps to maximize correlation
-    for t in range(process_length):
-        # Add a component of process 0 to process 1
-        processes[1][t] = coupling_strength * processes[0][t] + (1 - coupling_strength) * processes[1][t]
-    
-    # Couple process 3 to process 2 using the same approach
-    for t in range(process_length):
-        # Add a component of process 2 to process 3
-        processes[3][t] = coupling_strength * processes[2][t] + (1 - coupling_strength) * processes[3][t]
-    
-    # Add independent noise to each process
-    noise_level = 0.05  # Very low noise level
-    for i in range(n_processes):
-        processes[i] += rng.normal(0, noise_level, size=process_length).astype(np.float32)
-    
-    # Debug: Print correlations between processes
-    print("Process correlations:")
-    for i in range(n_processes):
-        for j in range(i+1, n_processes):
-            corr = np.corrcoef(processes[i], processes[j])[0, 1]
-            print(f"  Process {i} vs {j}: {corr:.4f}")
-    
-    return processes
-
-def compute_multiprocess_triads(processes: list, bit_mapping: str) -> list:
-    """Compute triads for multiple processes."""
-    triads_list = []
-    
-    for signal in processes:
-        if bit_mapping == "D1":
-            bits = bit_mapping_D1(signal)
-        elif bit_mapping == "D2":
-            bits = bit_mapping_D2(signal)
-        else:
-            raise ValueError(f"Unknown bit mapping: {bit_mapping}")
-        
-        triads = triad_series(bits, beta=BETA)
-        triads = triads[::SUBSAMPLE].astype(np.float32, copy=False)  # subsample + cast
-        triads_list.append(triads)
-    
-    return triads_list
-
-def conditional_entropy_gaussian(X: np.ndarray, Y: np.ndarray) -> float:
-    XY = np.hstack([X, Y]).astype(np.float32)
-    return gaussian_entropy(XY) - gaussian_entropy(Y)
-
-def conditional_gain_gaussian(triads_list: list, target_idx: int, conditioning_indices: list) -> float:
-    """
-    ΔH = H(T_i | T_cond) - H(T_i | T_pair), computed relative to the best single conditioner.
-    If conditioning_indices is length 1, return H(T_i | T_j).
-    If length 2, return H(T_i | T_j, T_k) - min_j H(T_i | T_j).
-    """
-    Ti = triads_list[target_idx]
-    conds = [triads_list[idx] for idx in conditioning_indices]
-    if len(conditioning_indices) == 1:
-        Hj = conditional_entropy_gaussian(Ti, conds[0])
-        return float(Hj)
-    elif len(conditioning_indices) == 2:
-        Hj_best = np.inf
-        for j in conditioning_indices:
-            Hj = conditional_entropy_gaussian(Ti, triads_list[j])
-            Hj_best = min(Hj_best, Hj)
-        Hjk = conditional_entropy_gaussian(Ti, np.hstack(conds))
-        return float(Hjk - Hj_best)
-    else:
-        raise ValueError("Only orders 1 and 2 are supported")
-
-def run_maxent_sufficiency_test(bit_mapping: str, seed: int = RANDOM_SEED) -> dict:
-    """Run maximum entropy sufficiency test."""
-    print(f"Running T2 test with {bit_mapping} mapping")
-    
-    # Generate multi-process data
-    processes = generate_multi_process_data(N_PROCESSES, PROCESS_LENGTH, seed)
-    triads_list = compute_multiprocess_triads(processes, bit_mapping)
+        triad_matrix = np.column_stack([
+            triads[i]['H'][::subsample][:n_samples],
+            triads[i]['C'][::subsample][:n_samples],
+            triads[i]['S'][::subsample][:n_samples]
+        ])
+        features.append(triad_matrix)
     
     results = {
-        'bit_mapping': bit_mapping,
-        'seed': seed,
-        'n_processes': N_PROCESSES,
-        'individual_entropies': [],
-        'pairwise_analysis': {},
-        'multivariate_analysis': {}
+        'marginal': [],
+        'pairwise_conditional': [],
+        'order2_conditional': [],
+        'best_pair': [],
+        'relative_reduction': [],
+        'order2_excess': []
     }
     
-    # Analyze individual process entropies
-    print("  Computing individual process entropies...")
-    for i, triads in enumerate(triads_list):
-        entropy_data = compute_triad_entropy_gaussian(triads)
-        results['individual_entropies'].append({
-            'process_idx': i,
-            'entropy_data': entropy_data
-        })
+    # For each target process
+    for i in range(n_processes):
+        # Marginal entropy H(Ti)
+        h_marginal = gaussian_entropy_bits(features[i])
+        results['marginal'].append(h_marginal)
         
-        print(f"    Process {i}: Joint entropy = {entropy_data['triple']['HCS']:.4f}")
-    
-    # Debug: Print some sample triad values to see if they're different
-    print("  Sample triad values:")
-    for i, triads in enumerate(triads_list):
-        if len(triads) > 10:
-            print(f"    Process {i}: First 5 H values: {triads[:5, 0]}")
-    
-    # Analyze multivariate sufficiency
-    print("  Testing multivariate sufficiency...")
-    multivariate_gains = []
-    
-    for target_idx in range(N_PROCESSES):
-        others = [i for i in range(N_PROCESSES) if i != target_idx]
-        # order-1
-        for j in others:
-            gain1 = conditional_gain_gaussian(triads_list, target_idx, [j])
-            print(f"    H(T_{target_idx}|T_{j}) = {gain1:.4f}")
-            multivariate_gains.append({'target': target_idx, 'conditioning': (j,), 'n_conditioning': 1, 'entropy_gain': gain1})
-        # order-2
-        for j, k in combinations(others, 2):
-            gain2 = conditional_gain_gaussian(triads_list, target_idx, [j, k])
-            print(f"    H(T_{target_idx}|T_{j},T_{k}) - min_j H(T_{target_idx}|T_j) = {gain2:.4f}")
-            multivariate_gains.append({'target': target_idx, 'conditioning': (j, k), 'n_conditioning': 2, 'entropy_gain': gain2})
-    
-    results['multivariate_analysis'] = multivariate_gains
+        # Pairwise conditional entropies H(Ti|Tj)
+        pairwise = []
+        for j in range(n_processes):
+            if i != j:
+                # Joint features
+                joint = np.hstack([features[i], features[j]])
+                h_joint = gaussian_entropy_bits(joint)
+                h_j = gaussian_entropy_bits(features[j])
+                
+                # Conditional entropy using chain rule: H(Ti|Tj) = H(Ti,Tj) - H(Tj)
+                h_conditional = h_joint - h_j
+                h_conditional = max(0, h_conditional)  # Ensure non-negative
+                pairwise.append(h_conditional)
+        
+        # Best pairwise (minimum conditional entropy)
+        if pairwise:
+            best_pairwise = min(pairwise)
+            results['pairwise_conditional'].append(pairwise)
+            results['best_pair'].append(best_pairwise)
+            
+            # Relative reduction: [H(Ti) - H(Ti|Tj*)] / H(Ti)
+            reduction = (h_marginal - best_pairwise) / (h_marginal + 1e-10)
+            results['relative_reduction'].append(max(0, reduction))
+        else:
+            results['best_pair'].append(h_marginal)
+            results['relative_reduction'].append(0.0)
+        
+        # Order-2 conditional entropies H(Ti|Tj,Tk)
+        order2 = []
+        for j in range(n_processes):
+            if i == j:
+                continue
+            for k in range(j+1, n_processes):
+                if i == k:
+                    continue
+                
+                # Three-way joint
+                joint3 = np.hstack([features[i], features[j], features[k]])
+                h_joint3 = gaussian_entropy_bits(joint3)
+                
+                # Joint of conditions
+                joint_jk = np.hstack([features[j], features[k]])
+                h_jk = gaussian_entropy_bits(joint_jk)
+                
+                # Conditional entropy: H(Ti|Tj,Tk) = H(Ti,Tj,Tk) - H(Tj,Tk)
+                h_conditional2 = h_joint3 - h_jk
+                h_conditional2 = max(0, h_conditional2)
+                order2.append(h_conditional2)
+        
+        if order2:
+            best_order2 = min(order2)
+            results['order2_conditional'].append(order2)
+            
+            # Order-2 excess: [H(Ti|Tj*) - H(Ti|Tj*,Tk*)] / H(Ti)
+            # This measures additional information from second predictor
+            if pairwise:
+                excess = (best_pairwise - best_order2) / (h_marginal + 1e-10)
+                results['order2_excess'].append(max(0, excess))
+            else:
+                results['order2_excess'].append(0.0)
+        else:
+            results['order2_excess'].append(0.0)
     
     return results
 
-def evaluate_hypotheses(results: list) -> dict:
-    """Evaluate H3 and H4 hypotheses."""
-    pair_cond = []  # H(T_i | T_j)
-    order2_excess = []  # H(T_i | T_j, T_k) - min_j H(T_i | T_j)
-    base_H = []
-
-    for res in results:
-        for ind in res['individual_entropies']:
-            base_H.append(ind['entropy_data']['triple']['HCS'])
-        for g in res['multivariate_analysis']:
-            if g['n_conditioning'] == 1:
-                pair_cond.append(g['entropy_gain'])
-            elif g['n_conditioning'] == 2:
-                order2_excess.append(max(0.0, g['entropy_gain']))  # only extra over best single
-
-    med_base = float(np.median(base_H)) if base_H else 0.0
-    med_pair_cond = float(np.median(pair_cond)) if pair_cond else 0.0
-    med_excess = float(np.median(order2_excess)) if order2_excess else 0.0
-
-    # normalize pair conditional relative to base
-    pair_reduction = (med_base - med_pair_cond) / max(1e-9, med_base)
-    h3_pass = pair_reduction >= 0.3  # e.g., ≥30% reduction by single conditioner
-
-    # normalize order-2 excess relative to base entropy
-    norm_excess = med_excess / max(1e-9, med_base)
-    h4_pass = norm_excess <= 0.05  # ≤5% relative gain
-
+def run_single_rho_test(rho: float, seed: int) -> Dict:
+    """Run test for a single correlation value."""
+    set_random_seed(seed)
+    
+    print(f"    Testing ρ={rho:.1f}, seed={seed}")
+    
+    # Generate coupled processes
+    processes = generate_latent_coupled_processes(
+        n_processes=N_PROCESSES,
+        rho=rho,
+        length=PROCESS_LENGTH,
+        seed=seed
+    )
+    
+    # Apply D1 mapping (interaction-sensitive)
+    triads = []
+    for process in processes:
+        chords = mapping_D1_derivative_sign(process)
+        triad = compute_triad(chords, beta=BETA)
+        triads.append(triad)
+    
+    # Compute conditional entropies
+    entropy_results = compute_conditional_entropies(triads, subsample=SUBSAMPLE_RATE)
+    
+    # Calculate medians
+    median_reduction = np.median(entropy_results['relative_reduction'])
+    median_excess = np.median(entropy_results['order2_excess'])
+    
     return {
-        'H3_maxent_pairwise': {
-            'median_base_entropy': med_base,
-            'median_pair_cond_entropy': med_pair_cond,
-            'relative_reduction': pair_reduction,
-            'reduction_threshold': 0.30,
-            'pass': bool(h3_pass),
-        },
-        'H4_pairwise_sufficiency': {
-            'median_order2_excess': med_excess,
-            'normalized_excess': norm_excess,
-            'threshold': 0.05,
-            'pass': bool(h4_pass),
-        },
-        'overall_pass': bool(h3_pass and h4_pass),
+        'rho': rho,
+        'seed': seed,
+        'median_reduction': median_reduction,
+        'median_excess': median_excess,
+        'all_reductions': entropy_results['relative_reduction'],
+        'all_excess': entropy_results['order2_excess'],
+        'marginal_entropies': entropy_results['marginal']
     }
 
-def convert_to_native_types(obj):
-    """Convert NumPy types to native Python types for JSON serialization."""
-    if isinstance(obj, np.ndarray):
-        return obj.tolist()
-    elif isinstance(obj, np.integer):
-        return int(obj)
-    elif isinstance(obj, np.floating):
-        return float(obj)
-    elif isinstance(obj, np.bool_):
-        return bool(obj)
-    elif isinstance(obj, dict):
-        return {key: convert_to_native_types(value) for key, value in obj.items()}
-    elif isinstance(obj, list):
-        return [convert_to_native_types(item) for item in obj]
-    else:
-        return obj
-
-def save_results(results: list, evaluation: dict):
-    """Save results to CSV and JSON files."""
-    create_results_dir()
+def run_t2_test() -> Dict:
+    """Run the complete T2 test suite."""
     
-    # Convert NumPy types to native Python types for JSON serialization
-    results_clean = convert_to_native_types(results)
-    evaluation_clean = convert_to_native_types(evaluation)
-    
-    # Save detailed results to JSON
-    output_data = {
-        'test': 'T2_maxent_sufficiency',
-        'parameters': {
-            'process_length': int(PROCESS_LENGTH),
-            'beta': float(BETA),
-            'n_processes': int(N_PROCESSES),
-            'entropy_threshold': float(ENTROPY_THRESHOLD),
-            'sufficiency_threshold': float(SUFFICIENCY_THRESHOLD),
-            'subsample': int(SUBSAMPLE)
-        },
-        'results': results_clean,
-        'evaluation': evaluation_clean
-    }
-    
-    with open('results/T2_summary.json', 'w') as f:
-        json.dump(output_data, f, indent=2)
-    
-    # Save entropy metrics to CSV
-    with open('results/T2_entropy_metrics.csv', 'w', newline='') as f:
-        writer = csv.writer(f)
-        writer.writerow(['bit_mapping', 'seed', 'process_idx', 'H_entropy', 'C_entropy', 'S_entropy', 'HCS_entropy'])
+    with TestLogger("T2", "Pairwise Maximum-Entropy Sufficiency"):
+        all_results = []
         
-        for res in results:
-            for ind_data in res['individual_entropies']:
-                entropy_data = ind_data['entropy_data']
-                writer.writerow([
-                    res['bit_mapping'],
-                    res['seed'],
-                    ind_data['process_idx'],
-                    entropy_data['individual']['H'],
-                    entropy_data['individual']['C'],
-                    entropy_data['individual']['S'],
-                    entropy_data['triple']['HCS']
-                ])
-
-def create_plots(results: list, evaluation: dict):
-    """Create visualization plots."""
-    create_results_dir()
-    
-    fig, axes = plt.subplots(2, 2, figsize=(14, 10))
-    fig.suptitle('T2: Pairwise Maximum-Entropy Sufficiency Results')
-    
-    # Collect entropy data
-    individual_entropies = []
-    pair_cond_entropies = []
-    order2_excess_gains = []
-    
-    for res in results:
-        for ind_data in res['individual_entropies']:
-            individual_entropies.append(ind_data['entropy_data']['triple']['HCS'])
+        # Test each rho value
+        for rho in RHO_VALUES:
+            print(f"  Testing correlation ρ={rho:.1f}")
+            rho_results = []
+            
+            for seed in SEEDS:
+                result = run_single_rho_test(rho, seed)
+                rho_results.append(result)
+                all_results.append(result)
+            
+            # Aggregate for this rho
+            median_reduction = np.median([r['median_reduction'] for r in rho_results])
+            median_excess = np.median([r['median_excess'] for r in rho_results])
+            
+            print(f"    Median reduction: {median_reduction:.3f}")
+            print(f"    Median excess: {median_excess:.4f}")
         
-        for gain_data in res['multivariate_analysis']:
-            if gain_data['n_conditioning'] == 1:
-                pair_cond_entropies.append(gain_data['entropy_gain'])
-            elif gain_data['n_conditioning'] == 2:
-                order2_excess_gains.append(max(0.0, gain_data['entropy_gain']))
-    
-    # Plot base entropy distribution
-    ax = axes[0, 0]
-    ax.hist(individual_entropies, bins=20, alpha=0.7, label='Base H(T_i)', density=True)
-    ax.set_xlabel('Entropy H(T_i)')
-    ax.set_ylabel('Density')
-    ax.set_title('Base Entropy Distribution')
-    ax.legend()
-    ax.grid(True, alpha=0.3)
-    
-    # Plot conditional entropy distribution
-    ax = axes[0, 1]
-    ax.hist(pair_cond_entropies, bins=20, alpha=0.7, label='H(T_i|T_j)', density=True)
-    ax.set_xlabel('Conditional Entropy H(T_i|T_j)')
-    ax.set_ylabel('Density')
-    ax.set_title('Pairwise Conditional Entropy')
-    ax.legend()
-    ax.grid(True, alpha=0.3)
-    
-    # Plot entropy reduction
-    ax = axes[1, 0]
-    if individual_entropies and pair_cond_entropies:
-        base_med = np.median(individual_entropies)
-        cond_med = np.median(pair_cond_entropies)
-        reduction = (base_med - cond_med) / max(1e-9, base_med)
-        ax.bar(['Reduction'], [reduction], alpha=0.7)
-        ax.axhline(y=0.3, color='r', linestyle='--', label='Threshold (0.3)')
-        ax.set_ylabel('Relative Entropy Reduction')
-        ax.set_title('Pairwise Sufficiency (H3)')
-        ax.legend()
-    ax.grid(True, alpha=0.3)
-    
-    # Plot order-2 excess gains
-    ax = axes[1, 1]
-    ax.hist(order2_excess_gains, bins=20, alpha=0.7, label='Order-2 Excess', density=True)
-    ax.axvline(x=SUFFICIENCY_THRESHOLD, color='r', linestyle='--',
-               label=f'Threshold ({SUFFICIENCY_THRESHOLD})')
-    ax.set_xlabel('Excess Gain H(T_i|T_j,T_k) - min H(T_i|T_j)')
-    ax.set_ylabel('Density')
-    ax.set_title('Higher-Order Excess (H4)')
-    ax.legend()
-    ax.grid(True, alpha=0.3)
-    
-    plt.tight_layout()
-    plt.savefig('results/T2_plots.png', dpi=300, bbox_inches='tight')
-    plt.close()
+        # Aggregate results by rho
+        reductions_by_rho = {}
+        excess_by_rho = {}
+        
+        for rho in RHO_VALUES:
+            rho_subset = [r for r in all_results if r['rho'] == rho]
+            
+            # Collect all individual reductions and excesses
+            all_reductions = []
+            all_excess = []
+            for r in rho_subset:
+                all_reductions.extend(r['all_reductions'])
+                all_excess.extend(r['all_excess'])
+            
+            reductions_by_rho[rho] = np.median(all_reductions) if all_reductions else 0
+            excess_by_rho[rho] = np.median(all_excess) if all_excess else 0
+        
+        # Validate hypotheses
+        overall_median_excess = np.median([r['median_excess'] for r in all_results])
+        validation = validate_t2_results(reductions_by_rho, overall_median_excess)
+        
+        # Get thresholds
+        thresholds = get_thresholds('T2')
+        
+        # Log hypothesis results
+        log_hypothesis("H3", get_hypothesis_description('T2', 'H3'),
+                      thresholds['H3'], validation['max_reduction'], validation['H3'])
+        
+        log_hypothesis("H4", get_hypothesis_description('T2', 'H4'),
+                      thresholds['H4'], overall_median_excess, validation['H4'])
+        
+        # Show rho-dependent results
+        print("\nReduction by correlation:")
+        for rho in RHO_VALUES:
+            print(f"  ρ={rho:.1f}: {reductions_by_rho[rho]:.3f}")
+        
+        # Prepare summary
+        summary = {
+            'test': 'T2',
+            'parameters': {
+                'process_length': PROCESS_LENGTH,
+                'n_processes': N_PROCESSES,
+                'beta': BETA,
+                'rho_values': RHO_VALUES,
+                'seeds': SEEDS,
+                'subsample_rate': SUBSAMPLE_RATE,
+                'mapping': 'D1'
+            },
+            'results': {
+                'reductions_by_rho': reductions_by_rho,
+                'excess_by_rho': excess_by_rho,
+                'overall_median_excess': overall_median_excess,
+                'max_reduction': validation['max_reduction']
+            },
+            'hypotheses': {
+                'H3': {
+                    'pass': validation['H3'],
+                    'metric': validation['max_reduction'],
+                    'threshold': thresholds['H3'],
+                    'rho_threshold': thresholds['rho_threshold'],
+                    'description': get_hypothesis_description('T2', 'H3')
+                },
+                'H4': {
+                    'pass': validation['H4'],
+                    'metric': overall_median_excess,
+                    'threshold': thresholds['H4'],
+                    'description': get_hypothesis_description('T2', 'H4')
+                }
+            },
+            'overall_pass': validation['H3'] and validation['H4']
+        }
+        
+        # Prepare plot data
+        plot_data = {
+            'rhos': RHO_VALUES,
+            'reductions': [reductions_by_rho[rho] for rho in RHO_VALUES],
+            'order2_excess': [r['median_excess'] for r in all_results],
+            'max_reduction': validation['max_reduction'],
+            'median_excess': overall_median_excess,
+            'H3_pass': validation['H3'],
+            'H4_pass': validation['H4']
+        }
+        
+        # Create plot
+        fig = plot_t2_results(plot_data, thresholds)
+        
+        # Prepare metrics for CSV
+        metrics = []
+        for r in all_results:
+            metrics.append({
+                'rho': r['rho'],
+                'seed': r['seed'],
+                'median_reduction': r['median_reduction'],
+                'median_excess': r['median_excess'],
+                'mean_marginal_entropy': np.mean(r['marginal_entropies'])
+            })
+        
+        # Save results
+        summary_clean = format_json_safe(summary)
+        save_test_results('T2', summary_clean, metrics, fig)
+        
+        # Log summary
+        log_test_summary('T2', {'H3': validation['H3'], 'H4': validation['H4']})
+        
+        # Additional diagnostics
+        print("\nDiagnostics:")
+        print(f"  Mapping used: D1 (interaction-sensitive)")
+        print(f"  Best reduction achieved: {validation['max_reduction']:.3f} at ρ≥{thresholds['rho_threshold']}")
+        print(f"  Order-2 excess: {overall_median_excess:.4f} (threshold: {thresholds['H4']})")
+        
+        return summary
 
 def main():
-    """Run the complete T2 test suite."""
-    print("="*60)
-    print("Running Test T2: Pairwise Maximum-Entropy Sufficiency")
-    print("="*60)
-    
-    results = []
-    
-    # Test with D1 mapping as primary for T2 (D2 is better for T1)
-    bit_mapping = "D1"
-    result = run_maxent_sufficiency_test(bit_mapping, seed=RANDOM_SEED)
-    results.append(result)
-    
-    # Evaluate hypotheses
-    evaluation = evaluate_hypotheses(results)
-    
-    # Print results
-    print("\n" + "="*60)
-    print("EVALUATION RESULTS")
-    print("="*60)
-    
-    print(f"H3 (Maximum Entropy Pairwise): {'PASS' if evaluation['H3_maxent_pairwise']['pass'] else 'FAIL'}")
-    print(f"  Median base entropy: {evaluation['H3_maxent_pairwise']['median_base_entropy']:.4f}")
-    print(f"  Median pair conditional entropy: {evaluation['H3_maxent_pairwise']['median_pair_cond_entropy']:.4f}")
-    print(f"  Relative reduction: {evaluation['H3_maxent_pairwise']['relative_reduction']:.4f}")
-    print(f"  Threshold: {evaluation['H3_maxent_pairwise']['reduction_threshold']:.4f}")
-    
-    print(f"\nH4 (Pairwise Sufficiency): {'PASS' if evaluation['H4_pairwise_sufficiency']['pass'] else 'FAIL'}")
-    print(f"  Median order-2 excess: {evaluation['H4_pairwise_sufficiency']['median_order2_excess']:.4f}")
-    print(f"  Normalized excess: {evaluation['H4_pairwise_sufficiency']['normalized_excess']:.4f}")
-    print(f"  Threshold: {evaluation['H4_pairwise_sufficiency']['threshold']:.4f}")
-    
-    print(f"\nOVERALL TEST: {'PASS' if evaluation['overall_pass'] else 'FAIL'}")
-    
-    # Save results
-    save_results(results, evaluation)
-    create_plots(results, evaluation)
-    
-    print(f"\nResults saved to results/T2_summary.json and results/T2_entropy_metrics.csv")
-    print(f"Plots saved to results/T2_plots.png")
-    
-    return evaluation['overall_pass']
+    """Main entry point."""
+    result = run_t2_test()
+    return result['overall_pass']
 
 if __name__ == "__main__":
     success = main()

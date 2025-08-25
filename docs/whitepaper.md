@@ -7,7 +7,7 @@ We evaluate whether the SEP triad — **Entropy $H$**, **Coherence $C$**, **Stab
 * **H3 (Max-ent pairwise):** for coupled processes, conditioning on **one** other process explains most of the target’s uncertainty.
 * **H4 (Pairwise sufficiency):** adding a **second** conditioner yields only marginal gain.
 
-All tests are Python-only and reproducible. Code for T1 (time-scaling) and T2 (pairwise sufficiency) is public in the validation harness. Each test writes JSON summaries and figures; the paper references these artifacts directly (e.g., `results/latest/test_T1_time_scaling/T1_summary.json` and `results/latest/test_T2_maxent_sufficiency/T2_plots.png`).
+All tests are Python-only and reproducible. Code for T1 (time-scaling) and T2 (pairwise sufficiency) is public in the validation harness. Each test writes JSON summaries and figures; the paper references these artifacts directly (e.g., `results/latest/T1_time_scaling_test/T1_summary.json` and `results/latest/T2_maxent_sufficiency_test/T2_plots.png`).
 
 ---
 
@@ -85,7 +85,7 @@ Implementation details are in [`T2_maxent_sufficiency_test.py`](../validation/te
 * **Reactive (D2)** / Isolated (D2) ratio = **10.27** (PASS: > 2).
 * **Sensitivity (D1)**: isolated medians \~0.20 (FAIL) — derivative-sign mapping is not dilation-invariant.
 
-See `results/latest/test_T1_time_scaling/T1_plots.png` for the figure and `results/latest/test_T1_time_scaling/T1_summary.json` for exact numbers.
+See `results/latest/T1_time_scaling_test/T1_plots.png` for the figure and `results/latest/T1_time_scaling_test/T1_summary.json` for exact numbers.
 
 **Conclusion:** H1 and H2 both PASS under the primary mapping. This supports “isolated invariance” and “reactive break” as predicted.
 
@@ -316,9 +316,9 @@ T5 has been successfully completed with a PASS result for both H9 and H10 hypoth
 * Put the growing paper in `whitepaper/whitepaper.md`.
 * Store figures and JSON per test:
 
-  * `results/latest/test_T1_time_scaling/T1_plots.png`, `T1_summary.json`
-  * `results/latest/test_T2_maxent_sufficiency/T2_plots.png`, `T2_summary.json`
-  * `results/latest/test_T3_convolutional_invariance/T3_plots.png`, `T3_summary.json`
+  * `results/latest/T1_time_scaling_test/T1_plots.png`, `T1_summary.json`
+  * `results/latest/T2_maxent_sufficiency_test/T2_plots.png`, `T2_summary.json`
+  * `results/latest/T3_convolutional_invariance_test/T3_plots.png`, `T3_summary.json`
   * `results/T4_plots.png`, `T4_summary.json`, `T4_reconstruction_metrics.csv`
   * `results/T5_plots.png`, `T5_summary.json`, `T5_filtering_metrics.csv`
 * In `whitepaper/whitepaper.md`, cross-link the artifacts.
