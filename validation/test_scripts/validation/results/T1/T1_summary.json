@@ -1,0 +1,57 @@
+{
+  "test": "T1",
+  "parameters": {
+    "process_length": 1000,
+    "beta": 0.1,
+    "gamma_values": [
+      1.2,
+      2.0
+    ],
+    "seeds": [
+      1337
+    ]
+  },
+  "results": {
+    "D2_mapping": {
+      "isolated_median": 0.17360355619579715,
+      "reactive_median": 0.062061827976939016,
+      "ratio": 0.35749168566105866,
+      "isolated_rmse_by_gamma": {
+        "1.2": 0.16580411742282847,
+        "2.0": 0.18140299496876586
+      },
+      "reactive_rmse_by_gamma": {
+        "1.2": 0.05570694994940548,
+        "2.0": 0.06841670600447256
+      }
+    },
+    "D1_mapping_control": {
+      "isolated_median": 0.13773023974503348,
+      "reactive_median": 0.12894952252973801,
+      "ratio": 0.9362469903110961,
+      "isolated_rmse_by_gamma": {
+        "1.2": 0.11729107855841121,
+        "2.0": 0.15816940093165574
+      },
+      "reactive_rmse_by_gamma": {
+        "1.2": 0.10320098849991655,
+        "2.0": 0.15469805655955948
+      }
+    }
+  },
+  "hypotheses": {
+    "H1": {
+      "pass": false,
+      "metric": 0.17360355619579715,
+      "threshold": 0.05,
+      "description": "Isolated processes should maintain triad invariance (RMSE \u2264 0.05)"
+    },
+    "H2": {
+      "pass": false,
+      "metric": 0.35749168566105866,
+      "threshold": 2.0,
+      "description": "Reactive processes should break invariance (ratio \u2265 2.0)"
+    }
+  },
+  "overall_pass": false
+}

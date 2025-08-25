@@ -1,0 +1,48 @@
+{
+  "test": "T5",
+  "parameters": {
+    "sample_length": 5000,
+    "beta": 0.1,
+    "gamma_values": [
+      1.2,
+      2.0
+    ],
+    "seeds": [
+      1337
+    ],
+    "usd_correlation": 0.7,
+    "mapping_invariance": "D2",
+    "mapping_reduction": "D1"
+  },
+  "results": {
+    "invariance": {
+      "median_rmse": 0.025426236843918773,
+      "rmse_by_gamma": {
+        "1.2": 0.02478714714149704,
+        "2.0": 0.026360101611122587
+      }
+    },
+    "pairwise_reduction": {
+      "target": "EURUSD",
+      "predictor": "GBPUSD",
+      "entropy_reduction": 0.36290685189575056,
+      "marginal_entropy": 6.085252445971186,
+      "conditional_entropy": 3.876872637776576
+    }
+  },
+  "hypotheses": {
+    "T5_invariance": {
+      "pass": true,
+      "metric": 0.025426236843918773,
+      "threshold": 0.05,
+      "description": "Market data should show similar invariance (RMSE \u2264 0.05)"
+    },
+    "T5_reduction": {
+      "pass": true,
+      "metric": 0.36290685189575056,
+      "threshold": 0.1,
+      "description": "FX pairs should show \u226510% reduction (USD common driver)"
+    }
+  },
+  "overall_pass": true
+}

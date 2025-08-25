@@ -8,6 +8,7 @@ This document tracks outstanding code quality concerns in the SEP Engine codebas
 - *2025-08-24:* Deep scan removed orphan risk manager and stubbed headers; no mock or placeholder components remain in `src/` or `frontend/`.
 
 ## Recent Cleanup
+- Removed unused pattern matching registration stub (`src/util/pattern_matching.*`).
 - Removed orphan risk manager prototype and unused config stubs (`src/core/risk_manager.py`, `src/core/redis_config.h`, `src/core/coherence_manager.hpp`, `src/core/__init__.py`).
 - Legacy DSL bytecode and primitive modules removed (`src/util/compiler.*`,
   `src/util/core_primitives.*`, `src/util/stdlib.*`, `src/util/time_series.*`).
@@ -53,7 +54,6 @@ This document tracks outstanding code quality concerns in the SEP Engine codebas
 - Obsolete RemoteDataManager implementation and TrainingCoordinator stub removed (`src/core/RemoteDataManager.h`, `src/core/remote_data_manager.cpp`, `src/core/TrainingCoordinator.h`).
 - Outdated Redis metrics API removed to reflect Valkey-only integration (`frontend/src/services/api.ts`).
 - Unused QuantumProcessingService and duplicate service-layer types removed (`src/app/QuantumProcessingService.*`, `src/app/QuantumTypes.h`, `src/app/PatternTypes.h`, `tests/app/quantum_processing_service_guard_test.cpp`).
-- Trade update handler now stores recent updates instead of logging to console (`frontend/src/context/WebSocketContext.js`).
 - Obsolete weekly cache manager and data fetcher removed (`src/core/weekly_cache_manager.hpp`, `src/core/weekly_data_fetcher.*`, `config/training_config.json`).
 - Unimplemented WeeklyDataFetcher configuration and cache helpers removed (`src/core/weekly_data_fetcher.*`).
 - Removed redundant amplitude renormalization and stale CUDA stub reference (`src/app/QuantumProcessingService.cpp`, `src/core/cuda_impl.h`).
@@ -72,6 +72,7 @@ This document tracks outstanding code quality concerns in the SEP Engine codebas
 - Resolved merge artifact that duplicated validation logic in OANDA connector (`src/io/oanda_connector.cpp`).
 - Obsolete OANDA historical fetcher and script dependency removed (`oanda_historical_fetcher.cpp`, `run_trader.sh`).
 - Unused configuration helper functions removed to eliminate dead code (`src/util/interpreter.cpp`).
+- Unused filter utility and associated test removed (`src/app/filter.*`, `tests/data_access/filter_test.cpp`).
 
 ## Recommendations
 1. Remove remaining hardcoded values via configuration.

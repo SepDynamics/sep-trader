@@ -21,7 +21,6 @@ This document provides a comprehensive inventory of all CUDA kernels and utiliti
 | `coherence_calculation_kernel` | Coherence metrics | Calculates coherence values for quantum states |
 | `quantum_fourier_hierarchy_kernel` | QFH implementation | Implements core QFH algorithm for pattern analysis |
 | `stability_determination_kernel` | Stability analysis | Determines stability metrics for quantum states |
-| `quantum_pattern_matching_kernel` | Pattern matching | Identifies matching patterns in quantum state space |
 
 ## 2. Pattern Processing Kernels
 
@@ -42,7 +41,6 @@ This document provides a comprehensive inventory of all CUDA kernels and utiliti
 | `pattern_evolution_kernel` | Pattern evolution | Computes pattern changes over time |
 | `pattern_coherence_kernel` | Coherence calculation | Calculates coherence between patterns |
 | `pattern_stability_kernel` | Stability analysis | Analyzes pattern stability metrics |
-| `pattern_matching_kernel` | Pattern matching | Finds matching patterns in datasets |
 | `pattern_prediction_kernel` | Prediction generation | Generates predictions based on patterns |
 
 ## 3. Trading Computation Kernels
