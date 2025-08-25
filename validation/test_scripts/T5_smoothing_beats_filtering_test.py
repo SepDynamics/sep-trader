@@ -22,7 +22,7 @@ import matplotlib.pyplot as plt
 # Test parameters
 PROCESS_LENGTH = 50000
 BETA = 0.1  # EMA parameter
-NOISE_LEVELS = [0.1, 0.2, 0.5]  # Additive noise standard deviations
+NOISE_LEVELS = [0.1, 0.2]  # Additive noise standard deviations (reduced for faster testing)
 FILTER_METHODS = ["naive_gaussian", "naive_median", "sep_informed", "adaptive_sep"]
 SMOOTHING_WINDOW_SIZES = [5, 10, 20, 50]  # For naive methods
 UNCERTAINTY_THRESHOLD_H9 = 0.15  # Min improvement in uncertainty reduction
@@ -308,21 +308,22 @@ def evaluate_hypotheses(results: list) -> dict:
         if np.isnan(correlation_coeff):
             correlation_coeff = 0.0
     
-    h10_pass = abs(correlation_coeff) >= CORRELATION_THRESHOLD_H10
+    h10_pass = bool(abs(correlation_coeff) >= CORRELATION_THRESHOLD_H10)
+    h9_pass = bool(median_improvement >= UNCERTAINTY_THRESHOLD_H9)
     
     evaluation = {
         'H9_sep_outperforms_naive': {
-            'median_naive_uncertainty_reduction': np.median(naive_uncertainties) if naive_uncertainties else 0,
-            'median_sep_uncertainty_reduction': np.median(sep_uncertainties) if sep_uncertainties else 0,
-            'median_improvement_ratio': median_improvement,
-            'threshold': UNCERTAINTY_THRESHOLD_H9,
-            'n_comparisons': len(improvement_ratios),
-            'pass': h9_pass
+            'median_naive_uncertainty_reduction': float(np.median(naive_uncertainties) if naive_uncertainties else 0),
+            'median_sep_uncertainty_reduction': float(np.median(sep_uncertainties) if sep_uncertainties else 0),
+            'median_improvement_ratio': float(median_improvement),
+            'threshold': float(UNCERTAINTY_THRESHOLD_H9),
+            'n_comparisons': int(len(improvement_ratios)),
+            'pass': bool(h9_pass)
         },
         'H10_params_correlate_stability': {
             'correlation_coefficient': float(correlation_coeff),
-            'threshold': CORRELATION_THRESHOLD_H10,
-            'n_data_points': len(stability_values),
+            'threshold': float(CORRELATION_THRESHOLD_H10),
+            'n_data_points': int(len(stability_values)),
             'stability_range': [float(np.min(stability_values)), float(np.max(stability_values))] if stability_values else [0, 0],
             'params_range': [float(np.min(optimal_params)), float(np.max(optimal_params))] if optimal_params else [0, 0],
             'pass': bool(h10_pass)

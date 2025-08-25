@@ -19,7 +19,7 @@ python run_sep_validation.py
 cat results/latest/validation_summary.json
 
 # Check individual test (example: T1)
-ls results/latest/test_T1_time_scaling/
+ls results/latest/T1_time_scaling_test/
 ```
 
 ## Example Usage
@@ -53,10 +53,10 @@ print(f"Mean Stability: {np.mean(stability):.4f}")
 ```python
 #!/usr/bin/env python3
 # Example: Run just the time scaling test
-import test_T1_time_scaling
+from test_scripts import T1_time_scaling_test
 
 # This will run T1 and show results
-success = test_T1_time_scaling.main()
+success = T1_time_scaling_test.main()
 print(f"T1 Test Result: {'PASS' if success else 'FAIL'}")
 ```
 
@@ -127,7 +127,7 @@ HYPOTHESIS VALIDATION:
 ```
 results/latest/
 ├── validation_summary.json     # Overall test status and timing
-├── test_T1_time_scaling/
+├── T1_time_scaling_test/
 │   ├── T1_summary.json        # Detailed T1 results
 │   ├── T1_time_scaling_metrics.csv    # Raw data for analysis
 │   └── T1_plots.png          # Visualization of key findings

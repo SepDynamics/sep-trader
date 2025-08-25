@@ -18,11 +18,11 @@ The foundational module implementing:
 #### 2. **Test Suite** (T1-T5)
 Five comprehensive test modules validating specific SEP hypotheses:
 
-- **T1**: [`test_T1_time_scaling.py`](validation/test_T1_time_scaling.py) - Isolated vs Reactive Time Scaling
-- **T2**: [`test_T2_maxent_sufficiency.py`](validation/test_T2_maxent_sufficiency.py) - Pairwise Maximum-Entropy Sufficiency  
-- **T3**: [`test_T3_convolutional_invariance.py`](validation/test_T3_convolutional_invariance.py) - Convolutional Invariance on Band-Limited Waves
-- **T4**: [`test_T4_retrodictive_reconstruction.py`](validation/test_T4_retrodictive_reconstruction.py) - Retrodictive Reconstruction With Continuity Constraint
-- **T5**: [`test_T5_smoothing_beats_filtering.py`](validation/test_T5_smoothing_beats_filtering.py) - Smoothing Beats Filtering (uncertainty reduction)
+- **T1**: [`test_scripts/T1_time_scaling_test.py`](validation/test_scripts/T1_time_scaling_test.py) - Isolated vs Reactive Time Scaling
+- **T2**: [`test_scripts/T2_maxent_sufficiency_test.py`](validation/test_scripts/T2_maxent_sufficiency_test.py) - Pairwise Maximum-Entropy Sufficiency
+- **T3**: [`test_scripts/T3_convolutional_invariance_test.py`](validation/test_scripts/T3_convolutional_invariance_test.py) - Convolutional Invariance on Band-Limited Waves
+- **T4**: [`test_scripts/T4_retrodictive_reconstruction_test.py`](validation/test_scripts/T4_retrodictive_reconstruction_test.py) - Retrodictive Reconstruction With Continuity Constraint
+- **T5**: [`test_scripts/T5_smoothing_beats_filtering_test.py`](validation/test_scripts/T5_smoothing_beats_filtering_test.py) - Smoothing Beats Filtering (uncertainty reduction)
 
 #### 3. **Validation Framework** (`run_sep_validation.py`)
 Automated test runner with:
@@ -78,19 +78,19 @@ Each test can be run independently:
 
 ```bash
 # Test T1: Time Scaling
-python test_T1_time_scaling.py
+python test_scripts/T1_time_scaling_test.py
 
 # Test T2: Maximum Entropy
-python test_T2_maxent_sufficiency.py
+python test_scripts/T2_maxent_sufficiency_test.py
 
-# Test T3: Convolutional Invariance  
-python test_T3_convolutional_invariance.py
+# Test T3: Convolutional Invariance
+python test_scripts/T3_convolutional_invariance_test.py
 
 # Test T4: Retrodictive Reconstruction
-python test_T4_retrodictive_reconstruction.py
+python test_scripts/T4_retrodictive_reconstruction_test.py
 
 # Test T5: Smoothing vs Filtering
-python test_T5_smoothing_beats_filtering.py
+python test_scripts/T5_smoothing_beats_filtering_test.py
 ```
 
 Each test generates:
@@ -120,11 +120,11 @@ This will:
 results/
 ├── validation_run_YYYYMMDD_HHMMSS_UTC/
 │   ├── validation_summary.json          # Overall summary
-│   ├── test_T1_time_scaling/
+│   ├── T1_time_scaling_test/
 │   │   ├── T1_summary.json              # Test-specific results
 │   │   ├── T1_time_scaling_metrics.csv  # Quantitative data
 │   │   └── T1_plots.png                 # Visualizations
-│   ├── test_T2_maxent_sufficiency/
+│   ├── T2_maxent_sufficiency_test/
 │   │   ├── T2_summary.json
 │   │   ├── T2_entropy_analysis.csv
 │   │   └── T2_plots.png
@@ -212,7 +212,7 @@ Each hypothesis has specific **quantitative thresholds**:
 
 ### Deterministic Execution
 - **Fixed random seeds** for all stochastic processes
-- **Versioned dependencies** in [`requirements.txt`](validation/requirements.txt)
+- **Versioned dependencies** in [`requirements.txt`](requirements.txt)
 - **Timestamped results** with complete parameter logging
 - **Platform-independent** Python implementation
 
@@ -225,13 +225,13 @@ Each hypothesis has specific **quantitative thresholds**:
 ### Result Verification
 ```bash
 # Check specific test results
-cat results/latest/test_T1_time_scaling/T1_summary.json
+cat results/latest/T1_time_scaling_test/T1_summary.json
 
-# View validation summary  
+# View validation summary
 cat results/latest/validation_summary.json
 
 # Analyze metrics in spreadsheet software
-open results/latest/test_T1_time_scaling/T1_time_scaling_metrics.csv
+open results/latest/T1_time_scaling_test/T1_time_scaling_metrics.csv
 ```
 
 ## Scientific Methodology
@@ -282,7 +282,7 @@ Partial success indicates:
 ## Extensions
 
 ### Adding New Tests
-1. Create test module following naming pattern `test_T*_description.py`
+1. Create test module following naming pattern `T*_description_test.py` in the `test_scripts` subdirectory
 2. Implement [`main()`](validation/run_sep_validation.py:main) function returning boolean success
 3. Generate results in standardized format (JSON + CSV + plots)
 4. Add to test suite in [`run_sep_validation.py`](validation/run_sep_validation.py)

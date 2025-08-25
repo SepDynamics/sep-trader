@@ -15,8 +15,11 @@ from pathlib import Path
 from datetime import datetime, timezone
 import traceback
 
-# Add current directory to Python path for imports
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+# Add current directory, test_scripts directory, and parent directory to Python path for imports
+current_dir = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, current_dir)
+sys.path.insert(0, os.path.join(current_dir, 'test_scripts'))
+sys.path.insert(0, os.path.dirname(current_dir))  # Add parent directory for sep_core
 
 def check_dependencies():
     """Check if required dependencies are installed."""
@@ -60,7 +63,9 @@ def run_test(test_module, results_dir):
     
     try:
         # Import and run the test
-        module = __import__(test_module.replace('.py', ''))
+        # Remove 'test_scripts/' prefix if present
+        clean_module_name = test_module.replace('test_scripts/', '').replace('.py', '')
+        module = __import__(clean_module_name)
         
         # Redirect results to our timestamped directory
         original_results_path = Path("results")
@@ -255,13 +260,13 @@ def main():
     results_dir = create_results_directory()
     print(f"\nResults will be saved to: {results_dir}")
     
-    # List of tests to run
+    # List of tests to run (now in test_scripts subdirectory)
     test_modules = [
-        'test_T1_time_scaling.py',
-        'test_T2_maxent_sufficiency.py',
-        'test_T3_convolutional_invariance.py',
-        'test_T4_retrodictive_reconstruction.py',
-        'test_T5_smoothing_beats_filtering.py'
+        'test_scripts/T1_time_scaling_test.py',
+        'test_scripts/T2_maxent_sufficiency_test.py',
+        'test_scripts/T3_convolutional_invariance_test.py',
+        'test_scripts/T4_retrodictive_reconstruction_test.py',
+        'test_scripts/T5_smoothing_beats_filtering_test.py'
     ]
     
     # Run each test
@@ -270,7 +275,9 @@ def main():
     print(f"\nRunning {len(test_modules)} validation tests...")
     
     for test_module in test_modules:
-        if Path(test_module).exists():
+        # Check if the test file exists in the test_scripts directory
+        test_file_path = Path(current_dir) / test_module
+        if test_file_path.exists():
             result = run_test(test_module, results_dir)
             test_results.append(result)
         else:

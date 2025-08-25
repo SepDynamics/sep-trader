@@ -17,25 +17,25 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 # Patch the test parameters to use smaller datasets
 def patch_test_parameters():
     """Monkey patch test parameters for faster execution"""
-    import test_T1_time_scaling
-    import test_T2_maxent_sufficiency
-    import test_T3_convolutional_invariance
-    import test_T4_retrodictive_reconstruction
-    import test_T5_smoothing_beats_filtering
+    from test_scripts import T1_time_scaling_test
+    from test_scripts import T2_maxent_sufficiency_test
+    from test_scripts import T3_convolutional_invariance_test
+    from test_scripts import T4_retrodictive_reconstruction_test
+    from test_scripts import T5_smoothing_beats_filtering_test
     
     # Reduce dataset sizes for all tests
-    test_T1_time_scaling.PROCESS_LENGTH = 5000  # Down from 200000
-    test_T2_maxent_sufficiency.PROCESS_LENGTH = 5000  # Down from 100000
-    test_T3_convolutional_invariance.PROCESS_LENGTH = 5000  # Down from 50000
-    test_T4_retrodictive_reconstruction.PROCESS_LENGTH = 2000  # Down from 20000
-    test_T5_smoothing_beats_filtering.PROCESS_LENGTH = 5000  # Down from 100000
+    T1_time_scaling_test.PROCESS_LENGTH = 5000  # Down from 200000
+    T2_maxent_sufficiency_test.PROCESS_LENGTH = 5000  # Down from 100000
+    T3_convolutional_invariance_test.PROCESS_LENGTH = 5000  # Down from 50000
+    T4_retrodictive_reconstruction_test.PROCESS_LENGTH = 2000  # Down from 20000
+    T5_smoothing_beats_filtering_test.PROCESS_LENGTH = 5000  # Down from 100000
     
     print("Fast validation mode: Using reduced dataset sizes")
-    print(f"  T1 process length: {test_T1_time_scaling.PROCESS_LENGTH}")
-    print(f"  T2 process length: {test_T2_maxent_sufficiency.PROCESS_LENGTH}")
-    print(f"  T3 process length: {test_T3_convolutional_invariance.PROCESS_LENGTH}")
-    print(f"  T4 process length: {test_T4_retrodictive_reconstruction.PROCESS_LENGTH}")
-    print(f"  T5 process length: {test_T5_smoothing_beats_filtering.PROCESS_LENGTH}")
+    print(f"  T1 process length: {T1_time_scaling_test.PROCESS_LENGTH}")
+    print(f"  T2 process length: {T2_maxent_sufficiency_test.PROCESS_LENGTH}")
+    print(f"  T3 process length: {T3_convolutional_invariance_test.PROCESS_LENGTH}")
+    print(f"  T4 process length: {T4_retrodictive_reconstruction_test.PROCESS_LENGTH}")
+    print(f"  T5 process length: {T5_smoothing_beats_filtering_test.PROCESS_LENGTH}")
 
 def check_dependencies():
     """Check if required dependencies are installed."""
@@ -201,11 +201,11 @@ def main():
     
     # List of tests to run
     test_modules = [
-        'test_T1_time_scaling.py',
-        'test_T2_maxent_sufficiency.py',
-        'test_T3_convolutional_invariance.py',
-        'test_T4_retrodictive_reconstruction.py',
-        'test_T5_smoothing_beats_filtering.py'
+        'test_scripts/T1_time_scaling_test.py',
+        'test_scripts/T2_maxent_sufficiency_test.py',
+        'test_scripts/T3_convolutional_invariance_test.py',
+        'test_scripts/T4_retrodictive_reconstruction_test.py',
+        'test_scripts/T5_smoothing_beats_filtering_test.py'
     ]
     
     # Run each test

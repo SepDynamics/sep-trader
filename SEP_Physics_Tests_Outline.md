@@ -230,8 +230,58 @@ Order: Micro (particle) → Meso (waves) → Macro (cosmo)—build from local to
    - **Real Data:** CMB multipoles (Planck); pulsar residuals (NANOGrav).
    - **Doc:** AIC deltas.
 
+8. **Smoothing Beats Filtering**
+   - **Demo:** SEP-informed filtering outperforms naive methods.
+   - **Methods (Python):**
+     ```python
+     def sep_filtering_test(signals, noise_levels):
+         results = []
+         for signal in signals:
+             for noise in noise_levels:
+                 # Add noise to signal
+                 noisy_signal = signal + np.random.normal(0, noise, len(signal))
+                 
+                 # Compute triads and stability metrics
+                 triad_seq = compute_triads(noisy_signal)
+                 stability_metrics = [t[2] for t in triad_seq]  # S values
+                 
+                 # Naive filtering methods
+                 naive_gaussian = gaussian_filter(noisy_signal, sigma=2)
+                 naive_median = medfilt(noisy_signal, kernel_size=5)
+                 
+                 # SEP-informed filtering
+                 optimal_window = determine_optimal_window(stability_metrics)
+                 sep_filtered = adaptive_filter(noisy_signal, optimal_window)
+                 
+                 # Measure uncertainty reduction
+                 naive_uncertainty = measure_uncertainty(naive_gaussian, signal)
+                 sep_uncertainty = measure_uncertainty(sep_filtered, signal)
+                 improvement = (naive_uncertainty - sep_uncertainty) / naive_uncertainty
+                 
+                 results.append({
+                     'signal_type': type(signal).__name__,
+                     'noise_level': noise,
+                     'naive_uncertainty': naive_uncertainty,
+                     'sep_uncertainty': sep_uncertainty,
+                     'improvement': improvement
+                 })
+         return results
+     ```
+   - **Expected/Falsify:** SEP-informed filtering shows significant improvement over naive methods; strong correlation between optimal parameters and signal stability.
+   - **Real Data:** Various signal types (Poisson, van der Pol, Chirp) with different noise levels.
+   - **Doc:** Uncertainty reduction metrics; parameter-stability correlation plots.
+
 ## Integration/Ties & Order
 - **Order/Why:** Micro first (build triad confidence); meso (convolution tie); macro (global scale). Ties: All use triad; convolution in updates; manifolds for viz/stats. Done: 80% pass (low RMSE/invariance).
 - **Doc Plan:** Jupyter notebook per group; log code/outputs/plots; GitHub repo for all. Stats: Bootstrap CIs for RMSE; Wilcoxon for paired.
 
+## Additional Tests
+8. **Smoothing Beats Filtering (Signal Processing Application)**
+   - **Rationale:** Tests practical utility of SEP metrics in real-world signal processing applications.
+   - **Order/Why:** Added as an application-focused test after core validation to demonstrate practical utility.
+   - **Ties:** Uses triad stability metrics to inform filtering parameters; shows real-world applicability.
+   - **Done:** Pass if SEP-informed filtering significantly outperforms naive methods.
+
 Run micro group first—confirms core. Full battery: ~1 week; validates objectively.
+
+Add T5 as an application-focused test to demonstrate practical utility of SEP metrics in signal processing.

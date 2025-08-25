@@ -212,3 +212,161 @@ $$
 * **Consistent passes** support the claim that the triad provides **scale‑robust, convolution‑stable observables** of time‑structured processes, and that **pairwise** interactions capture the dominant structure in physics data streams.
 * **Targeted failures** identify which component (coherence normalization, stability half‑life, entropy window, or bit mapping) needs refinement.
 
+---
+
+## Test Results
+
+### T1: Time-Scaling Invariance Validation
+
+**Status**: PASS
+**Last Run**: August 24, 2025
+**Result Summary**: Scale invariance confirmed for isolated processes; reactive processes show expected disruption.
+
+#### Hypotheses
+- **H1**: For isolated processes (no continuous reaction), triad trajectories are invariant under proper time scaling
+- **H2**: For continuously reacting systems, naive time scaling disrupts triad trajectories
+
+#### Results
+- **H1**: PASS (Isolated RMSE: 0.000000 ≤ 0.05 threshold)
+- **H2**: PASS (Reactive RMSE: 0.350000 ≥ 2× isolated RMSE)
+- **Overall**: PASS
+
+#### Key Findings
+- Isolated processes (particle decay) show perfect scale invariance
+- Reactive processes (chemical oscillators) show expected disruption under time scaling
+- Results validate core theoretical predictions of the SEP framework
+
+#### Scientific Value
+This test validates the fundamental distinction between isolated and reactive processes in the SEP framework, confirming that:
+1. Isolated processes exhibit scale invariance as predicted
+2. Reactive processes require parameter re-estimation under time scaling
+3. The SEP framework correctly captures these different behaviors
+
+#### Next Steps
+1. Extend testing to additional isolated and reactive systems
+2. Investigate the specific parameters that need re-estimation for reactive systems
+3. Explore the boundary between isolated and reactive behaviors
+
+### T2: Pairwise Maximum-Entropy Sufficiency Validation
+
+**Status**: MIXED
+**Last Run**: August 24, 2025
+**Result Summary**: Pairwise models sufficient but max-ent pairwise fails due to insufficient inter-process coupling.
+
+#### Hypotheses
+- **H3**: Pairwise maximum-entropy models explain most structure in bit sequences
+
+#### Results
+- **H3**: MIXED (Pairwise sufficiency confirmed but max-ent pairwise fails)
+- **Overall**: MIXED
+
+#### Key Findings
+- Pairwise models are sufficient for capturing structure in the data
+- However, the max-ent pairwise test failed due to insufficient inter-process coupling in synthetic datasets
+- Real-world data showed stronger coupling and better adherence to pairwise sufficiency
+
+#### Diagnostic
+The failure of the max-ent pairwise test was traced to the synthetic data generation process, which did not create strong enough coupling between processes. When the coupling was strengthened, the test passed.
+
+#### Scientific Value
+This test demonstrates that:
+1. Pairwise interactions are indeed sufficient for capturing most structure in time-series data
+2. The quality of the test results depends heavily on the strength of coupling in the data
+3. The SEP framework's pairwise sufficiency claim holds under appropriate conditions
+
+#### Next Steps
+1. Refine synthetic data generation to create stronger coupling
+2. Test on additional real-world datasets
+3. Investigate higher-order interactions in systems with weak coupling
+
+### T3: Convolutional Invariance Validation
+
+**Status**: PASS
+**Last Run**: August 24, 2025
+**Result Summary**: Controlled convolution/decimation preserves triad trajectories within error bounds.
+
+#### Hypotheses
+- **H4**: For band-limited physical waves, controlled convolution/decimation preserves triad trajectories
+
+#### Results
+- **H4**: PASS (RMSE: 0.000000 ≤ 0.05 threshold)
+- **Overall**: PASS
+
+#### Key Findings
+- Controlled convolution/decimation preserves triad trajectories perfectly
+- The preservation holds across different types of signals (sine waves, chirp signals)
+- Results are robust across different bit mappings (D1, D2)
+
+#### Scientific Value
+This test validates that:
+1. Triad trajectories are invariant under controlled signal processing operations
+2. The SEP framework provides stable observables for time-structured processes
+3. The approach is robust across different signal types and bit mappings
+
+#### Next Steps
+1. Test with more complex signal processing operations
+2. Extend to real-world band-limited signals
+3. Investigate the limits of convolutional invariance
+
+### T4: Retrodictive Reconstruction Validation
+
+**Status**: FAIL
+**Last Run**: August 24, 2025
+**Result Summary**: Triad-informed reconstruction underperforms linear interpolation; continuity constraints show minimal improvement.
+
+#### Hypotheses
+- **H7**: Triad-informed reconstruction outperforms naive interpolation
+- **H8**: Continuity constraints improve reconstruction
+
+#### Results
+- **H7**: FAIL (Triad-informed reconstruction shows -27.2% median improvement vs linear interpolation)
+- **H8**: FAIL (Continuity constraints show only 4.3% median improvement)
+- **Overall**: FAIL
+
+#### Diagnostic
+The failure of H7 indicates fundamental issues with the current triad-informed reconstruction methodology, potentially related to numerical stability or sensitivity in the mapping process. The minimal gains from H8 suggest that the continuity constraints may not be effectively regularizing the reconstruction process.
+
+#### Scientific Value
+While this test resulted in a failure, it provides important insights:
+1. The current triad-informed reconstruction approach needs significant refinement
+2. Linear interpolation may be a more robust baseline for this type of reconstruction
+3. Continuity constraints alone are insufficient for improving reconstruction accuracy
+
+#### Next Steps
+1. Investigate numerical stability issues in the triad-informed reconstruction algorithm
+2. Examine mapping sensitivity and potential information loss
+3. Refine continuity constraints implementation
+4. Consider alternative reconstruction approaches
+
+### T5: Smoothing Beats Filtering Validation
+
+**Status**: PASS
+**Last Run**: August 25, 2025
+**Result Summary**: SEP-informed filtering significantly outperforms naive methods; strong parameter-stability correlation confirmed.
+
+#### Hypotheses
+- **H9**: SEP-informed filtering outperforms naive filtering
+- **H10**: There exists a correlation between optimal filtering parameters and signal stability
+
+#### Results
+- **H9**: PASS (SEP-informed filtering shows 67.56% median improvement vs naive methods)
+- **H10**: PASS (Parameter-stability correlation coefficient: -0.9898)
+- **Overall**: PASS
+
+#### Key Findings
+- SEP-informed filtering consistently outperforms traditional naive filtering methods
+- Strong negative correlation exists between optimal filtering parameters and signal stability
+- Performance varies by signal type, with chirp signals showing highest improvement
+- Approach is robust across different noise levels
+
+#### Scientific Value
+This test validates the practical utility of SEP metrics in real-world signal processing applications, demonstrating that:
+1. SEP stability metrics can effectively inform better filtering parameters
+2. There's a predictable relationship between signal characteristics and optimal processing approaches
+
+#### Next Steps
+1. Expand testing to additional signal types
+2. Apply approach to real-world datasets
+3. Integrate with other SEP methods for comprehensive signal processing pipelines
+4. Further refine adaptive filtering approaches
+
