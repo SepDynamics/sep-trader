@@ -4,7 +4,7 @@ This directory contains the complete documentation for the SEP (Signal Enhanceme
 
 ## Directory Structure
 
-- [whitepaper.md](whitepaper.md) - The main technical whitepaper for SEP
+- [whitepaper.md](../whitepaper/whitepaper.md) - The main technical whitepaper for SEP
 - [validation/](validation/) - Validation plan, test documentation, and results
 - [00_OVERVIEW/](00_OVERVIEW/) - Project overview documentation
 - [01_ARCHITECTURE/](01_ARCHITECTURE/) - System architecture documentation
@@ -17,7 +17,7 @@ This directory contains the complete documentation for the SEP (Signal Enhanceme
 ## Key Documents
 
 ### Main Technical Documentation
-- [whitepaper.md](whitepaper.md) - The primary technical documentation for SEP
+- [whitepaper.md](../whitepaper/whitepaper.md) - The primary technical documentation for SEP
 - [validation/SEP_Physics_Validation_Plan.md](validation/SEP_Physics_Validation_Plan.md) - The complete validation plan for SEP physics
 
 ### Validation Documentation
@@ -37,5 +37,5 @@ This documentation provides:
 
 ## Related Resources
 
-- [Validation Test Scripts](../validation/test_scripts/) - The Python implementation of the validation tests
-- [Validation Framework](../validation/) - The automated validation framework
+- [Validation Test Scripts](../whitepaper/validation/test_scripts/) - The Python implementation of the validation tests
+- [Validation Framework](../whitepaper/validation/) - The automated validation framework

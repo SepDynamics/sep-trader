@@ -27,6 +27,6 @@ This documentation provides:
 
 ## Related Resources
 
-- [Main SEP Whitepaper](../whitepaper.md) - The primary technical documentation for SEP
-- [Validation Test Scripts](../../validation/test_scripts/) - The Python implementation of the validation tests
-- [Validation Framework](../../validation/) - The automated validation framework
+- [Main SEP Whitepaper](../../whitepaper/whitepaper.md) - The primary technical documentation for SEP
+- [Validation Test Scripts](../../whitepaper/validation/test_scripts/) - The Python implementation of the validation tests
+- [Validation Framework](../../whitepaper/validation/) - The automated validation framework

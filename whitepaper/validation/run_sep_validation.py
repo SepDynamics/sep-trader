@@ -41,11 +41,11 @@ def check_dependencies():
 def create_results_directory():
     """Create results directory with timestamp."""
     timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S_UTC")
-    results_dir = Path(f"results/validation_run_{timestamp}")
+    results_dir = Path(f"whitepaper/validation/results/validation_run_{timestamp}")
     results_dir.mkdir(parents=True, exist_ok=True)
     
     # Create symlink to latest
-    latest_link = Path("results/latest")
+    latest_link = Path("whitepaper/validation/results/latest")
     if latest_link.exists():
         latest_link.unlink()
     latest_link.symlink_to(results_dir.name)

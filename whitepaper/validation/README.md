@@ -18,11 +18,11 @@ The foundational module implementing:
 #### 2. **Test Suite** (T1-T5)
 Five comprehensive test modules validating specific SEP hypotheses:
 
-- **T1**: [`test_scripts/T1_time_scaling_test.py`](validation/test_scripts/T1_time_scaling_test.py) - Isolated vs Reactive Time Scaling
-- **T2**: [`test_scripts/T2_maxent_sufficiency_test.py`](validation/test_scripts/T2_maxent_sufficiency_test.py) - Pairwise Maximum-Entropy Sufficiency
-- **T3**: [`test_scripts/T3_convolutional_invariance_test.py`](validation/test_scripts/T3_convolutional_invariance_test.py) - Convolutional Invariance on Band-Limited Waves
-- **T4**: [`test_scripts/T4_retrodictive_reconstruction_test.py`](validation/test_scripts/T4_retrodictive_reconstruction_test.py) - Retrodictive Reconstruction With Continuity Constraint
-- **T5**: [`test_scripts/T5_smoothing_beats_filtering_test.py`](validation/test_scripts/T5_smoothing_beats_filtering_test.py) - Smoothing Beats Filtering (uncertainty reduction)
+- **T1**: [`test_scripts/T1_time_scaling_test.py`](test_scripts/T1_time_scaling_test.py) - Isolated vs Reactive Time Scaling
+- **T2**: [`test_scripts/T2_maxent_sufficiency_test.py`](test_scripts/T2_maxent_sufficiency_test.py) - Pairwise Maximum-Entropy Sufficiency
+- **T3**: [`test_scripts/T3_convolutional_invariance_test.py`](test_scripts/T3_convolutional_invariance_test.py) - Convolutional Invariance on Band-Limited Waves
+- **T4**: [`test_scripts/T4_retrodictive_reconstruction_test.py`](test_scripts/T4_retrodictive_reconstruction_test.py) - Retrodictive Reconstruction With Continuity Constraint
+- **T5**: [`test_scripts/T5_smoothing_beats_filtering_test.py`](test_scripts/T5_smoothing_beats_filtering_test.py) - Smoothing Beats Filtering (uncertainty reduction)
 
 #### 3. **Validation Framework** (`run_sep_validation.py`)
 Automated test runner with:
@@ -283,9 +283,9 @@ Partial success indicates:
 
 ### Adding New Tests
 1. Create test module following naming pattern `T*_description_test.py` in the `test_scripts` subdirectory
-2. Implement [`main()`](validation/run_sep_validation.py:main) function returning boolean success
+2. Implement [`main()`](run_sep_validation.py:main) function returning boolean success
 3. Generate results in standardized format (JSON + CSV + plots)
-4. Add to test suite in [`run_sep_validation.py`](validation/run_sep_validation.py)
+4. Add to test suite in [`run_sep_validation.py`](run_sep_validation.py)
 
 ### Custom Processes
 ```python

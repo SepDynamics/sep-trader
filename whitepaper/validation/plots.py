@@ -373,7 +373,7 @@ def create_paper_figure(test_name: str, results: Dict, thresholds: Dict) -> plt.
         return plot_triad_evolution(results.get('triads', {}), 
                                    title=f"{test_name} Results")
 
-def export_paper_figures(results_dir: str = 'validation/results',
+def export_paper_figures(results_dir: str = 'whitepaper/validation/results',
                         output_dir: str = 'docs/figures'):
     """
     Export all paper figures from test results.

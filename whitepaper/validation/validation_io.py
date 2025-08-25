@@ -97,7 +97,7 @@ def load_csv(filepath: str) -> List[Dict[str, Any]]:
 
 def get_results_dir(test_name: str) -> str:
     """Get results directory for a test."""
-    return f"validation/results/{test_name}"
+    return f"whitepaper/validation/results/{test_name}"
 
 def get_timestamp() -> str:
     """Get timestamp string for filenames."""
