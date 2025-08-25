@@ -1,0 +1,56 @@
+{
+  "test": "T2",
+  "parameters": {
+    "process_length": 10000,
+    "n_processes": 4,
+    "beta": 0.1,
+    "rho_values": [
+      0.0,
+      0.2,
+      0.4,
+      0.6,
+      0.8
+    ],
+    "seeds": [
+      1337,
+      1729,
+      2718
+    ],
+    "subsample_rate": 10,
+    "mapping": "D1"
+  },
+  "results": {
+    "reductions_by_rho": {
+      "0.0": 0.04526405923348349,
+      "0.2": 0.0336113128297585,
+      "0.4": 0.03717410236371485,
+      "0.6": 0.0589513413383106,
+      "0.8": 0.12239854602876316
+    },
+    "excess_by_rho": {
+      "0.0": 0.03358923182218884,
+      "0.2": 0.030907985907577012,
+      "0.4": 0.04214480835877235,
+      "0.6": 0.058429065329925665,
+      "0.8": 0.07680607821300561
+    },
+    "overall_median_excess": 0.04212007089087648,
+    "max_reduction": 0.12239854602876316
+  },
+  "hypotheses": {
+    "H3": {
+      "pass": false,
+      "metric": 0.12239854602876316,
+      "threshold": 0.3,
+      "rho_threshold": 0.6,
+      "description": "Pairwise conditioning should capture \u226530% information at \u03c1\u22650.6"
+    },
+    "H4": {
+      "pass": true,
+      "metric": 0.04212007089087648,
+      "threshold": 0.05,
+      "description": "Higher-order terms should contribute \u22645% additional information"
+    }
+  },
+  "overall_pass": false
+}

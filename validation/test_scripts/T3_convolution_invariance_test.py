@@ -74,7 +74,7 @@ def generate_chirp_signal(length: int, f0: float, f1: float,
     
     return signal_with_noise
 
-def decimate_signal(signal: np.ndarray, factor: int, use_antialiasing: bool) -> np.ndarray:
+def decimate_signal(input_signal: np.ndarray, factor: int, use_antialiasing: bool) -> np.ndarray:
     """Decimate signal with or without antialiasing."""
     if use_antialiasing:
         # Apply antialiasing filter
@@ -83,13 +83,13 @@ def decimate_signal(signal: np.ndarray, factor: int, use_antialiasing: bool) -> 
         
         # Design Butterworth filter
         b, a = signal.butter(8, cutoff, btype='low')
-        filtered = signal.filtfilt(b, a, signal)
+        filtered = signal.filtfilt(b, a, input_signal)
         
         # Decimate
         decimated = filtered[::factor]
     else:
         # Direct decimation without filtering (aliasing will occur)
-        decimated = signal[::factor]
+        decimated = input_signal[::factor]
     
     return decimated
 
