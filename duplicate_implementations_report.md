@@ -5,9 +5,10 @@ This document tracks outstanding code quality concerns in the SEP Engine codebas
 
 ## Code Quality Issues
 
-- *2025-08-24:* Deep scan confirmed no mock or placeholder components remain in `src/` or `frontend/`.
+- *2025-08-24:* Deep scan removed orphan risk manager and stubbed headers; no mock or placeholder components remain in `src/` or `frontend/`.
 
 ## Recent Cleanup
+- Removed orphan risk manager prototype and unused config stubs (`src/core/risk_manager.py`, `src/core/redis_config.h`, `src/core/coherence_manager.hpp`, `src/core/__init__.py`).
 - Legacy DSL bytecode and primitive modules removed (`src/util/compiler.*`,
   `src/util/core_primitives.*`, `src/util/stdlib.*`, `src/util/time_series.*`).
 - Mock health monitor implementation removed (`src/app/health_monitor_c_impl.c`).
