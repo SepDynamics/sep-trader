@@ -1,14 +1,30 @@
 #!/usr/bin/env python3
-import numpy as np
-from scipy.signal import firwin, lfilter
-from sep_core import bit_mapping_D1, triad_series, rmse, generate_chirp, decimate2
-import matplotlib.pyplot as plt
+import argparse
 import json
 import csv
 import os
 
+import numpy as np
+from scipy.signal import firwin, lfilter
+from sep_core import (
+    bit_mapping_D1,
+    bit_mapping_D2,
+    triad_series,
+    rmse,
+    generate_chirp,
+    decimate2,
+)
+import matplotlib.pyplot as plt
+
 # Create results directory if it doesn't exist
 os.makedirs("results", exist_ok=True)
+
+
+def antialiased_decimate(signal: np.ndarray, taps: int = 32) -> np.ndarray:
+    """Decimate by factor of 2 with an anti-aliasing FIR filter."""
+    fir = firwin(taps, 0.5)
+    filtered = lfilter(fir, [1.0], signal)
+    return filtered[::2]
 
 def align(triads_orig, triads_decimated):
     n = len(triads_orig)
@@ -21,35 +37,35 @@ def align(triads_orig, triads_decimated):
                               left=triads_decimated[0, i], right=triads_decimated[-1, i])
     return out
 
-def save_results(joint_rmse, h_rmse, c_rmse, s_rmse):
+def save_results(mapping: str, beta: float, with_aa: dict, joint_no_aa: float):
     """Save results to JSON and CSV files."""
-    # JSON summary
     summary = {
         "test": "T3_convolutional_invariance",
         "hypothesis": "H4 (Convolutional invariance in waves)",
-        "joint_rmse": joint_rmse,
-        "h_rmse": h_rmse,
-        "c_rmse": c_rmse,
-        "s_rmse": s_rmse,
+        "rmse_with_antialiasing": with_aa["joint"],
+        "rmse_without_antialiasing": joint_no_aa,
+        "h_rmse": with_aa["h"],
+        "c_rmse": with_aa["c"],
+        "s_rmse": with_aa["s"],
         "threshold": 0.05,
-        "pass": joint_rmse <= 0.05,
-        "mapping": "D1",
-        "beta": 0.1
+        "pass": with_aa["joint"] <= 0.05,
+        "mapping": mapping,
+        "beta": beta,
     }
-    
+
     with open("results/T3_summary.json", "w") as f:
         json.dump(summary, f, indent=2)
-    
-    # CSV metrics
+
     with open("results/T3_entropy_metrics.csv", "w", newline="") as f:
         writer = csv.writer(f)
         writer.writerow(["Metric", "Value"])
-        writer.writerow(["Joint RMSE", joint_rmse])
-        writer.writerow(["H RMSE", h_rmse])
-        writer.writerow(["C RMSE", c_rmse])
-        writer.writerow(["S RMSE", s_rmse])
+        writer.writerow(["Joint RMSE (AA)", with_aa["joint"]])
+        writer.writerow(["Joint RMSE (No AA)", joint_no_aa])
+        writer.writerow(["H RMSE", with_aa["h"]])
+        writer.writerow(["C RMSE", with_aa["c"]])
+        writer.writerow(["S RMSE", with_aa["s"]])
         writer.writerow(["Threshold", 0.05])
-        writer.writerow(["Pass", joint_rmse <= 0.05])
+        writer.writerow(["Pass", with_aa["joint"] <= 0.05])
 
 def plot_results(tri0, trid_aligned):
     """Plot the triad series for visualization."""
@@ -80,48 +96,74 @@ def plot_results(tri0, trid_aligned):
     plt.savefig("results/T3_plots.png", dpi=300, bbox_inches="tight")
     plt.close()
 
-def main():
+def main() -> None:
+    parser = argparse.ArgumentParser(description="Run T3 convolutional invariance test")
+    parser.add_argument("--mapping", choices=["D1", "D2"], default="D2",
+                        help="Bit mapping strategy")
+    parser.add_argument("--beta", type=float, default=0.1,
+                        help="Triad EMA beta value")
+    parser.add_argument("--window-size", type=int, default=1024,
+                        help="Window size for D2 mapping")
+    args = parser.parse_args()
+
     print("============================================================")
     print("Running Test T3: Convolutional Invariance")
     print("============================================================")
-    
-    # Generate chirp signal
+
     x = generate_chirp(length=200000, f0=10, f1=50, snr_db=20)
-    
-    # Map to bits and compute triads for original signal
-    bits0 = bit_mapping_D1(x)
-    tri0 = triad_series(bits0, beta=0.1)
-    
-    # Decimate and compute triads for decimated signal
-    xd = decimate2(x)
-    bitsd = bit_mapping_D1(xd)
-    trid = triad_series(bitsd, beta=0.1)
-    
-    # Align decimated triads to original time scale
-    trid_aligned = align(tri0, trid)
-    
-    # Compute component RMSEs
-    h = rmse(tri0[:,0], trid_aligned[:,0])
-    c = rmse(tri0[:,1], trid_aligned[:,1])
-    s = rmse(tri0[:,2], trid_aligned[:,2])
-    joint = float((h + c + s) / 3.0)
-    
-    print(f"Joint RMSE: {joint:.4f}  (H={h:.4f}, C={c:.4f}, S={s:.4f})")
-    
-    # Evaluate hypothesis
+
+    if args.mapping == "D1":
+        bits0 = bit_mapping_D1(x)
+    else:
+        bits0 = bit_mapping_D2(x, window_size=args.window_size)
+    tri0 = triad_series(bits0, beta=args.beta)
+
+    xd_no_aa = decimate2(x)
+    xd_aa = antialiased_decimate(x)
+
+    if args.mapping == "D1":
+        bits_no_aa = bit_mapping_D1(xd_no_aa)
+        bits_aa = bit_mapping_D1(xd_aa)
+    else:
+        bits_no_aa = bit_mapping_D2(xd_no_aa, window_size=args.window_size)
+        bits_aa = bit_mapping_D2(xd_aa, window_size=args.window_size)
+
+    trid_no_aa = triad_series(bits_no_aa, beta=args.beta)
+    trid_aa = triad_series(bits_aa, beta=args.beta)
+
+    trid_no_aa_aligned = align(tri0, trid_no_aa)
+    trid_aa_aligned = align(tri0, trid_aa)
+
+    h = rmse(tri0[:, 0], trid_aa_aligned[:, 0])
+    c = rmse(tri0[:, 1], trid_aa_aligned[:, 1])
+    s = rmse(tri0[:, 2], trid_aa_aligned[:, 2])
+    joint_aa = float((h + c + s) / 3.0)
+
+    joint_no_aa = float(
+        (rmse(tri0[:, 0], trid_no_aa_aligned[:, 0]) +
+         rmse(tri0[:, 1], trid_no_aa_aligned[:, 1]) +
+         rmse(tri0[:, 2], trid_no_aa_aligned[:, 2])) / 3.0
+    )
+
+    print(f"Joint RMSE (AA): {joint_aa:.4f}  (H={h:.4f}, C={c:.4f}, S={s:.4f})")
+    print(f"Joint RMSE (No AA): {joint_no_aa:.4f}")
+
     print("\n============================================================")
     print("EVALUATION RESULTS")
     print("============================================================")
-    print(f"H4 (Convolutional Invariance): {'PASS' if joint <= 0.05 else 'FAIL'}")
-    print(f"  Joint RMSE: {joint:.4f}")
+    print(f"H4 (Convolutional Invariance): {'PASS' if joint_aa <= 0.05 else 'FAIL'}")
+    print(f"  Joint RMSE (AA): {joint_aa:.4f}")
+    print(f"  Joint RMSE (No AA): {joint_no_aa:.4f}")
     print(f"  Threshold: 0.05")
-    
-    # Save results
-    save_results(joint, h, c, s)
-    plot_results(tri0, trid_aligned)
-    
-    print(f"\nResults saved to results/T3_summary.json and results/T3_entropy_metrics.csv")
-    print(f"Plots saved to results/T3_plots.png")
+
+    save_results(args.mapping, args.beta,
+                 {"joint": joint_aa, "h": h, "c": c, "s": s},
+                 joint_no_aa)
+    plot_results(tri0, trid_aa_aligned)
+
+    print("\nResults saved to results/T3_summary.json and results/T3_entropy_metrics.csv")
+    print("Plots saved to results/T3_plots.png")
+
 
 if __name__ == "__main__":
     main()

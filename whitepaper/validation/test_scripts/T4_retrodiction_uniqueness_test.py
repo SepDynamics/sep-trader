@@ -9,14 +9,17 @@ Tests uniqueness rate vs flip budget k and window length L.
 
 import sys
 import os
-# Add the parent directory (validation) to Python path
-parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-sys.path.insert(0, parent_dir)
+import argparse
+import cProfile
+from typing import Dict, List, Tuple
+from itertools import product
 
 import numpy as np
 import matplotlib.pyplot as plt
-from typing import Dict, List, Tuple
-from itertools import product
+
+# Add the parent directory (validation) to Python path
+parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, parent_dir)
 
 # Import from shared utilities
 from common import (
@@ -187,10 +190,10 @@ def test_retrodiction_uniqueness(k: int, L: int, seed: int) -> Dict:
         'total_attempts': total_attempts
     }
 
-def run_t4_test() -> Dict:
+def run_t4_test(max_runtime_minutes: int = 60) -> Dict:
     """Run the complete T4 test suite."""
 
-    with ProgressMonitor(max_runtime_minutes=60):
+    with ProgressMonitor(max_runtime_minutes=max_runtime_minutes):
         with TestLogger("T4", "Retrodiction Uniqueness Under Continuity"):
             results = []
 
@@ -351,9 +354,27 @@ def create_t4_plot(plot_data: Dict, thresholds: Dict) -> plt.Figure:
     plt.tight_layout()
     return fig
 
-def main():
-    """Main entry point."""
-    result = run_t4_test()
+def main() -> bool:
+    """Main entry point with CLI support."""
+    parser = argparse.ArgumentParser(description="Run T4 retrodiction uniqueness test")
+    parser.add_argument("--timeout", type=int, default=60,
+                        help="Maximum runtime in minutes")
+    parser.add_argument("--profile", type=str, default=None,
+                        help="Path to write cProfile stats")
+    args = parser.parse_args()
+
+    if args.profile:
+        profiler = cProfile.Profile()
+        profiler.enable()
+        try:
+            result = run_t4_test(max_runtime_minutes=args.timeout)
+        finally:
+            profiler.disable()
+            profiler.dump_stats(args.profile)
+            print(f"Profiling data written to {args.profile}")
+    else:
+        result = run_t4_test(max_runtime_minutes=args.timeout)
+
     return result['overall_pass']
 
 if __name__ == "__main__":

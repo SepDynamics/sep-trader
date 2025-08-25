@@ -14,6 +14,7 @@ import os
 parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, parent_dir)
 
+import argparse
 import numpy as np
 import matplotlib.pyplot as plt
 from typing import Dict, List
@@ -47,11 +48,12 @@ from thresholds import (
 # Test parameters (optimized for quick execution)
 PROCESS_LENGTH = 1000  # Much smaller for fast testing
 BETA = 0.1  # EMA parameter
+N_QUANTILES = 16  # Quantile levels for D2 mapping
 GAMMA_VALUES = [1.2, 2.0]  # Reduced number of gamma values
 SEEDS = [1337]  # Just one seed for quick test
 
-def run_single_test(process_type: str, mapping_name: str, gamma: float, 
-                   seed: int) -> Dict:
+def run_single_test(process_type: str, mapping_name: str, gamma: float,
+                   seed: int, beta: float, n_quantiles: int) -> Dict:
     """Run a single time-scaling test."""
     set_random_seed(seed)
     
@@ -75,12 +77,12 @@ def run_single_test(process_type: str, mapping_name: str, gamma: float,
     if mapping_name == "D1":
         chords_orig = mapping_D1_derivative_sign(signal)
     elif mapping_name == "D2":
-        chords_orig = mapping_D2_dilation_robust(signal)
+        chords_orig = mapping_D2_dilation_robust(signal, n_quantiles=n_quantiles)
     else:
         raise ValueError(f"Unknown mapping: {mapping_name}")
     
     # Compute original triads
-    triads_orig = compute_triad(chords_orig, beta=BETA)
+    triads_orig = compute_triad(chords_orig, beta=beta)
     
     # Time-scale the signal
     signal_scaled = time_scale_signal(signal, gamma)
@@ -89,10 +91,10 @@ def run_single_test(process_type: str, mapping_name: str, gamma: float,
     if mapping_name == "D1":
         chords_scaled = mapping_D1_derivative_sign(signal_scaled)
     elif mapping_name == "D2":
-        chords_scaled = mapping_D2_dilation_robust(signal_scaled)
+        chords_scaled = mapping_D2_dilation_robust(signal_scaled, n_quantiles=n_quantiles)
     
     # Compute scaled triads
-    triads_scaled = compute_triad(chords_scaled, beta=BETA)
+    triads_scaled = compute_triad(chords_scaled, beta=beta)
     
     # Align triads for comparison
     # We need to interpolate the scaled triads to match original time points
@@ -128,19 +130,20 @@ def run_single_test(process_type: str, mapping_name: str, gamma: float,
         'triads_scaled': triads_scaled_aligned
     }
 
-def run_t1_test() -> Dict:
+def run_t1_test(beta: float = BETA, n_quantiles: int = N_QUANTILES,
+                seeds: List[int] = SEEDS) -> Dict:
     """Run the complete T1 test suite."""
-    
+
     with TestLogger("T1", "Isolated vs Reactive Time Scaling"):
         results = []
         
         # Test all combinations
-        for seed in SEEDS:
+        for seed in seeds:
             for process_type in ["isolated", "reactive"]:
                 for mapping in ["D1", "D2"]:
                     for gamma in GAMMA_VALUES:
                         print(f"  Testing {process_type} with {mapping} mapping, γ={gamma}, seed={seed}")
-                        result = run_single_test(process_type, mapping, gamma, seed)
+                        result = run_single_test(process_type, mapping, gamma, seed, beta, n_quantiles)
                         results.append(result)
         
         # Aggregate results by mapping and process type
@@ -194,9 +197,10 @@ def run_t1_test() -> Dict:
             'test': 'T1',
             'parameters': {
                 'process_length': PROCESS_LENGTH,
-                'beta': BETA,
+                'beta': beta,
+                'n_quantiles': n_quantiles,
                 'gamma_values': GAMMA_VALUES,
-                'seeds': SEEDS
+                'seeds': seeds
             },
             'results': {
                 'D2_mapping': {
@@ -204,7 +208,9 @@ def run_t1_test() -> Dict:
                     'reactive_median': reactive_d2_median,
                     'ratio': validation['ratio'],
                     'isolated_rmse_by_gamma': aggregated[("isolated", "D2")]['rmse_by_gamma'],
-                    'reactive_rmse_by_gamma': aggregated[("reactive", "D2")]['rmse_by_gamma']
+                    'reactive_rmse_by_gamma': aggregated[("reactive", "D2")]['rmse_by_gamma'],
+                    'isolated_std': float(np.std(aggregated[("isolated", "D2")]['all_rmses'])),
+                    'reactive_std': float(np.std(aggregated[("reactive", "D2")]['all_rmses']))
                 },
                 'D1_mapping_control': {
                     'isolated_median': isolated_d1_median,
@@ -358,11 +364,21 @@ def create_enhanced_t1_plot(data: Dict, thresholds: Dict) -> plt.Figure:
     plt.tight_layout()
     return fig
 
-def main():
-    """Main entry point."""
-    result = run_t1_test()
+def main() -> bool:
+    """Main entry point with CLI support."""
+    parser = argparse.ArgumentParser(description="Run T1 time-scaling test")
+    parser.add_argument('--beta', type=float, default=BETA,
+                        help="Triad EMA beta value")
+    parser.add_argument('--n-quantiles', type=int, default=N_QUANTILES,
+                        help="Quantile levels for D2 mapping")
+    parser.add_argument('--seeds', type=int, nargs='*', default=SEEDS,
+                        help="Random seeds for test repetitions")
+    args = parser.parse_args()
+
+    result = run_t1_test(beta=args.beta, n_quantiles=args.n_quantiles, seeds=args.seeds)
     return result['overall_pass']
 
-if __name__ == "__main__":
+
+if __name__ == '__main__':
     success = main()
     exit(0 if success else 1)
