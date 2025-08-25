@@ -63,7 +63,7 @@ This document tracks outstanding code quality concerns in the SEP Engine codebas
 - Removed unused PatternEvolutionTrainer and orphan CUDA walk-forward validator (`src/core/pattern_evolution_trainer.*`, `src/core/cuda_walk_forward_validator.*`).
 - Eliminated leftover PatternAnalysis implementation from EngineFacade to finalize deprecation (`src/core/facade.cpp`).
 - Added missing `<cstdint>` include for CUDA memory utilities (`src/cuda/memory.cu`).
-- Removed unused manifold selection state (`frontend/src/context/ManifoldContext.js`,
+- Manifold selection components remain active and integrated with real-time data (`frontend/src/context/ManifoldContext.js`,
   `frontend/src/components/IdentityInspector.jsx`,
   `frontend/src/components/MetricTimeSeries.jsx`).
 
