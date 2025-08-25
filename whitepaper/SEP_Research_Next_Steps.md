@@ -4,14 +4,12 @@
 **Priority:** HIGH - Critical Issues Identified  
 **Context:** T4 running >56 minutes, 4/5 tests failing validation
 
-### Latest Progress (10:30 UTC)
-- Installed missing Python dependencies (`scipy`, `matplotlib`, `scikit-learn`, `seaborn`) enabling execution of validation scripts.
-- Fixed `T3_convolutional_invariance_test.py` import and formatting errors.
-- Updated `run_fast_validation.py` to correctly import test modules and create nested result directories.
-- Ran fast validation: 
-  - **T1** – H1 RMSE `0.0786` (>0.05) → **FAIL**.
-  - **T2** – H3 reduction `0.093` (<0.30) **FAIL**, H4 excess `0.0402` (<0.05) **PASS**; runtime ~121s.
-- Execution halted during T3; profiling and timeout support still required.
+## ✅ Progress Update (August 25, 2025)
+
+- Ran T1 beta sweep (β ∈ {0.01, 0.05, 0.1, 0.2})
+  - Best RMSE: 0.0959 at β=0.01 (threshold 0.05)
+  - Reactive ratio: 0.471 (threshold 2.0)
+- **Conclusion**: Beta tuning alone insufficient—scale-invariance remains time-base sensitive
 
 ## 🚨 Immediate Actions Required (Today)
 
@@ -25,9 +23,9 @@
 Priority order based on impact:
 
 #### T1 (Time Scaling) - CRITICAL
-- **Issue**: RMSE 0.174 >> 0.05 threshold (348% over limit)
-- **Root Cause**: [`bit_mapping_D1()`](whitepaper/validation/sep_core.py:56) sensitivity to signal characteristics
-- **Next Step**: Test with different beta values (0.01, 0.05, 0.2)
+- **Issue**: Best RMSE 0.0959 > 0.05 and ratio 0.471 < 2.0 despite beta sweep
+- **Root Cause**: [`mapping_D2_dilation_robust`](whitepaper/validation/test_scripts/T1_time_scaling_test.py) and EMA remain tied to sample indices
+- **Next Step**: Anchor β to physical time or redesign D2 mapping to remove time-base sensitivity
 
 #### T3 (Convolution Invariance) - CRITICAL  
 - **Issue**: RMSE 0.188 >> 0.05 threshold (376% over limit)
@@ -57,6 +55,7 @@ for beta in [0.01, 0.05, 0.1, 0.2]:
     # Run with modified beta
 "
 ```
+# Result: best β=0.01 → RMSE 0.0959, ratio 0.471 (still failing)
 
 ```bash
 # 4. Collect baseline fast-validation results
