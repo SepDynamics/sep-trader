@@ -30,6 +30,9 @@ This document tracks outstanding code quality concerns in the SEP Engine codebas
 - Legacy dashboard component removed (`frontend/src/components/Dashboard.js`).
 - Redundant JavaScript SymbolContext removed (`frontend/src/context/SymbolContext.js`)
   in favor of the typed implementation.
+- Residual manifold selection state components removed (`frontend/src/context/ManifoldContext.js`,
+  `frontend/src/components/IdentityInspector.jsx`,
+  `frontend/src/components/MetricTimeSeries.jsx`).
 - Placeholder quantum state replaced with real implementation
   (`src/core/pattern_types.h`, `src/core/types_serialization.cpp`).
 - Unused DSL aggregation and data transformation stubs removed (`src/util/aggregation.*`, `src/util/data_transformation.*`).
@@ -66,7 +69,6 @@ This document tracks outstanding code quality concerns in the SEP Engine codebas
 - Manifold selection components remain active and integrated with real-time data (`frontend/src/context/ManifoldContext.js`,
   `frontend/src/components/IdentityInspector.jsx`,
   `frontend/src/components/MetricTimeSeries.jsx`).
-
 - Obsolete OANDA trader entry point removed (`src/app/oanda_trader_main.cpp`, `src/CMakeLists.txt`).
 - Leftover pattern analysis function removed from EngineFacade (`src/core/facade.cpp`).
 - Fixed misplaced validation helpers in OANDA connector (`src/io/oanda_connector.cpp`).
