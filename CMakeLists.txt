@@ -11,14 +11,14 @@ if(UNIX AND NOT APPLE)
     set(SEP_GCC_PATH "/usr/bin")
   endif()
   
-  if(EXISTS "${SEP_GCC_PATH}/gcc-14")
-    set(CMAKE_C_COMPILER        "${SEP_GCC_PATH}/gcc-14")
-    set(CMAKE_CXX_COMPILER      "${SEP_GCC_PATH}/g++-14")
-    set(CMAKE_CUDA_HOST_COMPILER "${SEP_GCC_PATH}/g++-14")
-    message(STATUS "Using GCC-14 from ${SEP_GCC_PATH} (CUDA 12.9 compatible)")
+  if(EXISTS "${SEP_GCC_PATH}/gcc-11")
+    set(CMAKE_C_COMPILER        "${SEP_GCC_PATH}/gcc-11")
+    set(CMAKE_CXX_COMPILER      "${SEP_GCC_PATH}/g++-11")
+    set(CMAKE_CUDA_HOST_COMPILER "${SEP_GCC_PATH}/g++-11")
+    message(STATUS "Using GCC-11 from ${SEP_GCC_PATH} (CUDA 12.9 compatible)")
   else()
     list(APPEND CMAKE_CUDA_FLAGS "--allow-unsupported-compiler")
-    message(STATUS "GCC-14 not found at ${SEP_GCC_PATH}; allowing unsupported compiler for CUDA toolchain")
+    message(STATUS "GCC-11 not found at ${SEP_GCC_PATH}; allowing unsupported compiler for CUDA toolchain")
   endif()
 endif()
 
@@ -105,8 +105,8 @@ if(SEP_USE_CUDA)
         if(NOT SEP_GCC_PATH)
             set(SEP_GCC_PATH "/usr/bin")
         endif()
-        if(EXISTS "${SEP_GCC_PATH}/g++-14")
-            set(CMAKE_CUDA_HOST_COMPILER "${SEP_GCC_PATH}/g++-14")
+        if(EXISTS "${SEP_GCC_PATH}/g++-11")
+            set(CMAKE_CUDA_HOST_COMPILER "${SEP_GCC_PATH}/g++-11")
         endif()
     endif()
 
@@ -116,8 +116,24 @@ if(SEP_USE_CUDA)
     set(CMAKE_CUDA_STANDARD_REQUIRED ON)
     set(CMAKE_CUDA_EXTENSIONS OFF)
 
-    # Core compiler flags
+    # Core compiler flags + Fedora 42 glibc 2.41 -> Ubuntu 24.04 glibc 2.39 compatibility
     set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} --expt-relaxed-constexpr --extended-lambda -Xcompiler -fno-strict-aliasing -Xcompiler -Wno-deprecated-declarations -Xcompiler -Wno-deprecated-copy -Xcompiler -D_FORCE_INLINES -Xcompiler -w")
+    # TARGETED FIX: Resolve ABI impedance mismatch between CUDA 12.9 and glibc 2.41 (noexcept specification divergence)
+    set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -Xcompiler -Dnoexcept\\\\(x\\\\)=")
+    # NUCLEAR OPTION: Block glibc math headers entirely for CUDA compilation
+    set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -Xcompiler -D__MATH_H=1")
+    set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -Xcompiler -D_MATH_H=1")
+    set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -Xcompiler -D__BITS_MATHCALLS_H=1")
+    set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -Xcompiler -D_BITS_MATHCALLS_H=1")
+    # Force CUDA to use only its own math function declarations
+    set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -Xcompiler -D__USE_ISOC99=0")
+    set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -Xcompiler -D__USE_MISC=0")
+    set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -Xcompiler -D__USE_GNU=0")
+    set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -Xcompiler -D_GNU_SOURCE=0")
+    # Disable all glibc feature test macros that enable problematic math extensions
+    set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -Xcompiler -D__GLIBC_USE_IEC_60559_FUNCS_EXT=0")
+    set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -Xcompiler -D__GLIBC_USE_IEC_60559_BFP_EXT=0")
+    set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -Xcompiler -D__GLIBC_USE_IEC_60559_TYPES_EXT=0")
 
     enable_language(CUDA)
     find_package(CUDAToolkit REQUIRED)
@@ -145,8 +161,8 @@ add_compile_definitions(NLOHMANN_JSON_USE_GLOBAL_UDLS=0)
 
 option(BUILD_TESTING "Enable building of tests" ON)
 include(CTest)
+enable_testing()
 if(BUILD_TESTING)
-  enable_testing()
   include(cmake/gtest.cmake)
 endif()
 
@@ -284,7 +300,10 @@ if(NOT fmt_FOUND)
     GIT_TAG 11.2.0
     GIT_SHALLOW TRUE
   )
+  # Set PIC for fmt to ensure it can be used in shared libraries
+  set(CMAKE_POSITION_INDEPENDENT_CODE ON)
   FetchContent_MakeAvailable(fmt)
+  set(CMAKE_POSITION_INDEPENDENT_CODE OFF)
 endif()
 
 find_package(spdlog 1.15 QUIET)
@@ -296,7 +315,10 @@ if(NOT spdlog_FOUND)
     GIT_TAG v1.15.3
     GIT_SHALLOW TRUE
   )
+  # Set PIC for spdlog to ensure it can be used in shared libraries
+  set(CMAKE_POSITION_INDEPENDENT_CODE ON)
   FetchContent_MakeAvailable(spdlog)
+  set(CMAKE_POSITION_INDEPENDENT_CODE OFF)
 endif()
 
 # ---------- Core dependency umbrella ----------

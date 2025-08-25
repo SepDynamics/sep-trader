@@ -64,9 +64,6 @@ if(BUILD_TESTING)
             INSTALL_RPATH_USE_LINK_PATH TRUE
         )
         
-        # Discover tests
-        gtest_discover_tests(${name})
-        
         # Add to test suite
         add_test(NAME ${name} COMMAND ${name})
     endfunction()
