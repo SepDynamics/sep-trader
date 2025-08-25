@@ -118,6 +118,8 @@ REACT_APP_API_URL=http://localhost:5000
 REACT_APP_WS_URL=<websocket-url>
 REACT_APP_ENVIRONMENT=development
 EOF
+
+Only the three `REACT_APP_*` variables above are required for the frontend. Remove any unused placeholders from your `.env` file.
 ```
 
 #### Step 3: Container Deployment
@@ -329,6 +331,8 @@ REACT_APP_API_URL=http://$DROPLET_IP:5000
 REACT_APP_WS_URL=ws://$DROPLET_IP:8765
 REACT_APP_ENVIRONMENT=production
 ```
+
+Only these three variables are needed by the React frontend.
 
 #### WebSocket Service Environment
 ```bash
