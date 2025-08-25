@@ -68,13 +68,18 @@ if [ "$NATIVE_BUILD" = true ] || [ "$SKIP_DOCKER" = true ] || ! "$DOCKER_BIN" in
     fi
     cd build
 
+    # Ensure nvcc is on PATH if CUDA is installed in the standard location
+    if ! command -v nvcc >/dev/null 2>&1 && [ -x /usr/local/cuda/bin/nvcc ]; then
+        export PATH=/usr/local/cuda/bin:$PATH
+    fi
+
     # Configure CUDA for native builds
     CUDA_FLAGS=""
     if command -v nvcc >/dev/null 2>&1; then
         echo "CUDA detected, enabling CUDA support..."
-        
+
         # Auto-detect CUDA_HOME if not set
-        if [ -z "$CUDA_HOME" ]; then
+        if [ -z "${CUDA_HOME:-}" ]; then
             NVCC_PATH=$(which nvcc)
             CUDA_HOME=$(dirname $(dirname "$NVCC_PATH"))
             export CUDA_HOME
@@ -82,7 +87,7 @@ if [ "$NATIVE_BUILD" = true ] || [ "$SKIP_DOCKER" = true ] || ! "$DOCKER_BIN" in
         else
             echo "Using existing CUDA_HOME: $CUDA_HOME"
         fi
-        
+
         CUDA_FLAGS="-DSEP_USE_CUDA=ON"
     else
         echo "CUDA not detected, building without CUDA support..."
@@ -101,8 +106,11 @@ if [ "$NATIVE_BUILD" = true ] || [ "$SKIP_DOCKER" = true ] || ! "$DOCKER_BIN" in
         -DCMAKE_BUILD_WITH_INSTALL_RPATH=ON \
         -DCMAKE_EXPORT_COMPILE_COMMANDS=TRUE \
         -DCMAKE_CXX_STANDARD=20 \
+        -DCMAKE_C_COMPILER=/usr/bin/gcc-11 \
+        -DCMAKE_CXX_COMPILER=/usr/bin/g++-11 \
+        -DCMAKE_CUDA_HOST_COMPILER=/usr/bin/g++-11 \
         -DCMAKE_CXX_FLAGS="-std=c++20 -Wno-unknown-warning-option -Wno-invalid-source-encoding -Wno-cpp" \
-        -DCMAKE_CUDA_FLAGS="-Wno-deprecated-gpu-targets -Xcompiler -Wno-unknown-warning-option -Xcompiler -Wno-invalid-source-encoding -Xcompiler -Wno-cpp -Xcompiler -D_DISABLE_FPCLASSIFY_FUNCTIONS=1 -Xcompiler -D__CUDA_INCLUDE_COMPILER_INTERNAL_HEADERS=1" \
+        -DCMAKE_CUDA_FLAGS="--allow-unsupported-compiler" \
         -DCMAKE_CUDA_STANDARD=20 \
         $CUDA_FLAGS
 
