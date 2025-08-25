@@ -217,6 +217,12 @@ if [ "$USE_CUDA" -eq 1 ] && [ "$USE_LOCAL_CUDA" -eq 0 ]; then
   fi
 fi
 
+# Final NVCC check to ensure compiler availability
+if [ "$USE_CUDA" -eq 1 ] && ! command -v nvcc >/dev/null 2>&1; then
+  echo "Installing standalone NVCC package..."
+  $SUDO apt-get install -y cuda-nvcc-12-9 >> "$LOG_DIR/apt.log" 2>&1 || true
+fi
+
 # Install Docker and Docker Compose
 if [ "$SKIP_DOCKER" -eq 0 ]; then
   echo "Installing Docker..."

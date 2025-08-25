@@ -9,6 +9,9 @@ This document tracks outstanding code quality concerns in the SEP Engine codebas
 - *2025-08-24:* Deep scan removed orphan risk manager and stubbed headers; no mock or placeholder components remain in `src/` or `frontend/`.
 
 ## Recent Cleanup
+- Replaced placeholder EngineConfig JSON handling with real `nlohmann::json` parsing (`src/core/engine_config.cpp`).
+- Implemented filesystem-based model rollback to remove stub logic (`src/core/quantum_training_coordinator.cpp`).
+- Install script now ensures standalone NVCC installation for reliable CUDA builds (`install.sh`, `docs/00_SEP_PROFESSIONAL_SYSTEM_OVERVIEW.md`).
 - Removed unused pattern matching registration stub (`src/util/pattern_matching.*`).
 - Removed orphan risk manager prototype and unused config stubs (`src/core/risk_manager.py`, `src/core/redis_config.h`, `src/core/coherence_manager.hpp`, `src/core/__init__.py`).
 - Legacy DSL bytecode and primitive modules removed (`src/util/compiler.*`,

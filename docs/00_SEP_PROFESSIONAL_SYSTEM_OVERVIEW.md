@@ -115,7 +115,7 @@ git clone [repository-url]
 cd sep-trader
 
 # Build core components
-./install.sh --minimal --no-docker
+./install.sh --minimal --no-docker  # verifies NVCC and adds it to PATH
 ./build.sh --no-docker
 
 # Deploy containerized services
