@@ -1,0 +1,128 @@
+{
+  "test": "T1_time_scaling",
+  "parameters": {
+    "process_length": 5000,
+    "beta": 0.1,
+    "gamma_values": [
+      1.2,
+      1.5,
+      2.0
+    ],
+    "rmse_threshold_h1": 0.05,
+    "min_reactive_ratio": 2.0
+  },
+  "results": [
+    {
+      "process_type": "isolated",
+      "bit_mapping": "D1",
+      "seed": 1337,
+      "gamma_rmses": {
+        "1.2": 0.0,
+        "1.5": 0.0,
+        "2.0": 0.0
+      },
+      "individual_rmses": {
+        "1.2": {
+          "H": 0.0,
+          "C": 0.0,
+          "S": 0.0
+        },
+        "1.5": {
+          "H": 0.0,
+          "C": 0.0,
+          "S": 0.0
+        },
+        "2.0": {
+          "H": 0.0,
+          "C": 0.0,
+          "S": 0.0
+        }
+      }
+    },
+    {
+      "process_type": "isolated",
+      "bit_mapping": "D2",
+      "seed": 1337,
+      "gamma_rmses": {
+        "1.2": 0.0,
+        "1.5": 0.0,
+        "2.0": 0.0
+      },
+      "individual_rmses": {
+        "1.2": {
+          "H": 0.0,
+          "C": 0.0,
+          "S": 0.0
+        },
+        "1.5": {
+          "H": 0.0,
+          "C": 0.0,
+          "S": 0.0
+        },
+        "2.0": {
+          "H": 0.0,
+          "C": 0.0,
+          "S": 0.0
+        }
+      }
+    },
+    {
+      "process_type": "reactive",
+      "bit_mapping": "D1",
+      "seed": 1338,
+      "gamma_rmses": {
+        "1.2": 0.0,
+        "1.5": 0.0,
+        "2.0": 0.0
+      },
+      "individual_rmses": {
+        "1.2": {
+          "H": 0.0,
+          "C": 0.0,
+          "S": 0.0
+        },
+        "1.5": {
+          "H": 0.0,
+          "C": 0.0,
+          "S": 0.0
+        },
+        "2.0": {
+          "H": 0.0,
+          "C": 0.0,
+          "S": 0.0
+        }
+      }
+    },
+    {
+      "process_type": "reactive",
+      "bit_mapping": "D2",
+      "seed": 1338,
+      "gamma_rmses": {
+        "1.2": 0.0,
+        "1.5": 0.0,
+        "2.0": 0.0
+      },
+      "individual_rmses": {
+        "1.2": {
+          "H": 0.0,
+          "C": 0.0,
+          "S": 0.0
+        },
+        "1.5": {
+          "H": 0.0,
+          "C": 0.0,
+          "S": 0.0
+        },
+        "2.0": {
+          "H": 0.0,
+          "C": 0.0,
+          "S": 0.0
+        }
+      }
+    }
+  ],
+  "evaluation": {
+    "H1_isolated_invariance": {
+      "median_joint_rmse": 0.0,
+      "threshold": 0.05,
+      "pass": 
