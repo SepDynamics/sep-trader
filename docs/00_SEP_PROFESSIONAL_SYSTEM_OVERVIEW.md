@@ -88,6 +88,10 @@ Services:
 - frontend (80/443): Nginx-served React application
 - external valkey: Valkey key-value store (configure `VALKEY_URL`)
 
+All backend services, including the `DataAccessService` and `MarketModelCache`,
+read connection details from the `VALKEY_URL` environment variable to ensure a
+shared external Valkey instance.
+
 Network: sep-network (172.25.0.0/16)
 Volumes: Local bind mounts for development
 ```

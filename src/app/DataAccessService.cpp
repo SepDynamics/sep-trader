@@ -2,9 +2,30 @@
 #include "util/nlohmann_json_safe.h"
 
 #include <fstream>
+#include <cstdlib>
 
 namespace sep {
 namespace services {
+
+std::pair<std::string, int> DataAccessService::parseValkeyUrl(const std::string& url) {
+    std::string host = "localhost";
+    int port = 6379;
+    if (url.rfind("redis://", 0) == 0) {
+        std::string rest = url.substr(8);
+        size_t colon = rest.find(':');
+        if (colon != std::string::npos) {
+            host = rest.substr(0, colon);
+            try {
+                port = std::stoi(rest.substr(colon + 1));
+            } catch (...) {
+                port = 6379;
+            }
+        } else {
+            host = rest;
+        }
+    }
+    return {host, port};
+}
 
 DataAccessService::DataAccessService()
     : ServiceBase("DataAccessService", "1.0.0"),
@@ -19,13 +40,20 @@ bool DataAccessService::isReady() const {
 }
 
 Result<void> DataAccessService::onInitialize() {
-    // Load Valkey connection parameters from config/default.json
-    std::ifstream f("config/default.json");
-    if (f) {
-        nlohmann::json j; f >> j;
-        if (j.contains("valkey")) {
-            host_ = j["valkey"].value("host", host_);
-            port_ = j["valkey"].value("port", port_);
+    const char* url_env = std::getenv("VALKEY_URL");
+    if (url_env) {
+        auto parsed = parseValkeyUrl(url_env);
+        host_ = parsed.first;
+        port_ = parsed.second;
+    } else {
+        // Load Valkey connection parameters from config/default.json
+        std::ifstream f("config/default.json");
+        if (f) {
+            nlohmann::json j; f >> j;
+            if (j.contains("valkey")) {
+                host_ = j["valkey"].value("host", host_);
+                port_ = j["valkey"].value("port", port_);
+            }
         }
     }
 

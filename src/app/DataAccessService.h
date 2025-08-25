@@ -6,6 +6,7 @@
 #include <string>
 #include <vector>
 #include <cstdint>
+#include <utility>
 
 namespace sep {
 namespace services {
@@ -30,6 +31,8 @@ protected:
     Result<void> onShutdown() override;
 
 private:
+    static std::pair<std::string, int> parseValkeyUrl(const std::string& url);
+
     redisContext* context_;
     std::string host_;
     int port_;

@@ -83,16 +83,20 @@ Each test can be run independently:
 
 ```bash
 # Test T1: Time Scaling
-python test_scripts/T1_time_scaling_test.py
+python test_scripts/T1_time_scaling_test.py --beta 0.1 --n-quantiles 16
 
 # Test T2: Maximum Entropy
 python test_scripts/T2_maxent_sufficiency_test.py
 
 # Test T3: Convolutional Invariance
-python test_scripts/T3_convolutional_invariance_test.py
+python test_scripts/T3_convolutional_invariance_test.py --mapping D2 --beta 0.1
+# (reports RMSE with and without antialiasing)
 
 # Test T4: Retrodictive Reconstruction
 python test_scripts/T4_retrodictive_reconstruction_test.py
+
+# Test T4: Retrodiction Uniqueness with timeout and profiling
+python test_scripts/T4_retrodiction_uniqueness_test.py --timeout 30 --profile results/T4_profile.prof
 
 # Test T5: Smoothing vs Filtering
 python test_scripts/T5_smoothing_beats_filtering_test.py
