@@ -1,11 +1,18 @@
 #!/usr/bin/env python3
+import sys
+import os
 import numpy as np
 from scipy.signal import firwin, lfilter
+
+# Add parent directory to path for module imports
+parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, parent_dir)
+
+from common import apply_antialiasing_filter
 from sep_core import bit_mapping_D1, triad_series, rmse, generate_chirp, decimate2
 import matplotlib.pyplot as plt
 import json
 import csv
-import os
 
 # Create results directory if it doesn't exist
 os.makedirs("results", exist_ok=True)
@@ -85,13 +92,14 @@ def main():
     print("Running Test T3: Convolutional Invariance")
     print("============================================================")
     
-    # Generate chirp signal
+    # Generate chirp signal and apply antialiasing filter
     x = generate_chirp(length=200000, f0=10, f1=50, snr_db=20)
-    
+    x = apply_antialiasing_filter(x)
+
     # Map to bits and compute triads for original signal
     bits0 = bit_mapping_D1(x)
     tri0 = triad_series(bits0, beta=0.1)
-    
+
     # Decimate and compute triads for decimated signal
     xd = decimate2(x)
     bitsd = bit_mapping_D1(xd)
