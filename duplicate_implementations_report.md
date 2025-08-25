@@ -66,15 +66,13 @@ This document tracks outstanding code quality concerns in the SEP Engine codebas
 - Removed unused PatternEvolutionTrainer and orphan CUDA walk-forward validator (`src/core/pattern_evolution_trainer.*`, `src/core/cuda_walk_forward_validator.*`).
 - Eliminated leftover PatternAnalysis implementation from EngineFacade to finalize deprecation (`src/core/facade.cpp`).
 - Added missing `<cstdint>` include for CUDA memory utilities (`src/cuda/memory.cu`).
-- Manifold selection components remain active and integrated with real-time data (`frontend/src/context/ManifoldContext.js`,
-  `frontend/src/components/IdentityInspector.jsx`,
-  `frontend/src/components/MetricTimeSeries.jsx`).
 - Obsolete OANDA trader entry point removed (`src/app/oanda_trader_main.cpp`, `src/CMakeLists.txt`).
 - Leftover pattern analysis function removed from EngineFacade (`src/core/facade.cpp`).
 - Fixed misplaced validation helpers in OANDA connector (`src/io/oanda_connector.cpp`).
 - Resolved merge artifact that duplicated validation logic in OANDA connector (`src/io/oanda_connector.cpp`).
 - Obsolete OANDA historical fetcher and script dependency removed (`oanda_historical_fetcher.cpp`, `run_trader.sh`).
 - Unused configuration helper functions removed to eliminate dead code (`src/util/interpreter.cpp`).
+- Pruned unused WebSocket data handlers and legacy socket.io client dependency, keeping only active real-time streams (`frontend/src/context/WebSocketContext.js`, `frontend/package.json`, `frontend/src/components/OandaCandleChart.jsx`).
 
 ## Recommendations
 1. Remove remaining hardcoded values via configuration.

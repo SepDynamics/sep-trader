@@ -14,15 +14,7 @@ export const WebSocketProvider = ({ children }) => {
   const [connected, setConnected] = useState(false);
   const [connectionStatus, setConnectionStatus] = useState('disconnected');
   
-  // Data states for SEP system
-  const [marketData, setMarketData] = useState({});
-  const [systemStatus, setSystemStatus] = useState({});
-  const [tradingSignals, setTradingSignals] = useState([]);
-  const [tradeUpdates, setTradeUpdates] = useState([]);
-  const [performanceData, setPerformanceData] = useState({});
-  const [systemMetrics, setSystemMetrics] = useState({});
-  
-  // New data states for Valkey/Redis integration
+  // Real-time data states
   const [quantumSignals, setQuantumSignals] = useState({});
   const [signalHistory, setSignalHistory] = useState([]);
   const [valkeyMetrics, setValkeyMetrics] = useState({});
@@ -43,58 +35,7 @@ export const WebSocketProvider = ({ children }) => {
 
   // Enhanced message handlers for Valkey/Redis integration
   const messageHandlers = {
-    market: (data) => {
-      if (data.symbol) {
-        setMarketData(prev => ({
-          ...prev,
-          [data.symbol]: {
-            ...prev[data.symbol],
-            ...data,
-            lastUpdate: new Date().toISOString()
-          }
-        }));
-      }
-    },
-    
-    system: (data) => {
-      setSystemStatus(prev => ({
-        ...prev,
-        ...data,
-        lastUpdate: new Date().toISOString()
-      }));
-      
-      // Update metrics if included
-      if (data.metrics) {
-        setSystemMetrics(data.metrics);
-      }
-    },
-    
-    signals: (data) => {
-      setTradingSignals(prev => {
-        const newSignals = [data, ...prev];
-        // Keep only last 100 signals
-        return newSignals.slice(0, 100);
-      });
-    },
-    
-    performance: (data) => {
-      setPerformanceData(prev => ({
-        ...prev,
-        ...data,
-        lastUpdate: new Date().toISOString()
-      }));
-    },
-    
-    trades: (data) => {
-      if (data) {
-        setTradeUpdates(prev => {
-          const updates = [data, ...prev];
-          return updates.slice(0, 100);
-        });
-      }
-    },
-    
-    // New handlers for Valkey/Redis data streams
+    // Valkey/Redis data streams
     quantum_signals: (data) => {
       if (data.instrument && data.timestamp) {
         const signalKey = `${data.instrument}:${data.timestamp}`;
@@ -284,11 +225,6 @@ export const WebSocketProvider = ({ children }) => {
         ws.send(JSON.stringify({
           type: 'subscribe',
           channels: [
-            'market',
-            'system',
-            'signals',
-            'performance',
-            'trades',
             'quantum_signals',
             'valkey_metrics',
             'live_patterns',
@@ -378,24 +314,6 @@ export const WebSocketProvider = ({ children }) => {
         // Route to appropriate handler based on channel
         if (channel && messageHandlers[channel]) {
           messageHandlers[channel](data);
-        } else if (data) {
-          // Enhanced message routing for Valkey/Redis data
-          if (data.symbol && data.price) {
-            messageHandlers.market(data);
-          } else if (data.signal_type && data.confidence) {
-            messageHandlers.signals(data);
-          } else if (data.total_pnl !== undefined) {
-            messageHandlers.performance(data);
-          } else if (data.instrument && data.entropy !== undefined) {
-            // Quantum signal from Valkey
-            messageHandlers.quantum_signals(data);
-          } else if (data.pattern_id && data.coherence !== undefined) {
-            // Live pattern data
-            messageHandlers.live_patterns(data);
-          } else if (data.signal_key && data.updates) {
-            // Signal state updates
-            messageHandlers.signal_updates(data);
-          }
         }
     }
   };
@@ -481,15 +399,7 @@ export const WebSocketProvider = ({ children }) => {
     socket,
     connected,
     connectionStatus,
-    
-    // Traditional trading data
-    marketData,
-    systemStatus,
-    tradingSignals,
-    performanceData,
-    systemMetrics,
-    tradeUpdates,
-    
+
     // Valkey/Redis quantum data
     quantumSignals,
     signalHistory,
@@ -522,32 +432,6 @@ export const useWebSocket = () => {
     throw new Error('useWebSocket must be used within a WebSocketProvider');
   }
   return context;
-};
-
-// Export specific data hooks for convenience
-export const useMarketData = () => {
-  const { marketData } = useWebSocket();
-  return marketData;
-};
-
-export const useTradingSignals = () => {
-  const { tradingSignals } = useWebSocket();
-  return tradingSignals;
-};
-
-export const useSystemStatus = () => {
-  const { systemStatus, systemMetrics } = useWebSocket();
-  return { systemStatus, systemMetrics };
-};
-
-export const usePerformanceData = () => {
-  const { performanceData } = useWebSocket();
-  return performanceData;
-};
-
-export const useTradeUpdates = () => {
-  const { tradeUpdates } = useWebSocket();
-  return tradeUpdates;
 };
 
 export { WebSocketContext };

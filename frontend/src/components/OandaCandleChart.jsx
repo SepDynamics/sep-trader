@@ -27,7 +27,7 @@ const OandaCandleChart = ({ height = 400, showControls = true }) => {
   const [viewMode, setViewMode] = useState('line'); // 'line' or 'area'
   const [timeRange, setTimeRange] = useState('2weeks'); // '1week', '2weeks'
 
-  const { valkeyMetrics, connected } = useWebSocket();
+  const { connected } = useWebSocket();
   const { selectedSymbol, setSelectedSymbol, symbols } = useSymbol();
 
   // Fetch candle data from Valkey
