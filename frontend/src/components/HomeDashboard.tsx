@@ -1,29 +1,23 @@
 import React, { useState } from 'react';
 import ManifoldVisualizer from './ManifoldVisualizer';
-import MetricTimeSeries from './MetricTimeSeries';
-import IdentityInspector from './IdentityInspector';
 import OandaCandleChart from './OandaCandleChart';
 import AppHeader from './AppHeader';
-import { ManifoldProvider } from '../context/ManifoldContext';
 import { useSymbol } from '../context/SymbolContext';
 import { useWebSocket } from '../context/WebSocketContext';
-import { Symbol } from '../config/symbols';
 import {
   Database,
-  Activity,
-  Eye,
   Target,
   TrendingUp,
   Zap,
   Clock,
   ArrowRight,
+  Activity,
 } from 'lucide-react';
 
 const HomeDashboard: React.FC = () => {
   const { selectedSymbol, setSelectedSymbol, symbols, isValidSymbol } = useSymbol();
   const { connected, quantumSignals, livePatterns } = useWebSocket();
-  const [activeView, setActiveView] = useState<'market' | 'manifold' | 'timeseries' | 'inspector'>('market');
-  const [selectedMetric, setSelectedMetric] = useState<'entropy' | 'stability' | 'coherence'>('entropy');
+  const [activeView, setActiveView] = useState<'market' | 'manifold'>('market');
 
   const handleSymbolChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const value = e.target.value;
@@ -44,20 +38,8 @@ const HomeDashboard: React.FC = () => {
       id: 'manifold' as const,
       label: 'Manifold',
       icon: Target,
-      description: 'Quantum manifold visualization and entropy bands'
-    },
-    {
-      id: 'timeseries' as const,
-      label: 'Time Series',
-      icon: Activity,
-      description: 'Advanced metric time series analysis'
-    },
-    {
-      id: 'inspector' as const,
-      label: 'Inspector',
-      icon: Eye,
-      description: 'Detailed quantum identity analysis'
-    },
+      description: 'Quantum manifold visualization'
+    }
   ];
 
   const renderActiveView = () => {
@@ -66,17 +48,12 @@ const HomeDashboard: React.FC = () => {
         return <OandaCandleChart />;
       case 'manifold':
         return <ManifoldVisualizer />;
-      case 'timeseries':
-        return <MetricTimeSeries metric={selectedMetric} instrument={selectedSymbol} />;
-      case 'inspector':
-        return <IdentityInspector />;
-        default:
+      default:
         return <OandaCandleChart />;
     }
   };
 
   return (
-    <ManifoldProvider>
       <div className="min-h-screen bg-gray-950 text-gray-200 flex flex-col font-sans">
         <AppHeader />
 
@@ -144,22 +121,6 @@ const HomeDashboard: React.FC = () => {
               </div>
 
               <div className="flex items-center gap-4">
-                {/* Metric Selector for Time Series */}
-                {activeView === 'timeseries' && (
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm text-gray-400">Metric:</span>
-                    <select
-                      value={selectedMetric}
-                      onChange={(e) => setSelectedMetric(e.target.value as any)}
-                      className="bg-gray-800 border border-gray-600 rounded-md px-3 py-1.5 text-sm font-medium text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    >
-                      <option value="entropy">Entropy</option>
-                      <option value="stability">Stability</option>
-                      <option value="coherence">Coherence</option>
-                    </select>
-                  </div>
-                )}
-
                 {/* Instrument Selector */}
                 <div className="flex items-center gap-2">
                   <span className="text-sm text-gray-400">Instrument:</span>
@@ -185,7 +146,7 @@ const HomeDashboard: React.FC = () => {
 
           {/* Main Content Area */}
           <div className="bg-gray-900/30 rounded-xl shadow-2xl backdrop-blur-md border border-gray-700/50 overflow-hidden">
-            {activeView !== 'manifold' && activeView !== 'inspector' && (
+            {activeView !== 'manifold' && (
               <div className="p-4 sm:p-6 border-b border-gray-700/50">
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
                   <h2 className="text-2xl font-bold text-white mb-2 sm:mb-0 flex items-center gap-2">
@@ -195,9 +156,8 @@ const HomeDashboard: React.FC = () => {
                       })
                     }
                     {activeView === 'market' && `${selectedSymbol.replace('_', '/')} OANDA Candles`}
-                    {activeView === 'timeseries' && `${selectedMetric.charAt(0).toUpperCase() + selectedMetric.slice(1)} Analysis`}
                   </h2>
-                  
+
                   {activeView === 'market' && (
                     <div className="flex items-center gap-2 text-sm text-gray-400">
                       <Clock className="w-4 h-4" />
@@ -207,8 +167,8 @@ const HomeDashboard: React.FC = () => {
                 </div>
               </div>
             )}
-            
-            <div className={activeView === 'manifold' || activeView === 'inspector' ? '' : 'p-2 sm:p-4 bg-black/20'}>
+
+            <div className={activeView === 'manifold' ? '' : 'p-2 sm:p-4 bg-black/20'}>
               {renderActiveView()}
             </div>
           </div>
@@ -286,21 +246,12 @@ const HomeDashboard: React.FC = () => {
                     <ArrowRight className="w-4 h-4" />
                   </button>
                 )}
-                {activeView !== 'inspector' && (
+                {activeView !== 'market' && (
                   <button
-                    onClick={() => setActiveView('inspector')}
+                    onClick={() => setActiveView('market')}
                     className="flex items-center justify-between w-full p-2 bg-gray-800 hover:bg-gray-700 rounded transition-colors text-sm"
                   >
-                    <span>Inspect Identities</span>
-                    <ArrowRight className="w-4 h-4" />
-                  </button>
-                )}
-                {activeView !== 'timeseries' && (
-                  <button
-                    onClick={() => setActiveView('timeseries')}
-                    className="flex items-center justify-between w-full p-2 bg-gray-800 hover:bg-gray-700 rounded transition-colors text-sm"
-                  >
-                    <span>Time Series Analysis</span>
+                    <span>View OANDA Candles</span>
                     <ArrowRight className="w-4 h-4" />
                   </button>
                 )}
@@ -309,7 +260,6 @@ const HomeDashboard: React.FC = () => {
           </div>
         </main>
       </div>
-    </ManifoldProvider>
   );
 };
 

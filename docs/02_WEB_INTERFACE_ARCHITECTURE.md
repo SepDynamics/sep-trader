@@ -31,11 +31,10 @@ The SEP Professional Trading System features a modern, production-ready web inte
 ├─────────────────┬───────────────────┬───────────────────┤
 │   Components    │   State Management │   Services        │
 │                 │                   │                   │
-│ • HomeDashboard │ • ConfigContext   │ • ApiClient       │
-│ • Identity      │ • SymbolContext   │                   │
-│ • Metrics       │ • WebSocketContext│                   │
-│ • Charts        │ • ManifoldContext │                   │
-│                 │                   │                   │
+│ • HomeDashboard     │ • ConfigContext   │ • ApiClient       │
+│ • ManifoldVisualizer│ • SymbolContext   │                   │
+│ • OandaCandleChart  │ • WebSocketContext│                   │
+│                     │                   │                   │
 └─────────────────┴───────────────────┴───────────────────┘
 ```
 
@@ -446,7 +445,7 @@ const CORS_CONFIG = {
   origins: [
     'http://localhost:3000',  // Development frontend
     'http://localhost',       // Production frontend  
-    'http://129.212.145.195', // Remote production
+    'http://<your-droplet-ip>', // Remote production
   ],
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   allowedHeaders: ['Content-Type'],

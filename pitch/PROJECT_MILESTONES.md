@@ -57,7 +57,7 @@
 - [x] **Production-Ready Build** - ✅ Clean build system with dynamic libraries
 
 ### 🌐 Phase 2: Cloud Deployment (Priority Focus)  
-- [ ] **Digital Ocean Setup** - Droplet configuration and security (129.212.145.195)
+- [ ] **Digital Ocean Setup** - Droplet configuration and security (<your-droplet-ip>)
 - [ ] **Tailscale Integration** - Private network access (100.85.55.105)  
 - [ ] **Data Synchronization** - Local PC → Droplet pipeline
 - [ ] **Lightweight Trading Service** - CPU-only execution on droplet
