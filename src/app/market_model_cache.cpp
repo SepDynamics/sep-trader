@@ -243,27 +243,55 @@ bool MarketModelCache::connectToValkey() {
         disconnectFromValkey();
     }
     
-    // Parse Redis URL (simplified - assumes redis://host:port format)
+    // Parse Valkey URL supporting password and DB selection:
+    // Format: redis://[:password@]host[:port][/db]
     std::string host = "localhost";
     int port = 6379;
-    
-    if (valkey_url_.find("redis://") == 0) {
-        std::string url_part = valkey_url_.substr(8); // Remove "redis://"
-        size_t colon_pos = url_part.find(':');
-        if (colon_pos != std::string::npos) {
-            host = url_part.substr(0, colon_pos);
-            try {
-                port = std::stoi(url_part.substr(colon_pos + 1));
-            } catch (...) {
-                port = 6379; // fallback
-            }
-        } else {
-            host = url_part;
-        }
+    std::string password;
+    int db = 0;
+
+    std::string url = valkey_url_;
+    auto scheme_pos = url.find("://");
+    if (scheme_pos != std::string::npos) {
+        url = url.substr(scheme_pos + 3);
     }
-    
+
+    // Credentials segment
+    size_t at_pos = url.find('@');
+    if (at_pos != std::string::npos) {
+        std::string cred = url.substr(0, at_pos);
+        if (!cred.empty() && cred[0] == ':') {
+            password = cred.substr(1); // remove leading ':'
+        }
+        url = url.substr(at_pos + 1);
+    }
+
+    // Database index
+    size_t slash_pos = url.find('/');
+    if (slash_pos != std::string::npos) {
+        try {
+            db = std::stoi(url.substr(slash_pos + 1));
+        } catch (...) {
+            db = 0;
+        }
+        url = url.substr(0, slash_pos);
+    }
+
+    // Host and port
+    size_t colon_pos = url.find(':');
+    if (colon_pos != std::string::npos) {
+        host = url.substr(0, colon_pos);
+        try {
+            port = std::stoi(url.substr(colon_pos + 1));
+        } catch (...) {
+            port = 6379;
+        }
+    } else {
+        host = url;
+    }
+
     valkey_context_ = redisConnect(host.c_str(), port);
-    
+
     if (!valkey_context_ || valkey_context_->err) {
         std::cerr << "[CACHE] ❌ Failed to connect to Valkey at " << host << ":" << port;
         if (valkey_context_) {
@@ -274,8 +302,28 @@ bool MarketModelCache::connectToValkey() {
         std::cerr << std::endl;
         return false;
     }
-    
-    std::cout << "[CACHE] 🔗 Connected to Valkey at " << host << ":" << port << std::endl;
+
+    if (!password.empty()) {
+        redisReply* auth = (redisReply*)redisCommand(valkey_context_, "AUTH %s", password.c_str());
+        if (!auth || auth->type == REDIS_REPLY_ERROR) {
+            if (auth) freeReplyObject(auth);
+            std::cerr << "[CACHE] ❌ Valkey AUTH failed" << std::endl;
+            disconnectFromValkey();
+            return false;
+        }
+        freeReplyObject(auth);
+    }
+
+    if (db != 0) {
+        redisReply* select = (redisReply*)redisCommand(valkey_context_, "SELECT %d", db);
+        if (select) freeReplyObject(select);
+    }
+
+    std::cout << "[CACHE] 🔗 Connected to Valkey at " << host << ":" << port;
+    if (db != 0) {
+        std::cout << " (db " << db << ")";
+    }
+    std::cout << std::endl;
     return true;
 }
 

@@ -6,7 +6,9 @@ from oanda_connector import OandaConnector
 from datetime import datetime
 
 # Use your remote Valkey URL with credentials
-VALKEY_URL = os.getenv("VALKEY_URL", "redis://localhost:6379/0")
+VALKEY_URL = os.getenv("VALKEY_URL")
+if not VALKEY_URL:
+    raise EnvironmentError("VALKEY_URL environment variable is required")
 INSTRUMENT = "EUR_USD"
 
 def fetch_candles_from_oanda():
