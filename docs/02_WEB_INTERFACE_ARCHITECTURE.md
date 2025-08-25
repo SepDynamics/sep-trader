@@ -61,7 +61,7 @@ frontend/
 
 #### Base Configuration
 ```typescript
-API Base URL: http://[host]:5000/api
+API Base URL: configured via `REACT_APP_API_URL` (e.g., http://[host]:5000/api)
 Content-Type: application/json
 Authentication: X-SEP-API-KEY header (for protected endpoints)
 CORS Policy: Configured for frontend origins
