@@ -4,6 +4,10 @@ Below is a **structured execution plan** for building a suite of visual aids to 
 
 ---
 
+## 0. Build System Maintenance
+
+- Fixed NVCC failure by removing unquoted `-Dnoexcept(x)=` flag from `CMakeLists.txt` to ensure CUDA builds succeed within Docker.
+
 ## 1. Groundwork: Understand the Existing Code and Metrics
 
 1. **Review the whitepaper and docs** – The whitepaper outlines the theoretical framework (entropy, stability, coherence) and the idea of a time‑anchored manifold of identities.  The docs README specifies how the frontend talks to the backend via REST and WebSockets.  The TODO lists missing UI components and tasks.

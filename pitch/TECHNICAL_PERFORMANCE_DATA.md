@@ -71,7 +71,7 @@
 ### Build Status
 - ✅ **Professional Baseline Complete**: Enterprise architecture with clean build system
 - ✅ **Build System Stabilized**: Docker-based hermetic builds with dynamic libraries
-- ✅ **CUDA Integration**: Using targeted `noexcept(x)` workaround for compiler compatibility
+- ✅ **CUDA Integration**: Builds cleanly without `noexcept(x)` workarounds
 - ✅ **Complete Test Validation**: All 7 critical test suites passing with 100% coverage
 - ✅ **Production Ready**: Mathematical foundation verified, ready for deployment
 - ✅ **Professional Components**: State management, configuration, cache, API, CLI all working
@@ -291,7 +291,7 @@ source OANDA.env && ./build/src/apps/oanda_trader/quantum_tracker
 ### Environment
 - **CUDA Version**: 12.9
 - **Compiler**: g++ (host compiler)
-- **Known Fix**: CMakeLists.txt includes `-Xcompiler -Dnoexcept\\(x\\)=` workaround
+- **Note**: Previous `-Dnoexcept(x)=` workaround removed; modern toolchain compiles cleanly
 
 ### Profiling Commands
 ```bash
