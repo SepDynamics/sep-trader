@@ -27,6 +27,12 @@ export const WebSocketProvider = ({ children }) => {
   const [signalHistory, setSignalHistory] = useState([]);
   const [valkeyMetrics, setValkeyMetrics] = useState({});
   const [livePatterns, setLivePatterns] = useState({});
+
+  // Backwards computation manifold states
+  const [manifoldStream, setManifoldStream] = useState({});
+  const [pinStates, setPinStates] = useState(new Map());
+  const [signalEvolution, setSignalEvolution] = useState(new Map());
+  const [backwardsDerivations, setBackwardsDerivations] = useState(new Map());
   
   // Connection management
   const reconnectTimeoutRef = useRef(null);
@@ -489,6 +495,10 @@ export const WebSocketProvider = ({ children }) => {
     signalHistory,
     valkeyMetrics,
     livePatterns,
+    manifoldStream,
+    pinStates,
+    signalEvolution,
+    backwardsDerivations,
     
     // Methods
     connect,
